@@ -1,0 +1,3 @@
+# Optional für das TGA-Modul. Ohne diese Pakete läuft das Modul vollständig (Textexporte).
+# NETZSCH .ngb-ss3/.ngb-bs3 direkt lesen (TGA-02). Zieht polars, pyarrow und scipy nach (etwa 120 MB).
+pyngb>=0.6

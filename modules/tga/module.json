@@ -1,0 +1,25 @@
+{
+  "id": "tga",
+  "name": "TGA",
+  "name_en": "TGA",
+  "description": "Thermogravimetrie: NETZSCH-, TA-, METTLER-, PerkinElmer-, Shimadzu- und CSV-Exporte; DTG, Stufen mit Onset/Endset (ISO 11358-1), T bei x % Verlust, Rückstand, Zusammensetzung (ASTM E1131, D7582), Stöchiometrie, Calciumoxalat-Prüfung; Bibliothekssuche und Mischungsanalyse, eigene Referenzen mit Quelle, Vergleich, Kinetik (Friedman, OFW, KAS, Vyazovkin, Kissinger, ASTM E1877), Fraser-Suzuki-Trennung, eigene Gleichungen.",
+  "description_en": "Thermogravimetry: NETZSCH, TA, METTLER, PerkinElmer, Shimadzu and CSV exports; DTG, steps with onset/endset (ISO 11358-1), T at x % loss, residue, composition (ASTM E1131, D7582), stoichiometry, calcium oxalate check; library search and mixture analysis, own references with sources, overlays, kinetics (Friedman, OFW, KAS, Vyazovkin, Kissinger, ASTM E1877), Fraser-Suzuki deconvolution, own equations.",
+  "icon": "chart",
+  "icon_svg": "<path d=\"M3 4v16h18\"/><path d=\"M5 6h4c2 0 2 4 4 4h2c2 0 2 5 4 5h1\"/>",
+  "color": "#b45309",
+  "status": "ready",
+  "order": 25,
+  "version": "0.12.0",
+  "accepts": [".txt", ".csv", ".tsv", ".asc", ".dat", ".xlsx"],
+  "produces": ["figure", "table", "values", "data", "citation", "text"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "tga.server", "--port", "{port}", "--out", "{outputs}", "--no-browser"],
+    "health": "/api/meta",
+    "requires": ["numpy", "matplotlib"]
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

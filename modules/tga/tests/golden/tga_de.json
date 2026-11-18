@@ -1,0 +1,424 @@
+{
+ "bundle": {
+  "format": "folio-lab-bundle/1",
+  "lang": "de",
+  "module": "tga",
+  "module_name": "TGA",
+  "slug": "tga-calciumoxalat-monohydrat-synthetisch",
+  "summary": "Calciumoxalat-Monohydrat (synthetisch): 3 Stufen",
+  "title": "TGA Calciumoxalat-Monohydrat (synthetisch)"
+ },
+ "files": {
+  "data/tg.csv": {
+   "first": "0,25,100.001,0.00064",
+   "header": "t_min,T_C,m_pct,dtg_pct_C",
+   "last": "92.5,950,38.3826,-0.000906667",
+   "rows": 1851,
+   "type": "csv"
+  },
+  "fig/tg.pdf": {
+   "size": 30231,
+   "type": "pdf"
+  },
+  "fig/tg.png": {
+   "size": 75784,
+   "type": "png"
+  },
+  "gleichungen.tex": {
+   "lines": [
+    "\\begin{tabular}{lrr}",
+    "\\toprule",
+    "Grösse & Gleichung & Wert \\\\",
+    "\\midrule",
+    "$n$ n(H2O) & $n = \\frac{\\frac{L_{1}}{100} \\cdot 146{,}11}{18{,}015}$~\\cite{eq-brown-2001-69f95} & $0{,}9851$ \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "kalibrierung.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{lrrr}",
+    "\\toprule",
+    "Abgabe & theoretisch [\\%] & gemessen [\\%] & Abweichung \\\\",
+    "\\midrule",
+    "H$_2$O & 12,33 & 12,15 & $-$0,18 \\\\",
+    "CO & 19,17 & 19,30 & 0,13 \\\\",
+    "CO$_2$ & 30,12 & 29,84 & $-$0,28 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "kennwerte.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{lr}",
+    "\\toprule",
+    "Kennwert & Wert \\\\",
+    "\\midrule",
+    "$T_{1\\%}$ & 149,5 °C \\\\",
+    "$T_{2\\%}$ & 161,2 °C \\\\",
+    "$T_{5\\%}$ & 179,5 °C \\\\",
+    "$T_{10\\%}$ & 200,8 °C \\\\",
+    "$T_{50\\%}$ & 740,9 °C \\\\",
+    "Rückstand (950 °C) & 38,38~\\% \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "refs.bib": {
+   "lines": [
+    "@misc{data-tga-calciumoxalat-monohydrat-synthetisch,",
+    "  title = {Calciumoxalat-Monohydrat (synthetisch)},",
+    "  howpublished = {Calciumoxalat\\_synth.csv},",
+    "  note = {Text/CSV, 1851 Punkte, 43 KiB}",
+    "}",
+    "",
+    "@manual{tga-iso11358-1,",
+    "  title = {ISO 11358-1:2022 Plastics -- Thermogravimetry (TG) of polymers -- Part 1: General principles},",
+    "  organization = {International Organization for Standardization},",
+    "  year = {2022},",
+    "  type = {Norm}",
+    "}",
+    "",
+    "@article{tga-savgol,",
+    "  author = {Savitzky, A. and Golay, M. J. E.},",
+    "  title = {Smoothing and differentiation of data by simplified least squares procedures},",
+    "  journal = {Analytical Chemistry},",
+    "  year = {1964},",
+    "  volume = {36},",
+    "  pages = {1627--1639},",
+    "  number = {8},",
+    "  doi = {10.1021/ac60214a047}",
+    "}",
+    "",
+    "@article{tga-ciaaw2021,",
+    "  author = {Prohaska, T. and Irrgeher, J. and Benefield, J. and Böhlke, J. K. and Chesson, L. A. and Coplen, T. B. and Ding, T. and Dunn, P. J. H. and Gröning, M. and Holden, N. E. and Meijer, H. A. J. and Moossen, H. and Possolo, A. and Takahashi, Y. and Vogl, J. and Walczyk, T. and Wang, J. and Wieser, M. E. and Yoneda, S. and Zhu, X.-K. and Meija, J.},",
+    "  title = {Standard atomic weights of the elements 2021 (IUPAC Technical Report)},",
+    "  journal = {Pure and Applied Chemistry},",
+    "  year = {2022},",
+    "  volume = {94},",
+    "  pages = {573--600},",
+    "  number = {5},",
+    "  doi = {10.1515/pac-2019-0603}",
+    "}",
+    "",
+    "@book{tga-brown2001,",
+    "  author = {Brown, M. E.},",
+    "  title = {Introduction to Thermal Analysis: Techniques and Applications},",
+    "  publisher = {Kluwer Academic Publishers},",
+    "  year = {2001},",
+    "  edition = {2}",
+    "}",
+    "",
+    "@book{eq-brown-2001-69f95,",
+    "  author = {Brown, M.E.},",
+    "  title = {Introduction to Thermal Analysis},",
+    "  year = {2001}",
+    "}"
+   ],
+   "type": "bib"
+  },
+  "stoechiometrie.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{lrrr}",
+    "\\toprule",
+    "Zersetzung & Stufe & theor. Verlust [\\%] & Gehalt [\\%] \\\\",
+    "\\midrule",
+    "Ca-Oxalat-Monohydrat $\\rightarrow$ CaC$_2$O$_4$ + H$_2$O & 1 & 12,33 & 98,5 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "stufen.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{rrrrrr}",
+    "\\toprule",
+    "Nr. & $T_\\mathrm{on}$ [°C] & $T_\\mathrm{p}$ [°C] & $T_\\mathrm{end}$ [°C] & Verlust [\\%] & Verlust [mg] \\\\",
+    "\\midrule",
+    "1 & 160,7 & 188,5 & 209,1 & 12,15 & 1,215 \\\\",
+    "2 & 459,4 & 498,5 & 523,5 & 19,30 & 1,930 \\\\",
+    "3 & 675,7 & 738,5 & 781,8 & 29,84 & 2,984 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "text-ergebnisse.tex": {
+   "lines": [
+    "Calciumoxalat-Monohydrat (synthetisch) verliert in 3 Stufen Masse: \\labval{tga-calciumoxalat-monohydrat-synthetisch}{step1-loss} (Spitze \\labval{tga-calciumoxalat-monohydrat-synthetisch}{step1-peak}), \\labval{tga-calciumoxalat-monohydrat-synthetisch}{step2-loss} (Spitze \\labval{tga-calciumoxalat-monohydrat-synthetisch}{step2-peak}), \\labval{tga-calciumoxalat-monohydrat-synthetisch}{step3-loss} (Spitze \\labval{tga-calciumoxalat-monohydrat-synthetisch}{step3-peak}). 5~\\% Massenverlust sind bei \\labval{tga-calciumoxalat-monohydrat-synthetisch}{t5} erreicht. Der Rückstand beträgt \\labval{tga-calciumoxalat-monohydrat-synthetisch}{residue}. Die Kalibrierprüfung mit Calciumoxalat ist bestanden."
+   ],
+   "type": "tex"
+  },
+  "text-methodik.tex": {
+   "lines": [
+    "Der Lauf Calciumoxalat-Monohydrat (synthetisch)~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch} (Einwaage 10,000~mg, Heizrate 10,0~K/min, Atmosphäre N$_2$, Tiegel Al2O3) wurde nach ISO~11358-1~\\cite{tga-iso11358-1} ausgewertet. Die DTG wurde mit einem Savitzky-Golay-Filter~\\cite{tga-savgol} über etwa 4~K berechnet. Stufen wurden aus den Spitzen der Massenverlustrate bestimmt; die extrapolierte Onset- und Endtemperatur ist der Schnittpunkt der Tangente im Wendepunkt mit der verlängerten Basislinie vor bzw. nach der Stufe. Gehalte aus Stufen wurden über die theoretischen Massenverluste der Zersetzung berechnet (Atomgewichte nach IUPAC~\\cite{tga-ciaaw2021,tga-brown2001}).",
+    "",
+    "Zusätzlich wurden folgende eigene Gleichungen ausgewertet:",
+    "\\[ n = \\frac{\\frac{L_{1}}{100} \\cdot 146{,}11}{18{,}015} = 0{,}9851 \\] \\cite{eq-brown-2001-69f95}"
+   ],
+   "type": "tex"
+  },
+  "values.tex": {
+   "lines": [
+    "% Values of 'TGA Calciumoxalat-Monohydrat (synthetisch)' (TGA). Generated by Folio Lab; do not edit.",
+    "% Use as \\labval{tga-calciumoxalat-monohydrat-synthetisch}{<key>}.",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{eq-n}{0{,}9851}% n(H2O)",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-loss}{12,15\\,\\%}% Verlust Stufe 1",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-onset}{160,7\\,°C}% Onset 1",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-peak}{188,5\\,°C}% DTG-Spitze 1",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-endset}{209,1\\,°C}% Endset 1",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step2-loss}{19,30\\,\\%}% Verlust Stufe 2",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step2-onset}{459,4\\,°C}% Onset 2",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step2-peak}{498,5\\,°C}% DTG-Spitze 2",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step2-endset}{523,5\\,°C}% Endset 2",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step3-loss}{29,84\\,\\%}% Verlust Stufe 3",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step3-onset}{675,7\\,°C}% Onset 3",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step3-peak}{738,5\\,°C}% DTG-Spitze 3",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step3-endset}{781,8\\,°C}% Endset 3",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{t1}{149,5\\,°C}% T 1 %",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{t2}{161,2\\,°C}% T 2 %",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{t5}{179,5\\,°C}% T 5 %",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{t10}{200,8\\,°C}% T 10 %",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{t50}{740,9\\,°C}% T 50 %",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{residue}{38,38\\,\\%}% Rückstand",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{content1}{98,5\\,\\%}% Ca-Oxalat-Monohydrat $\\rightarrow$ CaC$_2$O$_4$ + H$_2$O"
+   ],
+   "type": "tex"
+  }
+ },
+ "items": [
+  {
+   "key": "data-tga-calciumoxalat-monohydrat-synthetisch",
+   "kind": "citation",
+   "title": "Calciumoxalat-Monohydrat (synthetisch)"
+  },
+  {
+   "key": "tga-iso11358-1",
+   "kind": "citation",
+   "title": "ISO 11358-1:2022 Plastics -- Thermogravimetry (TG) of polymers -- Part 1: General principles"
+  },
+  {
+   "key": "tga-savgol",
+   "kind": "citation",
+   "title": "Smoothing and differentiation of data by simplified least squares procedures"
+  },
+  {
+   "key": "tga-ciaaw2021",
+   "kind": "citation",
+   "title": "Standard atomic weights of the elements 2021 (IUPAC Technical Report)"
+  },
+  {
+   "key": "tga-brown2001",
+   "kind": "citation",
+   "title": "Introduction to Thermal Analysis: Techniques and Applications"
+  },
+  {
+   "caption": "Thermogravimetrie von Calciumoxalat-Monohydrat (synthetisch): Masse (TG) und Massenverlustrate (DTG) mit Stufen und extrapolierten Onsets~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch}.",
+   "cites": [
+    "data-tga-calciumoxalat-monohydrat-synthetisch"
+   ],
+   "file": "fig/tg.pdf",
+   "id": "tg",
+   "kind": "figure",
+   "label": "fig:tga-calciumoxalat-monohydrat-synthetisch-tg",
+   "preview": "fig/tg.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Massenverluststufen von Calciumoxalat-Monohydrat (synthetisch)~\\cite{tga-iso11358-1}.",
+   "cites": [
+    "tga-iso11358-1"
+   ],
+   "file": "stufen.tex",
+   "id": "stufen",
+   "kind": "table",
+   "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-stufen",
+   "notes": ""
+  },
+  {
+   "caption": "Kennwerte von Calciumoxalat-Monohydrat (synthetisch): Temperatur bei x~\\% Massenverlust und Rückstand.",
+   "cites": [],
+   "file": "kennwerte.tex",
+   "id": "kennwerte",
+   "kind": "table",
+   "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-kennwerte",
+   "notes": ""
+  },
+  {
+   "caption": "Gehalte aus der Stöchiometrie der Zersetzung (Calciumoxalat-Monohydrat (synthetisch))~\\cite{tga-ciaaw2021,tga-brown2001}.",
+   "cites": [
+    "tga-ciaaw2021",
+    "tga-brown2001"
+   ],
+   "file": "stoechiometrie.tex",
+   "id": "stoechiometrie",
+   "kind": "table",
+   "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-stoechiometrie",
+   "notes": ""
+  },
+  {
+   "caption": "Kalibrierprüfung mit Calciumoxalat-Monohydrat (Calciumoxalat-Monohydrat (synthetisch)).",
+   "cites": [],
+   "file": "kalibrierung.tex",
+   "id": "kalibrierung",
+   "kind": "table",
+   "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-kalibrierung",
+   "notes": ""
+  },
+  {
+   "key": "eq-brown-2001-69f95",
+   "kind": "citation",
+   "title": "Introduction to Thermal Analysis"
+  },
+  {
+   "caption": "Eigene Gleichungen.",
+   "cites": [],
+   "file": "gleichungen.tex",
+   "id": "gleichungen",
+   "kind": "table",
+   "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-gleichungen",
+   "notes": ""
+  },
+  {
+   "columns": [
+    "t_min",
+    "T_C",
+    "m_pct",
+    "dtg_pct_C"
+   ],
+   "description": "TG/DTG Calciumoxalat-Monohydrat (synthetisch).",
+   "file": "data/tg.csv",
+   "id": "tg",
+   "kind": "data",
+   "labels": {
+    "T_C": "T [°C]",
+    "dtg_pct_C": "DTG [\\%/°C]",
+    "m_pct": "m [\\%]"
+   },
+   "plot": {
+    "x": "T_C",
+    "y": "m_pct"
+   },
+   "rows": 1851
+  },
+  {
+   "file": "text-methodik.tex",
+   "id": "methodik",
+   "kind": "text",
+   "title": "Methodik"
+  },
+  {
+   "file": "text-ergebnisse.tex",
+   "id": "ergebnisse",
+   "kind": "text",
+   "title": "Ergebnisse"
+  },
+  {
+   "file": "values.tex",
+   "kind": "values",
+   "values": [
+    [
+     "eq-n",
+     "0,9851"
+    ],
+    [
+     "step1-loss",
+     "12.15 %"
+    ],
+    [
+     "step1-onset",
+     "160.7 °C"
+    ],
+    [
+     "step1-peak",
+     "188.5 °C"
+    ],
+    [
+     "step1-endset",
+     "209.1 °C"
+    ],
+    [
+     "step2-loss",
+     "19.30 %"
+    ],
+    [
+     "step2-onset",
+     "459.4 °C"
+    ],
+    [
+     "step2-peak",
+     "498.5 °C"
+    ],
+    [
+     "step2-endset",
+     "523.5 °C"
+    ],
+    [
+     "step3-loss",
+     "29.84 %"
+    ],
+    [
+     "step3-onset",
+     "675.7 °C"
+    ],
+    [
+     "step3-peak",
+     "738.5 °C"
+    ],
+    [
+     "step3-endset",
+     "781.8 °C"
+    ],
+    [
+     "t1",
+     "149.5 °C"
+    ],
+    [
+     "t2",
+     "161.2 °C"
+    ],
+    [
+     "t5",
+     "179.5 °C"
+    ],
+    [
+     "t10",
+     "200.8 °C"
+    ],
+    [
+     "t50",
+     "740.9 °C"
+    ],
+    [
+     "residue",
+     "38.38 %"
+    ],
+    [
+     "content1",
+     "98.5 %"
+    ]
+   ]
+  }
+ ],
+ "source": {
+  "files": {
+   "Calciumoxalat_synth.csv": {
+    "size": 44344
+   }
+  },
+  "request": {
+   "items": [
+    {
+     "name": "Calciumoxalat_synth.csv"
+    }
+   ]
+  }
+ }
+}

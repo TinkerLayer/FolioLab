@@ -1,0 +1,485 @@
+{
+ "bundle": {
+  "format": "folio-lab-bundle/1",
+  "lang": "en",
+  "module": "mikroskopie",
+  "module_name": "Microscopy",
+  "slug": "image-analysis-beispiel-partikel-tif",
+  "summary": "Beispiel_Partikel.tif: 55 particles, 4.1 %",
+  "title": "Image analysis Beispiel_Partikel.tif"
+ },
+ "files": {
+  "data/partikel.csv": {
+   "first": "1,19.8125,17.2782,0.833976,5.02255,6.32456,71.5651,4.25,6.1359,4.11122,77.4936,1.49248,0.670027,0.939259,31.1408,3.98778,29,1,4.25,6,317,2681.49,646.292,1308,3330,53126.9",
+   "header": "id,Area,Perim,Circ,ECD,Feret,FeretAngle,MinFeret,Major,Minor,Angle,AR,Round,Solidity,X,Y,BX,BY,Width,Height,Pixels,Mean,StdDev,Min,Max,IntDen",
+   "last": "55,13.9375,13.9246,0.903292,4.21257,4.8283,68.7495,4,4.60064,3.85724,65.4745,1.19273,0.838415,0.942918,59.0129,138.541,57,136.25,4,4.5,223,1972.71,291.36,1307,2271,27494.7",
+   "rows": 55,
+   "type": "csv"
+  },
+  "data/profil1.csv": {
+   "first": "0,211",
+   "header": "d,value",
+   "last": "125.1,214.5",
+   "rows": 501,
+   "type": "csv"
+  },
+  "fig/bild.pdf": {
+   "size": 112505,
+   "type": "pdf"
+  },
+  "fig/bild.png": {
+   "size": 207696,
+   "type": "png"
+  },
+  "fig/form.pdf": {
+   "size": 12210,
+   "type": "pdf"
+  },
+  "fig/form.png": {
+   "size": 25622,
+   "type": "png"
+  },
+  "fig/groessen.pdf": {
+   "size": 11131,
+   "type": "pdf"
+  },
+  "fig/groessen.png": {
+   "size": 18621,
+   "type": "png"
+  },
+  "fig/histogramm.pdf": {
+   "size": 14847,
+   "type": "pdf"
+  },
+  "fig/histogramm.png": {
+   "size": 26149,
+   "type": "png"
+  },
+  "fig/partikel.pdf": {
+   "size": 143924,
+   "type": "pdf"
+  },
+  "fig/partikel.png": {
+   "size": 242953,
+   "type": "png"
+  },
+  "fig/profil1.pdf": {
+   "size": 14130,
+   "type": "pdf"
+  },
+  "fig/profil1.png": {
+   "size": 37307,
+   "type": "png"
+  },
+  "messungen.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{lrrrrr}",
+    "\\toprule",
+    "Selection & Area [$\\mu$m$^2$] & Mean & Std. dev. & Min & Max \\\\",
+    "\\midrule",
+    "Feld A & 1875 & 290.9 & 429.5 & 132 & 3070 \\\\",
+    "L1 (line, 125.10\\,$\\mu$m) & -- & 536.7 & 803.5 & 171 & 3281 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "partikel.tex": {
+   "lines": [
+    "\\begin{tabular}{lr}",
+    "\\toprule",
+    "Quantity & Value \\\\",
+    "\\midrule",
+    "Number of particles & 55 \\\\",
+    "Analysed area & 27648\\,$\\mu$m$^2$ \\\\",
+    "Area fraction & 4.10\\,\\% \\\\",
+    "Mean area & 20.6\\,$\\pm$\\,14.8\\,$\\mu$m$^2$ \\\\",
+    "Equivalent diameter & 4.76\\,$\\pm$\\,1.90\\,$\\mu$m \\\\",
+    "D10 / D50 / D90 & 2.34 / 5.02 / 6.98\\,$\\mu$m \\\\",
+    "Circularity & 0.85\\,$\\pm$\\,0.09 \\\\",
+    "Feret diameter & 5.85\\,$\\pm$\\,2.65\\,$\\mu$m \\\\",
+    "Aspect ratio & 1.38\\,$\\pm$\\,0.33 \\\\",
+    "Solidity & 0.93\\,$\\pm$\\,0.03 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "refs.bib": {
+   "lines": [
+    "@misc{data-image-analysis-beispiel-partikel-tif,",
+    "  title = {Beispiel\\_Partikel.tif},",
+    "  howpublished = {Image file},",
+    "  note = {768$\\times$576 px, 16-bit, 0.25 $\\mu$m/px, 864 KiB}",
+    "}",
+    "",
+    "@article{otsu1979,",
+    "  author = {Otsu, Nobuyuki},",
+    "  title = {A threshold selection method from gray-level histograms},",
+    "  journal = {IEEE Transactions on Systems, Man, and Cybernetics},",
+    "  volume = {9},",
+    "  number = {1},",
+    "  pages = {62--66},",
+    "  year = {1979},",
+    "  doi = {10.1109/TSMC.1979.4310076}",
+    "}"
+   ],
+   "type": "bib"
+  },
+  "text-ergebnisse.tex": {
+   "lines": [
+    "\\labval{image-analysis-beispiel-partikel-tif}{n} particles were detected in Beispiel\\_Partikel.tif, covering \\labval{image-analysis-beispiel-partikel-tif}{areaFrac} of the analysed area. The mean equivalent diameter is \\labval{image-analysis-beispiel-partikel-tif}{meanECD} (standard deviation \\labval{image-analysis-beispiel-partikel-tif}{sdECD}), the mean area \\labval{image-analysis-beispiel-partikel-tif}{meanArea}. The size distribution has $D_{10}$ = \\labval{image-analysis-beispiel-partikel-tif}{D10}, $D_{50}$ = \\labval{image-analysis-beispiel-partikel-tif}{D50} and $D_{90}$ = \\labval{image-analysis-beispiel-partikel-tif}{D90}. The mean circularity is \\labval{image-analysis-beispiel-partikel-tif}{meanCirc} (1 is a circle); the mean Feret diameter is \\labval{image-analysis-beispiel-partikel-tif}{meanFeret}. In selection Feld A the mean grey value is \\labval{image-analysis-beispiel-partikel-tif}{roi1Mean} over an area of \\labval{image-analysis-beispiel-partikel-tif}{roi1Area}. In selection L1 the mean grey value is \\labval{image-analysis-beispiel-partikel-tif}{roi2Mean} along a length of \\labval{image-analysis-beispiel-partikel-tif}{roi2Length}."
+   ],
+   "type": "tex"
+  },
+  "text-methodik.tex": {
+   "lines": [
+    "The micrograph Beispiel\\_Partikel.tif \\cite{data-image-analysis-beispiel-partikel-tif} (768\\,$\\times$\\,576 pixels, 16-bit, pixel size \\labval{image-analysis-beispiel-partikel-tif}{px}) was analysed. Processing comprised, in this order: Subtract background (r = 30 px, dark background); Gaussian blur ($\\sigma$ = 1.5 px); Threshold (make binary) (Otsu, dark background); Fill holes. The threshold was set automatically with the Otsu method \\cite{otsu1979} (\\labval{image-analysis-beispiel-partikel-tif}{thr}). Particles were detected as connected regions of the binary image (8-connectivity) with an area of 2.00 to $\\infty$\\,$\\mu$m$^2$ and a circularity $4\\pi A/P^2$ of 0.00 to 1.00; particles touching the image border were excluded. The perimeter follows the contour through the centres of the boundary pixels; the equivalent circle diameter (ECD) is the diameter of the circle of equal area."
+   ],
+   "type": "tex"
+  },
+  "values.tex": {
+   "lines": [
+    "% Values of 'Image analysis Beispiel_Partikel.tif' (Microscopy). Generated by Folio Lab; do not edit.",
+    "% Use as \\labval{image-analysis-beispiel-partikel-tif}{<key>}.",
+    "\\labset{image-analysis-beispiel-partikel-tif}{px}{0.2500\\,$\\mu$m/px}% Pixel size",
+    "\\labset{image-analysis-beispiel-partikel-tif}{imgW}{192\\,$\\mu$m}% Image width",
+    "\\labset{image-analysis-beispiel-partikel-tif}{imgH}{144\\,$\\mu$m}% Image height",
+    "\\labset{image-analysis-beispiel-partikel-tif}{thr}{1307--5457}% Threshold",
+    "\\labset{image-analysis-beispiel-partikel-tif}{thrMethod}{Otsu}% Threshold method",
+    "\\labset{image-analysis-beispiel-partikel-tif}{n}{55}% Particle count",
+    "\\labset{image-analysis-beispiel-partikel-tif}{areaFrac}{4.10\\,\\%}% Area fraction",
+    "\\labset{image-analysis-beispiel-partikel-tif}{meanArea}{20.6\\,$\\mu$m$^2$}% Mean area",
+    "\\labset{image-analysis-beispiel-partikel-tif}{meanECD}{4.76\\,$\\mu$m}% Mean equivalent diameter",
+    "\\labset{image-analysis-beispiel-partikel-tif}{sdECD}{1.90\\,$\\mu$m}% SD of equivalent diameter",
+    "\\labset{image-analysis-beispiel-partikel-tif}{meanCirc}{0.85}% Mean circularity",
+    "\\labset{image-analysis-beispiel-partikel-tif}{meanFeret}{5.85\\,$\\mu$m}% Mean Feret diameter",
+    "\\labset{image-analysis-beispiel-partikel-tif}{D10}{2.34\\,$\\mu$m}% D10",
+    "\\labset{image-analysis-beispiel-partikel-tif}{D50}{5.02\\,$\\mu$m}% D50",
+    "\\labset{image-analysis-beispiel-partikel-tif}{D90}{6.98\\,$\\mu$m}% D90",
+    "\\labset{image-analysis-beispiel-partikel-tif}{roi1Mean}{290.9}% Feld A: mean",
+    "\\labset{image-analysis-beispiel-partikel-tif}{roi1Area}{1875\\,$\\mu$m$^2$}% Feld A: area",
+    "\\labset{image-analysis-beispiel-partikel-tif}{roi2Mean}{536.7}% L1: mean",
+    "\\labset{image-analysis-beispiel-partikel-tif}{roi2Length}{125.10\\,$\\mu$m}% L1: length"
+   ],
+   "type": "tex"
+  }
+ },
+ "items": [
+  {
+   "key": "data-image-analysis-beispiel-partikel-tif",
+   "kind": "citation",
+   "title": "Beispiel\\_Partikel.tif"
+  },
+  {
+   "key": "otsu1979",
+   "kind": "citation",
+   "title": "A threshold selection method from gray-level histograms"
+  },
+  {
+   "caption": "Micrograph Beispiel\\_Partikel.tif with the measured selections.",
+   "cites": [],
+   "file": "fig/bild.pdf",
+   "id": "bild",
+   "kind": "figure",
+   "label": "fig:image-analysis-beispiel-partikel-tif-bild",
+   "preview": "fig/bild.png",
+   "width": "0.8"
+  },
+  {
+   "caption": "Detected particles in Beispiel\\_Partikel.tif (55 particles, outlines in cyan).",
+   "cites": [],
+   "file": "fig/partikel.pdf",
+   "id": "partikel",
+   "kind": "figure",
+   "label": "fig:image-analysis-beispiel-partikel-tif-partikel",
+   "preview": "fig/partikel.png",
+   "width": "0.8"
+  },
+  {
+   "caption": "Grey-value histogram of Beispiel\\_Partikel.tif with threshold range (Otsu).",
+   "cites": [],
+   "file": "fig/histogramm.pdf",
+   "id": "histogramm",
+   "kind": "figure",
+   "label": "fig:image-analysis-beispiel-partikel-tif-histogramm",
+   "preview": "fig/histogramm.png",
+   "width": "0.75"
+  },
+  {
+   "caption": "Distribution of the equivalent circle diameter of the particles in Beispiel\\_Partikel.tif.",
+   "cites": [],
+   "file": "fig/groessen.pdf",
+   "id": "groessen",
+   "kind": "figure",
+   "label": "fig:image-analysis-beispiel-partikel-tif-groessen",
+   "preview": "fig/groessen.png",
+   "width": "0.75"
+  },
+  {
+   "caption": "Circularity versus equivalent diameter of the particles in Beispiel\\_Partikel.tif.",
+   "cites": [],
+   "file": "fig/form.pdf",
+   "id": "form",
+   "kind": "figure",
+   "label": "fig:image-analysis-beispiel-partikel-tif-form",
+   "preview": "fig/form.png",
+   "width": "0.75"
+  },
+  {
+   "caption": "Grey-value profile along line L1 in Beispiel\\_Partikel.tif.",
+   "cites": [],
+   "file": "fig/profil1.pdf",
+   "id": "profil1",
+   "kind": "figure",
+   "label": "fig:image-analysis-beispiel-partikel-tif-profil1",
+   "preview": "fig/profil1.png",
+   "width": "0.75"
+  },
+  {
+   "caption": "Measurements of the selections in Beispiel\\_Partikel.tif.",
+   "cites": [],
+   "file": "messungen.tex",
+   "id": "messungen",
+   "kind": "table",
+   "label": "tab:image-analysis-beispiel-partikel-tif-messungen",
+   "notes": ""
+  },
+  {
+   "caption": "Particle analysis of Beispiel\\_Partikel.tif.",
+   "cites": [],
+   "file": "partikel.tex",
+   "id": "partikel",
+   "kind": "table",
+   "label": "tab:image-analysis-beispiel-partikel-tif-partikel",
+   "notes": "Mean $\\pm$ standard deviation; ECD: diameter of the circle of equal area."
+  },
+  {
+   "columns": [
+    "id",
+    "Area",
+    "Perim",
+    "Circ",
+    "ECD",
+    "Feret",
+    "FeretAngle",
+    "MinFeret",
+    "Major",
+    "Minor",
+    "Angle",
+    "AR",
+    "Round",
+    "Solidity",
+    "X",
+    "Y",
+    "BX",
+    "BY",
+    "Width",
+    "Height",
+    "Pixels",
+    "Mean",
+    "StdDev",
+    "Min",
+    "Max",
+    "IntDen"
+   ],
+   "description": "Particles in Beispiel\\_Partikel.tif: area, perimeter, shape, Feret, position, intensity.",
+   "file": "data/partikel.csv",
+   "id": "partikel",
+   "kind": "data",
+   "labels": {
+    "AR": "AR",
+    "Area": "Area [$\\mu$m$^2$]",
+    "Circ": "Circularity",
+    "ECD": "ECD [$\\mu$m]",
+    "Feret": "Feret [$\\mu$m]",
+    "Mean": "Mean",
+    "Perim": "Perimeter [$\\mu$m]",
+    "Solidity": "Solidity",
+    "X": "x [$\\mu$m]",
+    "Y": "y [$\\mu$m]"
+   },
+   "plot": {
+    "style": "marks",
+    "x": "ECD",
+    "y": "Circ"
+   },
+   "rows": 55
+  },
+  {
+   "columns": [
+    "d",
+    "value"
+   ],
+   "description": "Grey-value profile along L1 in Beispiel\\_Partikel.tif.",
+   "file": "data/profil1.csv",
+   "id": "profil1",
+   "kind": "data",
+   "labels": {
+    "d": "Distance [$\\mu$m]",
+    "value": "Grey value"
+   },
+   "plot": {
+    "x": "d",
+    "y": "value"
+   },
+   "rows": 501
+  },
+  {
+   "file": "text-methodik.tex",
+   "id": "methodik",
+   "kind": "text",
+   "title": "Methods"
+  },
+  {
+   "file": "text-ergebnisse.tex",
+   "id": "ergebnisse",
+   "kind": "text",
+   "title": "Results"
+  },
+  {
+   "file": "values.tex",
+   "kind": "values",
+   "values": [
+    [
+     "px",
+     "0.25 µm/px"
+    ],
+    [
+     "imgW",
+     ""
+    ],
+    [
+     "imgH",
+     ""
+    ],
+    [
+     "thr",
+     "1307–5457"
+    ],
+    [
+     "thrMethod",
+     "Otsu"
+    ],
+    [
+     "n",
+     "55"
+    ],
+    [
+     "areaFrac",
+     "4.10 %"
+    ],
+    [
+     "meanArea",
+     ""
+    ],
+    [
+     "meanECD",
+     "4.76 µm"
+    ],
+    [
+     "sdECD",
+     ""
+    ],
+    [
+     "meanCirc",
+     "0.85"
+    ],
+    [
+     "meanFeret",
+     ""
+    ],
+    [
+     "D10",
+     "2.34 µm"
+    ],
+    [
+     "D50",
+     "5.02 µm"
+    ],
+    [
+     "D90",
+     "6.98 µm"
+    ],
+    [
+     "roi1Mean",
+     "290.9"
+    ],
+    [
+     "roi1Area",
+     ""
+    ],
+    [
+     "roi2Mean",
+     "536.7"
+    ],
+    [
+     "roi2Length",
+     ""
+    ]
+   ]
+  }
+ ],
+ "source": {
+  "files": {
+   "Beispiel_Partikel.tif": {
+    "size": 884958
+   }
+  },
+  "request": {
+   "items": [
+    {
+     "name": "Beispiel_Partikel.tif",
+     "state": {
+      "particles": {
+       "size_min": 2
+      },
+      "pipeline": [
+       {
+        "op": "background",
+        "radius": 30
+       },
+       {
+        "op": "gauss",
+        "sigma": 1.5
+       },
+       {
+        "dark": true,
+        "method": "otsu",
+        "op": "threshold"
+       },
+       {
+        "op": "fill"
+       }
+      ],
+      "rois": [
+       {
+        "h": 150,
+        "name": "Feld A",
+        "type": "rect",
+        "w": 200,
+        "x": 50,
+        "y": 60
+       },
+       {
+        "name": "L1",
+        "type": "line",
+        "x1": 100,
+        "x2": 600,
+        "y1": 300,
+        "y2": 320
+       }
+      ],
+      "scalebar": {
+       "box": true,
+       "len": 20,
+       "pos": "bl"
+      }
+     }
+    }
+   ],
+   "slug": "image-analysis-beispiel-partikel-tif"
+  }
+ }
+}

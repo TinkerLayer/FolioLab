@@ -1,0 +1,2601 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mikroskopie</title>
+<style>
+:root {
+  --bg: #f4f2f7; --panel: #ffffff; --ink: #1f1d24; --muted: #625d6b; --line: #dcd7e3; --soft: #efecf4;
+  --accent: #7b1fa2; --accent-ink: #ffffff; --accent-soft: rgba(123,31,162,.10);
+  --err-bg: #fde7e7; --err-ink: #a50e0e; --ok-bg: #e7f5ea; --ok-ink: #12602a;
+  --stage: #1b1a1f; --roi: #ffd54a; --roi-list: #4dd0e1; --hist: #6b6475; --thr: #e53935;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141317; --panel: #1d1b21; --ink: #ebe8f0; --muted: #a39cad; --line: #38343f; --soft: #27242c;
+    --accent: #ce93d8; --accent-ink: #1d1b21; --accent-soft: rgba(206,147,216,.14);
+    --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #173323; --ok-ink: #a8dab5;
+    --stage: #0f0e12; --hist: #a39cad;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141317; --panel: #1d1b21; --ink: #ebe8f0; --muted: #a39cad; --line: #38343f; --soft: #27242c;
+  --accent: #ce93d8; --accent-ink: #1d1b21; --accent-soft: rgba(206,147,216,.14);
+  --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #173323; --ok-ink: #a8dab5;
+  --stage: #0f0e12; --hist: #a39cad;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; height: 100vh; overflow: hidden; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+input[type=text], input[type=number], select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; width: 100%; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+input[type=checkbox] { accent-color: var(--accent); }
+label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+label.chk { display: flex; gap: 6px; align-items: center; color: var(--ink); font-size: 13px; margin: 6px 0; }
+.small { font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* Kopf */
+header { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; white-space: nowrap; }
+.brand svg { color: var(--accent); }
+.chips { display: flex; gap: 6px; flex: 1; overflow-x: auto; min-width: 0; padding: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); cursor: pointer; white-space: nowrap; max-width: 220px; }
+.chip span { overflow: hidden; text-overflow: ellipsis; }
+.chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.chip .x { border: 0; background: transparent; padding: 0 5px; color: var(--muted); }
+
+/* Menueleiste */
+/* UI-07: Übersicht (Menüleiste und Bildfläche verborgen), Tab-Menü „Mehr“, Aufgabenliste, Aufklapper in den Tabs */
+body.lov-board { grid-template-rows: auto minmax(0, 1fr) auto; }
+header .lov-only { display: none; }
+body.lov-board header .lov-only { display: block; flex: 1; }
+.tabs button.more { margin-left: auto; }
+.tabmenu { display: flex; flex-direction: column; gap: 2px; min-width: 240px; }
+.tabmenu button { text-align: left; border: 1px solid transparent; background: transparent; padding: 5px 8px; border-radius: 6px; }
+.tabmenu button:hover:not(:disabled), .tabmenu button:focus-visible { border-color: var(--accent); }
+.tabmenu button:disabled { opacity: .45; }
+.tabmenu small { display: block; color: var(--muted); font-size: 11.5px; font-weight: 400; }
+.mtasks { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.mtasks li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 6px; align-items: start; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.mtasks li.off { opacity: .55; }
+.mtasks .n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-soft); font-size: 11px; font-weight: 700; }
+.mtasks .b { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.mtasks .tk { border: 0; background: transparent; padding: 0; font-weight: 600; color: var(--ink); cursor: pointer; text-align: left; }
+.mtasks .tk:hover:not(:disabled), .mtasks .tk:focus-visible { color: var(--accent); text-decoration: underline; }
+.mtasks .b small { flex-basis: 100%; color: var(--muted); font-size: 11.5px; }
+.mtasks .st { white-space: nowrap; }
+.pane details.lab-fold > summary { margin: 14px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+@media (max-width: 700px) { body { grid-template-columns: minmax(0, 1fr); } header { flex-wrap: wrap; } header .chips { order: 9; flex-basis: 100%; }
+  #menubar, #opts { flex-wrap: wrap; } }
+#menubar { display: flex; gap: 2px; padding: 2px 8px; background: var(--panel); border-bottom: 1px solid var(--line); position: relative; z-index: 20; }
+#menubar > .m { position: relative; }
+#menubar > .m > button { border: 0; background: transparent; padding: 4px 10px; border-radius: 5px; }
+#menubar > .m > button.open, #menubar > .m > button:hover { background: var(--accent-soft); }
+.dd { position: absolute; top: 100%; left: 0; min-width: 260px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; }
+.dd button { display: flex; width: 100%; justify-content: space-between; gap: 18px; border: 0; background: transparent; text-align: left; padding: 5px 10px; border-radius: 5px; }
+.dd button:hover:not(:disabled) { background: var(--accent-soft); }
+.dd button .k { color: var(--muted); font-size: 12px; }
+.dd button.on::before { content: "✓"; margin-right: -12px; color: var(--accent); }
+.dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+
+/* Arbeitsbereich */
+main { display: grid; grid-template-columns: 46px minmax(0, 1fr) 350px; min-height: 0; }
+#tools { display: flex; flex-direction: column; gap: 3px; padding: 6px 5px; background: var(--panel); border-right: 1px solid var(--line); }
+#tools button { width: 36px; height: 34px; padding: 0; display: grid; place-items: center; border-color: transparent; background: transparent; }
+#tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+#tools hr { width: 70%; border: 0; border-top: 1px solid var(--line); margin: 4px auto; }
+.viewer { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#opts { display: flex; align-items: center; gap: 10px; padding: 5px 10px; background: var(--soft); border-bottom: 1px solid var(--line); min-height: 34px; font-size: 12px; }
+#opts .hint { color: var(--muted); flex: 1; }
+#opts input[type=number] { width: 64px; padding: 2px 5px; }
+#opts .selinfo { font-variant-numeric: tabular-nums; white-space: nowrap; }
+#stage { position: relative; flex: 1; min-height: 0; background: var(--stage); overflow: hidden; }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }   /* Canvas dehnt sich nicht über inset */
+#empty { position: absolute; inset: 0; display: grid; place-items: center; color: #c9c3d3; text-align: center; padding: 20px; }
+#empty .box { border: 2px dashed #4a4552; border-radius: 12px; padding: 28px 36px; }
+#empty .box b { font-size: 16px; color: #fff; display: block; margin-bottom: 6px; }
+#empty button { margin: 12px 4px 0; }
+#stage.drop #empty .box, #stage.drop { outline: 2px dashed var(--accent); outline-offset: -8px; }
+#sliceBar { display: flex; align-items: center; gap: 8px; padding: 4px 10px; background: var(--soft); border-top: 1px solid var(--line); font-size: 12px; }
+
+/* Seitenleiste */
+aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 6px 0; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 6px 7px; color: var(--muted); font-size: 12.5px; }
+.tabs button.sel { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.pane { padding: 10px 12px 16px; overflow-y: auto; flex: 1; min-height: 0; }
+canvas.hist { width: 100%; height: 110px; display: block; background: var(--soft); border-radius: 6px; }
+#pCmp { margin-top: 10px; }
+#pCmp details > summary { cursor: pointer; font-weight: 600; }
+#pCmp canvas { width: 100%; height: 140px; display: block; background: var(--soft); border-radius: 6px; margin: 6px 0; }
+#pCmp table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#pCmp th, #pCmp td { padding: 2px 6px; text-align: right; border-bottom: 1px solid var(--line, #ddd); }
+#pCmp th:first-child, #pCmp td:first-child { text-align: left; color: var(--muted); }
+#pCmp .leg { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
+#pCmp .leg i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+canvas.ramp { width: 100%; height: 10px; display: block; border-radius: 3px; margin-top: 3px; }
+.note { padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); font-size: 12px; margin-bottom: 8px; }
+.note.err { background: var(--err-bg); color: var(--err-ink); }
+dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 8px 0 0; font-size: 12.5px; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.list { border: 1px solid var(--line); border-radius: 6px; margin-top: 8px; max-height: 280px; overflow-y: auto; }
+.list .it { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.list .it:last-child { border-bottom: 0; }
+.list .it.sel { background: var(--accent-soft); }
+.list .it input { flex: 1; border-color: transparent; background: transparent; padding: 2px 4px; }
+.list .it input:focus { border-color: var(--line); background: var(--bg); }
+.list .it .t { color: var(--muted); font-size: 11px; width: 66px; }
+.list .it button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+.list .empty { padding: 10px; color: var(--muted); font-size: 12px; }
+ol.proto { margin: 8px 0 0; padding: 0; list-style: none; counter-reset: s; }
+ol.proto li { counter-increment: s; display: flex; gap: 8px; align-items: flex-start; padding: 5px 6px; border-bottom: 1px solid var(--line); }
+ol.proto li::before { content: counter(s); color: var(--muted); min-width: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+ol.proto li span { flex: 1; }
+ol.proto li button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+.tw { overflow: auto; max-height: calc(100vh - 290px); border: 1px solid var(--line); border-radius: 6px; margin-top: 8px; }
+table.res { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; width: max-content; min-width: 100%; }
+table.res th, table.res td { padding: 3px 7px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.res th { position: sticky; top: 0; background: var(--soft); font-weight: 600; }
+table.res td:first-child, table.res th:first-child { text-align: left; }
+table.res tr.hl td { background: var(--accent-soft); }
+table.res tbody tr { cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 4px 10px; }
+.seg button.sel { background: var(--accent); color: var(--accent-ink); }
+.mlist { margin-top: 8px; font-size: 12px; }
+.mlist .m { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; padding: 3px 6px; border-radius: 5px; cursor: pointer; }
+.mlist .m:hover { background: var(--accent-soft); }
+.mlist .m.sel { background: var(--accent-soft); font-weight: 600; }
+.pane h4.sub { margin: 16px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.pane h4.sub:first-of-type { margin-top: 10px; }
+.list label.it { gap: 8px; cursor: pointer; font-size: 12.5px; }
+.list .it .nm { flex: 1; min-width: 0; overflow: hidden; overflow-wrap: anywhere; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }   /* zwei Zeilen statt „…“ */
+.list .it .cv { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.list label.it input[type=checkbox] { flex: none; }
+.list .it button.ap { border: 1px solid var(--line); color: var(--ink); padding: 1px 8px; font-size: 12px; }
+#calNote b { font-variant-numeric: tabular-nums; }
+footer #stScale { border: 0; background: transparent; padding: 0 4px; font-size: 12px; color: var(--muted); cursor: pointer; }
+footer #stScale:hover { color: var(--ink); text-decoration: underline; }
+footer #stScale.warn { color: var(--accent); font-weight: 600; }
+
+/* Statuszeile */
+footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
+footer #stPos { min-width: 300px; color: var(--ink); }
+footer #stInfo { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+#busy { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); }
+#busy::before { content: ""; width: 10px; height: 10px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Dialoge und Meldungen */
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 0; width: min(440px, calc(100vw - 32px)); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+dialog.wide { width: min(760px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(10,8,14,.45); }
+dialog h3 { margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+dialog .body { padding: 8px 16px 12px; }
+dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
+dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: center; }
+#toasts { position: fixed; right: 14px; bottom: 34px; display: flex; flex-direction: column; gap: 8px; z-index: 50; max-width: min(460px, calc(100vw - 28px)); }
+.toast { padding: 9px 12px; border-radius: 8px; background: var(--ok-bg); color: var(--ok-ink); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.15); font-size: 12.5px; }
+.toast.err { background: var(--err-bg); color: var(--err-ink); }
+.toast a { color: inherit; font-weight: 600; }
+#profCanvas { width: 100%; height: 300px; display: block; }
+
+@media (max-width: 980px) {
+  body { overflow: auto; height: auto; }
+  main { grid-template-columns: 46px minmax(0, 1fr); }
+  aside { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
+  #stage { min-height: 60vh; }
+  .tw { max-height: 50vh; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="9" cy="10" r="2.2"/><circle cx="15" cy="14.5" r="1.6"/><circle cx="15.5" cy="8.5" r="1"/><circle cx="8.5" cy="15.5" r="0.9"/></svg>
+    Mikroskopie
+  </div>
+  <span id="crumbs"></span>
+  <div class="chips" id="chips" data-lov-detail></div>
+  <span class="hsp lov-only"></span>
+  <span id="langSw"></span>
+  <button id="labBtn" class="primary" hidden data-lov-detail data-i18n="mk.lab" data-i18n-title="mk.lab_t" title="Abbildungen, Tabellen, Kennwerte, Partikeldaten und Quellen in einen Folio Lab Bericht übernehmen">Zum Bericht …</button>
+</header>
+
+<nav id="menubar" aria-label="Menü"></nav>
+
+<main>
+  <div id="tools" role="toolbar" aria-label="Werkzeuge"></div>
+  <div class="viewer">
+    <div id="opts"><span class="hint" id="optHint"></span><span id="optExtra"></span><span class="selinfo" id="selInfo"></span></div>
+    <div id="stage">
+      <canvas id="view"></canvas>
+      <div id="empty">
+        <div class="box">
+          <b>Bild hierher ziehen</b>
+          TIFF (8/16/32-bit, Stapel, mit Kalibrierung), PNG, JPEG, BMP, GIF<br>
+          <button class="primary" id="emptyOpen">Bild öffnen …</button><button id="emptySample">Beispielbild laden</button>
+        </div>
+      </div>
+    </div>
+    <div id="sliceBar" hidden><span>Ebene</span><input type="range" id="slice" min="0" max="0" step="1" style="flex:1"><span id="sliceV"></span></div>
+  </div>
+  <aside>
+    <!-- UI-07: Aufgaben (Arbeitsablauf mit Stand) und Anzeige immer; der gerade offene Tab dazu; der Rest unter „Mehr“ -->
+    <nav class="tabs" role="tablist">
+      <button data-tab="aufgaben" class="sel" data-i18n="mk.tab_aufgaben">Aufgaben</button>
+      <button data-tab="anzeige" data-i18n="mk.tab_anzeige">Anzeige</button>
+      <button data-tab="massstab" data-i18n="mk.tab_massstab">Massstab</button>
+      <button data-tab="schwelle" data-i18n="mk.tab_schwelle">Schwelle</button>
+      <button data-tab="partikel" data-i18n="mk.tab_partikel">Partikel</button>
+      <button data-tab="rois" data-i18n="mk.tab_rois">Auswahlen</button>
+      <button data-tab="ergebnisse" data-i18n="mk.tab_ergebnisse">Ergebnisse</button>
+      <button data-tab="protokoll" data-i18n="mk.tab_protokoll">Protokoll</button>
+      <button type="button" id="tabMore" class="more" aria-haspopup="true" data-i18n="mk.more" data-i18n-title="mk.more_t" title="Weitere Werkzeuge">Mehr ▾</button>
+    </nav>
+
+    <section class="pane" data-pane="aufgaben">
+      <div class="small" id="taskHead"></div>
+      <ol class="mtasks" id="taskList"></ol>
+    </section>
+
+    <section class="pane" data-pane="anzeige" hidden>
+      <div class="small" id="imgInfo">Kein Bild geladen.</div>
+      <label>Histogramm</label>
+      <canvas class="hist" id="histD"></canvas>
+      <canvas class="ramp" id="ramp"></canvas>
+      <div id="dispGray">
+        <label>Minimum <b id="dMinV"></b></label><input type="range" id="dMin">
+        <label>Maximum <b id="dMaxV"></b></label><input type="range" id="dMax">
+      </div>
+      <div class="row">
+        <button id="dAuto" title="0,35 % der Pixel dürfen übersteuern">Auto</button>
+        <button id="dReset">Voller Bereich</button>
+        <button id="dApply" title="Den Anzeigebereich als 8-bit Bild übernehmen (Protokollschritt)">Als 8-bit übernehmen</button>
+      </div>
+      <label for="lut">Farbtabelle</label>
+      <select id="lut"></select>
+      <dl class="kv" id="dStats"></dl>
+      <p class="small">Helligkeit, Kontrast und Farbtabelle ändern nur die Anzeige. Messungen verwenden immer die Rohwerte.</p>
+    </section>
+
+    <section class="pane" data-pane="massstab" hidden>
+      <div class="note" id="calNote">Kein Bild geladen.</div>
+
+      <h4 class="sub">Kalibrieren</h4>
+      <div class="seg" id="calMode"><button data-m="line" class="sel">Aus Linie</button><button data-m="px">Pixelgrösse eingeben</button></div>
+      <div id="calLine">
+        <p class="small">Mit dem Linienwerkzeug über eine bekannte Länge ziehen, z. B. den eingeblendeten Massstab des Mikroskops oder ein Objektmikrometer. Die Pixellänge wird laufend übernommen.</p>
+        <div class="row2">
+          <div><label for="cPx">Linienlänge in Pixeln</label><input type="number" id="cPx" min="0" step="any"></div>
+          <div><label for="cLen">entspricht</label><input type="number" id="cLen" min="0" step="any" placeholder="z. B. 50"></div>
+        </div>
+        <div class="row" style="margin-top:6px"><button id="cDraw">Linie zeichnen (L)</button></div>
+      </div>
+      <div id="calPx" hidden>
+        <div class="row2">
+          <div><label for="cPw">Pixelgrösse (Einheit pro Pixel)</label><input type="number" id="cPw" min="0" step="any"></div>
+          <div><label for="cPpu">oder Pixel pro Einheit</label><input type="number" id="cPpu" min="0" step="any"></div>
+        </div>
+      </div>
+      <label for="cUnit">Einheit</label>
+      <select id="cUnit"><option>nm</option><option selected>µm</option><option>mm</option><option>cm</option><option>m</option></select>
+      <div class="small" id="cOut" style="margin-top:6px"></div>
+      <div class="row">
+        <button class="primary" id="cApply">Übernehmen</button>
+        <button id="cFile" title="Kalibrierung aus der Bilddatei (TIFF) wiederherstellen">Aus Datei</button>
+        <button id="cClear" title="Messungen wieder in Pixeln">Entfernen</button>
+      </div>
+
+      <details class="lab-fold" data-fold="calCopy"><summary data-i18n="mk.f_calcopy">Auf andere Bilder übertragen</summary>
+      <div class="list" id="calTargets"></div>
+      <div class="row">
+        <button class="primary" id="cCopy">Massstab übertragen</button>
+        <button id="cSelAll">Alle</button><button id="cSelNone">Keine</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="cAuto"> Neu geöffnete Bilder ohne Kalibrierung bekommen denselben Massstab</label>
+      </details>
+
+      <details class="lab-fold" data-fold="calPresets"><summary data-i18n="mk.f_presets">Vorlagen</summary>
+      <p class="small" style="margin-top:0">Zum Beispiel je Objektiv. Bleiben in diesem Browser gespeichert.</p>
+      <div class="list" id="calPresets"></div>
+      <div class="row">
+        <input id="cPresetName" placeholder="Name, z. B. 50× Objektiv" style="flex:1;min-width:120px">
+        <button id="cPresetSave">Speichern</button>
+      </div>
+      </details>
+
+      <details class="lab-fold" data-fold="scalebar"><summary data-i18n="mk.f_bar">Massstabsbalken</summary>
+      <label class="chk"><input type="checkbox" id="bShow" checked> Balken einblenden (auch in Export und Bericht)</label>
+      <div class="row2">
+        <div><label for="bLen">Länge <span id="bU"></span></label><input type="number" id="bLen" min="0" step="any" placeholder="automatisch"></div>
+        <div><label for="bPos">Position</label><select id="bPos"><option value="br">unten rechts</option><option value="bl">unten links</option><option value="tr">oben rechts</option><option value="tl">oben links</option></select></div>
+      </div>
+      <div class="row2">
+        <div><label for="bColor">Farbe</label><select id="bColor"><option value="white">Weiss</option><option value="black">Schwarz</option></select></div>
+        <div><label for="bThick">Balkendicke</label><select id="bThick"><option value="0.6">dünn</option><option value="1.2">mittel</option><option value="2.2">dick</option></select></div>
+      </div>
+      <div class="row2">
+        <div><label for="bFont">Schrift</label><select id="bFont"><option value="2">klein</option><option value="3">mittel</option><option value="4.5">gross</option></select></div>
+        <div></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="bLabel" checked> Beschriftung</label>
+      <label class="chk"><input type="checkbox" id="bBox"> Hinterlegen (Kasten)</label>
+      <div class="small" id="bInfo"></div>
+      <div class="row">
+        <button id="bAll" title="Länge, Lage und Aussehen des Balkens für alle geöffneten Bilder übernehmen">Stil auf alle Bilder</button>
+        <button id="bPng" title="Bild in voller Auflösung mit eingebranntem Balken als PNG speichern">Bild mit Balken speichern</button>
+      </div>
+      </details>
+    </section>
+
+    <section class="pane" data-pane="schwelle" hidden>
+      <div class="note" id="thrNote">Die Schwelle trennt Objekte vom Hintergrund. Rot markiert, was zu Objekten wird.</div>
+      <canvas class="hist" id="histT"></canvas>
+      <label for="thrMethod">Methode</label>
+      <select id="thrMethod"></select>
+      <label class="chk"><input type="checkbox" id="thrDark" checked> Dunkler Hintergrund (helle Objekte)</label>
+      <label class="chk" id="thrStackRow" hidden><input type="checkbox" id="thrStack"> Histogramm des ganzen Stapels</label>
+      <label>Untere Grenze <b id="tLoV"></b></label><input type="range" id="tLo">
+      <label>Obere Grenze <b id="tHiV"></b></label><input type="range" id="tHi">
+      <div class="small" id="thrInfo"></div>
+      <div class="row">
+        <button id="thrAuto">Automatisch</button>
+        <button id="thrAll">Alle Methoden vergleichen</button>
+        <button class="primary" id="thrApply">Anwenden</button>
+      </div>
+      <div class="mlist" id="thrAllList"></div>
+    </section>
+
+    <section class="pane" data-pane="partikel" hidden>
+      <div class="note" id="partNote">Zählt und vermisst zusammenhängende Objekte eines Binärbildes.</div>
+      <div class="row">
+        <button class="primary" id="pRun">Partikel analysieren</button>
+        <button id="pClear">Verwerfen</button>
+      </div>
+      <details class="lab-fold" data-fold="pFilter"><summary data-i18n="mk.f_pfilter">Filter (Grösse, Form, Rand)</summary>
+      <div class="row2">
+        <div><label>Fläche von <span class="u2"></span></label><input type="number" id="pSizeMin" min="0" step="any" value="0"></div>
+        <div><label>bis <span class="u2"></span></label><input type="number" id="pSizeMax" min="0" step="any" placeholder="unbegrenzt"></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="pPix"> Fläche in Pixeln angeben</label>
+      <div class="row2">
+        <div><label>Zirkularität von</label><input type="number" id="pCircMin" min="0" max="1" step="0.05" value="0"></div>
+        <div><label>bis</label><input type="number" id="pCircMax" min="0" max="1" step="0.05" value="1"></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="pEdges" checked> Partikel am Bildrand verwerfen</label>
+      <label class="chk"><input type="checkbox" id="pHoles"> Löcher zur Partikelfläche zählen</label>
+      <label class="chk"><input type="checkbox" id="pRegion"> Nur innerhalb der aktuellen Auswahl</label>
+      </details>
+      <div id="pSummary"></div>
+      <div id="mkExt" hidden></div>
+      <div class="row" id="pViewRow" hidden>
+        <label class="chk"><input type="checkbox" id="pShow" checked> Konturen</label>
+        <label class="chk"><input type="checkbox" id="pNums"> Nummern</label>
+        <button id="pTable">Tabelle zeigen</button>
+        <button id="pCmpBtn" hidden data-i18n="mk.cmp_btn" data-i18n-title="mk.cmp_btn_t">Vergleichsverteilung …</button>
+      </div>
+      <div id="pCmp" hidden></div>
+    </section>
+
+    <section class="pane" data-pane="rois" hidden>
+      <div class="small">Die Liste gehört zum Bild und geht mit in den Bericht. <b>T</b> fügt die aktuelle Auswahl hinzu.</div>
+      <div class="row">
+        <button class="primary" id="rAdd">Hinzufügen (T)</button>
+        <button id="rMeasure">Alle messen</button>
+        <button id="rDel">Löschen</button>
+        <button id="rClear">Liste leeren</button>
+      </div>
+      <div class="list" id="roiList"></div>
+      <label class="chk"><input type="checkbox" id="rShow" checked> Alle Auswahlen der Liste anzeigen</label>
+    </section>
+
+    <section class="pane" data-pane="ergebnisse" hidden>
+      <div class="row" style="margin-top:0">
+        <div class="seg"><button data-res="mess" class="sel">Messungen</button><button data-res="part">Partikel</button></div>
+        <button id="resCsv">CSV speichern</button>
+        <button id="resCopy">Kopieren</button>
+        <button id="resClear">Leeren</button>
+      </div>
+      <div class="tw" id="resWrap"></div>
+    </section>
+
+    <section class="pane" data-pane="protokoll" hidden>
+      <div class="small">Jeder Bearbeitungsschritt wird hier aufgezeichnet und beim Messen, Exportieren und im Bericht neu auf das Originalbild angewendet. So bleibt die Auswertung nachvollziehbar.</div>
+      <ol class="proto" id="proto"></ol>
+      <div class="row">
+        <button id="pUndo" title="Strg+Z">Rückgängig</button>
+        <button id="pRedo" title="Strg+Y">Wiederholen</button>
+        <button id="pReset">Original</button>
+      </div>
+      <div class="row">
+        <button id="pSave">Speichern …</button>
+        <button id="pLoad">Laden …</button>
+        <button id="pAll">Auf alle Bilder anwenden</button>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<footer>
+  <span id="stPos">–</span>
+  <span id="stInfo"></span>
+  <span id="envName" hidden title="Projekt · Umgebung (Datei ▸ Umgebungen …)"></span>
+  <button id="stScale" type="button" hidden></button>
+  <span id="busy" hidden>rechnet …</span>
+  <span id="stZoom"></span>
+</footer>
+
+<input type="file" id="file" multiple accept=".tif,.tiff,.png,.jpg,.jpeg,.bmp,.gif" hidden>
+<input type="file" id="protoFile" accept=".json" hidden>
+<dialog id="dlg"><form method="dialog"><h3 id="dlgTitle"></h3><div class="body" id="dlgBody"></div><div class="foot" id="dlgFoot"></div></form></dialog>
+<div id="toasts" aria-live="polite"></div>
+
+<script src="/lab/sdk.js"></script>
+<script src="labenv.js"></script>
+<script src="labindex.js"></script>
+<script src="labui.js"></script>
+<script src="labboard.js"></script>
+<script src="laboverview.js"></script>
+<script src="labimport.js"></script>
+<script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
+   Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
+(function (g) {
+  const msg = "Der laufende Modulserver ist älter als diese Seite. Bitte das Modul bzw. den Hub neu starten; bis dahin fehlen Umgebungen und Projektindex.";
+  if (!g.LabEnv) g.LabEnv = { stub: true, create: (o) => ({ ready: false, info: null, open: async () => o.toast(msg, true), save() {}, flush: () => Promise.resolve(), check() {}, dialog: () => o.toast(msg, true) }) };
+  const no = (a, t) => { t(msg, true); return Promise.resolve(null); };
+  if (!g.LabIndex) g.LabIndex = { stub: true, add: no, addMany: no, browse: no, history: no, exportDeps: no };
+})(window);</script>
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// UI-07: Kopf, Menüleiste, Tabs, Aufgabenliste, Aufklapper und Übersicht DE/EN über labui.js (Menüeinträge und Tab-Inhalte vorerst deutsch)
+const MK_T = {
+  de: { "mk.tab_aufgaben": "Aufgaben", "mk.tab_anzeige": "Anzeige", "mk.tab_massstab": "Massstab", "mk.tab_schwelle": "Schwelle",
+        "mk.tab_partikel": "Partikel", "mk.tab_rois": "Auswahlen", "mk.tab_ergebnisse": "Ergebnisse", "mk.tab_protokoll": "Protokoll",
+        "mk.tab_h_aufgaben": "Arbeitsablauf mit Stand", "mk.tab_h_anzeige": "Histogramm, Helligkeit, Farbtabelle",
+        "mk.tab_h_massstab": "Kalibrieren, übertragen, Vorlagen, Balken", "mk.tab_h_schwelle": "Objekte vom Hintergrund trennen",
+        "mk.tab_h_partikel": "Zählen und vermessen", "mk.tab_h_rois": "Liste der Auswahlen",
+        "mk.tab_h_ergebnisse": "Mess- und Partikeltabellen", "mk.tab_h_protokoll": "Bearbeitungsschritte",
+        "mk.more": "Mehr ▾", "mk.more_t": "Weitere Werkzeuge und Tabellen",
+        "mk.f_calcopy": "Auf andere Bilder übertragen", "mk.f_presets": "Vorlagen", "mk.f_bar": "Massstabsbalken", "mk.f_pfilter": "Filter (Grösse, Form, Rand)",
+        "mk.m_file": "Datei", "mk.m_image": "Bild", "mk.m_process": "Prozess", "mk.m_binary": "Binär", "mk.m_analysis": "Analyse", "mk.m_view": "Ansicht",
+        "mk.lab": "Zum Bericht …", "mk.lab_t": "Abbildungen, Tabellen, Kennwerte, Partikeldaten und Quellen in einen Folio Lab Bericht übernehmen",
+        "mk.t_head": "Typischer Ablauf; jeder Schritt ist auch über die Menüs erreichbar. Häkchen zeigen, was für das aktuelle Bild schon erledigt ist.",
+        "mk.t_open": "Bild öffnen", "mk.t_open_h": "TIFF (auch Stapel, mit Kalibrierung), PNG, JPEG, BMP, GIF", "mk.t_sample": "Beispielbild",
+        "mk.t_scale": "Massstab festlegen", "mk.t_scale_h": "Linie über eine bekannte Länge oder Pixelgrösse eingeben",
+        "mk.t_improve": "Bild verbessern", "mk.t_improve_h": "Glätten, Hintergrund abziehen, Kontrast, Filter",
+        "mk.t_thr": "Schwelle setzen", "mk.t_thr_h": "Objekte vom Hintergrund trennen (Binärbild)",
+        "mk.t_bin": "Binärbild nachbearbeiten", "mk.t_bin_h": "Öffnen, Schliessen, Löcher füllen, Wasserscheide",
+        "mk.t_part": "Partikel analysieren", "mk.t_part_h": "Zählen, Fläche, Durchmesser, Form",
+        "mk.t_meas": "Messen", "mk.t_meas_h": "Auswahl zeichnen, dann Strg+M; Linie: Profil mit Strg+K",
+        "mk.t_res": "Ergebnisse und Tabellen", "mk.t_res_h": "Messungen und Partikel als Tabelle, CSV",
+        "mk.t_report": "Zum Bericht", "mk.t_report_h": "Abbildungen, Tabellen und Kennwerte übernehmen",
+        "mk.s_imgs": "{n} Bilder", "mk.s_imgs1": "1 Bild", "mk.s_none": "noch keins", "mk.s_px": "ohne Massstab", "mk.s_steps": "{n} Schritte", "mk.s_steps1": "1 Schritt",
+        "mk.s_binary": "binär", "mk.s_gray": "Graustufen", "mk.s_rgb": "Farbe", "mk.s_parts": "{n} Partikel", "mk.s_parts1": "1 Partikel", "mk.s_meas": "{n} Messungen", "mk.s_meas1": "1 Messung",
+        "mk.v_n": "Anzahl Partikel", "mk.v_phi": "Flächenanteil", "mk.v_amean": "Mittlere Partikelfläche", "mk.v_ecd": "Mittlerer Äquivalentdurchmesser",
+        "mk.v_circ": "Mittlere Zirkularität", "mk.v_feret": "Mittlerer Feret-Durchmesser", "mk.v_ar": "Mittleres Seitenverhältnis", "mk.ext_h": "Übernommene Werte (Verbindung)",
+        "mk.s_need_bin": "erst Schwelle", "mk.s_need_img": "erst ein Bild", "mk.ops_title": "Schritt wählen",
+        "mk.imp_cmp": "Als Vergleichsverteilung", "mk.imp_cmp_t": "eine Längenspalte über die Grössenverteilung der Partikel legen, mit D10/D50/D90 beider",
+        "mk.imp_nolen": "keine Längenspalte (nm, µm, mm …)", "mk.cmp_btn": "Vergleichsverteilung …", "mk.cmp_btn_t": "Grössen aus einem Datensatz über die Partikelverteilung legen",
+        "mk.cmp_h": "Vergleichsverteilung", "mk.cmp_col": "Spalte mit Längen", "mk.cmp_ok": "Übernehmen", "mk.cmp_cancel": "Abbrechen",
+        "mk.cmp_none_img": "Erst ein Bild öffnen – die Vergleichsverteilung gehört zum aktuellen Bild.",
+        "mk.cmp_nocal": "Das Bild hat keinen Massstab. Erst kalibrieren, dann vergleichen.",
+        "mk.cmp_nopart": "Noch keine Partikelanalyse – die Verteilung erscheint, sobald Partikel analysiert sind.",
+        "mk.cmp_img": "Partikel (ECD)", "mk.cmp_mean": "Mittelwert", "mk.cmp_ratio": "D50 der Partikel = {r} × D50 des Datensatzes",
+        "mk.cmp_rm": "Entfernen", "mk.cmp_upd": "Auf v{v} wechseln", "mk.cmp_newer": "Neuere Version v{v} verfügbar (festgehalten).",
+        "mk.cmp_done": "Vergleichsverteilung „{t}“ übernommen ({n} Werte).", "mk.cmp_follow": "Vergleichsverteilung auf v{v} aktualisiert.",
+        "mk.cmp_trunc": "Diagramm mit den ersten {n} Partikeln; Kennwerte und Bericht mit allen.", "mk.cmp_live": "folgt der neuesten Version", "mk.cmp_pin": "Version festgehalten" },
+  en: { "mk.tab_aufgaben": "Tasks", "mk.tab_anzeige": "Display", "mk.tab_massstab": "Scale", "mk.tab_schwelle": "Threshold",
+        "mk.tab_partikel": "Particles", "mk.tab_rois": "Selections", "mk.tab_ergebnisse": "Results", "mk.tab_protokoll": "Protocol",
+        "mk.tab_h_aufgaben": "Workflow with status", "mk.tab_h_anzeige": "Histogram, brightness, lookup table",
+        "mk.tab_h_massstab": "Calibrate, transfer, presets, bar", "mk.tab_h_schwelle": "Separate objects from the background",
+        "mk.tab_h_partikel": "Count and measure", "mk.tab_h_rois": "List of selections",
+        "mk.tab_h_ergebnisse": "Measurement and particle tables", "mk.tab_h_protokoll": "Processing steps",
+        "mk.more": "More ▾", "mk.more_t": "Further tools and tables",
+        "mk.f_calcopy": "Transfer to other images", "mk.f_presets": "Presets", "mk.f_bar": "Scale bar", "mk.f_pfilter": "Filters (size, shape, edge)",
+        "mk.m_file": "File", "mk.m_image": "Image", "mk.m_process": "Process", "mk.m_binary": "Binary", "mk.m_analysis": "Analysis", "mk.m_view": "View",
+        "mk.lab": "To report …", "mk.lab_t": "Send figures, tables, values, particle data and sources to a Folio Lab report",
+        "mk.t_head": "Typical workflow; every step is also in the menus. Ticks show what is already done for the current image.",
+        "mk.t_open": "Open image", "mk.t_open_h": "TIFF (also stacks, with calibration), PNG, JPEG, BMP, GIF", "mk.t_sample": "Sample image",
+        "mk.t_scale": "Set scale", "mk.t_scale_h": "Line over a known length or enter the pixel size",
+        "mk.t_improve": "Improve image", "mk.t_improve_h": "Smooth, subtract background, contrast, filters",
+        "mk.t_thr": "Set threshold", "mk.t_thr_h": "Separate objects from the background (binary image)",
+        "mk.t_bin": "Refine binary image", "mk.t_bin_h": "Open, close, fill holes, watershed",
+        "mk.t_part": "Analyse particles", "mk.t_part_h": "Count, area, diameter, shape",
+        "mk.t_meas": "Measure", "mk.t_meas_h": "Draw a selection, then Ctrl+M; line: profile with Ctrl+K",
+        "mk.t_res": "Results and tables", "mk.t_res_h": "Measurements and particles as table, CSV",
+        "mk.t_report": "To report", "mk.t_report_h": "Send figures, tables and values",
+        "mk.s_imgs": "{n} images", "mk.s_imgs1": "1 image", "mk.s_none": "none yet", "mk.s_px": "no scale", "mk.s_steps": "{n} steps", "mk.s_steps1": "1 step",
+        "mk.s_binary": "binary", "mk.s_gray": "greyscale", "mk.s_rgb": "colour", "mk.s_parts": "{n} particles", "mk.s_parts1": "1 particle", "mk.s_meas": "{n} measurements", "mk.s_meas1": "1 measurement",
+        "mk.v_n": "Particle count", "mk.v_phi": "Area fraction", "mk.v_amean": "Mean particle area", "mk.v_ecd": "Mean equivalent diameter",
+        "mk.v_circ": "Mean circularity", "mk.v_feret": "Mean Feret diameter", "mk.v_ar": "Mean aspect ratio", "mk.ext_h": "Received values (connection)",
+        "mk.s_need_bin": "threshold first", "mk.s_need_img": "open an image first", "mk.ops_title": "Choose a step",
+        "mk.imp_cmp": "As comparison distribution", "mk.imp_cmp_t": "overlay a length column on the particle size distribution, with D10/D50/D90 of both",
+        "mk.imp_nolen": "no length column (nm, µm, mm …)", "mk.cmp_btn": "Comparison distribution …", "mk.cmp_btn_t": "Overlay sizes from a dataset on the particle distribution",
+        "mk.cmp_h": "Comparison distribution", "mk.cmp_col": "Column with lengths", "mk.cmp_ok": "Use", "mk.cmp_cancel": "Cancel",
+        "mk.cmp_none_img": "Open an image first – the comparison distribution belongs to the current image.",
+        "mk.cmp_nocal": "The image has no scale. Calibrate it first, then compare.",
+        "mk.cmp_nopart": "No particle analysis yet – the distribution appears once particles are analysed.",
+        "mk.cmp_img": "Particles (ECD)", "mk.cmp_mean": "Mean", "mk.cmp_ratio": "Particle D50 = {r} × dataset D50",
+        "mk.cmp_rm": "Remove", "mk.cmp_upd": "Switch to v{v}", "mk.cmp_newer": "Newer version v{v} available (kept).",
+        "mk.cmp_done": "Comparison distribution “{t}” added ({n} values).", "mk.cmp_follow": "Comparison distribution updated to v{v}.",
+        "mk.cmp_trunc": "Chart with the first {n} particles; values and report use all.", "mk.cmp_live": "follows the latest version", "mk.cmp_pin": "version kept" },
+};
+if (window.LabUI) LabUI.strings(MK_T);
+const tr = (k, v) => (window.LabUI ? LabUI.t(k, v) : (MK_T.de[k] || k).replace(/\{(\w+)\}/g, (m, x) => (v && v[x] !== undefined ? v[x] : m)));
+const trn = (k, n) => tr(n === 1 ? k + "1" : k, { n });
+let OV = null;
+const NF = {};
+function fmt(v, nd = 3) {
+  if (v === null || v === undefined || !isFinite(v)) return "–";
+  const a = Math.abs(v);
+  const d = a >= 10000 ? 0 : a >= 1000 ? Math.min(nd, 1) : nd;
+  NF[d] = NF[d] || new Intl.NumberFormat("de-DE", { maximumFractionDigits: d, useGrouping: false });
+  return NF[d].format(v);
+}
+const csvNum = (v) => (v === null || v === undefined || (typeof v === "number" && !isFinite(v))) ? "" :
+  typeof v === "number" ? String(+v.toPrecision(7)).replace(".", ",") : String(v).includes(";") ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const r2 = (v) => Math.round(v * 100) / 100;
+const AREA = new Set(["rect", "oval", "polygon", "freehand", "traced"]);
+const TYPE_DE = { rect: "Rechteck", oval: "Ellipse", polygon: "Polygon", freehand: "Freihand", traced: "Zauberstab", line: "Linie", point: "Punkt", image: "Ganzes Bild" };
+
+// ---------------------------------------------------------------- Zustand
+let META = null;
+const LUT = {};
+const S = {
+  imgs: [], sel: -1, tool: "rect", tab: "aufgaben", resView: "mess", results: [],
+  drag: null, poly: null, mouse: null, thr: null, thrAll: null, lineWidth: 1, wandTol: 0, busy: 0, hl: null, roiSel: -1,
+  calMode: "line", calFor: null, calSkip: new Set(), autoCal: false, lastCal: null,
+};
+const cur = () => S.imgs[S.sel] || null;
+// Browser-Speicher nur für Bequemlichkeiten (Vorlagen, zuletzt benutzter Balkenstil); darf fehlen
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("folio.mikro." + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("folio.mikro." + k, JSON.stringify(v)); } catch (e) { /* ohne Speicher */ } },
+};
+// Massstabsbalken: thick/font in % der kürzeren Bildseite, len in der Einheit der Kalibrierung (null = automatisch).
+// Gleiche Bedeutung wie charts.SCALEBAR_DEFAULT auf dem Server.
+const SB_DEF = { len: null, pos: "br", color: "white", thick: 1.2, font: 3, label: true, box: false };
+const calText = (c) => c && c.unit !== "px" ? `${fmt(c.pw, 5)} ${c.unit}/px` : "ohne Massstab";
+const unitOf = (img) => { const c = calOf(img); return c.unit !== "px" ? c.unit : "px"; };
+function calOf(img) { return img.calib || (img.proc && img.proc.calib) || img.info.calib || { pw: 1, ph: 1, unit: "px" }; }
+
+// ---------------------------------------------------------------- Server
+async function api(path, body, raw) {
+  const opt = { method: body === undefined ? "GET" : "POST" };
+  if (body !== undefined) {
+    opt.body = raw ? body : JSON.stringify(body);
+    opt.headers = { "Content-Type": raw ? "application/octet-stream" : "application/json" };
+  }
+  try {
+    const r = await fetch(path, opt);
+    const j = await r.json().catch(() => ({ error: "Antwort unlesbar" }));
+    j._status = r.status;
+    return j;
+  } catch (e) {
+    return { error: "Keine Verbindung zum Modul (" + e.message + ")", _status: 0 };
+  }
+}
+function busy(d) { S.busy += d; $("#busy").hidden = S.busy <= 0; }
+async function withBusy(fn) { busy(1); try { return await fn(); } finally { busy(-1); } }
+
+function toast(msg, err = false, folder = null) {
+  const t = document.createElement("div");
+  t.className = "toast" + (err ? " err" : "");
+  t.innerHTML = esc(msg) + (folder ? ` <a href="#">Ordner öffnen</a>` : "");
+  if (folder) t.querySelector("a").addEventListener("click", (e) => { e.preventDefault(); api("api/open", { folder }); });
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), err ? 9000 : 6000);
+}
+
+// ---------------------------------------------------------------- Bilder laden
+async function openFiles(files) {
+  for (const f of files) {
+    const buf = await f.arrayBuffer();
+    const j = await withBusy(() => api("api/load?name=" + encodeURIComponent(f.name), buf, true));
+    if (j.error) { toast(j.error, true); continue; }
+    await addImage(j);
+  }
+}
+async function loadSample() {
+  const j = await withBusy(() => api("api/sample", {}));
+  if (j.error) return toast(j.error, true);
+  await addImage(j);
+  toast("Beispielbild: 16-bit, 0,25 µm/px, Partikel auf ungleichmässigem Hintergrund. Versuche: Prozess ▸ Hintergrund abziehen, Binär ▸ Schwelle, Partikel analysieren.");
+}
+async function addImage(info, saved = null) {
+  const img = {
+    id: info.id, name: info.name, info, pipeline: [], redo: [], slice: 0, display: { min: 0, max: 255, lut: "grays" }, dispSig: "",
+    calib: null, calibFrom: "", rois: [], active: null, particles: null, region: null, part: null, partImg: null, scalebar: true, cmp: null,
+    sb: { ...SB_DEF, ...store.get("sbStyle", {}), len: null },
+    view: { z: 1, x: 0, y: 0, fit: true }, proc: null, px: null, showPart: true, showNums: false,
+  };
+  const fileCal = info.calib && info.calib.unit !== "px";
+  if (saved) Object.assign(img, saved);           // A2: gespeicherter Arbeitsstand der Umgebung
+  else if (S.autoCal && S.lastCal && !fileCal) {
+    img.calib = { pw: S.lastCal.pw, ph: S.lastCal.ph, unit: S.lastCal.unit };
+    img.calibFrom = "automatisch übernommen" + (S.lastCal.from ? ` (${S.lastCal.from})` : "");
+    toast(`${info.name}: Massstab ${calText(img.calib)} automatisch übernommen.`);
+  }
+  S.imgs.push(img);
+  S.sel = S.imgs.length - 1;
+  try { await refresh(img); } catch (e) { toast(e.message, true); }
+  fit(img);
+  selectImage(S.sel);
+}
+function selectImage(i) {
+  S.sel = i; S.thr = null; S.thrAll = null; S.poly = null; S.hl = null; S.roiSel = -1;
+  renderChips();
+  const img = cur();
+  $("#empty").hidden = !!img;
+  if (img && img.px) renderBase(img);
+  if (img && img.view.fit) fit(img);
+  updateAll();
+  if (S.tab === "schwelle") thrEnter();
+}
+async function closeImage(i) {
+  const img = S.imgs[i];
+  if (!img) return;
+  api("api/remove", { id: img.id });
+  S.imgs.splice(i, 1);
+  selectImage(Math.min(i, S.imgs.length - 1));
+}
+function renderChips() {
+  const el = $("#chips");
+  el.innerHTML = "";
+  S.imgs.forEach((img, i) => {
+    const c = document.createElement("div");
+    c.className = "chip" + (i === S.sel ? " sel" : "");
+    c.title = img.name;
+    c.innerHTML = `<span>${esc(img.name)}</span><button class="x" title="Bild schliessen">×</button>`;
+    c.addEventListener("click", (e) => { if (e.target.classList.contains("x")) closeImage(i); else selectImage(i); });
+    el.appendChild(c);
+  });
+  $("#labBtn").disabled = !S.imgs.length;
+}
+
+// ---------------------------------------------------------------- Protokoll anwenden, Pixel holen
+// Nach einem Bearbeitungsschritt aendern sich die Werte: Anzeigebereich neu setzen (Farbtabelle bleibt).
+async function refresh(img, keepDisplay = false) {
+  const info = await withBusy(() => api("api/process", { id: img.id, pipeline: img.pipeline }));
+  if (info.error) throw new Error(info.error);
+  img.proc = info;
+  img.slice = Math.min(img.slice, info.slices - 1);
+  await loadPixels(img);
+  const sig = info.kind + info.bitdepth + "|" + info.w + "x" + info.h;
+  if (!keepDisplay || img.dispSig !== sig) { img.display = { ...defaultDisplay(img), lut: img.display.lut }; img.dispSig = sig; }
+}
+async function loadPixels(img, pipeline = img.pipeline) {
+  busy(1);
+  try {
+    const r = await fetch("api/pixels", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: img.id, pipeline, slice: img.slice }) });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || "Bilddaten nicht lesbar"); }
+    const kind = r.headers.get("X-Kind"), w = +r.headers.get("X-W"), h = +r.headers.get("X-H");
+    const buf = await r.arrayBuffer();
+    img.px = { kind, w, h, data: kind === "rgb" ? new Uint8Array(buf) : new Float32Array(buf) };
+    pxStats(img);
+  } finally { busy(-1); }
+}
+function pxStats(img) {
+  const p = img.px, d = p.data, n = p.w * p.h;
+  let mn = Infinity, mx = -Infinity, sum = 0, sum2 = 0;
+  const gv = p.kind === "rgb" ? (i) => (d[3 * i] + d[3 * i + 1] + d[3 * i + 2]) / 3 : (i) => d[i];
+  for (let i = 0; i < n; i++) { const v = gv(i); if (v === v) { if (v < mn) mn = v; if (v > mx) mx = v; sum += v; sum2 += v * v; } }
+  if (!(mx >= mn)) { mn = 0; mx = 1; }
+  const bd = img.proc ? img.proc.bitdepth : 8;
+  const eight = p.kind !== "gray" || bd === 8;
+  const lo = eight ? 0 : mn, hi = eight ? 256 : (mx > mn ? mx : mn + 1);
+  const bw = (hi - lo) / 256, hist = new Float64Array(256);
+  for (let i = 0; i < n; i++) { const v = gv(i); if (v === v) hist[clamp(Math.floor((v - lo) / bw), 0, 255)]++; }
+  const mean = sum / n;
+  p.stat = { min: mn, max: mx, mean, sd: Math.sqrt(Math.max(0, sum2 / n - mean * mean)), hist, lo, bw, eight, n };
+}
+function defaultDisplay(img) {
+  const s = img.px.stat;
+  if (img.px.kind !== "gray" || (img.proc && img.proc.bitdepth === 8)) return { min: 0, max: 255 };
+  return { min: s.min, max: s.max };
+}
+function autoDisplay(img) {
+  const s = img.px.stat, h = s.hist, lim = s.n * 0.0035 / 2;
+  let a = 0, b = 255, c = 0;
+  for (; a < 255; a++) { c += h[a]; if (c > lim) break; }
+  c = 0;
+  for (; b > 0; b--) { c += h[b]; if (c > lim) break; }
+  if (b <= a) { a = 0; b = 255; }
+  return { min: s.lo + a * s.bw, max: s.lo + (b + 1) * s.bw };
+}
+
+async function pushStep(step) {
+  const img = cur();
+  if (!img) return;
+  const old = img.pipeline;
+  img.pipeline = [...old, step];
+  try {
+    await refresh(img);
+    img.redo = [];
+    afterPipeline(img, step);
+  } catch (e) {
+    img.pipeline = old;
+    toast(e.message, true);
+  }
+}
+async function setPipeline(img, pl, quiet = false) {
+  const old = img.pipeline;
+  img.pipeline = pl;
+  try { await refresh(img); afterPipeline(img); return true; } catch (e) {
+    img.pipeline = old;
+    if (!quiet) toast(e.message, true);
+    try { await refresh(img); } catch (_) { /* alter Stand */ }
+    return e.message;
+  }
+}
+function afterPipeline(img, step) {
+  // Geometrie aendert sich: Auswahlen anpassen bzw. verwerfen
+  if (step && step.op === "crop") {
+    const sh = (r) => moveRoi(r, JSON.parse(JSON.stringify(r)), -step.x, -step.y);
+    img.rois.forEach(sh);
+    img.active = null;
+  } else if (step && ["rotate", "flip"].includes(step.op) && (img.rois.length || img.active)) {
+    img.rois = []; img.active = null;
+    toast("Auswahlen wurden verworfen, weil das Bild gedreht oder gespiegelt wurde.");
+  }
+  img.part = null; img.partImg = null; img.particles = null; img.region = null;
+  S.thr = null; S.thrAll = null;
+  renderBase(img);
+  if (img.view.fit) fit(img);
+  updateAll();
+  if (S.tab === "schwelle") thrEnter();
+}
+async function undo() {
+  const img = cur();
+  if (!img || !img.pipeline.length) return;
+  const last = img.pipeline[img.pipeline.length - 1];
+  if (await setPipeline(img, img.pipeline.slice(0, -1)) === true) img.redo.push(last);
+  updateAll();
+}
+async function redo() {
+  const img = cur();
+  if (!img || !img.redo.length) return;
+  const st = img.redo.pop();
+  if (await setPipeline(img, [...img.pipeline, st]) !== true) img.redo.push(st);
+  updateAll();
+}
+
+// ---------------------------------------------------------------- Darstellung
+const view = $("#view"), vctx = view.getContext("2d");
+const base = document.createElement("canvas"), bctx = base.getContext("2d");
+let dpr = 1;
+function sizeView() {
+  const r = $("#stage").getBoundingClientRect();
+  dpr = window.devicePixelRatio || 1;
+  view.width = Math.max(1, Math.round(r.width * dpr));
+  view.height = Math.max(1, Math.round(r.height * dpr));
+  const img = cur();
+  if (img && img.view.fit) fit(img);
+  draw();
+}
+function fit(img) {
+  if (!img || !img.px) return;
+  const W = view.width / dpr, H = view.height / dpr;
+  const z = Math.min(W / img.px.w, H / img.px.h) * 0.96;
+  img.view = { z, x: (W - img.px.w * z) / 2, y: (H - img.px.h * z) / 2, fit: true };
+  draw();
+}
+function zoomAt(sx, sy, f) {
+  const img = cur();
+  if (!img) return;
+  const v = img.view, z2 = clamp(v.z * f, 0.02, 64);
+  v.x = sx - (sx - v.x) * (z2 / v.z); v.y = sy - (sy - v.y) * (z2 / v.z); v.z = z2; v.fit = false;
+  draw();
+}
+function zoomCenter(f) { zoomAt(view.width / dpr / 2, view.height / dpr / 2, f); }
+function zoom100() { const img = cur(); if (!img) return; zoomCenter(1 / img.view.z); }
+
+function renderBase(img) {
+  const p = img.px;
+  if (!p) return;
+  base.width = p.w; base.height = p.h;
+  const im = bctx.createImageData(p.w, p.h), o = im.data, d = p.data, n = p.w * p.h;
+  const lo = +img.display.min, hi = +img.display.max, sc = 255 / Math.max(1e-12, hi - lo);
+  const thr = S.tab === "schwelle" && S.thr && p.kind === "gray" ? S.thr : null;
+  if (p.kind === "rgb") {
+    for (let i = 0, j = 0, k = 0; i < n; i++, j += 3, k += 4) {
+      o[k] = clamp((d[j] - lo) * sc, 0, 255); o[k + 1] = clamp((d[j + 1] - lo) * sc, 0, 255); o[k + 2] = clamp((d[j + 2] - lo) * sc, 0, 255); o[k + 3] = 255;
+    }
+  } else {
+    const lut = p.kind === "binary" ? LUT.grays : (LUT[img.display.lut] || LUT.grays);
+    const blo = p.kind === "binary" ? 0 : lo, bsc = p.kind === "binary" ? 1 : sc;
+    const tlo = thr ? thr.lo : 0, thi = thr ? thr.hi : -1;
+    for (let i = 0, k = 0; i < n; i++, k += 4) {
+      const v = d[i];
+      if (v >= tlo && v <= thi) { o[k] = 229; o[k + 1] = 57; o[k + 2] = 53; o[k + 3] = 255; continue; }
+      let q = (v - blo) * bsc;
+      q = q < 0 ? 0 : q > 255 ? 255 : q | 0;
+      o[k] = lut[3 * q]; o[k + 1] = lut[3 * q + 1]; o[k + 2] = lut[3 * q + 2]; o[k + 3] = 255;
+    }
+  }
+  bctx.putImageData(im, 0, 0);
+}
+let drawQueued = false;
+function draw() {
+  if (drawQueued) return;
+  drawQueued = true;
+  requestAnimationFrame(() => { drawQueued = false; drawNow(); });
+}
+function drawNow() {
+  const W = view.width / dpr, H = view.height / dpr;
+  vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  vctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--stage") || "#1b1a1f";
+  vctx.fillRect(0, 0, W, H);
+  const img = cur();
+  $("#stZoom").textContent = img ? Math.round(img.view.z * 100) + " %" : "";
+  if (!img || !img.px) return;
+  const v = img.view;
+  vctx.save();
+  vctx.translate(v.x, v.y);
+  vctx.scale(v.z, v.z);
+  vctx.imageSmoothingEnabled = v.z < 1;
+  vctx.drawImage(base, 0, 0);
+  if (img.partImg && img.showPart && S.tab !== "schwelle") vctx.drawImage(img.partImg, 0, 0);
+  vctx.restore();
+  vctx.strokeStyle = "rgba(255,255,255,.18)";
+  vctx.strokeRect(v.x - 0.5, v.y - 0.5, img.px.w * v.z + 1, img.px.h * v.z + 1);
+  if (img.part && img.showNums && img.showPart) drawNumbers(img);
+  if ($("#rShow").checked) img.rois.forEach((r, i) => drawRoi(r, i === S.roiSel ? "#ffffff" : "#4dd0e1", r.name));
+  if (img.active) drawRoi(img.active, "#ffd54a", null, true);
+  if (S.poly) drawPolyDraft();
+  if (img.scalebar) drawScaleBar(img);
+  if (S.hl) {
+    const [sx, sy] = toScreen(img, S.hl[0], S.hl[1]);
+    vctx.strokeStyle = "#ff4081"; vctx.lineWidth = 2;
+    vctx.beginPath(); vctx.arc(sx, sy, 14, 0, Math.PI * 2); vctx.stroke();
+  }
+}
+const toScreen = (img, x, y) => [x * img.view.z + img.view.x, y * img.view.z + img.view.y];
+// Mauszeiger -> Zeichenkoordinaten: über die tatsächlich angezeigte Grösse des Canvas, damit Klick und Linie exakt
+// übereinstimmen (auch bei Windows-Skalierung 125/150 % und falls die CSS-Grösse vom Zeichenpuffer abweicht).
+function toView(e) {
+  const r = view.getBoundingClientRect();
+  return [(e.clientX - r.left) * (view.width / dpr) / (r.width || 1), (e.clientY - r.top) * (view.height / dpr) / (r.height || 1)];
+}
+function toImg(e) {
+  const img = cur(), [sx, sy] = toView(e);
+  return [(sx - img.view.x) / img.view.z, (sy - img.view.y) / img.view.z, sx, sy];
+}
+function drawRoi(r, col, label, active = false) {
+  const img = cur(), c = vctx, z = img.view.z;
+  c.save();
+  c.strokeStyle = col; c.fillStyle = col; c.lineWidth = active ? 1.6 : 1.2;
+  const T = (x, y) => toScreen(img, x, y);
+  let lx = 0, ly = 0;
+  if (r.type === "rect") {
+    const [x, y] = T(r.x, r.y);
+    c.strokeRect(x, y, r.w * z, r.h * z); lx = x; ly = y;
+  } else if (r.type === "oval") {
+    const [x, y] = T(r.x + r.w / 2, r.y + r.h / 2);
+    c.beginPath(); c.ellipse(x, y, Math.max(0.5, r.w * z / 2), Math.max(0.5, r.h * z / 2), 0, 0, Math.PI * 2); c.stroke();
+    [lx, ly] = T(r.x, r.y);
+  } else if (r.pts && r.type !== "point") {
+    c.beginPath();
+    r.pts.forEach((p, i) => { const [x, y] = T(p[0], p[1]); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+    c.closePath(); c.stroke();
+    [lx, ly] = T(r.pts[0][0], r.pts[0][1]);
+  } else if (r.type === "line") {
+    const [x1, y1] = T(r.x1, r.y1), [x2, y2] = T(r.x2, r.y2);
+    if ((r.width || 1) > 1) {
+      c.save(); c.globalAlpha = 0.25; c.lineWidth = r.width * z; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.restore();
+    }
+    c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+    if (active) { c.fillRect(x1 - 2.5, y1 - 2.5, 5, 5); c.fillRect(x2 - 2.5, y2 - 2.5, 5, 5); }
+    lx = x1; ly = y1;
+  } else if (r.type === "point") {
+    for (const p of r.pts) {
+      const [x, y] = T(p[0], p[1]);
+      c.beginPath(); c.moveTo(x - 6, y); c.lineTo(x + 6, y); c.moveTo(x, y - 6); c.lineTo(x, y + 6); c.stroke();
+    }
+    if (r.pts.length) [lx, ly] = T(r.pts[0][0], r.pts[0][1]);
+  }
+  if (label) { c.font = "11px system-ui, sans-serif"; c.fillText(label, lx + 3, ly - 4); }
+  c.restore();
+}
+function drawPolyDraft() {
+  const img = cur(), c = vctx, pts = S.poly.pts;
+  c.save(); c.strokeStyle = "#ffd54a"; c.lineWidth = 1.4; c.beginPath();
+  pts.forEach((p, i) => { const [x, y] = toScreen(img, p[0], p[1]); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  if (S.mouse) { const [x, y] = toScreen(img, S.mouse[0], S.mouse[1]); c.lineTo(x, y); }
+  c.stroke();
+  const [x0, y0] = toScreen(img, pts[0][0], pts[0][1]);
+  c.strokeRect(x0 - 4, y0 - 4, 8, 8);
+  c.restore();
+}
+function drawNumbers(img) {
+  const c = vctx;
+  if (img.view.z < 0.25) return;
+  c.save(); c.font = "bold 11px system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
+  c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,.7)"; c.fillStyle = "#ffeb3b";
+  for (const r of img.part.rows) {
+    const [x, y] = toScreen(img, r._px[0], r._px[1]);
+    c.strokeText(r["#"], x, y); c.fillText(r["#"], x, y);
+  }
+  c.restore();
+}
+function niceLength(total) {
+  const t = total / 5;
+  if (t <= 0) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(t)));
+  for (const f of [5, 2, 1]) if (f * e <= t) return f * e;
+  return e;
+}
+const SB_FONT = "system-ui, sans-serif";
+const mctx = document.createElement("canvas").getContext("2d");
+function textW(t, f) { mctx.font = `bold 100px ${SB_FONT}`; return mctx.measureText(t).width * f / 100; }
+// Lage des Balkens in Bildpixeln (wie charts.scalebar_geom): Block aus Beschriftung und Balken in der gewählten Ecke
+function sbGeom(W, H, cal, o) {
+  const base = Math.min(W, H);
+  const L = o.len > 0 ? +o.len : niceLength(W * cal.pw), px = L / cal.pw;
+  const bh = Math.max(1, base * o.thick / 100), fpx = base * o.font / 100, m = base * 0.04;
+  const text = fmt(L, 3) + " " + cal.unit;
+  const th = o.label ? fpx * 1.15 : 0, gap = o.label ? fpx * 0.25 : 0, tw = o.label ? textW(text, fpx) : 0;
+  const bw = Math.max(px, tw), blk = th + gap + bh, pad = o.box ? fpx * 0.35 : 0;
+  const x0 = o.pos[1] === "r" ? W - m - pad - bw : m + pad;
+  const y0 = o.pos[0] === "b" ? H - m - pad - blk : m + pad;
+  return { L, px, text, fpx, bar: [x0 + (bw - px) / 2, y0 + th + gap, px, bh], tx: x0 + bw / 2, ty: y0 + th / 2,
+           box: [x0 - pad, y0 - pad, bw + 2 * pad, blk + 2 * pad] };
+}
+// zeichnet den Balken; T: Bild -> Zielkoordinaten, z: Massstab (Bildschirm: Zoom, PNG: 1)
+function paintScaleBar(c, g, o, T, z) {
+  const fg = o.color === "black" ? "#000" : "#fff", bg = o.color === "black" ? "#fff" : "#000";
+  c.save();
+  if (o.box) {
+    const [x, y] = T(g.box[0], g.box[1]);
+    c.globalAlpha = 0.65; c.fillStyle = bg; c.fillRect(x, y, g.box[2] * z, g.box[3] * z); c.globalAlpha = 1;
+  }
+  const [bx, by] = T(g.bar[0], g.bar[1]);
+  c.fillStyle = fg; c.fillRect(bx, by, g.bar[2] * z, g.bar[3] * z);
+  if (!o.box) { c.strokeStyle = bg; c.lineWidth = Math.max(0.6, g.fpx * z * 0.04); c.strokeRect(bx, by, g.bar[2] * z, g.bar[3] * z); }
+  if (o.label) {
+    const [tx, ty] = T(g.tx, g.ty);
+    c.font = `bold ${g.fpx * z}px ${SB_FONT}`; c.textAlign = "center"; c.textBaseline = "middle";
+    if (!o.box) { c.lineJoin = "round"; c.lineWidth = Math.max(1.5, g.fpx * z * 0.18); c.strokeStyle = bg; c.strokeText(g.text, tx, ty); }
+    c.fillStyle = fg; c.fillText(g.text, tx, ty);
+  }
+  c.restore();
+}
+function drawScaleBar(img) {
+  const cal = calOf(img);
+  if (cal.unit === "px") return;
+  const g = sbGeom(img.px.w, img.px.h, cal, img.sb);
+  paintScaleBar(vctx, g, img.sb, (x, y) => toScreen(img, x, y), img.view.z);
+}
+// Bild in voller Auflösung mit eingebranntem Balken (Anzeigebereich und Farbtabelle wie auf dem Schirm)
+function saveBarPng() {
+  const img = cur();
+  if (!img || !img.px) return;
+  const cal = calOf(img);
+  if (cal.unit === "px") return toast("Das Bild hat noch keinen Massstab. Erst kalibrieren.", true);
+  renderBase(img);
+  const cv = document.createElement("canvas");
+  cv.width = img.px.w; cv.height = img.px.h;
+  const c = cv.getContext("2d");
+  c.drawImage(base, 0, 0);
+  if (img.scalebar) paintScaleBar(c, sbGeom(img.px.w, img.px.h, cal, img.sb), img.sb, (x, y) => [x, y], 1);
+  cv.toBlob((b) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = `${stem(img.name)}_massstab.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }, "image/png");
+}
+
+// ---------------------------------------------------------------- Werkzeuge
+const ICON = {
+  rect: '<rect x="4" y="6" width="16" height="12" rx="1" stroke-dasharray="3 2"/>',
+  oval: '<ellipse cx="12" cy="12" rx="8.5" ry="6" stroke-dasharray="3 2"/>',
+  polygon: '<path d="M5 17l2-10 7-3 5 6-3 9z" stroke-dasharray="3 2"/>',
+  freehand: '<path d="M6 15c-2-4 1-9 6-9s8 3 6 7-4 2-5 5-5 2-7-3z" stroke-dasharray="3 2"/>',
+  line: '<path d="M5 19L19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor"/><circle cx="19" cy="5" r="1.6" fill="currentColor"/>',
+  point: '<path d="M12 4v5M12 15v5M4 12h5M15 12h5"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
+  wand: '<path d="M4 20l10-10"/><path d="M14 10l2-2"/><path d="M17 3v2M17 11v2M21 7h-2M13 7h-2M19.8 4.2l-1.4 1.4M14.6 9.4l-1.2 1.2M19.8 9.8l-1.4-1.4"/>',
+  zoom: '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5M8 10.5h5M10.5 8v5"/>',
+  hand: '<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>',
+};
+const TOOLS = [
+  ["rect", "Rechteck (R)", "r"], ["oval", "Ellipse (O)", "o"], ["polygon", "Polygon (G)", "g"], ["freehand", "Freihand (F)", "f"],
+  ["line", "Linie (L)", "l"], ["point", "Punkte (P)", "p"], ["wand", "Bereich per Klick wählen (W)", "w"], "-",
+  ["zoom", "Lupe (Z)", "z"], ["hand", "Ansicht verschieben (H)", "h"],
+];
+const HINT = {
+  rect: "Ziehen zeichnet ein Rechteck, mit Umschalt ein Quadrat. Ziehen innerhalb der Auswahl verschiebt sie.",
+  oval: "Ziehen zeichnet eine Ellipse, mit Umschalt einen Kreis.",
+  polygon: "Klicks setzen Ecken. Doppelklick oder Klick auf den Startpunkt schliesst das Polygon.",
+  freehand: "Ziehen zeichnet eine freie Umrandung.",
+  line: "Ziehen zeichnet eine Linie (Umschalt rastet auf 45° ein). Für Profil, Länge und Massstab.",
+  point: "Klick setzt einen Punkt, Umschalt+Klick weitere Punkte.",
+  wand: "Klick auf ein Objekt wählt den zusammenhängenden Bereich mit gleichem Wert (± Toleranz).",
+  zoom: "Klick vergrössert, Alt- oder Rechtsklick verkleinert. Das Mausrad zoomt mit jedem Werkzeug.",
+  hand: "Ziehen verschiebt die Ansicht. Geht auch mit gedrückter Leertaste oder mittlerer Maustaste.",
+};
+function buildTools() {
+  const el = $("#tools");
+  for (const t of TOOLS) {
+    if (t === "-") { el.appendChild(document.createElement("hr")); continue; }
+    const b = document.createElement("button");
+    b.dataset.tool = t[0]; b.title = t[1]; b.setAttribute("aria-label", t[1]);
+    b.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[t[0]]}</svg>`;
+    b.addEventListener("click", () => setTool(t[0]));
+    el.appendChild(b);
+  }
+  setTool("rect");
+}
+function setTool(t) {
+  S.tool = t; S.poly = null;
+  $$("#tools button").forEach(b => b.classList.toggle("sel", b.dataset.tool === t));
+  $("#optHint").textContent = HINT[t];
+  const ex = $("#optExtra");
+  if (t === "line") ex.innerHTML = `Breite <input type="number" id="oLineW" min="1" max="200" step="1" value="${S.lineWidth}"> px`;
+  else if (t === "wand") ex.innerHTML = `Toleranz <input type="number" id="oTol" min="0" step="any" value="${S.wandTol}">`;
+  else ex.innerHTML = "";
+  const lw = $("#oLineW"), tol = $("#oTol");
+  if (lw) lw.addEventListener("change", () => { S.lineWidth = clamp(Math.round(+lw.value || 1), 1, 200); const a = cur()?.active; if (a && a.type === "line") { a.width = S.lineWidth; draw(); } });
+  if (tol) tol.addEventListener("change", () => { S.wandTol = Math.max(0, +tol.value || 0); });
+  view.style.cursor = t === "hand" ? "grab" : t === "zoom" ? "zoom-in" : "crosshair";
+  draw();
+}
+
+function hitRoi(r, x, y) {
+  const z = cur().view.z;
+  if (r.type === "rect") return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+  if (r.type === "oval") { const dx = (x - r.x - r.w / 2) / (r.w / 2), dy = (y - r.y - r.h / 2) / (r.h / 2); return dx * dx + dy * dy <= 1; }
+  if (r.type === "line") {
+    const vx = r.x2 - r.x1, vy = r.y2 - r.y1, L2 = vx * vx + vy * vy || 1;
+    const t = clamp(((x - r.x1) * vx + (y - r.y1) * vy) / L2, 0, 1);
+    return Math.hypot(x - r.x1 - t * vx, y - r.y1 - t * vy) * z < 6;
+  }
+  if (r.pts && r.type !== "point") {
+    let ins = false;
+    for (let i = 0, j = r.pts.length - 1; i < r.pts.length; j = i++) {
+      const [xi, yi] = r.pts[i], [xj, yj] = r.pts[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins;
+    }
+    return ins;
+  }
+  return false;
+}
+function moveRoi(r, o, dx, dy) {
+  if (r.type === "rect" || r.type === "oval") { r.x = o.x + Math.round(dx); r.y = o.y + Math.round(dy); }
+  else if (r.type === "line") { r.x1 = o.x1 + dx; r.y1 = o.y1 + dy; r.x2 = o.x2 + dx; r.y2 = o.y2 + dy; }
+  else if (r.pts) r.pts = o.pts.map(p => [p[0] + dx, p[1] + dy]);
+}
+function tidyRoi(r) {
+  if (!r) return r;
+  if (r.type === "line") ["x1", "y1", "x2", "y2"].forEach(k => r[k] = r2(r[k]));
+  if (r.pts) r.pts = r.pts.map(p => [r2(p[0]), r2(p[1])]);
+  return r;
+}
+
+let spaceDown = false;
+function onDown(e) {
+  const img = cur();
+  if (!img || !img.px) return;
+  view.setPointerCapture(e.pointerId);
+  const [ix, iy, sx, sy] = toImg(e);
+  S.hl = null;
+  if (e.button === 1 || S.tool === "hand" || spaceDown) {
+    S.drag = { mode: "pan", sx, sy, vx: img.view.x, vy: img.view.y };
+    view.style.cursor = "grabbing";
+    return;
+  }
+  if (S.tool === "zoom") { zoomAt(sx, sy, (e.button === 2 || e.altKey) ? 0.5 : 2); return; }
+  if (e.button !== 0) return;
+  const t = S.tool;
+  if (t === "polygon") return polyClick(ix, iy, sx, sy);
+  if (t === "wand") return wandAt(ix, iy);
+  if (t === "point") {
+    const p = [r2(ix), r2(iy)];
+    if (e.shiftKey && img.active && img.active.type === "point") img.active.pts.push(p);
+    else img.active = { type: "point", pts: [p] };
+    return changedSel();
+  }
+  if (img.active && img.active.type !== "point" && hitRoi(img.active, ix, iy)) {
+    S.drag = { mode: "move", ix, iy, orig: JSON.parse(JSON.stringify(img.active)) };
+    return;
+  }
+  if (t === "rect" || t === "oval") {
+    const x = Math.round(ix), y = Math.round(iy);
+    img.active = { type: t, x, y, w: 0, h: 0 };
+    S.drag = { mode: "shape", x0: x, y0: y };
+  } else if (t === "line") {
+    img.active = { type: "line", x1: ix, y1: iy, x2: ix, y2: iy, width: S.lineWidth };
+    S.drag = { mode: "line" };
+  } else if (t === "freehand") {
+    img.active = { type: "freehand", pts: [[ix, iy]] };
+    S.drag = { mode: "free" };
+  }
+  draw();
+}
+function onMove(e) {
+  const img = cur();
+  if (!img || !img.px) return;
+  const [ix, iy, sx, sy] = toImg(e);
+  S.mouse = [ix, iy];
+  status(ix, iy);
+  const d = S.drag;
+  if (!d) { if (S.poly) draw(); return; }
+  if (d.mode === "pan") { img.view.x = d.vx + sx - d.sx; img.view.y = d.vy + sy - d.sy; img.view.fit = false; }
+  else if (d.mode === "shape") {
+    let w = Math.round(ix) - d.x0, h = Math.round(iy) - d.y0;
+    if (e.shiftKey) { const s = Math.max(Math.abs(w), Math.abs(h)); w = Math.sign(w || 1) * s; h = Math.sign(h || 1) * s; }
+    Object.assign(img.active, { x: w < 0 ? d.x0 + w : d.x0, y: h < 0 ? d.y0 + h : d.y0, w: Math.abs(w), h: Math.abs(h) });
+  } else if (d.mode === "line") {
+    const a = img.active;
+    let x2 = ix, y2 = iy;
+    if (e.shiftKey) {
+      const ang = Math.round(Math.atan2(y2 - a.y1, x2 - a.x1) / (Math.PI / 4)) * (Math.PI / 4), L = Math.hypot(x2 - a.x1, y2 - a.y1);
+      x2 = a.x1 + L * Math.cos(ang); y2 = a.y1 + L * Math.sin(ang);
+    }
+    a.x2 = x2; a.y2 = y2;
+  } else if (d.mode === "free") {
+    const pts = img.active.pts, l = pts[pts.length - 1];
+    if (Math.hypot(ix - l[0], iy - l[1]) * img.view.z > 2) pts.push([ix, iy]);
+  } else if (d.mode === "move") moveRoi(img.active, d.orig, ix - d.ix, iy - d.iy);
+  if (d.mode !== "pan") showSelInfo();
+  draw();
+}
+function onUp() {
+  const d = S.drag, img = cur();
+  S.drag = null;
+  if (S.tool === "hand") view.style.cursor = "grab";
+  if (!d || !img) return;
+  const a = img.active;
+  if (a && d.mode === "shape" && (a.w < 1 || a.h < 1)) img.active = null;
+  if (a && d.mode === "line" && Math.hypot(a.x2 - a.x1, a.y2 - a.y1) < 1) img.active = null;
+  if (a && d.mode === "free" && a.pts.length < 3) img.active = null;
+  tidyRoi(img.active);
+  changedSel();
+}
+function polyClick(ix, iy, sx, sy) {
+  const img = cur();
+  if (!S.poly) { S.poly = { pts: [[ix, iy]] }; img.active = null; return draw(); }
+  const [x0, y0] = toScreen(img, S.poly.pts[0][0], S.poly.pts[0][1]);
+  if (S.poly.pts.length >= 3 && Math.hypot(sx - x0, sy - y0) < 7) return finishPoly();
+  S.poly.pts.push([ix, iy]);
+  draw();
+}
+function finishPoly() {
+  const img = cur();
+  if (!S.poly) return;
+  const pts = [];
+  for (const p of S.poly.pts) { const l = pts[pts.length - 1]; if (!l || Math.hypot(p[0] - l[0], p[1] - l[1]) > 0.5) pts.push(p); }
+  S.poly = null;
+  img.active = pts.length >= 3 ? tidyRoi({ type: "polygon", pts }) : null;
+  changedSel();
+}
+
+// Zauberstab: zusammenhaengender Bereich (8er-Nachbarschaft), Umriss entlang der Pixelkanten
+function wandAt(ix, iy) {
+  const img = cur(), p = img.px, w = p.w, h = p.h, d = p.data;
+  const x = Math.floor(ix), y = Math.floor(iy);
+  if (x < 0 || y < 0 || x >= w || y >= h) return;
+  const val = p.kind === "rgb" ? (i) => (d[3 * i] + d[3 * i + 1] + d[3 * i + 2]) / 3 : (i) => d[i];
+  const v0 = val(y * w + x), tol = S.wandTol;
+  const mask = new Uint8Array(w * h), stack = new Int32Array(w * h);
+  let sp = 0, first = y * w + x, count = 0;
+  mask[first] = 1; stack[sp++] = first;
+  while (sp) {
+    const i = stack[--sp], px = i % w, py = (i - px) / w;
+    count++;
+    if (i < first) first = i;
+    for (let dy = -1; dy <= 1; dy++) {
+      const ny = py + dy;
+      if (ny < 0 || ny >= h) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        const nx = px + dx;
+        if ((!dx && !dy) || nx < 0 || nx >= w) continue;
+        const j = ny * w + nx;
+        if (!mask[j] && Math.abs(val(j) - v0) <= tol) { mask[j] = 1; stack[sp++] = j; }
+      }
+    }
+  }
+  const pts = traceOutline(mask, w, h, first % w, Math.floor(first / w));
+  img.active = { type: "traced", pts };
+  changedSel();
+  toast(`Bereich gewählt: ${count} Pixel` + (count === w * h ? " (das ganze Bild – Toleranz kleiner wählen?)" : ""));
+}
+function traceOutline(mask, w, h, sx, sy) {
+  const ins = (x, y) => x >= 0 && y >= 0 && x < w && y < h && mask[y * w + x] === 1;
+  const DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
+  const AL = [[0, -1], [0, 0], [-1, 0], [-1, -1]], AR = [[0, 0], [-1, 0], [-1, -1], [0, -1]];
+  let x = sx + 1, y = sy, d = 0, guard = 4 * (w + 2) * (h + 2);
+  const pts = [[sx, sy]];
+  while (guard-- > 0 && !(x === sx && y === sy)) {
+    const al = ins(x + AL[d][0], y + AL[d][1]), ar = ins(x + AR[d][0], y + AR[d][1]);
+    const nd = al ? (d + 3) % 4 : ar ? d : (d + 1) % 4;
+    if (nd !== d) pts.push([x, y]);
+    d = nd; x += DX[d]; y += DY[d];
+  }
+  return pts;
+}
+
+function changedSel() { showSelInfo(); draw(); }
+function showSelInfo() {
+  const img = cur(), a = img && img.active, el = $("#selInfo");
+  if (!a) { el.textContent = ""; return; }
+  const c = calOf(img), u = c.unit;
+  if (a.type === "rect" || a.type === "oval") el.textContent = `${TYPE_DE[a.type]} ${a.w}×${a.h} px` + (u !== "px" ? ` · ${fmt(a.w * c.pw)}×${fmt(a.h * c.ph)} ${u}` : "") + ` · bei ${a.x}, ${a.y}`;
+  else if (a.type === "line") {
+    const L = Math.hypot(a.x2 - a.x1, a.y2 - a.y1), Lc = Math.hypot((a.x2 - a.x1) * c.pw, (a.y2 - a.y1) * c.ph);
+    const ang = Math.atan2(-(a.y2 - a.y1), a.x2 - a.x1) * 180 / Math.PI + 0;
+    el.textContent = `Linie ${fmt(L, 1)} px` + (u !== "px" ? ` = ${fmt(Lc)} ${u}` : "") + ` · Winkel ${fmt(ang, 1)}°`;
+    syncCalLine(L);
+  } else if (a.type === "point") el.textContent = `${a.pts.length} Punkt(e)`;
+  else el.textContent = `${TYPE_DE[a.type]} mit ${a.pts.length} Ecken`;
+}
+function status(ix, iy) {
+  const img = cur(), p = img.px, x = Math.floor(ix), y = Math.floor(iy);
+  if (x < 0 || y < 0 || x >= p.w || y >= p.h) { $("#stPos").textContent = "–"; return; }
+  const c = calOf(img), i = y * p.w + x;
+  const pos = c.unit !== "px" ? `x = ${fmt(ix * c.pw, 2)}, y = ${fmt(iy * c.ph, 2)} ${c.unit} (${x}, ${y})` : `x = ${x}, y = ${y}`;
+  const val = p.kind === "rgb" ? `RGB ${p.data[3 * i]}, ${p.data[3 * i + 1]}, ${p.data[3 * i + 2]}` : `Wert ${fmt(p.data[i], 3)}`;
+  $("#stPos").textContent = `${pos} · ${val}`;
+}
+
+// ---------------------------------------------------------------- Menues
+const opItem = (op, extra = {}) => ({ op, ...extra });
+const MENUS = [
+  { label: "Datei", tkey: "mk.m_file", items: [
+    { label: "Bild öffnen …", key: "Strg+O", act: () => $("#file").click(), always: true },
+    { label: "Beispielbild laden", act: loadSample, always: true },
+    "-",
+    { label: "Umgebungen …", act: () => ENVS.dialog(), always: true },
+    { label: "Projektindex …", act: () => LabIndex.browse(api, toast), always: true },
+    "-",
+    { label: "Exportieren (PNG, CSV, Protokoll)", act: () => doExport() },
+    { label: "Protokoll speichern …", act: saveProtocol },
+    { label: "Protokoll laden …", act: () => $("#protoFile").click() },
+    { label: "Protokoll auf alle Bilder anwenden", act: applyAll, enabled: () => S.imgs.length > 1 },
+    "-",
+    { label: "Bild schliessen", act: () => closeImage(S.sel) },
+  ] },
+  { label: "Bild", tkey: "mk.m_image", items: [
+    { label: "In 8-bit umwandeln (Anzeigebereich)", act: () => runOp("to8bit"), needs: "gray" },
+    opItem("gray"), opItem("channel"),
+    "-",
+    { label: "Helligkeit & Kontrast", act: () => switchTab("anzeige") },
+    opItem("contrast"), opItem("invert"),
+    "-",
+    { label: "Auf Auswahl zuschneiden", act: () => runOp("crop") },
+    { label: "Um 90° rechts drehen", act: () => pushStep({ op: "rotate", dir: "right" }) },
+    { label: "Um 90° links drehen", act: () => pushStep({ op: "rotate", dir: "left" }) },
+    { label: "Horizontal spiegeln", act: () => pushStep({ op: "flip", axis: "h" }) },
+    { label: "Vertikal spiegeln", act: () => pushStep({ op: "flip", axis: "v" }) },
+    opItem("zproject", { enabled: () => cur() && cur().proc && cur().proc.slices > 1 }),
+    "-",
+    { label: "Massstab festlegen …", act: openScale },
+    { label: "Massstab auf alle Bilder übertragen", act: () => copyCalib(S.imgs.filter(o => o !== cur())), enabled: () => S.imgs.length > 1 },
+    { label: "Massstabsbalken", check: () => cur() && cur().scalebar, act: () => { cur().scalebar = !cur().scalebar; updateAll(); } },
+    { label: "Bild mit Massstabsbalken speichern (PNG)", act: saveBarPng },
+  ] },
+  { label: "Prozess", tkey: "mk.m_process", items: [
+    opItem("smooth"), opItem("sharpen"), opItem("edges"), "-",
+    opItem("gauss"), opItem("median"), opItem("mean"), opItem("minimum"), opItem("maximum"), opItem("unsharp"), "-",
+    opItem("background"), opItem("math"),
+  ] },
+  { label: "Binär", tkey: "mk.m_binary", items: [
+    { label: "Schwelle festlegen …", act: () => switchTab("schwelle"), needs: "gray" }, "-",
+    opItem("erode"), opItem("dilate"), opItem("open"), opItem("close"), "-", opItem("fill"), opItem("outline"), opItem("watershed"),
+  ] },
+  { label: "Analyse", tkey: "mk.m_analysis", items: [
+    { label: "Messen", key: "Strg+M", act: () => measure(false) },
+    { label: "Partikel analysieren …", act: () => switchTab("partikel") },
+    { label: "Linienprofil", key: "Strg+K", act: profile },
+    { label: "Histogramm", act: () => switchTab("anzeige") },
+    "-",
+    { label: "Auswahl zur Liste hinzufügen", key: "T", act: addRoi },
+    { label: "Alle Auswahlen der Liste messen", act: () => measure(true) },
+    "-",
+    { label: "Ergebnisse anzeigen", act: () => switchTab("ergebnisse"), always: true },
+  ] },
+  { label: "Ansicht", tkey: "mk.m_view", items: [
+    { label: "Einpassen", key: "0", act: () => fit(cur()) },
+    { label: "Originalgrösse (100 %)", key: "1", act: zoom100 },
+    { label: "Vergrössern", key: "+", act: () => zoomCenter(1.5) },
+    { label: "Verkleinern", key: "−", act: () => zoomCenter(1 / 1.5) },
+    "-",
+    { label: "Partikelkonturen", check: () => cur() && cur().showPart, act: () => { cur().showPart = !cur().showPart; syncPartView(); draw(); } },
+    { label: "Partikelnummern", check: () => cur() && cur().showNums, act: () => { cur().showNums = !cur().showNums; syncPartView(); draw(); } },
+  ] },
+];
+function needsOk(needs) {
+  const img = cur();
+  if (!img || !img.proc) return false;
+  const k = img.proc.kind;
+  if (needs === "rgb") return k === "rgb";
+  if (needs === "binary") return k === "binary";
+  if (needs === "gray") return k === "gray";
+  return true;
+}
+let menusBound = false;
+function buildMenus() {                 // auch nach einem Sprachwechsel (UI-07): Leiste neu, Dokument-Klick nur einmal
+  const bar = $("#menubar");
+  closeMenus(); bar.innerHTML = "";
+  MENUS.forEach((m, mi) => {
+    const w = document.createElement("div");
+    w.className = "m";
+    const b = document.createElement("button");
+    b.textContent = m.tkey ? tr(m.tkey) : m.label;
+    b.addEventListener("click", (e) => { e.stopPropagation(); const open = b.classList.contains("open"); closeMenus(); if (!open) openMenu(mi, w, b); });
+    b.addEventListener("mouseenter", () => { if ($(".dd") && !b.classList.contains("open")) { closeMenus(); openMenu(mi, w, b); } });
+    w.appendChild(b);
+    bar.appendChild(w);
+  });
+  if (!menusBound) { document.addEventListener("click", closeMenus); menusBound = true; }
+}
+function closeMenus() { $$(".dd").forEach(d => d.remove()); $$("#menubar button.open").forEach(b => b.classList.remove("open")); }
+function openMenu(mi, w, b) {
+  b.classList.add("open");
+  const dd = document.createElement("div");
+  dd.className = "dd"; dd.setAttribute("role", "menu");
+  for (const it of MENUS[mi].items) {
+    if (it === "-") { dd.appendChild(document.createElement("hr")); continue; }
+    const def = it.op ? META.ops[it.op] : null;
+    const label = it.label || (def.de + (def.params.length ? " …" : ""));
+    const needs = it.needs || (def ? def.needs : null);
+    let ok = it.always || !!cur();
+    if (ok && !it.always && needs) ok = needsOk(needs);
+    if (ok && it.enabled) ok = !!it.enabled();
+    const x = document.createElement("button");
+    x.type = "button"; x.disabled = !ok; x.setAttribute("role", "menuitem");
+    if (it.check && it.check()) x.classList.add("on");
+    if (!ok && needs && cur()) x.title = needs === "binary" ? "Erst eine Schwelle anwenden (Binär ▸ Schwelle)" : needs === "rgb" ? "Nur für Farbbilder" : "Nur für Graustufenbilder";
+    x.innerHTML = `<span>${esc(label)}</span>${it.key ? `<span class="k">${esc(it.key)}</span>` : ""}`;
+    x.addEventListener("click", (e) => { e.stopPropagation(); closeMenus(); it.op ? runOp(it.op) : it.act(); });
+    dd.appendChild(x);
+  }
+  w.appendChild(dd);
+}
+
+// ---------------------------------------------------------------- Bearbeitungsschritte mit Dialog
+function runOp(op) {
+  const img = cur();
+  if (!img) return;
+  const def = META.ops[op];
+  if (op === "crop") {
+    const a = img.active;
+    if (!a || !AREA.has(a.type)) return toast("Zum Zuschneiden zuerst eine Fläche auswählen (z. B. Rechteck).", true);
+    const bb = roiBounds(a);
+    return pushStep({ op: "crop", x: bb.x, y: bb.y, w: bb.w, h: bb.h });
+  }
+  if (op === "threshold") return switchTab("schwelle");
+  if (op === "to8bit") return pushStep({ op: "to8bit", min: r2(img.display.min), max: r2(img.display.max) });
+  if (!def.params.length) return pushStep({ op });
+  opDialog(op);
+}
+function roiBounds(a) {
+  if (a.type === "rect" || a.type === "oval") return { x: a.x, y: a.y, w: a.w, h: a.h };
+  const xs = a.pts.map(p => p[0]), ys = a.pts.map(p => p[1]);
+  const x = Math.floor(Math.min(...xs)), y = Math.floor(Math.min(...ys));
+  return { x, y, w: Math.ceil(Math.max(...xs)) - x, h: Math.ceil(Math.max(...ys)) - y };
+}
+function paramField(p, val) {
+  const id = "pf_" + p.key;
+  if (p.type === "bool") return `<label class="chk"><input type="checkbox" id="${id}" ${val ? "checked" : ""}> ${esc(p.label)}</label>`;
+  if (p.type === "select") return `<label for="${id}">${esc(p.label)}</label><select id="${id}">${p.options.map(o => `<option value="${esc(o[0])}" ${o[0] === val ? "selected" : ""}>${esc(o[1])}</option>`).join("")}</select>`;
+  return `<label for="${id}">${esc(p.label)}</label><input type="number" id="${id}" value="${val}" ${p.min !== undefined ? `min="${p.min}"` : ""} ${p.max !== undefined ? `max="${p.max}"` : ""} step="${p.step || "any"}">`;
+}
+const LAST = {};
+function opDialog(op) {
+  const img = cur(), def = META.ops[op];
+  const vals = { ...Object.fromEntries(def.params.map(p => [p.key, p.default])), ...(LAST[op] || {}) };
+  const read = () => {
+    const st = { op };
+    for (const p of def.params) {
+      const el = $("#pf_" + p.key);
+      st[p.key] = p.type === "bool" ? el.checked : p.type === "select" ? el.value : clamp(+el.value, p.min ?? -Infinity, p.max ?? Infinity);
+    }
+    return st;
+  };
+  let previewed = false;
+  const preview = async () => {
+    const st = read();
+    try { await loadPixels(img, [...img.pipeline, st]); previewed = true; } catch (e) { toast(e.message, true); return; }
+    if (img.px.kind === "gray" && img.proc.bitdepth !== 8) img.display = { ...img.display, ...defaultDisplayRaw(img) };
+    renderBase(img); draw(); updateDisplayPane();
+  };
+  const restore = async () => {
+    if (!previewed) return;
+    await loadPixels(img);
+    renderBase(img); draw(); updateDisplayPane();
+  };
+  dialog(def.de, def.params.map(p => paramField(p, vals[p.key])).join("") +
+    `<p class="small">${esc(opHelp(op))}</p>`,
+    [{ label: "Abbrechen", value: "cancel" }, { label: "Anwenden", value: "ok", primary: true }],
+    `<label class="chk" style="margin:0"><input type="checkbox" id="dlgPrev"> Vorschau</label>`,
+    (body) => {
+      const pv = $("#dlgPrev");
+      const upd = () => { if (pv.checked) preview(); else restore().then(() => { previewed = false; }); };
+      pv.addEventListener("change", upd);
+      $$("input,select", body).forEach(el => el.addEventListener("change", () => { if (pv.checked) preview(); }));
+    }).then(async (v) => {
+      if (v === "ok") { const st = read(); LAST[op] = st; await pushStep(st); }
+      else await restore();
+    });
+}
+function defaultDisplayRaw(img) { const s = img.px.stat; return { min: s.min, max: s.max }; }
+function opHelp(op) {
+  return {
+    gauss: "Glättet mit einer Gaussglocke. Sigma etwa halbe Grösse der feinsten Struktur, die erhalten bleiben soll.",
+    median: "Entfernt Salz-und-Pfeffer-Rauschen und erhält Kanten besser als der Mittelwertfilter.",
+    background: "Schätzt den Hintergrund mit einer Öffnung (Minimum, dann Maximum) über ein Fenster und zieht ihn ab. Radius grösser als die grössten Objekte wählen.",
+    unsharp: "Schärft, indem eine geglättete Kopie abgezogen wird.",
+    minimum: "Graustufen-Erosion: dunkle Bereiche wachsen.",
+    maximum: "Graustufen-Dilatation: helle Bereiche wachsen.",
+    contrast: "Streckt die Grauwerte so, dass der angegebene Anteil der Pixel übersteuert.",
+    math: "Rechnet mit jedem Pixel. Bei 8- und 16-bit wird auf den gültigen Bereich begrenzt.",
+    zproject: "Fasst alle Ebenen des Stapels zu einem Bild zusammen.",
+    erode: "Entfernt eine Pixelschicht am Rand der Objekte.", dilate: "Fügt eine Pixelschicht am Rand der Objekte hinzu.",
+    open: "Erodieren, dann Dilatieren: entfernt kleine Störungen und trennt dünne Brücken.",
+    close: "Dilatieren, dann Erodieren: schliesst kleine Lücken.",
+  }[op] || "";
+}
+
+// generischer Dialog: resolves mit dem value des gedrueckten Knopfes
+function dialog(title, bodyHtml, buttons, leftHtml = "", onOpen = null, wide = false) {
+  const d = $("#dlg");
+  d.classList.toggle("wide", wide);
+  $("#dlgTitle").textContent = title;
+  $("#dlgBody").innerHTML = bodyHtml;
+  $("#dlgFoot").innerHTML = (leftHtml ? `<div class="left">${leftHtml}</div>` : "") +
+    buttons.map(b => `<button value="${b.value}" ${b.primary ? 'class="primary"' : ""} ${b.type === "button" ? 'type="button"' : ""}>${esc(b.label)}</button>`).join("");
+  if (onOpen) onOpen($("#dlgBody"));
+  return new Promise((res) => {
+    const done = () => { d.removeEventListener("close", done); res(d.returnValue || "cancel"); };
+    d.returnValue = "";
+    d.addEventListener("close", done);
+    d.showModal();
+    const f = $("input,select", $("#dlgBody"));
+    if (f) f.focus();
+  });
+}
+
+// ---------------------------------------------------------------- Massstab
+// Kalibrierung: img.calib (null = aus der Datei), img.calibFrom sagt, woher sie stammt. Der Balken: img.scalebar
+// (an/aus) und img.sb (Länge, Lage, Aussehen). Übertragen kopiert die wirksame Kalibrierung auf andere Bilder.
+function calSource(img) {
+  if (img.calib) return img.calib.unit === "px" ? "von Hand entfernt" : (img.calibFrom || "von Hand festgelegt");
+  if (img.info.calib && img.info.calib.unit !== "px") return (img.info.info && img.info.info.calib_source) || "aus der Bilddatei";
+  return "";
+}
+function openScale() {
+  switchTab("massstab");
+  const img = cur();
+  if (img && S.calMode === "line" && !(img.active && img.active.type === "line")) setTool("line");
+}
+// setzt die Kalibrierung; Partikelergebnisse hängen von ihr ab und werden verworfen
+function setCalib(list, cal, from) {
+  let dropped = 0;
+  for (const o of list) {
+    o.calib = cal ? { pw: cal.pw, ph: cal.ph, unit: cal.unit } : null;
+    o.calibFrom = cal ? (from || "") : "";
+    if (o.part || o.particles) { o.part = null; o.partImg = null; o.particles = null; dropped++; }
+  }
+  if (cal && cal.unit !== "px") S.lastCal = { pw: cal.pw, ph: cal.ph, unit: cal.unit, from: from || "" };
+  S.calFor = null;
+  updateAll();
+  return dropped ? ` Partikelanalyse bei ${dropped} Bild(ern) neu ausführen.` : "";
+}
+function readCal() {
+  const unit = $("#cUnit").value;
+  if (S.calMode === "line") {
+    const px = +$("#cPx").value, L = +$("#cLen").value;
+    if (!(px > 0)) return "Erst eine Linie über eine bekannte Länge ziehen (oder die Pixellänge eintragen).";
+    if (!(L > 0)) return "Bitte eintragen, welcher Länge die Linie entspricht.";
+    return { pw: L / px, ph: L / px, unit };
+  }
+  const pw = +$("#cPw").value;
+  if (!(pw > 0)) return "Bitte eine Pixelgrösse grösser als null eintragen.";
+  return { pw, ph: pw, unit };
+}
+function applyCalibFromPane() {
+  const img = cur();
+  if (!img) return;
+  const cal = readCal();
+  if (typeof cal === "string") return toast(cal, true);
+  const from = S.calMode === "line" ? `Linie ${fmt(+$("#cPx").value, 1)} px = ${fmt(+$("#cLen").value)} ${cal.unit}` : "Pixelgrösse eingegeben";
+  const note = setCalib([img], cal, from);
+  const others = S.imgs.length - 1;
+  toast(`Massstab ${calText(cal)} für ${img.name}.` + (others ? " Unter „Auf andere Bilder übertragen“ für weitere Bilder übernehmen." : "") + note);
+}
+function copyCalib(targets) {
+  const img = cur();
+  if (!img) return;
+  const cal = calOf(img);
+  if (cal.unit === "px") return toast("Das aktuelle Bild hat keinen Massstab, der sich übertragen liesse.", true);
+  if (!targets.length) return toast("Keine Zielbilder gewählt.", true);
+  const note = setCalib(targets, cal, `übertragen von ${img.name}`);
+  toast(`Massstab ${calText(cal)} auf ${targets.length} Bild(er) übertragen.` + note);
+}
+function presets() { const p = store.get("scalePresets", []); return Array.isArray(p) ? p : []; }
+function savePreset() {
+  const img = cur();
+  if (!img) return;
+  const cal = calOf(img);
+  if (cal.unit === "px") return toast("Erst einen Massstab festlegen, dann als Vorlage speichern.", true);
+  const name = $("#cPresetName").value.trim() || calText(cal);
+  const list = presets().filter(p => p.name !== name);
+  list.push({ name, pw: cal.pw, ph: cal.ph, unit: cal.unit });
+  store.set("scalePresets", list);
+  $("#cPresetName").value = "";
+  updateScalePane();
+  toast(`Vorlage „${name}“ gespeichert.`);
+}
+function syncCalLine(Lpx) {
+  if (S.calMode !== "line") return;
+  const el = $("#cPx");
+  if (document.activeElement !== el) el.value = r2(Lpx);
+  calPreview();
+}
+function calPreview() {
+  const img = cur(), out = $("#cOut");
+  if (!img) { out.textContent = ""; return; }
+  const cal = readCal();
+  if (typeof cal === "string") { out.textContent = ""; return; }
+  const W = img.px ? img.px.w : 0;
+  out.innerHTML = `Ergibt <b>${fmt(cal.pw, 5)} ${esc(cal.unit)}/px</b> · ${fmt(1 / cal.pw, 4)} px/${esc(cal.unit)}` +
+    (W ? ` · Bildbreite ${fmt(W * cal.pw, 4)} ${esc(cal.unit)}` : "");
+}
+function updateScalePane() {
+  const img = cur(), c = img ? calOf(img) : null, ok = !!(img && img.px);
+  $$('[data-pane="massstab"] input, [data-pane="massstab"] select, [data-pane="massstab"] button').forEach(e => { e.disabled = !ok; });
+  $$("#calMode button").forEach(b => { b.classList.toggle("sel", b.dataset.m === S.calMode); b.disabled = false; });
+  $("#cPresetName").disabled = false; $("#cAuto").disabled = false;
+  $("#calLine").hidden = S.calMode !== "line"; $("#calPx").hidden = S.calMode !== "px";
+  // Statuszeile
+  const st = $("#stScale");
+  st.hidden = !ok;
+  if (ok) {
+    st.textContent = c.unit !== "px" ? `Massstab ${calText(c)}` : "ohne Massstab – festlegen";
+    st.classList.toggle("warn", c.unit === "px");
+    st.title = c.unit !== "px" ? `Quelle: ${calSource(img)}. Klick öffnet die Einstellungen.` : "Messungen sind in Pixeln. Klick öffnet „Massstab“.";
+  }
+  if (!ok) { $("#calNote").textContent = "Kein Bild geladen."; $("#calTargets").innerHTML = ""; renderPresets(null); return; }
+  const note = $("#calNote");
+  note.classList.toggle("err", c.unit === "px");
+  note.innerHTML = c.unit !== "px"
+    ? `<b>${fmt(c.pw, 5)} ${esc(c.unit)}/px</b> · ${fmt(1 / c.pw, 4)} px/${esc(c.unit)}${Math.abs(c.ph - c.pw) > 1e-12 * c.pw ? ` · Pixelhöhe ${fmt(c.ph, 5)} ${esc(c.unit)}` : ""}<br>
+       <span class="small">Bild ${fmt(img.px.w * c.pw, 4)} × ${fmt(img.px.h * c.ph, 4)} ${esc(c.unit)} · Quelle: ${esc(calSource(img))}</span>`
+    : `<b>Ohne Massstab.</b> Längen und Flächen werden in Pixeln gemessen.${calSource(img) ? "" : " Die Datei enthält keine Kalibrierung."}`;
+  $("#cFile").disabled = !(img.info.calib && img.info.calib.unit !== "px") || !img.calib;
+  $("#cClear").disabled = c.unit === "px";
+  // Eingaben nur beim Bildwechsel vorbelegen, damit Tippen nicht überschrieben wird
+  if (S.calFor !== img.id) {
+    S.calFor = img.id;
+    if (c.unit !== "px") { $("#cUnit").value = c.unit; $("#cPw").value = +c.pw.toPrecision(6); $("#cPpu").value = +(1 / c.pw).toPrecision(6); }
+    else { $("#cPw").value = ""; $("#cPpu").value = ""; }
+    if (S.calImg !== img.id) {                       // anderes Bild: Linienwerte neu
+      S.calImg = img.id;
+      const a = img.active;
+      $("#cPx").value = a && a.type === "line" ? r2(Math.hypot(a.x2 - a.x1, a.y2 - a.y1)) : "";
+      $("#cLen").value = "";
+    }
+  }
+  calPreview();
+  // Übertragen
+  const others = S.imgs.filter(o => o !== img);
+  $("#calTargets").innerHTML = others.length ? others.map(o => {
+    const oc = calOf(o), same = oc.unit === c.unit && Math.abs(oc.pw - c.pw) <= 1e-9 * Math.abs(c.pw);
+    return `<label class="it"><input type="checkbox" data-id="${esc(o.id)}" ${S.calSkip.has(String(o.id)) ? "" : "checked"}>
+      <span class="nm" title="${esc(o.name)}">${esc(o.name)}</span><span class="cv">${same && c.unit !== "px" ? "✓ gleich" : esc(calText(oc))}</span></label>`;
+  }).join("") : `<div class="empty">Weitere Bilder öffnen, um den Massstab zu übertragen.</div>`;
+  $("#cCopy").disabled = !others.length || c.unit === "px";
+  $("#cSelAll").disabled = $("#cSelNone").disabled = !others.length;
+  $("#cAuto").checked = S.autoCal;
+  renderPresets(img);
+  // Balken
+  const o = img.sb;
+  $("#bShow").checked = img.scalebar;
+  for (const [id, v] of [["#bPos", o.pos], ["#bColor", o.color], ["#bThick", String(o.thick)], ["#bFont", String(o.font)]]) $(id).value = v;
+  if (document.activeElement !== $("#bLen")) $("#bLen").value = o.len > 0 ? o.len : "";
+  $("#bLabel").checked = o.label; $("#bBox").checked = o.box;
+  $("#bU").textContent = c.unit !== "px" ? `(${c.unit})` : "";
+  let info = "";
+  if (c.unit === "px") info = "Der Balken erscheint, sobald das Bild einen Massstab hat.";
+  else {
+    const g = sbGeom(img.px.w, img.px.h, c, o);
+    info = `Balken: ${fmt(g.L)} ${c.unit} = ${fmt(g.px, 1)} px` + (o.len > 0 ? "" : " (automatisch, etwa ein Fünftel der Bildbreite)");
+    if (g.px > img.px.w * 0.9) info += " – länger als das Bild, bitte kürzer wählen.";
+  }
+  $("#bInfo").textContent = info;
+  $$("#bLen, #bPos, #bColor, #bThick, #bFont, #bLabel, #bBox").forEach(e => { e.disabled = !img.scalebar; });
+  $("#bPng").disabled = c.unit === "px";
+  $("#bAll").disabled = S.imgs.length < 2;
+}
+function renderPresets(img) {
+  const list = presets(), el = $("#calPresets");
+  el.innerHTML = list.length ? list.map((p, i) => `<div class="it"><span class="nm" title="${esc(p.name)}">${esc(p.name)}</span>
+      <span class="cv">${esc(calText(p))}</span><button class="ap" data-i="${i}" ${img ? "" : "disabled"} title="Auf das aktuelle Bild anwenden">Anwenden</button>
+      <button data-del="${i}" title="Vorlage löschen">×</button></div>`).join("")
+    : `<div class="empty">Noch keine Vorlagen.</div>`;
+  $("#cPresetSave").disabled = !img || calOf(img).unit === "px";
+}
+function sbChanged() {
+  const img = cur();
+  if (!img) return;
+  const L = +$("#bLen").value;
+  img.scalebar = $("#bShow").checked;
+  img.sb = { len: L > 0 ? L : null, pos: $("#bPos").value, color: $("#bColor").value, thick: +$("#bThick").value,
+             font: +$("#bFont").value, label: $("#bLabel").checked, box: $("#bBox").checked };
+  store.set("sbStyle", { ...img.sb, len: null });
+  updateScalePane(); draw();
+}
+function bindScale() {
+  $$("#calMode button").forEach(b => b.addEventListener("click", () => {
+    S.calMode = b.dataset.m; S.calFor = null; updateScalePane();
+    if (S.calMode === "line" && cur() && !(cur().active && cur().active.type === "line")) setTool("line");
+  }));
+  $("#cDraw").addEventListener("click", () => setTool("line"));
+  $$("#cPx, #cLen, #cUnit").forEach(e => e.addEventListener("input", calPreview));
+  $("#cPw").addEventListener("input", () => { const v = +$("#cPw").value; $("#cPpu").value = v > 0 ? +(1 / v).toPrecision(6) : ""; calPreview(); });
+  $("#cPpu").addEventListener("input", () => { const v = +$("#cPpu").value; $("#cPw").value = v > 0 ? +(1 / v).toPrecision(6) : ""; calPreview(); });
+  $$("#cPx, #cLen, #cPw, #cPpu").forEach(e => e.addEventListener("keydown", (ev) => { if (ev.key === "Enter") applyCalibFromPane(); }));
+  $("#cApply").addEventListener("click", applyCalibFromPane);
+  $("#cFile").addEventListener("click", () => { const img = cur(); const n = setCalib([img], null); toast(`Kalibrierung aus der Datei: ${calText(calOf(img))}.` + n); });
+  $("#cClear").addEventListener("click", () => { const img = cur(); const n = setCalib([img], { pw: 1, ph: 1, unit: "px" }); toast("Massstab entfernt: Messungen in Pixeln." + n); });
+  $("#calTargets").addEventListener("change", (e) => {
+    const id = e.target.dataset.id;
+    if (id) { if (e.target.checked) S.calSkip.delete(id); else S.calSkip.add(id); }
+  });
+  $("#cSelAll").addEventListener("click", () => { S.calSkip.clear(); updateScalePane(); });
+  $("#cSelNone").addEventListener("click", () => { S.imgs.forEach(o => S.calSkip.add(String(o.id))); updateScalePane(); });
+  $("#cCopy").addEventListener("click", () => copyCalib(S.imgs.filter(o => o !== cur() && !S.calSkip.has(String(o.id)))));
+  $("#cAuto").addEventListener("change", (e) => {
+    S.autoCal = e.target.checked;
+    const c = cur() ? calOf(cur()) : null;
+    if (S.autoCal && c && c.unit !== "px" && !S.lastCal) S.lastCal = { pw: c.pw, ph: c.ph, unit: c.unit, from: `von ${cur().name}` };
+    if (S.autoCal) toast(S.lastCal ? `Neue Bilder ohne Kalibrierung bekommen ${calText(S.lastCal)}.` : "Sobald ein Massstab festgelegt ist, bekommen neue Bilder ohne Kalibrierung denselben.");
+  });
+  $("#calPresets").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const list = presets();
+    if (b.dataset.del !== undefined) { list.splice(+b.dataset.del, 1); store.set("scalePresets", list); return updateScalePane(); }
+    const p = list[+b.dataset.i], img = cur();
+    if (!p || !img) return;
+    const n = setCalib([img], p, `Vorlage „${p.name}“`);
+    toast(`Vorlage „${p.name}“: ${calText(p)}.` + n);
+  });
+  $("#cPresetSave").addEventListener("click", savePreset);
+  $("#cPresetName").addEventListener("keydown", (e) => { if (e.key === "Enter") savePreset(); });
+  $$("#bShow, #bPos, #bColor, #bThick, #bFont, #bLabel, #bBox").forEach(e => e.addEventListener("change", sbChanged));
+  $("#bLen").addEventListener("input", sbChanged);
+  $("#bAll").addEventListener("click", () => {
+    const img = cur();
+    S.imgs.forEach(o => { o.sb = { ...img.sb }; o.scalebar = img.scalebar; });
+    toast(`Balkenstil auf ${S.imgs.length} Bilder übernommen.` + (img.sb.len > 0 ? ` Feste Länge ${fmt(img.sb.len)} gilt in der Einheit des jeweiligen Bildes.` : ""));
+    draw();
+  });
+  $("#bPng").addEventListener("click", saveBarPng);
+  $("#stScale").addEventListener("click", openScale);
+}
+
+// ---------------------------------------------------------------- Messen, Auswahlen
+function addRoi() {
+  const img = cur();
+  if (!img || !img.active) return toast("Keine Auswahl. Erst mit einem Werkzeug eine Auswahl zeichnen.", true);
+  const r = JSON.parse(JSON.stringify(img.active));
+  r.name = `${TYPE_DE[r.type]} ${img.rois.length + 1}`;
+  img.rois.push(r);
+  S.roiSel = img.rois.length - 1;
+  updateRois(); draw();
+}
+async function measure(all) {
+  const img = cur();
+  if (!img) return;
+  let rois;
+  if (all) {
+    if (!img.rois.length) return toast("Die Liste der Auswahlen ist leer.", true);
+    rois = img.rois;
+  } else rois = [img.active ? { ...img.active, name: img.active.name || "Auswahl" } : { type: "image", name: "Ganzes Bild" }];
+  const j = await withBusy(() => api("api/measure", { id: img.id, pipeline: img.pipeline, slice: img.slice, rois, calib: img.calib }));
+  if (j.error) return toast(j.error, true);
+  for (const row of j.rows) {
+    const b = { Bild: img.name, _unit: j.unit };
+    if (row.Points) row.Points.forEach((p, i) => S.results.push({ ...b, Label: `${row.Label} ${i + 1}`, Type: "point", ...p }));
+    else S.results.push({ ...b, ...row });
+  }
+  S.resView = "mess";
+  if (j.on_pre) toast("Gemessen auf den Grauwerten vor der Schwelle; Flächen und Formen gelten für die Auswahl.");
+  switchTab("ergebnisse");
+}
+async function profile() {
+  const img = cur(), r = img && img.active;
+  if (!r || r.type !== "line") return toast("Für ein Linienprofil zuerst mit dem Linienwerkzeug eine Linie ziehen.", true);
+  const j = await withBusy(() => api("api/profile", { id: img.id, pipeline: img.pipeline, slice: img.slice, roi: r, calib: img.calib }));
+  if (j.error) return toast(j.error, true);
+  const v = await dialog("Linienprofil", `<canvas id="profCanvas"></canvas><div class="small" id="profInfo"></div>`,
+    [{ label: "CSV speichern", value: "csv" }, { label: "Linie zur Liste", value: "add" }, { label: "Schliessen", value: "cancel", primary: true }],
+    "", () => {
+      requestAnimationFrame(() => plotXY($("#profCanvas"), j.d, j.v, `Abstand [${j.unit}]`, "Grauwert"));
+      const mn = Math.min(...j.v), mx = Math.max(...j.v), mean = j.v.reduce((a, b) => a + b, 0) / j.v.length;
+      $("#profInfo").textContent = `${j.v.length} Punkte · Länge ${fmt(j.d[j.d.length - 1])} ${j.unit} · Min ${fmt(mn)} · Max ${fmt(mx)} · Mittel ${fmt(mean)}`;
+    }, true);
+  if (v === "csv") download(`${stem(img.name)}_profil.csv`, "Abstand [" + j.unit + "];Grauwert\n" + j.d.map((x, i) => csvNum(x) + ";" + csvNum(j.v[i])).join("\n") + "\n");
+  if (v === "add") addRoi();
+}
+function plotXY(cv, xs, ys, xl, yl) {
+  const W = cv.clientWidth, H = cv.clientHeight, r = window.devicePixelRatio || 1;
+  cv.width = W * r; cv.height = H * r;
+  const c = cv.getContext("2d");
+  c.setTransform(r, 0, 0, r, 0, 0);
+  const css = getComputedStyle(document.documentElement);
+  const ink = css.getPropertyValue("--muted").trim(), acc = css.getPropertyValue("--accent").trim(), grid = css.getPropertyValue("--line").trim();
+  const L = 56, B = 36, T = 10, R = 12, pw = W - L - R, ph = H - T - B;
+  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  if (x1 <= x0) x1 = x0 + 1;
+  if (y1 <= y0) y1 = y0 + 1;
+  const pad = (y1 - y0) * 0.05; y0 -= pad; y1 += pad;
+  const X = (v) => L + (v - x0) / (x1 - x0) * pw, Y = (v) => T + ph - (v - y0) / (y1 - y0) * ph;
+  c.font = "11px system-ui, sans-serif"; c.fillStyle = ink; c.strokeStyle = grid; c.lineWidth = 1;
+  for (const [a, b, axis] of [[x0, x1, "x"], [y0, y1, "y"]]) {
+    const st = niceStep((b - a) / 6);
+    for (let t = Math.ceil(a / st) * st; t <= b + 1e-9; t += st) {
+      c.beginPath();
+      if (axis === "x") { c.moveTo(X(t), T); c.lineTo(X(t), T + ph); c.stroke(); c.textAlign = "center"; c.fillText(fmt(t, 2), X(t), T + ph + 14); }
+      else { c.moveTo(L, Y(t)); c.lineTo(L + pw, Y(t)); c.stroke(); c.textAlign = "right"; c.fillText(fmt(t, 2), L - 5, Y(t) + 4); }
+    }
+  }
+  c.textAlign = "center"; c.fillText(xl, L + pw / 2, H - 4);
+  c.save(); c.translate(12, T + ph / 2); c.rotate(-Math.PI / 2); c.fillText(yl, 0, 0); c.restore();
+  c.strokeStyle = acc; c.lineWidth = 1.6; c.beginPath();
+  xs.forEach((x, i) => i ? c.lineTo(X(x), Y(ys[i])) : c.moveTo(X(x), Y(ys[i])));
+  c.stroke();
+}
+function niceStep(raw) { const e = Math.pow(10, Math.floor(Math.log10(raw || 1))); for (const f of [1, 2, 5, 10]) if (f * e >= raw) return f * e; return 10 * e; }
+
+// ---------------------------------------------------------------- Partikel
+function readPart() {
+  const n = (id, d) => { const v = $(id).value.trim(); return v === "" ? d : +v; };
+  return {
+    size_min: Math.max(0, n("#pSizeMin", 0)), size_max: n("#pSizeMax", null), circ_min: clamp(n("#pCircMin", 0), 0, 1), circ_max: clamp(n("#pCircMax", 1), 0, 1),
+    exclude_edges: $("#pEdges").checked, include_holes: $("#pHoles").checked, size_in_pixels: $("#pPix").checked,
+  };
+}
+async function runParticles() {
+  const img = cur();
+  if (!img) return;
+  if (img.proc.kind !== "binary") return toast("Die Partikelanalyse braucht ein Binärbild. Erst im Tab Schwelle eine Schwelle anwenden.", true);
+  const params = readPart();
+  const region = $("#pRegion").checked ? img.active : null;
+  if ($("#pRegion").checked && (!region || !AREA.has(region.type))) return toast("„Nur innerhalb der Auswahl“: erst eine Fläche auswählen.", true);
+  const j = await withBusy(() => api("api/particles", { id: img.id, pipeline: img.pipeline, slice: img.slice, params, calib: img.calib, region }));
+  if (j.error) return toast(j.error, true);
+  img.particles = params; img.region = region; img.part = j;
+  img.partImg = await new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = "data:image/png;base64," + j.overlay; });
+  img.showPart = true;
+  updatePartPane(); updateResults(); draw();
+  if (j.truncated) toast(`${j.count} Partikel; die Tabelle zeigt die ersten ${j.rows.length}. Export und Bericht enthalten alle.`);
+}
+function syncPartView() { const img = cur(); if (!img) return; $("#pShow").checked = img.showPart; $("#pNums").checked = img.showNums; }
+function updatePartPane() {
+  const img = cur();
+  const u = img ? unitOf(img) : "px";
+  $$(".u2").forEach(e => e.textContent = $("#pPix").checked || u === "px" ? "[px²]" : `[${u}²]`);
+  const note = $("#partNote");
+  if (!img) { note.className = "note"; note.textContent = "Kein Bild geladen."; }
+  else if (img.proc && img.proc.kind !== "binary") { note.className = "note err"; note.innerHTML = "Das Bild ist noch nicht binär. Erst im Tab <b>Schwelle</b> Objekte vom Hintergrund trennen, dann hier analysieren."; }
+  else { note.className = "note"; note.textContent = "Zählt und vermisst zusammenhängende Objekte (8er-Nachbarschaft)." + (u === "px" ? " Ohne Massstab werden Pixel gemessen." : ""); }
+  $("#pRun").disabled = !img || !img.proc || img.proc.kind !== "binary";
+  const p = img && img.part, el = $("#pSummary");
+  $("#pViewRow").hidden = !p;
+  $("#pCmpBtn").hidden = !mkImpOk();
+  $("#pClear").disabled = !p;
+  if (!p) { el.innerHTML = ""; renderCmp(); return; }
+  const s = p.summary, U = p.unit;
+  const pm = (m, sd, nd = 3) => fmt(m, nd) + (sd !== null && sd !== undefined ? " ± " + fmt(sd, nd) : "");
+  el.innerHTML = `<dl class="kv">
+    <dt>Anzahl</dt><dd><b>${s.Count}</b>${shr("n")}</dd>
+    <dt>Flächenanteil</dt><dd>${fmt(s.AreaFraction, 2)} %${shr("phi")}</dd>
+    <dt>Gesamtfläche</dt><dd>${fmt(s.TotalArea)} ${U}²</dd>
+    <dt>Mittlere Fläche</dt><dd>${pm(s.AverageSize, s.SDSize)} ${U}²${s.AverageSize != null ? shr("Amean") : ""}</dd>
+    <dt>Äquivalentdurchmesser</dt><dd>${pm(s.MeanECD, s.SDECD)} ${U}${s.MeanECD != null ? shr("ECD") : ""}</dd>
+    ${s.D50 !== null && s.D50 !== undefined ? `<dt>D10 / D50 / D90</dt><dd>${fmt(s.D10)} / ${fmt(s.D50)} / ${fmt(s.D90)} ${U}${shr("D50")}</dd>` : ""}
+    <dt>Zirkularität</dt><dd>${pm(s.MeanCirc, s.SDCirc, 3)}</dd>
+    <dt>Feret-Durchmesser</dt><dd>${pm(s.MeanFeret, s.SDFeret)} ${U}</dd>
+    <dt>Seitenverhältnis</dt><dd>${pm(s.MeanAR, s.SDAR, 2)}</dd>
+    <dt>Solidität</dt><dd>${pm(s.MeanSolidity, s.SDSolidity, 3)}</dd>
+    ${s.Mean !== null && s.Mean !== undefined ? `<dt>Mittlerer Grauwert</dt><dd>${fmt(s.Mean)}</dd>` : ""}
+  </dl>
+  <p class="small">Geht mit diesen Einstellungen in Export und Bericht. Ein neuer Bearbeitungsschritt verwirft das Ergebnis.</p>`;
+  syncPartView();
+  renderCmp();
+}
+
+// ---------------------------------------------------------------- I-04: Vergleichsverteilung aus einem Datensatz
+// img.cmp = { share, version, mode, key, name, unit, title, created, producer, values_m, latest } – Werte in Metern, damit
+// eine andere Kalibriereinheit nichts verfälscht. Geht über stateOf() in Export und Bericht (Herkunftskette hält die Version).
+const LEN_U = { nm: 1e-9, "µm": 1e-6, um: 1e-6, mm: 1e-3, cm: 1e-2, dm: 0.1, m: 1, "Å": 1e-10, in: 0.0254 };
+const mkImpOk = () => !!(window.LabImport && OV && OV.ok);
+const MK_IMP = {
+  actions: [{ id: "cmp", label: () => tr("mk.imp_cmp"), hint: () => tr("mk.imp_cmp_t") }],
+  check: (d) => ((d.columns || []).some(c => c.dtype !== "text" && LEN_U[String(c.unit || "").trim()] !== undefined) ? "" : tr("mk.imp_nolen")),
+  run: (p) => mkCmpTake(p),
+};
+function cmpStats(v) {
+  const a = v.filter(Number.isFinite).sort((x, y) => x - y), n = a.length;
+  if (!n) return null;
+  const q = (p) => { const h = (n - 1) * p, i = Math.floor(h); return a[i] + (a[Math.min(i + 1, n - 1)] - a[i]) * (h - i); };   // wie numpy.percentile
+  const m = a.reduce((s, x) => s + x, 0) / n;
+  return { n, D10: q(0.1), D50: q(0.5), D90: q(0.9), mean: m, sd: n > 1 ? Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (n - 1)) : null };
+}
+const cmpRecord = (c) => c ? Object.fromEntries(["share", "version", "mode", "key", "name", "unit", "title", "created", "producer", "values_m"].map(k => [k, c[k]])) : null;
+async function mkCmpFetch(c, mode, version) {
+  return api("api/dataset/compare", { id: c.share || c.id, mode, version, key: c.key });
+}
+async function mkCmpTake(p) {
+  if (!p) return;
+  const img = cur();
+  if (!img) return toast(tr("mk.cmp_none_img"), true);
+  if (!LEN_U[unitOf(img)]) return toast(tr("mk.cmp_nocal"), true);
+  const info = await withBusy(() => api("api/dataset/columns", { id: p.id, mode: p.mode, version: p.version }));
+  if (info.error) return toast(info.error, true);
+  if (!info.columns.length) return toast(tr("mk.imp_nolen"), true);
+  let key = info.columns[0].key;
+  if (info.columns.length > 1) {
+    const r = await dialog(tr("mk.cmp_h") + " · " + (info.title || ""),
+      `<label>${esc(tr("mk.cmp_col"))}</label><select id="cmpCol">${info.columns.map(c => `<option value="${esc(c.key)}">${esc(c.name)} [${esc(c.unit)}] · n = ${c.n}</option>`).join("")}</select>`,
+      [{ value: "cancel", label: tr("mk.cmp_cancel") }, { value: "ok", label: tr("mk.cmp_ok"), primary: true }]);
+    if (r !== "ok") return;
+    key = $("#cmpCol").value;
+  }
+  const j = await withBusy(() => mkCmpFetch({ share: p.id, key }, p.mode, p.version));
+  if (j.error) return toast(j.error, true);
+  img.cmp = { ...j.cmp, latest: j.latest };
+  switchTab("partikel");
+  updatePartPane();
+  if (window.ENVS) ENVS.save();
+  toast(tr("mk.cmp_done", { t: j.cmp.title || j.cmp.name, n: j.cmp.values_m.length }));
+}
+// Nach dem Öffnen einer Umgebung: „live“ folgt der neuesten Version, festgehaltene melden nur eine neuere.
+async function mkCmpFollow() {
+  const list = S.imgs.filter(o => o.cmp && o.cmp.share);
+  if (!list.length) return;
+  const j = await api("api/dataset/latest", { ids: [...new Set(list.map(o => o.cmp.share))] });
+  if (!j || j.error || !j.latest) return;
+  let n = 0;
+  for (const o of list) {
+    const lt = j.latest[o.cmp.share];
+    if (!lt) continue;
+    o.cmp.latest = lt;
+    if (o.cmp.mode !== "pin" && lt > o.cmp.version) {
+      const r = await mkCmpFetch(o.cmp, "live");
+      if (!r.error) { o.cmp = { ...r.cmp, latest: r.latest }; n++; }
+    }
+  }
+  if (n) { toast(tr("mk.cmp_follow", { v: list[0].cmp.version })); if (window.ENVS) ENVS.save(); }
+  updatePartPane();
+}
+function renderCmp() {
+  const el = $("#pCmp"), img = cur();
+  const c = img && img.cmp;
+  el.hidden = !c;
+  if (!c) { el.innerHTML = ""; return; }
+  const u = unitOf(img), f = LEN_U[u], p = img.part;
+  const head = `<b>${esc(c.name)}</b> · ${esc(c.title || c.share)} · v${c.version} · <span title="${esc(tr(c.mode === "pin" ? "mk.cmp_pin" : "mk.cmp_live"))}">${c.mode === "pin" ? "📌" : "↻"}</span>`;
+  const newer = c.latest && c.latest > c.version;
+  const foot = `<div class="row">${newer ? `<span class="small">${esc(tr("mk.cmp_newer", { v: c.latest }))}</span><button id="cmpUpd">${esc(tr("mk.cmp_upd", { v: c.latest }))}</button>` : ""}<button id="cmpRm">${esc(tr("mk.cmp_rm"))}</button></div>`;
+  let body;
+  if (!f) body = `<div class="note err">${esc(tr("mk.cmp_nocal"))}</div>`;
+  else {
+    const vals = (c.values_m || []).map(x => x / f), sd = cmpStats(vals) || {};
+    const s = p && p.summary;
+    const si = s ? { n: s.Count, D10: s.D10, D50: s.D50, D90: s.D90, mean: s.MeanECD } : {};
+    const cell = (v, nd) => (v === null || v === undefined ? "–" : fmt(v, nd));
+    const row = (lab, k, nd) => `<tr><td>${lab}</td><td>${cell(si[k], nd)}</td><td>${cell(sd[k], nd)}</td></tr>`;
+    const ratio = si.D50 && sd.D50 ? si.D50 / sd.D50 : null;
+    body = (p ? `<div class="leg"><span><i style="background:#1a73e8;opacity:.6"></i>${esc(tr("mk.cmp_img"))}</span><span><i style="background:#e37400"></i>${esc(c.name)}</span></div><canvas id="cmpCv"></canvas>`
+                : `<div class="note">${esc(tr("mk.cmp_nopart"))}</div>`)
+      + `<table><thead><tr><th></th><th>${esc(tr("mk.cmp_img"))}</th><th>${esc(c.name)}</th></tr></thead><tbody>`
+      + row("n", "n", 0) + ["D10", "D50", "D90"].map(k => row(`${k} [${esc(u)}]`, k)).join("") + row(`${esc(tr("mk.cmp_mean"))} [${esc(u)}]`, "mean")
+      + `</tbody></table>` + (ratio ? `<div class="small">${esc(tr("mk.cmp_ratio", { r: fmt(ratio, 3) }))}</div>` : "")
+      + (p && p.truncated ? `<div class="small">${esc(tr("mk.cmp_trunc", { n: p.rows.length }))}</div>` : "");
+    setTimeout(() => { const cv = $("#cmpCv"); if (cv && p) drawCmp(cv, p.rows.map(r => +r.ECD), vals, s.D50, sd.D50); }, 0);
+  }
+  el.innerHTML = `<details open><summary>${esc(tr("mk.cmp_h"))}</summary><div class="small">${head}</div>${body}${foot}</details>`;
+  $("#cmpRm").addEventListener("click", () => { img.cmp = null; renderCmp(); if (window.ENVS) ENVS.save(); });
+  const up = $("#cmpUpd");
+  if (up) up.addEventListener("click", async () => {
+    const r = await withBusy(() => mkCmpFetch(c, c.mode, c.mode === "pin" ? c.latest : undefined));
+    if (r.error) return toast(r.error, true);
+    img.cmp = { ...r.cmp, latest: r.latest }; renderCmp(); if (window.ENVS) ENVS.save();
+  });
+}
+// Gemeinsame Klassen, relative Häufigkeit: Partikel als Balken, Datensatz als Stufenlinie, D50 gestrichelt.
+function drawCmp(cv, a, b, d50a, d50b) {
+  const W = cv.clientWidth || 300, H = cv.clientHeight || 140, r = window.devicePixelRatio || 1;
+  cv.width = W * r; cv.height = H * r;
+  const c = cv.getContext("2d");
+  c.setTransform(r, 0, 0, r, 0, 0);
+  c.clearRect(0, 0, W, H);
+  a = a.filter(Number.isFinite); b = b.filter(Number.isFinite);
+  if (!a.length || !b.length) return;
+  let lo = Infinity, hi = -Infinity;
+  for (const v of a.concat(b)) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (hi <= lo) hi = lo + 1;
+  const nb = Math.max(6, Math.min(40, Math.floor(Math.sqrt(Math.min(a.length, b.length))) * 2)), w = (hi - lo) / nb;
+  const hist = (v) => { const h = new Array(nb).fill(0); for (const x of v) h[Math.min(nb - 1, Math.floor((x - lo) / w))] += 100 / v.length; return h; };
+  const ha = hist(a), hb = hist(b), mx = Math.max(...ha, ...hb) || 1;
+  const pad = 16, X = (v) => (v - lo) / (hi - lo) * W, Y = (p) => H - pad - p / mx * (H - pad - 6);
+  c.fillStyle = "rgba(26,115,232,.55)";
+  ha.forEach((p, i) => c.fillRect(X(lo + i * w) + 0.5, Y(p), Math.max(1, W / nb - 1), H - pad - Y(p)));
+  c.strokeStyle = "#e37400"; c.lineWidth = 1.8; c.beginPath();
+  hb.forEach((p, i) => { const x0 = X(lo + i * w), x1 = X(lo + (i + 1) * w); if (i === 0) c.moveTo(x0, H - pad); c.lineTo(x0, Y(p)); c.lineTo(x1, Y(p)); });
+  c.lineTo(W, H - pad); c.stroke();
+  c.setLineDash([4, 3]); c.lineWidth = 1.3;
+  for (const [v, col] of [[d50a, "#1a73e8"], [d50b, "#e37400"]]) {
+    if (!Number.isFinite(v)) continue;
+    c.strokeStyle = col; c.beginPath(); c.moveTo(X(v), 4); c.lineTo(X(v), H - pad); c.stroke();
+  }
+  c.setLineDash([]);
+  c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#777";
+  c.font = "10px system-ui, sans-serif";
+  c.textBaseline = "bottom";
+  c.textAlign = "left"; c.fillText(fmt(lo, 3), 2, H - 2);
+  c.textAlign = "right"; c.fillText(fmt(hi, 3), W - 2, H - 2);
+}
+
+// ---------------------------------------------------------------- Ergebnisse
+const COLS = {
+  mess: [["Bild", "Bild"], ["Label", "Auswahl"], ["Type", "Art"], ["Area", "Fläche", 2], ["Mean", "Mittelwert"], ["StdDev", "Std.-Abw."], ["Min", "Min"], ["Max", "Max"],
+    ["Median", "Median"], ["X", "X", 1], ["Y", "Y", 1], ["Value", "Wert"], ["Perim.", "Umfang", 1], ["Circ.", "Zirk."], ["Length", "Länge", 1], ["Angle", "Winkel [°]"], ["IntDen", "Int.-Dichte"]],
+  part: [["#", "#"], ["Area", "Fläche", 2], ["Perim.", "Umfang", 1], ["Circ.", "Zirk."], ["ECD", "ECD", 1], ["Feret", "Feret", 1], ["MinFeret", "MinFeret", 1], ["AR", "AR"],
+    ["Round", "Rundheit"], ["Solidity", "Solidität"], ["X", "X", 1], ["Y", "Y", 1], ["Mean", "Mittelwert"]],
+};
+function resTable() {
+  const img = cur();
+  if (S.resView === "part") {
+    const p = img && img.part;
+    if (!p) return { cols: [], rows: [], unit: "px" };
+    return { cols: COLS.part.filter(c => p.rows.length && c[0] in p.rows[0]), rows: p.rows, unit: p.unit };
+  }
+  const rows = S.results;
+  return { cols: COLS.mess.filter(c => rows.some(r => r[c[0]] !== undefined && r[c[0]] !== null)), rows, unit: null };
+}
+const headOf = (c, unit) => c[1] + (c[2] && unit ? ` [${unit}${c[2] === 2 ? "²" : ""}]` : "");
+function updateResults() {
+  $$("[data-res]").forEach(b => b.classList.toggle("sel", b.dataset.res === S.resView));
+  const { cols, rows, unit } = resTable(), el = $("#resWrap");
+  if (!rows.length) {
+    el.innerHTML = `<div class="list"><div class="empty">${S.resView === "part" ? "Noch keine Partikelanalyse für dieses Bild." : "Noch keine Messungen. Auswahl zeichnen und Strg+M drücken (oder Analyse ▸ Messen)."}</div></div>`;
+    return;
+  }
+  const units = rows.map(r => unit || r._unit || "px");
+  const sameUnit = units.every(u => u === units[0]);
+  const head = cols.map(c => `<th>${esc(headOf(c, sameUnit ? units[0] : ""))}</th>`).join("");
+  const body = rows.slice(0, 3000).map((r, i) => `<tr data-i="${i}">` + cols.map(c => {
+    const v = r[c[0]];
+    return `<td>${typeof v === "number" ? fmt(v) : esc(c[0] === "Type" ? (TYPE_DE[v] || v) : v ?? "")}</td>`;
+  }).join("") + "</tr>").join("");
+  el.innerHTML = `<table class="res"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  if (S.resView === "part") {
+    $$("tbody tr", el).forEach(tr => tr.addEventListener("click", () => {
+      $$("tr.hl", el).forEach(t => t.classList.remove("hl"));
+      tr.classList.add("hl");
+      const r = rows[+tr.dataset.i], im = cur();
+      S.hl = r._px;
+      const W = view.width / dpr, H = view.height / dpr;
+      im.view.x = W / 2 - r._px[0] * im.view.z; im.view.y = H / 2 - r._px[1] * im.view.z; im.view.fit = false;
+      draw();
+    }));
+  }
+}
+function resCsv() {
+  const { cols, rows, unit } = resTable();
+  if (!rows.length) return null;
+  const u = unit || (rows[0] && rows[0]._unit) || "px";
+  return cols.map(c => headOf(c, u)).join(";") + "\n" + rows.map(r => cols.map(c => csvNum(r[c[0]])).join(";")).join("\n") + "\n";
+}
+
+// ---------------------------------------------------------------- Seitenleiste
+function switchTab(t) {
+  const was = S.tab;
+  S.tab = t;
+  $$(".tabs button").forEach(b => b.classList.toggle("sel", b.dataset.tab === t));
+  $$("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== t);
+  if (t === "schwelle") thrEnter();
+  else if (was === "schwelle") { const img = cur(); if (img) { renderBase(img); draw(); } }
+  updateAll();
+}
+// UI-07: nur Aufgaben, Anzeige und der gerade offene Tab; Werkzeuge und Tabellen unter „Mehr“ oder über die Aufgaben
+const TABS = ["aufgaben", "anzeige", "massstab", "schwelle", "partikel", "rois", "ergebnisse", "protokoll"];
+const TAB_MAIN = window.LabUI ? ["aufgaben", "anzeige"] : TABS;
+const tabShown = (t) => TAB_MAIN.includes(t) || t === S.tab;
+function renderTabs() {
+  $$(".tabs button[data-tab]").forEach(b => { b.hidden = !tabShown(b.dataset.tab); });
+  $("#tabMore").hidden = TABS.every(tabShown);
+}
+function openTabMenu() {
+  const rest = TABS.filter(t => !tabShown(t));
+  const p = LabUI.popover($("#tabMore"), `<div class="tabmenu" role="menu">${rest.map(t =>
+    `<button type="button" role="menuitem" data-go="${t}"><b>${esc(tr("mk.tab_" + t))}</b><small>${esc(tr("mk.tab_h_" + t))}</small></button>`).join("")}</div>`);
+  p.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) { LabUI.closePop(); switchTab(b.dataset.go); } });
+  p.querySelector("button")?.focus();
+}
+// Aufgabenliste: die Bearbeitungsmenüs als Arbeitsablauf; Stand je Schritt für das aktuelle Bild
+const opsOf = (mi) => MENUS[mi].items.filter(it => it && it.op && META && META.ops[it.op]);
+function opsPicker(anchor, ops) {
+  const img = cur(), en = window.LabUI && LabUI.lang() === "en";
+  const html = `<div class="tabmenu" role="menu"><div class="small" style="padding:2px 8px">${esc(tr("mk.ops_title"))}</div>${ops.map(it => {
+    const d = META.ops[it.op], ok = img && (!d.needs || needsOk(d.needs)) && (!it.enabled || it.enabled());
+    return `<button type="button" role="menuitem" data-op="${esc(it.op)}" ${ok ? "" : "disabled"}><b>${esc(en && d.en ? d.en : d.de)}${d.params.length ? " …" : ""}</b></button>`;
+  }).join("")}</div>`;
+  const p = LabUI.popover(anchor, html);
+  p.addEventListener("click", (e) => { const b = e.target.closest("[data-op]"); if (b && !b.disabled) { LabUI.closePop(); runOp(b.dataset.op); } });
+  p.querySelector("button:not([disabled])")?.focus();
+}
+function taskDefs() {
+  const img = cur(), k = img && img.proc ? img.proc.kind : null, cal = img ? calOf(img) : null;
+  const chip = (kind, text) => window.LabUI ? LabUI.chip(kind, text) : `<span>${esc(text)}</span>`;
+  const done = (text) => chip("ok", "✓ " + text);
+  const impOps = [...opsOf(2), ...MENUS[1].items.filter(it => it && (it.op === "contrast" || it.op === "invert"))];
+  const nImp = img ? img.pipeline.filter(s => impOps.some(it => it.op === s.op)).length : 0;
+  const binOps = new Set(opsOf(3).map(it => it.op)), nBin = img ? img.pipeline.filter(s => binOps.has(s.op)).length : 0;
+  const L = [
+    { id: "open", label: tr("mk.t_open"), hint: tr("mk.t_open_h"), always: true, st: S.imgs.length ? done(trn("mk.s_imgs", S.imgs.length)) : chip("info", tr("mk.s_none")),
+      act: () => $("#file").click(), extra: `<button type="button" class="mini" data-sample>${esc(tr("mk.t_sample"))}</button>` },
+    { id: "scale", label: tr("mk.t_scale"), hint: tr("mk.t_scale_h"), st: img ? (cal.unit !== "px" ? done(calText(cal)) : chip("warn", tr("mk.s_px"))) : "", act: () => switchTab("massstab") },
+    { id: "improve", label: tr("mk.t_improve"), hint: tr("mk.t_improve_h"), st: nImp ? chip("info", trn("mk.s_steps", nImp)) : "", act: (b) => opsPicker(b, impOps) },
+    { id: "thr", label: tr("mk.t_thr"), hint: tr("mk.t_thr_h"), st: k === "binary" ? done(tr("mk.s_binary")) : k ? chip("info", tr(k === "rgb" ? "mk.s_rgb" : "mk.s_gray")) : "",
+      act: () => switchTab("schwelle") },
+    { id: "bin", label: tr("mk.t_bin"), hint: tr("mk.t_bin_h"), st: img && k !== "binary" ? chip("warn", tr("mk.s_need_bin")) : nBin ? chip("info", trn("mk.s_steps", nBin)) : "", off: k !== "binary",
+      act: (b) => opsPicker(b, opsOf(3)) },
+    { id: "part", label: tr("mk.t_part"), hint: tr("mk.t_part_h"), st: img && img.part ? done(trn("mk.s_parts", img.part.summary.Count)) : img && k !== "binary" ? chip("warn", tr("mk.s_need_bin")) : "",
+      act: () => switchTab("partikel") },
+    { id: "meas", label: tr("mk.t_meas"), hint: tr("mk.t_meas_h"), st: S.results.length ? done(trn("mk.s_meas", S.results.length)) : "", act: () => measure(false) },
+    { id: "res", label: tr("mk.t_res"), hint: tr("mk.t_res_h"), always: true, st: "", act: () => switchTab("ergebnisse") },
+  ];
+  if (window.Lab) L.push({ id: "report", label: tr("mk.t_report"), hint: tr("mk.t_report_h"), st: "", act: sendToReport });
+  return L;
+}
+function renderTasks() {
+  if (S.tab !== "aufgaben") return;
+  const img = cur(), L = taskDefs();
+  $("#taskHead").textContent = tr("mk.t_head");
+  $("#taskList").innerHTML = L.map((x, i) => {
+    const off = (!x.always && !img) || x.off;
+    return `<li class="${off ? "off" : ""}"><span class="n">${i + 1}</span><div class="b"><button type="button" class="tk" data-task="${x.id}" ${off ? "disabled" : ""}
+      title="${esc(off && !img ? tr("mk.s_need_img") : x.hint)}">${esc(x.label)}</button>${x.extra || ""}<small>${esc(x.hint)}</small></div><span class="st">${x.st || ""}</span></li>`;
+  }).join("");
+}
+function envSummary() {          // Kasten der Umgebung in der Übersicht
+  const tags = [trn("mk.s_imgs", S.imgs.length)];
+  for (const o of S.imgs.slice(0, 4)) {
+    const c = calOf(o), bits = [];
+    if (c && c.unit !== "px") bits.push(calText(c));
+    if (o.part && o.part.summary) bits.push(trn("mk.s_parts", o.part.summary.Count));
+    if (bits.length) tags.push(`${o.name.slice(0, 16)}: ${bits.join(", ")}`.slice(0, 60));
+  }
+  if (S.results.length) tags.push(trn("mk.s_meas", S.results.length));
+  let values = [];                                                    // Wertekatalog für Verbindungen zu anderen Umgebungen
+  try { values = LabOverview.summaryValues(valCatalogue()); } catch (e) { values = []; }
+  return { title: S.imgs.map(o => o.name).join(" · ").slice(0, 200), tags: tags.slice(0, 8), values, plots: envPlots() };
+}
+// UI-18: je Bild die Grössenverteilung der Partikel (ECD), sonst das Grauwert-Histogramm, als kleine Grafik
+function envPlots() {
+  const en = /^en/i.test(document.documentElement.lang || ""), out = [];
+  const bins = (vals, n) => {
+    const v = vals.filter(x => Number.isFinite(x)); if (!v.length) return null;
+    let lo = Math.min(...v), hi = Math.max(...v); if (!(hi > lo)) { lo -= 0.5; hi += 0.5; }
+    const w = (hi - lo) / n, c = new Array(n).fill(0);
+    for (const x of v) c[Math.min(n - 1, Math.floor((x - lo) / w))]++;
+    return { x: c.map((_, i) => lo + (i + 0.5) * w), y: c };
+  };
+  for (const o of S.imgs.slice(0, 4)) {
+    try {
+      const rows = o.part && Array.isArray(o.part.rows) ? o.part.rows : null;
+      const ecd = rows ? bins(rows.map(r => +r.ECD), Math.min(24, Math.max(6, Math.round(Math.sqrt(rows.length))))) : null;
+      if (ecd && rows.length > 2) {
+        const u = o.part.unit || "px";
+        out.push({ title: `${o.name}: ${en ? "particle size" : "Partikelgrösse"}`, xlab: `ECD [${u}]`, ylab: en ? "Count" : "Anzahl",
+          series: [{ name: "ECD", x: ecd.x, y: ecd.y, bar: true }] });
+        continue;
+      }
+      const st = o.px && o.px.stat;
+      if (!st || !st.hist) continue;
+      const x = [], y = [];
+      for (let i = 0; i < 64; i++) { let s = 0; for (let k = 0; k < 4; k++) s += st.hist[4 * i + k]; x.push(st.lo + (4 * i + 2) * st.bw); y.push(s); }
+      out.push({ title: `${o.name}: ${en ? "grey values" : "Grauwerte"}`, xlab: en ? "Grey value" : "Grauwert", ylab: en ? "Pixels" : "Pixel",
+        series: [{ name: en ? "Histogram" : "Histogramm", x, y, bar: true }] });
+    } catch (e) { /* ohne Grafik */ }
+  }
+  return out;
+}
+// ⇄: Kennwerte der Partikelanalyse je Bild an andere Umgebungen; übernommene Werte stehen unter der Zusammenfassung
+function partVars(o) {
+  const s = o.part && o.part.summary; if (!s) return [];
+  const U = o.part.unit || "px";
+  return [["n", s.Count, "", tr("mk.v_n")], ["phi", s.AreaFraction, "%", tr("mk.v_phi")], ["Amean", s.AverageSize, U + "²", tr("mk.v_amean")],
+    ["ECD", s.MeanECD, U, tr("mk.v_ecd")], ["D10", s.D10, U, "D10"], ["D50", s.D50, U, "D50"], ["D90", s.D90, U, "D90"],
+    ["circ", s.MeanCirc, "", tr("mk.v_circ")], ["feret", s.MeanFeret, U, tr("mk.v_feret")], ["AR", s.MeanAR, "", tr("mk.v_ar")]]
+    .filter(x => x[1] !== null && x[1] !== undefined).map(([name, value, unit, label]) => ({ name, value, unit, label }));
+}
+function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.imgs.map(o => ({ name: o.name, vars: partVars(o) }))) : []; }
+function shr(name) {
+  if (!OV || !OV.shareButton) return "";
+  const i = S.imgs.indexOf(cur());
+  return OV.shareButton(String(name).slice(0, 21) + (i > 0 ? "_" + (i + 1) : ""));
+}
+function renderExt() {
+  const el = $("#mkExt"); if (!el) return;
+  const L = S.ext || [];
+  el.hidden = !L.length;
+  el.innerHTML = L.length ? `<div class="small" style="margin-top:8px"><b>${esc(tr("mk.ext_h"))}</b></div><dl class="kv">${L.map(x => `<dt title="${esc(x.label || "")}">← <code>${esc(x.key)}</code></dt><dd>${esc(fmt(+x.value))} ${esc(x.unit || "")} <span class="small">(${esc(x.from_name || "")})</span></dd>`).join("")}</dl>` : "";
+}
+function applyExt(rows) {
+  const r = LabOverview.extValues(S.ext, rows);
+  if (!r.changed) return;
+  S.ext = r.list; renderExt();
+  if (window.ENVS) ENVS.save();
+}
+function updateAll() {
+  const img = cur();
+  $("#empty").hidden = !!img;
+  $("#stInfo").textContent = img && img.proc ? `${img.name} · ${img.proc.w}×${img.proc.h} px · ${img.proc.type}${img.proc.slices > 1 ? ` · ${img.proc.slices} Ebenen` : ""}` +
+    (img.pipeline.length ? ` · ${img.pipeline.length} Schritt(e)` : "") : "";
+  if (window.ENVS) ENVS.save();
+  const sb = $("#sliceBar");
+  sb.hidden = !img || !img.proc || img.proc.slices < 2;
+  if (!sb.hidden) { $("#slice").max = img.proc.slices - 1; $("#slice").value = img.slice; $("#sliceV").textContent = `${img.slice + 1} / ${img.proc.slices}`; }
+  updateDisplayPane(); updateScalePane(); updateThrPane(); updatePartPane(); updateRois(); updateResults(); updateProto(); showSelInfo(); draw();
+  renderTabs(); renderTasks();
+  if (OV && OV.changed) OV.changed();                                 // ausgehende Verbindungen nachführen
+}
+function sliderRange(img) {
+  const s = img.px.stat;
+  if (s.eight) return { min: 0, max: 255, step: 1 };
+  const span = s.max - s.min || 1;
+  const step = img.proc && img.proc.bitdepth === 16 ? 1 : span / 1000;
+  return { min: s.min, max: s.max, step };
+}
+function updateDisplayPane() {
+  const img = cur();
+  const ok = img && img.px;
+  $$("#dAuto, #dReset, #dApply, #lut, #dMin, #dMax").forEach(e => e.disabled = !ok);
+  if (!ok) { $("#imgInfo").textContent = "Kein Bild geladen."; drawHist($("#histD"), null); $("#dStats").innerHTML = ""; return; }
+  const p = img.px, s = p.stat, gray = p.kind === "gray";
+  $("#dApply").disabled = !gray || img.proc.bitdepth === 8;
+  $("#lut").disabled = !gray;
+  $("#imgInfo").innerHTML = `<b>${esc(img.name)}</b><br>${img.proc.w}×${img.proc.h} px · ${esc(img.proc.type)}` + (img.proc.slices > 1 ? ` · Ebene ${img.slice + 1}/${img.proc.slices}` : "");
+  const rg = sliderRange(img);
+  for (const [id, k] of [["#dMin", "min"], ["#dMax", "max"]]) {
+    const el = $(id);
+    el.min = Math.min(rg.min, img.display.min, img.display.max); el.max = Math.max(rg.max, img.display.max, img.display.min); el.step = rg.step; el.value = img.display[k];
+  }
+  $("#dMinV").textContent = fmt(img.display.min); $("#dMaxV").textContent = fmt(img.display.max);
+  $("#lut").value = img.display.lut || "grays";
+  drawHist($("#histD"), s, { lines: [[img.display.min, "var"]], range: [img.display.min, img.display.max] });
+  drawRamp(img);
+  const c = calOf(img);
+  $("#dStats").innerHTML = `<dt>Pixel</dt><dd>${s.n}</dd><dt>Minimum</dt><dd>${fmt(s.min)}</dd><dt>Maximum</dt><dd>${fmt(s.max)}</dd>
+    <dt>Mittelwert</dt><dd>${fmt(s.mean)}</dd><dt>Std.-Abw.</dt><dd>${fmt(s.sd)}</dd>
+    <dt>Pixelgrösse</dt><dd>${c.unit !== "px" ? fmt(c.pw, 5) + " " + esc(c.unit) : "nicht kalibriert"}</dd>`;
+}
+function drawHist(cv, s, opt = {}) {
+  const W = cv.clientWidth || 300, H = cv.clientHeight || 110, r = window.devicePixelRatio || 1;
+  cv.width = W * r; cv.height = H * r;
+  const c = cv.getContext("2d");
+  c.setTransform(r, 0, 0, r, 0, 0);
+  c.clearRect(0, 0, W, H);
+  if (!s) return;
+  const css = getComputedStyle(document.documentElement);
+  const h = s.hist;
+  let mx = 0;
+  for (let i = 0; i < 256; i++) mx = Math.max(mx, Math.sqrt(h[i]));
+  const X = (v) => (v - s.lo) / (s.bw * 256) * W;
+  if (opt.thr) {
+    c.fillStyle = "rgba(229,57,53,.18)";
+    c.fillRect(X(opt.thr[0]), 0, Math.max(1, X(opt.thr[1]) - X(opt.thr[0])), H);
+  }
+  c.fillStyle = css.getPropertyValue("--hist").trim();
+  const bw = W / 256;
+  for (let i = 0; i < 256; i++) {
+    const bh = mx ? Math.sqrt(h[i]) / mx * (H - 6) : 0;
+    c.fillRect(i * bw, H - bh, Math.max(1, bw), bh);
+  }
+  c.lineWidth = 1.5;
+  if (opt.range) {
+    c.strokeStyle = css.getPropertyValue("--accent").trim();
+    c.beginPath(); c.moveTo(X(opt.range[0]), H); c.lineTo(X(opt.range[1]), 0); c.stroke();
+  }
+  if (opt.thr) {
+    c.strokeStyle = "#e53935";
+    for (const v of opt.thr) { c.beginPath(); c.moveTo(X(v), 0); c.lineTo(X(v), H); c.stroke(); }
+  }
+}
+function drawRamp(img) {
+  const cv = $("#ramp"), W = cv.clientWidth || 300, r = window.devicePixelRatio || 1;
+  cv.width = W * r; cv.height = 10 * r;
+  const c = cv.getContext("2d"), lut = img.px.kind === "gray" ? (LUT[img.display.lut] || LUT.grays) : LUT.grays;
+  for (let i = 0; i < 256; i++) { c.fillStyle = `rgb(${lut[3 * i]},${lut[3 * i + 1]},${lut[3 * i + 2]})`; c.fillRect(i / 256 * W * r, 0, W * r / 256 + 1, 10 * r); }
+}
+
+// Schwelle
+async function thrEnter() {
+  const img = cur();
+  updateThrPane();
+  if (!img || !img.px || img.px.kind !== "gray") { if (img) { renderBase(img); draw(); } return; }
+  if (!S.thr) await thrAuto();
+  else { renderBase(img); draw(); }
+}
+async function thrAuto() {
+  const img = cur();
+  if (!img || img.px.kind !== "gray") return;
+  const method = $("#thrMethod").value, dark = $("#thrDark").checked;
+  const j = await withBusy(() => api("api/threshold", { id: img.id, pipeline: img.pipeline, slice: img.slice, method, dark, stack: $("#thrStack").checked }));
+  if (j.error) return toast(j.error, true);
+  S.thr = { lo: j.lo, hi: j.hi, method, dark, manual: false, value: j.value };
+  thrShow();
+}
+function thrShow() {
+  const img = cur();
+  updateThrPane();
+  if (img) { renderBase(img); draw(); }
+}
+function fgFraction(img, lo, hi) {
+  const d = img.px.data;
+  let n = 0;
+  for (let i = 0; i < d.length; i++) if (d[i] >= lo && d[i] <= hi) n++;
+  return n / d.length * 100;
+}
+function updateThrPane() {
+  const img = cur(), note = $("#thrNote");
+  const ok = img && img.px && img.px.kind === "gray";
+  $$("#thrMethod, #thrDark, #thrStack, #tLo, #tHi, #thrAuto, #thrAll, #thrApply").forEach(e => e.disabled = !ok);
+  $("#thrStackRow").hidden = !(img && img.proc && img.proc.slices > 1);
+  if (!img) { note.className = "note"; note.textContent = "Kein Bild geladen."; drawHist($("#histT"), null); return; }
+  if (img.px.kind === "binary") { note.className = "note"; note.innerHTML = "Das Bild ist bereits binär. Weiter mit <b>Binär</b>-Operationen oder im Tab <b>Partikel</b>."; drawHist($("#histT"), img.px.stat); $("#thrInfo").textContent = ""; $("#thrAllList").innerHTML = ""; return; }
+  if (img.px.kind === "rgb") { note.className = "note err"; note.innerHTML = "Schwellen gehen nur mit Graustufen. Erst <b>Bild ▸ RGB in 8-bit Graustufen</b> oder einen Farbkanal wählen."; drawHist($("#histT"), img.px.stat); return; }
+  note.className = "note"; note.textContent = "Rot markiert, was zu Objekten wird. Schieberegler stellen die Grenzen von Hand ein.";
+  const rg = sliderRange(img), t = S.thr;
+  for (const [id, k] of [["#tLo", "lo"], ["#tHi", "hi"]]) { const el = $(id); el.min = rg.min; el.max = rg.max; el.step = rg.step; if (t) el.value = t[k]; }
+  $("#tLoV").textContent = t ? fmt(t.lo) : ""; $("#tHiV").textContent = t ? fmt(t.hi) : "";
+  drawHist($("#histT"), img.px.stat, t ? { thr: [t.lo, t.hi] } : {});
+  $("#thrInfo").textContent = t ? `${t.manual ? "Von Hand" : META.methods[t.method]}: ${fmt(fgFraction(img, t.lo, t.hi), 2)} % der Pixel werden zu Objekten.` : "";
+  if (S.thrAll) {
+    $("#thrAllList").innerHTML = `<div class="small" style="margin-bottom:4px">Klick übernimmt eine Methode. Spalten: Schwelle, Objektanteil.</div>` +
+      Object.entries(S.thrAll).map(([k, v]) => `<div class="m ${t && !t.manual && t.method === k ? "sel" : ""}" data-m="${k}"><span>${esc(META.methods[k])}</span><span>${fmt(v.value)}</span><span>${fmt(fgFraction(img, v.lo, v.hi), 1)} %</span></div>`).join("");
+    $$("#thrAllList .m").forEach(m => m.addEventListener("click", () => { $("#thrMethod").value = m.dataset.m; const v = S.thrAll[m.dataset.m]; S.thr = { lo: v.lo, hi: v.hi, method: m.dataset.m, dark: $("#thrDark").checked, manual: false }; thrShow(); }));
+  } else $("#thrAllList").innerHTML = "";
+}
+async function thrAll() {
+  const img = cur();
+  const j = await withBusy(() => api("api/threshold", { id: img.id, pipeline: img.pipeline, slice: img.slice, method: "all", dark: $("#thrDark").checked, stack: $("#thrStack").checked }));
+  if (j.error) return toast(j.error, true);
+  S.thrAll = j.all;
+  updateThrPane();
+}
+function thrApply() {
+  const t = S.thr;
+  if (!t) return;
+  const step = t.manual ? { op: "threshold", lo: r2(t.lo), hi: r2(t.hi), dark: $("#thrDark").checked } : { op: "threshold", method: t.method, dark: $("#thrDark").checked };
+  if ($("#thrStack").checked) step.stack = true;
+  pushStep(step).then(() => { if (cur() && cur().proc.kind === "binary") toast("Schwelle angewendet. Weiter mit Binär-Operationen oder im Tab Partikel."); });
+}
+
+// Auswahlen-Liste
+function updateRois() {
+  const img = cur(), el = $("#roiList");
+  if (!img || !img.rois.length) { el.innerHTML = `<div class="empty">Keine Auswahlen in der Liste.</div>`; return; }
+  el.innerHTML = img.rois.map((r, i) => `<div class="it ${i === S.roiSel ? "sel" : ""}" data-i="${i}"><span class="t">${esc(TYPE_DE[r.type])}</span><input value="${esc(r.name)}" aria-label="Name"><button title="Entfernen">×</button></div>`).join("");
+  $$(".it", el).forEach(it => {
+    const i = +it.dataset.i;
+    it.addEventListener("click", (e) => {
+      if (e.target.tagName === "BUTTON") { img.rois.splice(i, 1); S.roiSel = -1; updateRois(); draw(); return; }
+      S.roiSel = i; img.active = JSON.parse(JSON.stringify(img.rois[i])); delete img.active.name;
+      $$(".it", el).forEach(x => x.classList.toggle("sel", x === it)); changedSel();
+    });
+    $("input", it).addEventListener("change", (e) => { img.rois[i].name = e.target.value.trim() || img.rois[i].name; draw(); });
+  });
+}
+
+// Protokoll
+function updateProto() {
+  const img = cur(), el = $("#proto");
+  $("#pUndo").disabled = !img || !img.pipeline.length;
+  $("#pRedo").disabled = !img || !img.redo.length;
+  $("#pReset").disabled = !img || !img.pipeline.length;
+  $("#pSave").disabled = !img;
+  $("#pLoad").disabled = !img;
+  $("#pAll").disabled = !img || S.imgs.length < 2;
+  if (!img || !img.pipeline.length) { el.innerHTML = `<li style="color:var(--muted)"><span>Noch keine Bearbeitung – das Originalbild.</span></li>`; return; }
+  const steps = (img.proc && img.proc.steps) || img.pipeline.map(s => s.op);
+  el.innerHTML = steps.map((s, i) => `<li><span>${esc(s)}</span><button data-i="${i}" title="Diesen Schritt entfernen">×</button></li>`).join("");
+  $$("button", el).forEach(b => b.addEventListener("click", async () => {
+    const i = +b.dataset.i, pl = img.pipeline.filter((_, k) => k !== i);
+    const r = await setPipeline(img, pl);
+    if (r === true) img.redo = [];
+  }));
+}
+function stem(n) { return n.replace(/\.[^.]+$/, ""); }
+function download(name, text, type = "text/csv;charset=utf-8") {
+  const blob = new Blob(["﻿" + text], { type });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function saveProtocol() {
+  const img = cur();
+  if (!img) return;
+  const data = { format: "folio-mikroskopie-protokoll/1", pipeline: img.pipeline, calib: img.calib, calib_from: img.calibFrom || "",
+                 scalebar: img.scalebar ? { ...img.sb } : false, particles: img.particles, steps: img.proc ? img.proc.steps : [] };
+  download(`${stem(img.name)}_protokoll.json`, JSON.stringify(data, null, 2), "application/json");
+}
+async function loadProtocol(file) {
+  const img = cur();
+  if (!img) return;
+  let data;
+  try { data = JSON.parse(await file.text()); } catch (e) { return toast("Keine lesbare Protokolldatei (JSON).", true); }
+  const pl = Array.isArray(data) ? data : data.pipeline;
+  if (!Array.isArray(pl) || pl.some(s => !s || typeof s.op !== "string" || !META.ops[s.op])) return toast("Die Datei enthält kein gültiges Protokoll.", true);
+  if (await setPipeline(img, pl) === true) {
+    img.redo = [];
+    if (data.calib) { img.calib = data.calib; img.calibFrom = data.calib_from || `Protokoll ${file.name}`; S.calFor = null; }
+    readScalebar(img, data.scalebar);
+    updateAll();
+    toast(`Protokoll mit ${pl.length} Schritt(en) angewendet.`);
+  }
+}
+async function applyAll() {
+  const img = cur();
+  if (!img) return;
+  const errs = [];
+  for (const o of S.imgs) {
+    if (o === img) continue;
+    const r = await setPipeline(o, JSON.parse(JSON.stringify(img.pipeline)), true);
+    if (r !== true) errs.push(`${o.name}: ${r}`);
+    else { o.redo = []; if (img.calib) { o.calib = { ...img.calib }; o.calibFrom = `übertragen von ${img.name}`; } }
+  }
+  selectImage(S.sel);
+  if (errs.length) toast("Nicht auf alle anwendbar:\n" + errs.join("\n"), true);
+  else toast(`Protokoll auf ${S.imgs.length - 1} weitere Bilder angewendet.`);
+}
+
+// Export und Bericht
+function stateOf(img) {
+  return {
+    pipeline: img.pipeline, slice: img.slice, display: { min: img.display.min, max: img.display.max, lut: img.display.lut },
+    calib: img.calib, rois: img.rois, particles: img.particles, region: img.particles ? img.region : null,
+    scalebar: img.scalebar ? { ...img.sb } : false, compare: cmpRecord(img.cmp),
+  };
+}
+// Balken aus gespeichertem Stand: true/false (ältere Dateien) oder Einstellungen
+function readScalebar(img, v) {
+  if (v === undefined || v === null) return;
+  img.scalebar = v !== false && !(v && v.show === false);
+  if (v && typeof v === "object") img.sb = { ...SB_DEF, ...Object.fromEntries(Object.entries(v).filter(([k]) => k in SB_DEF)) };
+}
+async function doExport(overwrite = false) {
+  const img = cur();
+  if (!img) return;
+  const j = await withBusy(() => api("api/export", { id: img.id, ...stateOf(img), overwrite }));
+  if (j.exists) {
+    if (confirm(`Der Ordner\n${j.folder}\nenthält schon Dateien. Überschreiben?`)) return doExport(true);
+    return;
+  }
+  if (j.error) return toast(j.error, true);
+  toast(`Exportiert: ${j.files.join(", ")}`, false, j.folder);
+}
+function sendToReport() {
+  const img = cur();
+  if (!img || !window.Lab) return;
+  const scopes = [{ id: "sel", label: `Aktuelles Bild (${img.name})` }];
+  if (S.imgs.length > 1) scopes.push({ id: "all", label: `Alle ${S.imgs.length} Bilder als Vergleich` });
+  window.Lab.sendToReport({
+    module: "mikroskopie",
+    title: "Bildanalyse " + stem(img.name),
+    scopes,
+    include: [
+      { id: "figures", label: "Abbildungen (Bild mit Massstab, Partikel, Histogramm, Verteilungen)" },
+      { id: "tables", label: "Tabellen (Messungen, Partikelanalyse)" },
+      { id: "values", label: "Kennwerte als \\labval" },
+      { id: "data", label: "Daten (Partikel- und Profil-CSV, für pgfplots)" },
+      { id: "citations", label: "Quellen (Bilddatei, Schwellenmethode)" },
+      { id: "text", label: "Textbausteine (Methodik, Ergebnisse)" },
+    ],
+    build: ({ scope, lang, include, title }) => {
+      const list = scope === "all" ? S.imgs : [img];
+      return api("api/bundle", { items: list.map(o => ({ id: o.id, state: stateOf(o) })), lang, include, title });
+    },
+  });
+}
+
+// ---------------------------------------------------------------- Ereignisse
+function bind() {
+  view.addEventListener("pointerdown", onDown);
+  view.addEventListener("pointermove", onMove);
+  view.addEventListener("pointerup", onUp);
+  view.addEventListener("pointercancel", onUp);
+  view.addEventListener("pointerleave", () => { $("#stPos").textContent = "–"; });
+  view.addEventListener("dblclick", () => { if (S.poly) finishPoly(); });
+  view.addEventListener("contextmenu", (e) => e.preventDefault());
+  view.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const [sx, sy] = toView(e);
+    zoomAt(sx, sy, e.deltaY < 0 ? 1.2 : 1 / 1.2);
+  }, { passive: false });
+  new ResizeObserver(sizeView).observe($("#stage"));
+
+  $("#file").addEventListener("change", (e) => { openFiles([...e.target.files]); e.target.value = ""; });
+  $("#protoFile").addEventListener("change", (e) => { if (e.target.files[0]) loadProtocol(e.target.files[0]); e.target.value = ""; });
+  $("#emptyOpen").addEventListener("click", () => $("#file").click());
+  $("#emptySample").addEventListener("click", loadSample);
+  const stage = $("#stage");
+  stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.classList.add("drop"); });
+  stage.addEventListener("dragleave", () => stage.classList.remove("drop"));
+  stage.addEventListener("drop", (e) => { e.preventDefault(); stage.classList.remove("drop"); openFiles([...e.dataTransfer.files]); });
+
+  $$(".tabs button[data-tab]").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+  $("#tabMore").addEventListener("click", openTabMenu);
+  $("#taskList").addEventListener("click", (e) => {
+    if (e.target.closest("[data-sample]")) return loadSample();
+    const b = e.target.closest("[data-task]"); if (!b || b.disabled) return;
+    const x = taskDefs().find(y => y.id === b.dataset.task); if (x) x.act(b);
+  });
+  bindScale();
+  $("#slice").addEventListener("input", async (e) => {
+    const img = cur(); img.slice = +e.target.value;
+    $("#sliceV").textContent = `${img.slice + 1} / ${img.proc.slices}`;
+    await loadPixels(img); img.part = null; img.partImg = null; img.particles = null; S.thr = null;
+    renderBase(img); updateAll();
+    if (S.tab === "schwelle") thrEnter();
+  });
+
+  // Anzeige
+  const dispChange = () => {
+    const img = cur();
+    let mn = +$("#dMin").value, mx = +$("#dMax").value;
+    if (mx <= mn) { if (document.activeElement === $("#dMin")) mn = mx - (+$("#dMin").step || 1); else mx = mn + (+$("#dMax").step || 1); }
+    img.display.min = mn; img.display.max = mx;
+    $("#dMinV").textContent = fmt(mn); $("#dMaxV").textContent = fmt(mx);
+    renderBase(img); draw();
+    drawHist($("#histD"), img.px.stat, { range: [mn, mx] });
+  };
+  $("#dMin").addEventListener("input", dispChange);
+  $("#dMax").addEventListener("input", dispChange);
+  $("#dAuto").addEventListener("click", () => { const img = cur(); Object.assign(img.display, autoDisplay(img)); renderBase(img); updateDisplayPane(); draw(); });
+  $("#dReset").addEventListener("click", () => { const img = cur(); Object.assign(img.display, defaultDisplay(img)); renderBase(img); updateDisplayPane(); draw(); });
+  $("#dApply").addEventListener("click", () => runOp("to8bit"));
+  $("#lut").addEventListener("change", (e) => { const img = cur(); img.display.lut = e.target.value; renderBase(img); drawRamp(img); draw(); });
+
+  // Schwelle
+  $("#thrMethod").addEventListener("change", () => { S.thrAll = S.thrAll; thrAuto(); });
+  $("#thrDark").addEventListener("change", () => { S.thrAll = null; thrAuto(); });
+  $("#thrStack").addEventListener("change", () => { S.thrAll = null; thrAuto(); });
+  $("#thrAuto").addEventListener("click", thrAuto);
+  $("#thrAll").addEventListener("click", thrAll);
+  $("#thrApply").addEventListener("click", thrApply);
+  const thrSlide = () => {
+    let lo = +$("#tLo").value, hi = +$("#tHi").value;
+    if (lo > hi) { if (document.activeElement === $("#tLo")) hi = lo; else lo = hi; }
+    S.thr = { ...(S.thr || {}), lo, hi, manual: true, method: $("#thrMethod").value };
+    $("#tLoV").textContent = fmt(lo); $("#tHiV").textContent = fmt(hi);
+    const img = cur();
+    renderBase(img); draw();
+    drawHist($("#histT"), img.px.stat, { thr: [lo, hi] });
+  };
+  $("#tLo").addEventListener("input", thrSlide);
+  $("#tHi").addEventListener("input", thrSlide);
+  $("#tLo").addEventListener("change", updateThrPane);
+  $("#tHi").addEventListener("change", updateThrPane);
+
+  // Partikel
+  $("#pRun").addEventListener("click", runParticles);
+  $("#pClear").addEventListener("click", () => { const img = cur(); img.part = null; img.partImg = null; img.particles = null; img.region = null; updatePartPane(); updateResults(); draw(); });
+  $("#pPix").addEventListener("change", updatePartPane);
+  $("#pShow").addEventListener("change", (e) => { cur().showPart = e.target.checked; draw(); });
+  $("#pNums").addEventListener("change", (e) => { cur().showNums = e.target.checked; draw(); });
+  $("#pTable").addEventListener("click", () => { S.resView = "part"; switchTab("ergebnisse"); });
+
+  // Auswahlen
+  $("#rAdd").addEventListener("click", addRoi);
+  $("#rMeasure").addEventListener("click", () => measure(true));
+  $("#rDel").addEventListener("click", () => { const img = cur(); if (img && S.roiSel >= 0) { img.rois.splice(S.roiSel, 1); S.roiSel = -1; updateRois(); draw(); } });
+  $("#rClear").addEventListener("click", () => { const img = cur(); if (img && img.rois.length && confirm("Alle Auswahlen dieses Bildes aus der Liste entfernen?")) { img.rois = []; S.roiSel = -1; updateRois(); draw(); } });
+  $("#rShow").addEventListener("change", draw);
+
+  // Ergebnisse
+  $$("[data-res]").forEach(b => b.addEventListener("click", () => { S.resView = b.dataset.res; updateResults(); }));
+  $("#resCsv").addEventListener("click", () => { const t = resCsv(); if (!t) return; const img = cur(); download(S.resView === "part" ? `${stem(img.name)}_partikel.csv` : "messungen.csv", t); });
+  $("#resCopy").addEventListener("click", async () => { const t = resCsv(); if (!t) return; try { await navigator.clipboard.writeText(t.replace(/;/g, "\t")); toast("Tabelle in die Zwischenablage kopiert (für Excel)."); } catch (e) { toast("Kopieren nicht erlaubt; bitte CSV speichern.", true); } });
+  $("#resClear").addEventListener("click", () => { if (S.resView === "part") $("#pClear").click(); else { S.results = []; updateResults(); } });
+
+  // Protokoll
+  $("#pUndo").addEventListener("click", undo);
+  $("#pRedo").addEventListener("click", redo);
+  $("#pReset").addEventListener("click", async () => { const img = cur(); if (img && confirm("Alle Bearbeitungsschritte entfernen und zum Original zurück?")) { const old = img.pipeline; if (await setPipeline(img, []) === true) img.redo = [...old].reverse(); updateProto(); } });
+  $("#pSave").addEventListener("click", saveProtocol);
+  $("#pLoad").addEventListener("click", () => $("#protoFile").click());
+  $("#pAll").addEventListener("click", applyAll);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === " " && !e.target.matches("input, textarea, select, button")) { spaceDown = true; e.preventDefault(); return; }
+    if (e.target.matches("input, textarea, select") || $("#dlg").open) return;
+    const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+    if (mod && k === "m") { e.preventDefault(); measure(false); }
+    else if (mod && k === "k") { e.preventDefault(); profile(); }
+    else if (mod && k === "o") { e.preventDefault(); $("#file").click(); }
+    else if (mod && k === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+    else if (mod && (k === "y" || (k === "z" && e.shiftKey))) { e.preventDefault(); redo(); }
+    else if (mod || e.altKey) return;
+    else if (k === "escape") { S.poly = null; if (cur()) cur().active = null; closeMenus(); changedSel(); }
+    else if (k === "enter" && S.poly) finishPoly();
+    else if (k === "t") addRoi();
+    else if (k === "+" || k === "=") zoomCenter(1.5);
+    else if (k === "-") zoomCenter(1 / 1.5);
+    else if (k === "0") fit(cur());
+    else if (k === "1") zoom100();
+    else if (k === "delete" && cur() && cur().active) { cur().active = null; changedSel(); }
+    else { const t = TOOLS.find(t => t !== "-" && t[2] === k); if (t) setTool(t[0]); }
+  });
+  document.addEventListener("keyup", (e) => { if (e.key === " ") spaceDown = false; });
+  window.addEventListener("beforeunload", () => { /* Bilder liegen nur im Speicher des Moduls */ });
+}
+
+// ---------------------------------------------------------------- Start
+async function init() {
+  buildTools();
+  buildMenus();
+  bind();
+  META = await api("api/meta");
+  if (META.error) { toast("Modul nicht erreichbar: " + META.error, true); return; }
+  for (const [k, v] of Object.entries(META.luts)) LUT[k] = new Uint8Array(v.table.flat());
+  $("#lut").innerHTML = Object.entries(META.luts).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("");
+  $("#thrMethod").innerHTML = Object.entries(META.methods).map(([k, v]) => `<option value="${k}" ${k === "otsu" ? "selected" : ""}>${esc(v)}</option>`).join("");
+  const pd = META.particle_defaults;
+  $("#pEdges").checked = pd.exclude_edges; $("#pHoles").checked = pd.include_holes;
+  if (window.Lab) { $("#labBtn").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
+  renderChips();
+  sizeView();
+  updateAll();
+  // A2: Bilder und Arbeitsstand der Umgebung wiederherstellen
+  window.ENVS = LabEnv.create({
+    api, toast, label: $("#envName"),
+    keep: ["name", "pipeline", "redo", "slice", "display", "calib", "calibFrom", "rois", "scalebar", "sb", "showPart", "showNums", "cmp"],
+    list: () => S.imgs, sel: () => S.sel,
+    reset: () => { S.imgs = []; S.sel = -1; S.ext = []; },
+    add: (d, saved) => addImage(d, saved), summary: envSummary,
+    extra: () => ({ ext: S.ext || [] }),
+    done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; renderExt(); selectImage(sel); if (OV) setTimeout(() => OV.sync(), 0); mkCmpFollow().catch(() => {}); },
+  });
+  await withBusy(() => ENVS.open());
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("mikroskopie"); LabUI.onLang(() => { buildMenus(); renderTabs(); renderTasks(); }); }
+  // UI-07 (Q27): Startansicht Übersicht – Umgebungen und Projektindex
+  if (window.LabOverview) {
+    OV = LabOverview.create({
+      api: (p, b) => api(p, b), toast, module: "mikroskopie", envs: () => window.ENVS,
+      detail: [$("#menubar"), $("main")], crumbs: $("#crumbs"),
+      values: { catalogue: valCatalogue, apply: applyExt, version: (META && META.version) || "" },
+      onView: (v) => { if (v === "detail") setTimeout(() => { sizeView(); const img = cur(); if (img) fit(img); draw(); }, 0); },   // Bildfläche war verborgen
+      imports: MK_IMP,                                                 // I-04: Datensatz → Vergleichsverteilung
+    });
+    if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }
+    $("#pCmpBtn").addEventListener("click", () => { if (mkImpOk()) OV.importDataset(); });
+    updatePartPane();
+  }
+}
+init();
+</script>
+</body>
+</html>

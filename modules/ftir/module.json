@@ -1,0 +1,25 @@
+{
+  "id": "ftir",
+  "name": "FTIR",
+  "name_en": "FTIR",
+  "description": "Infrarotspektren auswerten wie mit einer Spektrensoftware: JCAMP-DX, .spa, .spc, Agilent .fir, CSV; Basislinie, Glätten, ATR-Korrektur, Ableitungen; Banden mit Zuordnung, funktionelle Gruppen, Bibliothekssuche (HQI), Mischungsanalyse, eigene Bibliotheken, Differenzspektren.",
+  "description_en": "Analyse infrared spectra like dedicated spectroscopy software: JCAMP-DX, .spa, .spc, Agilent .fir, CSV; baseline, smoothing, ATR correction, derivatives; bands with assignments, functional groups, library search (HQI), mixture analysis, user libraries, difference spectra.",
+  "icon": "layers",
+  "icon_svg": "<path d=\"M2 5h2l1.5 2 1.5-1 1.5 9 1.5-11 1.5 6 1.5-2 1.5 4 1.5-3 1.5 9 1.5-7H22\"/><path d=\"M2 20h20\"/>",
+  "color": "#007b83",
+  "status": "ready",
+  "order": 20,
+  "version": "1.4.0",
+  "accepts": [".jdx", ".dx", ".jcamp", ".spa", ".spc", ".fir", ".csv", ".txt", ".dpt"],
+  "produces": ["figure", "table", "values", "data", "citation", "text"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "ftir.server", "--port", "{port}", "--out", "{outputs}", "--no-browser"],
+    "health": "/api/meta",
+    "requires": ["numpy", "matplotlib"]
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

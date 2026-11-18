@@ -1,0 +1,11 @@
+# Python packages for all Folio Lab analysis modules (Python 3.10 or newer).
+# setup.ps1 installs the per-module files modules/*/requirements.txt; this file is the same set in one place,
+# for manual installs:  python -m pip install -r requirements.txt
+#
+# Versions the current release was tested with (Windows 11, Python 3.12):
+# numpy 2.5.5, matplotlib 3.11.2, pillow 13.0.0, openpyxl 3.1.5, reportlab 5.1.0
+numpy>=1.24
+matplotlib>=3.7
+pillow
+openpyxl
+reportlab

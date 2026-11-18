@@ -1,0 +1,2165 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TGA</title>
+<style>
+:root {
+  --bg: #f4f5f8; --panel: #ffffff; --ink: #1d2027; --muted: #5d6472; --line: #d8dce4; --soft: #eef0f5;
+  --accent: #b45309; --accent-ink: #ffffff; --accent-soft: rgba(180,83,9,.10); --accent2: #1d4ed8;
+  --err-bg: #fde7e7; --err-ink: #a50e0e; --ok-bg: #e6f4ef; --ok-ink: #12602a;
+  --plot: #ffffff; --grid: #e8eaf0; --warn-bg: #fff4e0; --warn-ink: #7a4a00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131519; --panel: #1b1e24; --ink: #e8eaf0; --muted: #9ca3b0; --line: #343945; --soft: #242832;
+    --accent: #f59e0b; --accent-ink: #15130f; --accent-soft: rgba(245,158,11,.14); --accent2: #60a5fa;
+    --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #163126; --ok-ink: #a8dab5;
+    --plot: #171a1f; --grid: #2a2f39; --warn-bg: #3a2c12; --warn-ink: #f0c98a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131519; --panel: #1b1e24; --ink: #e8eaf0; --muted: #9ca3b0; --line: #343945; --soft: #242832;
+  --accent: #f59e0b; --accent-ink: #15130f; --accent-soft: rgba(245,158,11,.14); --accent2: #60a5fa;
+  --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #163126; --ok-ink: #a8dab5;
+  --plot: #171a1f; --grid: #2a2f39; --warn-bg: #3a2c12; --warn-ink: #f0c98a;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; height: 100vh; overflow: hidden; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+input[type=text], input[type=number], input:not([type]), select, textarea { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; width: 100%; }
+input[type=checkbox] { accent-color: var(--accent); }
+label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+label.chk { display: flex; gap: 6px; align-items: center; color: var(--ink); font-size: 13px; margin: 6px 0; }
+code { font-size: 12px; background: var(--soft); padding: 0 3px; border-radius: 3px; }
+.small { font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+header { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; white-space: nowrap; }
+.brand svg { color: var(--accent); }
+.chips { display: flex; gap: 6px; flex: 1; overflow-x: auto; min-width: 0; padding: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); cursor: pointer; white-space: nowrap; max-width: 240px; }
+.chip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.chip span { overflow: hidden; text-overflow: ellipsis; }
+.chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.chip .x { border: 0; background: transparent; padding: 0 5px; color: var(--muted); }
+
+/* UI-06: Übersicht (Menüleiste und Arbeitsfläche verborgen), Tab-Menü „Mehr“, Aufklapper in den Tabs */
+body.lov-board { grid-template-rows: auto minmax(0, 1fr) auto; }
+header .lov-only { display: none; }
+body.lov-board header .lov-only { display: block; flex: 1; }
+.tabs button.more { margin-left: auto; }
+.tabmenu { display: flex; flex-direction: column; gap: 2px; min-width: 240px; }
+.tabmenu button { text-align: left; border: 1px solid transparent; background: transparent; padding: 5px 8px; border-radius: 6px; }
+.tabmenu button:hover, .tabmenu button:focus-visible { border-color: var(--accent); }
+.tabmenu small { display: block; color: var(--muted); font-size: 11.5px; }
+.pane details.lab-fold > summary { margin: 14px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+.pane details.lab-fold > summary .cnt { text-transform: none; letter-spacing: 0; font-weight: 400; }
+@media (max-width: 700px) { body { grid-template-columns: minmax(0, 1fr); } header { flex-wrap: wrap; } header .chips { order: 9; flex-basis: 100%; }
+  #menubar, #opts { flex-wrap: wrap; } }
+#menubar { display: flex; gap: 2px; padding: 2px 8px; background: var(--panel); border-bottom: 1px solid var(--line); position: relative; z-index: 20; }
+#menubar > .m { position: relative; }
+#menubar > .m > button { border: 0; background: transparent; padding: 4px 10px; border-radius: 5px; }
+#menubar > .m > button.open, #menubar > .m > button:hover { background: var(--accent-soft); }
+.dd { position: absolute; top: 100%; left: 0; min-width: 290px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; }
+.dd button { display: flex; width: 100%; justify-content: space-between; gap: 18px; border: 0; background: transparent; text-align: left; padding: 5px 10px; border-radius: 5px; }
+.dd button:hover:not(:disabled) { background: var(--accent-soft); }
+.dd button .k { color: var(--muted); font-size: 12px; }
+.dd button.on::before { content: "✓"; margin-right: -12px; color: var(--accent); }
+.dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+
+main { display: grid; grid-template-columns: 46px minmax(0, 1fr) 400px; min-height: 0; }
+#tools { display: flex; flex-direction: column; gap: 3px; padding: 6px 5px; background: var(--panel); border-right: 1px solid var(--line); }
+#tools button { width: 36px; height: 34px; padding: 0; display: grid; place-items: center; border-color: transparent; background: transparent; }
+#tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+#tools hr { width: 70%; border: 0; border-top: 1px solid var(--line); margin: 4px auto; }
+.viewer { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#opts { display: flex; align-items: center; gap: 10px; padding: 5px 10px; background: var(--soft); border-bottom: 1px solid var(--line); min-height: 36px; font-size: 12px; flex-wrap: wrap; }
+#opts .hint { color: var(--muted); flex: 1; min-width: 160px; }
+#stage { position: relative; flex: 1; min-height: 0; background: var(--plot); overflow: hidden; }
+#plot { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; background: var(--plot); }
+#empty .box { border: 2px dashed var(--line); border-radius: 12px; padding: 28px 36px; max-width: 600px; }
+#empty .box b { font-size: 16px; color: var(--ink); display: block; margin-bottom: 6px; }
+#empty button { margin: 12px 4px 0; }
+#stage.drop { outline: 2px dashed var(--accent); outline-offset: -8px; }
+
+aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 6px 0; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 5px 6px; color: var(--muted); font-size: 12.5px; }
+.tabs button.sel { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.pane { padding: 10px 12px 16px; overflow-y: auto; flex: 1; min-height: 0; }
+.pane h4.sub { margin: 16px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.pane h4.sub:first-child { margin-top: 2px; }
+.note { padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); font-size: 12px; margin: 6px 0; }
+.note.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.note.err { background: var(--err-bg); color: var(--err-ink); }
+.note.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.list { border: 1px solid var(--line); border-radius: 6px; margin-top: 6px; max-height: 260px; overflow-y: auto; }
+.list .it { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 12.5px; }
+.list .it:last-child { border-bottom: 0; }
+.list .it.sel { background: var(--accent-soft); }
+.list .it .nm { flex: 1; min-width: 0; overflow: hidden; overflow-wrap: anywhere; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }   /* lange Namen mit Quelle: zwei Zeilen statt „…“ */
+.list .it .cv { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.list .it button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+.list .it button:hover { color: var(--ink); }
+.list .it input[type=text] { flex: 1; border-color: transparent; background: transparent; padding: 2px 4px; }
+.list .it input[type=text]:focus { border-color: var(--line); background: var(--bg); }
+.list .empty { padding: 10px; color: var(--muted); font-size: 12px; cursor: default; }
+.list label.it { margin: 0; color: var(--ink); }
+.sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+ol.proto { margin: 8px 0 0; padding: 0; list-style: none; counter-reset: s; }
+ol.proto li { counter-increment: s; display: flex; gap: 8px; align-items: flex-start; padding: 5px 6px; border-bottom: 1px solid var(--line); }
+ol.proto li::before { content: counter(s); color: var(--muted); min-width: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+ol.proto li span { flex: 1; }
+ol.proto li button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+ol.proto li.empty::before { content: ""; }
+.tw { overflow: auto; max-height: 340px; border: 1px solid var(--line); border-radius: 6px; margin-top: 8px; }
+table.res { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; width: 100%; }
+table.res th, table.res td { padding: 3px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.res th { position: sticky; top: 0; background: var(--soft); font-weight: 600; z-index: 1; }
+table.res td.l, table.res th.l { text-align: left; }
+table.res td.wrap { white-space: normal; text-align: left; min-width: 120px; }
+table.res tbody tr.click { cursor: pointer; }
+table.res tbody tr.click:hover td { background: var(--soft); }
+table.res tr.hl td { background: var(--accent-soft) !important; }
+table.res td input { padding: 2px 4px; min-width: 56px; }
+table.res td button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 3px 9px; font-size: 12px; }
+.seg button.sel { background: var(--accent); color: var(--accent-ink); }
+.seg button:disabled { opacity: .4; }
+.badge { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; border: 1px solid currentColor; white-space: nowrap; color: var(--muted); }
+.badge.model { color: var(--warn-ink); }
+.badge.own { color: var(--accent2); }
+.combo { border-bottom: 1px solid var(--line); padding: 6px 4px; cursor: pointer; }
+.combo.sel { background: var(--accent-soft); }
+.combo .h { display: flex; justify-content: space-between; gap: 8px; }
+.combo .c { font-size: 12px; color: var(--muted); }
+.detail { margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; background: var(--soft); }
+details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 12px; }
+.vars { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.vars button { padding: 1px 6px; font-size: 11.5px; font-family: ui-monospace, Consolas, monospace; }
+.vars button.ext { border-style: dashed; }
+
+footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
+footer #stPos { min-width: 300px; color: var(--ink); }
+footer #stInfo { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+#busy { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); }
+#busy::before { content: ""; width: 10px; height: 10px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 0; width: min(480px, calc(100vw - 32px)); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+dialog.wide { width: min(820px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(8,12,14,.45); }
+dialog h3 { margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+dialog .body { padding: 8px 16px 12px; max-height: 72vh; overflow-y: auto; }
+dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
+dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: center; }
+#toasts { position: fixed; right: 14px; bottom: 34px; display: flex; flex-direction: column; gap: 8px; z-index: 50; max-width: min(460px, calc(100vw - 28px)); }
+.toast { padding: 9px 12px; border-radius: 8px; background: var(--ok-bg); color: var(--ok-ink); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.15); font-size: 12.5px; white-space: pre-line; }
+.toast.err { background: var(--err-bg); color: var(--err-ink); }
+.toast a { color: inherit; font-weight: 600; }
+
+@media (max-width: 980px) {
+  body { overflow: auto; height: auto; }
+  main { grid-template-columns: 46px minmax(0, 1fr); }
+  aside { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
+  #stage { min-height: 60vh; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v16h18"/><path d="M5 6h4c2 0 2 4 4 4h2c2 0 2 5 4 5h1"/></svg>
+    TGA
+  </div>
+  <span id="crumbs"></span>
+  <div class="chips" id="chips" data-lov-detail></div>
+  <span class="hsp lov-only"></span>
+  <span id="langSw"></span>
+  <button id="labBtn" class="primary" hidden data-lov-detail data-i18n="tg.lab" data-i18n-title="tg.lab_t" title="Kurven, Stufen, Zusammensetzung, Suchtreffer, Kinetik und Quellen in einen Folio Lab Bericht übernehmen">Zum Bericht …</button>
+</header>
+
+<nav id="menubar" aria-label="Menü"></nav>
+
+<main>
+  <div id="tools" role="toolbar" aria-label="Werkzeuge"></div>
+  <div class="viewer">
+    <div id="opts">
+      <span class="hint" id="optHint"></span>
+      <div class="seg" id="xSeg" title="x-Achse"><button data-x="T" class="sel">Temperatur</button><button data-x="t">Zeit</button></div>
+      <div class="seg" id="modeSeg"><button data-mode="run" class="sel">Lauf</button><button data-mode="search">Suche</button><button data-mode="mix">Mischung</button><button data-mode="kin">Kinetik</button><button data-mode="dc">Trennung</button></div>
+      <label class="chk" style="margin:0"><input type="checkbox" id="showDtg" checked> DTG</label>
+      <button id="viewAll" title="Ganzer Bereich (0)">Ganz</button>
+    </div>
+    <div id="stage">
+      <canvas id="plot"></canvas>
+      <div id="empty">
+        <div class="box">
+          <b>TGA-Läufe hierher ziehen</b>
+          Text- und Tabellenexporte: NETZSCH Proteus (ASCII), TA Universal Analysis / TRIOS (TXT, CSV, XLSX), METTLER STARe (TXT), PerkinElmer Pyris, Shimadzu, allgemeines CSV/TXT (Komma, Semikolon, Tab, Dezimalkomma). Unbekannte Spalten werden in einem Dialog zugeordnet.
+          <div><button class="primary" id="emptyOpen">Lauf öffnen …</button></div>
+          <div class="small" style="margin-top:12px">Beispiele (berechnet, keine Messungen):</div>
+          <div id="emptySamples"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <!-- UI-06: sichtbar sind Bearbeiten, Stufen, Kennwerte, Suche, der gerade offene Tab und (ab zwei Läufen) Vergleich; der Rest unter „Mehr“ -->
+    <nav class="tabs" role="tablist">
+      <button data-tab="bearbeiten" class="sel" data-i18n="tg.tab_bearbeiten">Bearbeiten</button>
+      <button data-tab="stufen" data-i18n="tg.tab_stufen">Stufen</button>
+      <button data-tab="kennwerte" data-i18n="tg.tab_kennwerte">Kennwerte</button>
+      <button data-tab="zusammensetzung" data-i18n="tg.tab_zusammensetzung">Zusammensetzung</button>
+      <button data-tab="suche" data-i18n="tg.tab_suche">Suche</button>
+      <button data-tab="mischung" data-i18n="tg.tab_mischung">Mischung</button>
+      <button data-tab="vergleich" data-i18n="tg.tab_vergleich">Vergleich</button>
+      <button data-tab="kinetik" data-i18n="tg.tab_kinetik">Kinetik</button>
+      <button data-tab="trennung" data-i18n="tg.tab_trennung">Trennung</button>
+      <button data-tab="bibliotheken" data-i18n="tg.tab_bibliotheken">Bibliotheken</button>
+      <button data-tab="gleichungen" data-i18n="tg.tab_gleichungen">Gleichungen</button>
+      <button type="button" id="tabMore" class="more" aria-haspopup="true" data-i18n="tg.more" data-i18n-title="tg.more_t" title="Weitere Auswertungen">Mehr ▾</button>
+    </nav>
+
+    <section class="pane" data-pane="bearbeiten">
+      <div class="small" id="runInfo">Kein Lauf geladen.</div>
+      <div class="small" id="dsUp" hidden></div>
+      <h4 class="sub">Bearbeitungsschritt</h4>
+      <select id="eOp"></select>
+      <div id="eParams"></div>
+      <div class="row"><button class="primary" id="eApply">Anwenden</button></div>
+      <h4 class="sub">Protokoll</h4>
+      <div class="small">Alle Schritte werden der Reihe nach auf die Originaldaten angewendet, in der Oberfläche, im Export und im Bericht.</div>
+      <ol class="proto" id="proto"></ol>
+      <div class="row"><button id="pUndo" title="Strg+Z">Rückgängig</button><button id="pRedo" title="Strg+Y">Wiederholen</button><button id="pReset">Original</button></div>
+      <div class="row"><button id="pSave">Protokoll speichern …</button><button id="pLoad">Laden …</button><button id="pAll">Auf alle Läufe</button></div>
+      <div class="row"><button id="pMap">Spalten zuordnen …</button></div>
+    </section>
+
+    <section class="pane" data-pane="stufen" hidden>
+      <div class="small">Stufen werden aus den Spitzen der DTG erkannt. Onset und Endset: Schnittpunkt der Wendetangente mit der Basislinie vor bzw. nach der Stufe (ISO 11358-1). Mit dem Werkzeug <b>R</b> (Bereich) im Diagramm Stufengrenzen von Hand aufziehen.</div>
+      <details class="lab-fold" data-fold="stParams"><summary><span data-i18n="tg.f_detect">Erkennung</span> <span class="cnt" id="stMode"></span></summary>
+      <div class="row3">
+        <div><label for="stW" title="Fensterbreite für die DTG (Savitzky-Golay)">DTG-Glättung [K]</label><input type="number" id="stW" min="0.5" max="40" step="0.5"></div>
+        <div><label for="stRel" title="Mindesthöhe einer DTG-Spitze relativ zur grössten">Mindesthöhe [rel.]</label><input type="number" id="stRel" min="0" max="1" step="0.01"></div>
+        <div><label for="stMin">Mindestverlust [%]</label><input type="number" id="stMin" min="0" max="50" step="0.1"></div>
+      </div>
+      <div class="row"><button class="primary" id="stRun">Neu erkennen</button><button id="stAuto">Handgrenzen verwerfen</button></div>
+      </details>
+      <div class="tw" id="stWrap"></div>
+      <div class="row"><button id="stCopy">Tabelle kopieren</button><button id="stCsv">CSV speichern</button><button id="stLib" title="Diese Stufen mit Quelle als Referenz in einer eigenen Bibliothek speichern">Als Referenz speichern …</button></div>
+    </section>
+
+    <section class="pane" data-pane="kennwerte" hidden>
+      <h4 class="sub">Temperatur bei Massenverlust</h4>
+      <div class="tw" id="ltWrap"></div>
+      <h4 class="sub">Rückstand</h4>
+      <div class="row2">
+        <div><label for="resT">zusätzlich bei T [°C]</label><input type="number" id="resT" placeholder="z. B. 600"></div>
+        <div><label for="isoAfter">Isotherm: Verlust nach [min]</label><input type="number" id="isoAfter" placeholder="z. B. 30"></div>
+      </div>
+      <div class="tw" id="resWrap"></div>
+      <details id="dscFold" hidden><summary>DSC / Wärmestrom auswerten …</summary>
+        <div class="row2">
+          <div><label for="dscUnit">Einheit des Signals</label><select id="dscUnit"><option value="">aus der Datei</option><option value="mW">mW</option><option value="W/g">W/g (mW/mg)</option><option value="uV">µV (DTA, unkalibriert)</option></select></div>
+          <div><label for="dscSign">Darstellung</label><select id="dscSign"><option value="exo_up">exotherm nach oben (DIN/NETZSCH)</option><option value="endo_up">endotherm nach oben</option></select></div>
+        </div>
+        <div class="row2">
+          <div><label for="dscPk">Peakbereiche [°C]</label><input id="dscPk" placeholder="z. B. 140-185; 220-260"></div>
+          <div><label for="dscTg">Glasübergänge [°C]</label><input id="dscTg" placeholder="z. B. 70-130"></div>
+        </div>
+        <div class="small">Lineare Basislinie zwischen den Bereichsgrenzen; Onset/Endset als Schnitt der Wendetangente mit der Basislinie (ISO 11357-1); T<sub>g</sub> bei halber Stufenhöhe (ISO 11357-2). Enthalpie je Einwaage, endotherm positiv.</div>
+        <div class="tw" id="dscWrap"></div>
+      </details>
+      <details id="egsFold"><summary>Gasanalyse (TGA-FTIR) …</summary>
+        <div class="row"><button id="egsOpen">Spektrenserie öffnen …</button><button id="egsSample">Beispiel</button><input type="file" id="egsFile" accept=".csv,.txt,.tsv,.dat,.jdx,.dx,.jcamp" hidden></div>
+        <div class="small">CSV-Matrix (Zeit × Wellenzahl, auch transponiert) oder JCAMP-DX mit einem Block je Zeitpunkt. Gram-Schmidt-Kurve nach de Haseth &amp; Isenhour (1977); die ersten k Spektren gelten als Hintergrund. Klick in die Kurve wählt die Zeit.</div>
+        <div id="egsOut"></div>
+      </details>
+      <details class="lab-fold" data-fold="segFile"><summary data-i18n="tg.f_segfile">Segmente und Datei</summary>
+      <h4 class="sub">Segmente</h4>
+      <div class="tw" id="segWrap"></div>
+      <h4 class="sub">Datei</h4>
+      <div class="detail" id="fileInfo"></div>
+      </details>
+    </section>
+
+    <section class="pane" data-pane="zusammensetzung" hidden>
+      <h4 class="sub">Zusammensetzung</h4>
+      <select id="cpPreset"></select>
+      <div id="cpParams" class="row3"></div>
+      <div class="row"><button class="primary" id="cpRun">Berechnen</button></div>
+      <div id="cpOut"></div>
+      <details class="lab-fold" data-fold="stoich"><summary><span data-i18n="tg.f_stoich">Gehalt aus Stöchiometrie</span> <span class="cnt" id="rxCnt"></span></summary>
+      <div class="small">Stufe einer bekannten Zersetzung zuordnen; Gehalt = Stufenverlust / theoretischer Verlust (Molmassen nach CIAAW).</div>
+      <div class="row2">
+        <div><label for="rxStep">Stufe</label><select id="rxStep"></select></div>
+        <div><label for="rxKey">Zersetzung</label><select id="rxKey"></select></div>
+      </div>
+      <div class="row"><button id="rxAdd">Zuordnen</button></div>
+      <div class="tw" id="rxWrap"></div>
+      </details>
+      <details class="lab-fold" data-fold="calib"><summary data-i18n="tg.f_calib">Kalibrierung</summary>
+      <label class="chk"><input type="checkbox" id="calOx"> Prüfung mit Calciumoxalat-Monohydrat (Stufen gegen 12,33 / 19,17 / 30,12 %)</label>
+      <div id="calOut"></div>
+      <details id="its"><summary>Temperaturkalibrierung mit Schmelzstandards (ITS-90) …</summary>
+        <div class="small">Gemessene Onset-Temperatur je Standard eintragen; daraus T<sub>wahr</sub> = a + b·T<sub>gemessen</sub> (ASTM E1582).</div>
+        <div id="itsRows"></div>
+        <div class="row"><button id="itsAdd">Standard hinzufügen</button><button id="itsCalc">Berechnen</button><button id="itsUse" disabled>Als Protokollschritt übernehmen</button></div>
+        <div class="small" id="itsOut"></div>
+      </details>
+      </details>
+    </section>
+
+    <section class="pane" data-pane="suche" hidden>
+      <div class="note warn" id="sModelNote">Die <b>Modellbibliothek</b> enthält aus Literatur-Stufenwerten berechnete DTG-Kurven, keine gemessenen Kurven. Treffer sind Hinweise; Lage und Höhe der Stufen hängen von Heizrate, Einwaage, Atmosphäre und Rezeptur ab. Für belastbare Aussagen mit einer eigenen Referenzmessung bestätigen.</div>
+      <div class="note warn" id="sStale" hidden>Der Lauf wurde seit der Suche geändert. Bitte neu suchen; veraltete Ergebnisse gehen nicht in den Bericht.</div>
+      <div class="row"><button class="primary" id="sRun">Suchen (F3)</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="sRep" checked> In den Bericht</label></div>
+      <details class="lab-fold" data-fold="sOpts"><summary><span data-i18n="tg.f_sopts">Bibliotheken und Optionen</span> <span class="cnt" id="sOptCnt"></span></summary>
+      <label>Bibliotheken</label>
+      <div class="list" id="sLibs" style="max-height:130px"></div>
+      <div class="row2">
+        <div><label for="sMode">Vergleich</label><select id="sMode"><option value="both">DTG-Kurve und Stufen</option><option value="curve">nur DTG-Kurve</option><option value="steps">nur Stufen (Lage, Verlust, Rückstand)</option></select></div>
+        <div><label for="sCat">Kategorie</label><select id="sCat"></select></div>
+      </div>
+      <div class="row2">
+        <div><label for="sShift" title="Erlaubte Verschiebung der Referenz entlang der Temperatur (Heizrate, Einwaage)">Verschiebung bis ± [K]</label><input type="number" id="sShift" min="0" max="80" step="5" value="20"></div>
+        <div><label>&nbsp;</label><label class="chk" style="margin:4px 0"><input type="checkbox" id="sAtm"> nur gleiche Atmosphäre</label></div>
+      </div>
+      </details>
+      <div class="tw" id="sWrap"></div>
+      <div class="detail" id="sDetail" hidden></div>
+    </section>
+
+    <section class="pane" data-pane="mischung" hidden>
+      <div class="small">Sucht Kombinationen aus 2–3 Referenzen, deren gewichtete Summe die DTG am besten erklärt (nicht-negative Gewichte). Die Gewichte entsprechen Massenanteilen, sofern die Referenzen vollständige Kurven sind; der Rest zu 100 % gilt als inert (z. B. Füllstoff ohne Verlust). Weitere Komponenten werden nur genommen, wenn sie den unerklärten Rest deutlich verkleinern.</div>
+      <div class="row2">
+        <div><label for="mMax">Höchstens</label><select id="mMax"><option value="2">2 Komponenten</option><option value="3" selected>3 Komponenten</option></select></div>
+        <div></div>
+      </div>
+      <div class="row"><button class="primary" id="mRun">Mischung analysieren</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="mRep" checked> In den Bericht</label></div>
+      <div class="note warn" id="mStale" hidden>Der Lauf wurde seit der Analyse geändert. Bitte neu rechnen.</div>
+      <div class="list" id="mList" style="max-height:330px"></div>
+      <div class="detail" id="mDetail" hidden></div>
+    </section>
+
+    <section class="pane" data-pane="vergleich" hidden>
+      <div class="small">Markierte Läufe werden im Diagramm überlagert (jeweils mit ihrem eigenen Protokoll). Name anklicken zum Umbenennen.</div>
+      <div class="list" id="cList" style="max-height:220px"></div>
+      <div class="tw" id="cTable"></div>
+      <h4 class="sub">Referenzen einblenden</h4>
+      <div class="small">Kurven aus jeder Bibliothek (auch eigene, z. B. Werte aus einem Paper) gestrichelt einblenden. Sie gehen mit Quellenangabe in die TG-Abbildung des Berichts.</div>
+      <div class="list" id="refList" style="max-height:160px"></div>
+      <div class="row"><button id="refAdd">Referenz einblenden …</button><button id="refNew" title="Neue eigene Referenz aus Stufenwerten mit Quelle anlegen und einblenden">Eigene Referenz eingeben …</button></div>
+      <h4 class="sub">Neue Läufe berechnen</h4>
+      <div class="row2">
+        <div><label for="dA">Probe</label><select id="dA"></select></div>
+        <div><label for="dB">minus Leerkurve</label><select id="dB"></select></div>
+      </div>
+      <div class="row"><select id="dAxis" style="width:auto"><option value="T">über Temperatur</option><option value="t">über Zeit</option></select><button id="dBlank">Leerkurve abziehen</button><button id="dAvg">Mittelwert der markierten</button></div>
+    </section>
+
+    <section class="pane" data-pane="kinetik" hidden>
+      <div class="small">Mindestens drei Läufe derselben Probe mit verschiedenen Heizraten (ICTAC 2011). Für eine Stufe: Temperaturbereich eingeben oder mit dem Werkzeug <b>R</b> aufziehen.</div>
+      <label>Läufe</label>
+      <div class="list" id="kRuns" style="max-height:150px"></div>
+      <div class="row2">
+        <div><label for="kLo">Stufe von [°C]</label><input type="number" id="kLo"></div>
+        <div><label for="kHi">bis [°C]</label><input type="number" id="kHi"></div>
+      </div>
+      <div class="row3">
+        <div><label for="kModel">Reaktionsmodell</label><select id="kModel"></select></div>
+        <div><label for="kAf" title="Umsatz, bei dem die Lebensdauer endet (ASTM E1877)">Versagen bei α</label><input type="number" id="kAf" value="0.05" step="0.01" min="0.01" max="0.5"></div>
+        <div><label for="kTh">Ziel-Lebensdauer [h]</label><input type="number" id="kTh" placeholder="z. B. 20000"></div>
+      </div>
+      <label for="kTuse">Gebrauchstemperaturen [°C]</label><input type="text" id="kTuse" placeholder="z. B. 60, 80, 100, 120">
+      <div class="row"><button class="primary" id="kRun">Kinetik rechnen</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="kRep" checked> In den Bericht</label></div>
+      <div class="row"><div class="seg" id="kView"><button data-kv="E" class="sel">Eₐ(α)</button><button data-kv="a">α(T)</button><button data-kv="m">Masterplot</button></div></div>
+      <div id="kOut"></div>
+    </section>
+
+    <section class="pane" data-pane="trennung" hidden>
+      <div class="small">Überlappende DTG-Stufen mit Fraser-Suzuki-Spitzen trennen (Perejón u. a. 2011). Fläche einer Spitze = Massenverlust in %. Bereich eingeben oder mit dem Werkzeug <b>R</b> aufziehen.</div>
+      <div class="row3">
+        <div><label for="dcLo">von [°C]</label><input type="number" id="dcLo"></div>
+        <div><label for="dcHi">bis [°C]</label><input type="number" id="dcHi"></div>
+        <div><label for="dcN">Spitzen</label><input type="number" id="dcN" min="1" max="8" placeholder="auto"></div>
+      </div>
+      <div class="row"><select id="dcPreset" style="width:auto"></select><button id="dcGuess">Startwerte</button></div>
+      <div class="tw" id="dcPeaks"></div>
+      <div class="row"><button id="dcAddPk">Spitze hinzufügen</button><label class="chk" style="margin:0"><input type="checkbox" id="dcFix"> Lagen festhalten</label></div>
+      <div class="row"><button class="primary" id="dcFit">Anpassen</button><button id="dcOff">Trennung entfernen</button></div>
+      <div id="dcOut"></div>
+    </section>
+
+    <section class="pane" data-pane="bibliotheken" hidden>
+      <label for="lSel">Bibliothek</label>
+      <select id="lSel"></select>
+      <div class="small" id="lInfo" style="margin-top:4px"></div>
+      <div class="row"><button id="lNew">Neu …</button><button id="lDel">Löschen</button><button id="lExp">Exportieren (JSON)</button><button id="lImp">Importieren …</button></div>
+      <div class="row"><button class="primary" id="lAddRun">Aktuellen Lauf als Referenz …</button><button id="lAddSteps">Referenz aus Stufenwerten …</button></div>
+      <input type="text" id="lFilter" placeholder="Einträge filtern" style="margin-top:10px">
+      <div class="list" id="lList" style="max-height:330px"></div>
+      <div class="detail" id="lDetail" hidden></div>
+      <details class="lab-fold" data-fold="libHelp"><summary data-i18n="tg.f_libhelp">Hinweise zu Bibliotheken</summary>
+      <div class="small">Eigene Bibliotheken liegen im Ausgabeordner unter <code>bibliotheken</code> als JSON und Zahlen; sie lassen sich exportieren, weitergeben und von Hand bearbeiten. Jede Referenz trägt eine vollständige Quellenangabe, die im Bericht zitiert wird.</div>
+      </details>
+    </section>
+
+    <section class="pane" data-pane="gleichungen" hidden>
+      <div class="small">Eigene Gleichungen rechnen mit den Kennwerten des Laufs (Namen unten anklicken) und den Funktionen <code>m(T)</code> (Masse in % bei T), <code>dtg(T)</code> und <code>loss(T1, T2)</code>. Spätere Gleichungen dürfen frühere verwenden. Aktive Gleichungen gehen als \labval, Tabelle und Formel in den Bericht.</div>
+      <div class="list" id="eqList" style="max-height:220px"></div>
+      <div class="row"><button class="primary" id="eqNew">Neue Gleichung …</button><button id="eqExp">Exportieren</button><button id="eqImp">Importieren …</button></div>
+      <h4 class="sub">Ergebnisse</h4>
+      <div class="tw" id="eqRes"></div>
+      <h4 class="sub">Verfügbare Namen</h4>
+      <div class="vars" id="eqVars"></div>
+    </section>
+  </aside>
+</main>
+
+<footer>
+  <span id="stPos">–</span>
+  <span id="stInfo"></span>
+  <span id="envName" hidden title="Projekt · Umgebung (Datei ▸ Umgebungen …)"></span>
+  <span id="busy" hidden>rechnet …</span>
+</footer>
+
+<input type="file" id="file" multiple accept=".csv,.txt,.tsv,.asc,.dat,.xlsx,.xls,.prn,.ngb,.ngb-ss3,.ngb-bs3,.ngb-ds3" hidden>
+<input type="file" id="jsonFile" accept=".json" hidden>
+<dialog id="dlg"><form method="dialog"><h3 id="dlgTitle"></h3><div class="body" id="dlgBody"></div><div class="foot" id="dlgFoot"></div></form></dialog>
+<div id="toasts" aria-live="polite"></div>
+
+<script src="/lab/sdk.js"></script>
+<script src="labref.js"></script>
+<script src="labenv.js"></script>
+<script src="labindex.js"></script>
+<script src="labui.js"></script>
+<script src="labboard.js"></script>
+<script src="laboverview.js"></script>
+<script src="labimport.js"></script>
+<script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
+   Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
+(function (g) {
+  const msg = "Der laufende Modulserver ist älter als diese Seite. Bitte das Modul bzw. den Hub neu starten; bis dahin fehlen Umgebungen und Projektindex.";
+  if (!g.LabEnv) g.LabEnv = { stub: true, create: (o) => ({ ready: false, info: null, open: async () => o.toast(msg, true), save() {}, flush: () => Promise.resolve(), check() {}, dialog: () => o.toast(msg, true) }) };
+  const no = (a, t) => { t(msg, true); return Promise.resolve(null); };
+  if (!g.LabIndex) g.LabIndex = { stub: true, add: no, addMany: no, browse: no, history: no, exportDeps: no };
+})(window);</script>
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// UI-06: Kopf, Menüleiste, Tabs, Aufklapper und Übersicht DE/EN über labui.js (Menüeinträge und Tab-Inhalte vorerst deutsch)
+const TG_T = {
+  de: { "tg.tab_bearbeiten": "Bearbeiten", "tg.tab_stufen": "Stufen", "tg.tab_kennwerte": "Kennwerte", "tg.tab_zusammensetzung": "Zusammensetzung",
+        "tg.tab_suche": "Suche", "tg.tab_mischung": "Mischung", "tg.tab_vergleich": "Vergleich", "tg.tab_kinetik": "Kinetik",
+        "tg.tab_trennung": "Trennung", "tg.tab_bibliotheken": "Bibliotheken", "tg.tab_gleichungen": "Gleichungen",
+        "tg.tab_h_bearbeiten": "Bearbeitungsschritte und Protokoll", "tg.tab_h_stufen": "Stufen aus der DTG, Onset, Endset",
+        "tg.tab_h_kennwerte": "T bei x % Verlust, Rückstand, DSC, Gasanalyse", "tg.tab_h_zusammensetzung": "ASTM E1131, D7582, Stöchiometrie, Kalibrierung",
+        "tg.tab_h_suche": "Bibliothekssuche", "tg.tab_h_mischung": "Kombination aus 2–3 Referenzen", "tg.tab_h_vergleich": "Läufe überlagern, Leerkurve, Mittelwert",
+        "tg.tab_h_kinetik": "Mehrere Heizraten: Eₐ(α), Lebensdauer", "tg.tab_h_trennung": "Überlappende Stufen trennen (Fraser-Suzuki)",
+        "tg.tab_h_bibliotheken": "Eigene Bibliotheken und Referenzen", "tg.tab_h_gleichungen": "Eigene Formeln über die Kennwerte",
+        "tg.more": "Mehr ▾", "tg.more_t": "Weitere Auswertungen: Zusammensetzung, Mischung, Kinetik, Trennung, Bibliotheken, Gleichungen",
+        "tg.f_detect": "Erkennung", "tg.f_segfile": "Segmente und Datei", "tg.f_stoich": "Gehalt aus Stöchiometrie", "tg.f_calib": "Kalibrierung",
+        "tg.f_sopts": "Bibliotheken und Optionen", "tg.f_libhelp": "Hinweise zu Bibliotheken", "tg.n_libs": "{n} Bibliotheken", "tg.n_libs1": "1 Bibliothek",
+        "tg.m_file": "Datei", "tg.m_samples": "Beispiele", "tg.m_edit": "Bearbeiten", "tg.m_analysis": "Analyse", "tg.m_view": "Ansicht", "tg.m_lib": "Bibliothek",
+        "tg.lab": "Zum Bericht …", "tg.lab_t": "Kurven, Stufen, Zusammensetzung, Suchtreffer, Kinetik und Quellen in einen Folio Lab Bericht übernehmen",
+        "tg.n_runs": "{n} Läufe", "tg.n_runs1": "1 Lauf", "tg.n_steps": "{n} Stufen", "tg.n_steps1": "1 Stufe", "tg.hit": "Treffer", "tg.t_kin": "Kinetik",
+        // DP-13: Lauf aus Datensatz
+        "tg.ds_open": "Lauf aus Datensatz …", "tg.ds_refresh": "Aus Datensatz aktualisieren", "tg.ds_title": "Lauf aus Datensatz",
+        "tg.ds_none": "Noch keine Datensätze im Projekt. In der Datenaufbereitung eine Tabelle „Als Datensatz speichern“.",
+        "tg.imp_run": "Als Lauf öffnen", "tg.imp_run_t": "Spalten danach als Temperatur, Zeit, Masse … zuordnen", "tg.imp_two": "braucht zwei Zahlenspalten",
+        "tg.ds_set": "Datensatz", "tg.ds_rows": "{n} Zeilen", "tg.ds_more": "Weitere Spalten", "tg.ds_ok": "Lauf erstellen", "tg.ds_cancel": "Abbrechen",
+        "tg.ds_live": "live (neueste Version)", "tg.ds_pin": "fest auf v{v}", "tg.ds_pin_s": "fest", "tg.ds_live_s": "live",
+        "tg.ds_hint": "Einheiten werden umgerechnet (Zeit → min, Temperatur → °C, Masse → mg oder %); ausgeschlossene Zeilen bleiben weg.",
+        "tg.ds_from": "Datensatz „{t}“ v{v}", "tg.ds_upd": "auf v{v} aktualisieren", "tg.ds_newer": "neuere Version v{v} vorhanden",
+        "tg.ds_same": "Schon aktuell (v{v}).", "tg.ds_done": "Aktualisiert auf v{v}.",
+        "tg.r_t": "Zeit", "tg.r_T": "Probentemperatur", "tg.r_Tprog": "Programmtemperatur", "tg.r_m": "Masse", "tg.r_dtg": "DTG (Gerät)",
+        "tg.r_hf": "Wärmestrom / DTA", "tg.r_flow": "Gasfluss", "tg.r_seg": "Segment", "tg.r_gas": "Gas" },
+  en: { "tg.tab_bearbeiten": "Edit", "tg.tab_stufen": "Steps", "tg.tab_kennwerte": "Values", "tg.tab_zusammensetzung": "Composition",
+        "tg.tab_suche": "Search", "tg.tab_mischung": "Mixture", "tg.tab_vergleich": "Compare", "tg.tab_kinetik": "Kinetics",
+        "tg.tab_trennung": "Separation", "tg.tab_bibliotheken": "Libraries", "tg.tab_gleichungen": "Equations",
+        "tg.tab_h_bearbeiten": "Processing steps and protocol", "tg.tab_h_stufen": "Steps from the DTG, onset, endset",
+        "tg.tab_h_kennwerte": "T at x % loss, residue, DSC, evolved gas", "tg.tab_h_zusammensetzung": "ASTM E1131, D7582, stoichiometry, calibration",
+        "tg.tab_h_suche": "Library search", "tg.tab_h_mischung": "Combination of 2–3 references", "tg.tab_h_vergleich": "Overlay runs, blank, mean",
+        "tg.tab_h_kinetik": "Several heating rates: Eₐ(α), lifetime", "tg.tab_h_trennung": "Separate overlapping steps (Fraser-Suzuki)",
+        "tg.tab_h_bibliotheken": "Own libraries and references", "tg.tab_h_gleichungen": "Own formulas on the values",
+        "tg.more": "More ▾", "tg.more_t": "Further analyses: composition, mixture, kinetics, separation, libraries, equations",
+        "tg.f_detect": "Detection", "tg.f_segfile": "Segments and file", "tg.f_stoich": "Content from stoichiometry", "tg.f_calib": "Calibration",
+        "tg.f_sopts": "Libraries and options", "tg.f_libhelp": "Notes on libraries", "tg.n_libs": "{n} libraries", "tg.n_libs1": "1 library",
+        "tg.m_file": "File", "tg.m_samples": "Examples", "tg.m_edit": "Edit", "tg.m_analysis": "Analysis", "tg.m_view": "View", "tg.m_lib": "Library",
+        "tg.lab": "To report …", "tg.lab_t": "Send curves, steps, composition, search hits, kinetics and sources to a Folio Lab report",
+        "tg.n_runs": "{n} runs", "tg.n_runs1": "1 run", "tg.n_steps": "{n} steps", "tg.n_steps1": "1 step", "tg.hit": "Hit", "tg.t_kin": "Kinetics",
+        "tg.ds_open": "Run from dataset …", "tg.ds_refresh": "Update from dataset", "tg.ds_title": "Run from dataset",
+        "tg.ds_none": "The project has no datasets yet. In Data preparation, use “Save as dataset” on a table.",
+        "tg.imp_run": "Open as run", "tg.imp_run_t": "then assign the columns as temperature, time, mass …", "tg.imp_two": "needs two number columns",
+        "tg.ds_set": "Dataset", "tg.ds_rows": "{n} rows", "tg.ds_more": "More columns", "tg.ds_ok": "Create run", "tg.ds_cancel": "Cancel",
+        "tg.ds_live": "live (latest version)", "tg.ds_pin": "pinned to v{v}", "tg.ds_pin_s": "pinned", "tg.ds_live_s": "live",
+        "tg.ds_hint": "Units are converted (time → min, temperature → °C, mass → mg or %); excluded rows are left out.",
+        "tg.ds_from": "Dataset “{t}” v{v}", "tg.ds_upd": "update to v{v}", "tg.ds_newer": "newer version v{v} available",
+        "tg.ds_same": "Already up to date (v{v}).", "tg.ds_done": "Updated to v{v}.",
+        "tg.r_t": "Time", "tg.r_T": "Sample temperature", "tg.r_Tprog": "Program temperature", "tg.r_m": "Mass", "tg.r_dtg": "DTG (instrument)",
+        "tg.r_hf": "Heat flow / DTA", "tg.r_flow": "Gas flow", "tg.r_seg": "Segment", "tg.r_gas": "Gas" },
+};
+if (window.LabUI) LabUI.strings(TG_T);
+const tr = (k, v) => (window.LabUI ? LabUI.t(k, v) : (TG_T.de[k] || k).replace(/\{(\w+)\}/g, (m, x) => (v && v[x] !== undefined ? v[x] : m)));
+const trn = (k, n) => tr(n === 1 ? k + "1" : k, { n });
+let OV = null;
+const NF = {};
+function fmt(v, nd = 3) {
+  if (v === null || v === undefined || !isFinite(v)) return "–";
+  NF[nd] = NF[nd] || new Intl.NumberFormat("de-DE", { maximumFractionDigits: nd, minimumFractionDigits: 0, useGrouping: false });
+  return NF[nd].format(v);
+}
+const fx = (v, nd) => (v === null || v === undefined || !isFinite(v)) ? "–" : v.toFixed(nd).replace(".", ",");
+const pnum = (v) => { const s = String(v ?? "").trim().replace(",", "."); return s === "" ? null : Number(s); };
+const csvNum = (v) => (v === null || v === undefined || (typeof v === "number" && !isFinite(v))) ? "" :
+  typeof v === "number" ? String(+v.toPrecision(7)).replace(".", ",") : /[;"\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+const COLORS = ["#b45309", "#1d4ed8", "#15803d", "#a21caf", "#be123c", "#0e7490", "#4d7c0f", "#7c3aed", "#c2410c", "#0369a1"];
+const REFCOL = ["#6d28d9", "#0f766e", "#9f1239", "#4338ca", "#a16207", "#047857"];
+
+// ---------------------------------------------------------------- Zustand
+let META = null;
+const S = {
+  runs: [], sel: -1, tool: "zoom", tab: "bearbeiten", mode: "run", x: "T", dtg: true, busy: 0,
+  view: null, mouse: null, drag: null, colorIdx: 0,
+  libs: [], searchLibs: null, libSel: null, libEntries: [], libEntry: null,
+  refs: [], eqs: [], eqOn: null, kin: null, kinSel: null, kinView: "E", kinRep: true, its: [], itsRes: null,
+};
+const cur = () => S.runs[S.sel] || null;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("folio.tga." + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("folio.tga." + k, JSON.stringify(v)); } catch (e) { /* ohne Speicher */ } },
+};
+
+// ---------------------------------------------------------------- Server
+async function api(path, body, raw) {
+  const opt = { method: body === undefined ? "GET" : "POST" };
+  if (body !== undefined) {
+    opt.body = raw ? body : JSON.stringify(body);
+    opt.headers = { "Content-Type": raw ? "application/octet-stream" : "application/json" };
+  }
+  try {
+    const r = await fetch(path, opt);
+    const j = await r.json().catch(() => ({ error: "Antwort unlesbar" }));
+    j._status = r.status;
+    return j;
+  } catch (e) {
+    return { error: "Keine Verbindung zum Modul (" + e.message + ")", _status: 0 };
+  }
+}
+function busy(d) { S.busy += d; $("#busy").hidden = S.busy <= 0; }
+async function withBusy(fn) { busy(1); try { return await fn(); } finally { busy(-1); } }
+function toast(msg, err = false, folder = null) {
+  const t = document.createElement("div");
+  t.className = "toast" + (err ? " err" : "");
+  t.innerHTML = esc(msg) + (folder ? ` <a href="#">Ordner öffnen</a>` : "");
+  if (folder) t.querySelector("a").addEventListener("click", (e) => { e.preventDefault(); api("api/open", { folder }); });
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), err ? 9000 : 6000);
+}
+function stem(n) { return String(n).replace(/\.[^.]+$/, ""); }
+function download(name, text, type = "text/csv;charset=utf-8", bom = true) {
+  const blob = text instanceof Blob ? text : new Blob([(bom ? "﻿" : "") + text], { type });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function dialog(title, bodyHtml, buttons, leftHtml = "", onOpen = null, wide = false) {
+  const d = $("#dlg");
+  d.classList.toggle("wide", wide);
+  $("#dlgTitle").textContent = title;
+  $("#dlgBody").innerHTML = bodyHtml;
+  $("#dlgFoot").innerHTML = (leftHtml ? `<div class="left">${leftHtml}</div>` : "") +
+    buttons.map(b => `<button value="${b.value}" ${b.primary ? 'class="primary"' : ""}>${esc(b.label)}</button>`).join("");
+  if (onOpen) onOpen($("#dlgBody"));
+  return new Promise((res) => {
+    const done = () => { d.removeEventListener("close", done); res(d.returnValue || "cancel"); };
+    d.returnValue = "";
+    d.addEventListener("close", done);
+    d.showModal();
+    const f = $("input,select,textarea", $("#dlgBody"));
+    if (f) f.focus();
+  });
+}
+// Dialog, der beim Bestätigen prüft und bei Fehlern offen bleibt
+async function dialogCheck(title, html, okLabel, check, onOpen, wide = true) {
+  for (;;) {
+    const r = await dialog(title, html, [{ value: "cancel", label: "Abbrechen" }, { value: "ok", label: okLabel, primary: true }], "", (b) => { if (onOpen) onOpen(b); if (window.LabRef) LabRef.wire(b); }, wide);
+    if (r !== "ok") return null;
+    const res = await check($("#dlgBody"));
+    if (res && !res.retry) return res;
+    html = $("#dlgBody").innerHTML;    // Eingaben behalten (innerHTML trägt value-Attribute nicht) -> Werte neu setzen
+    const vals = res && res.values;
+    onOpen = ((prev) => (b) => { if (prev) prev(b); if (vals) for (const [sel, v] of Object.entries(vals)) { const el = $(sel, b); if (el) el.value = v; } })(onOpen);
+  }
+}
+
+// ---------------------------------------------------------------- Läufe
+function newRun(d) {
+  return {
+    id: d.id, name: d.name, file: d.file, info: d, pipeline: [], redo: [], data: null,
+    color: COLORS[S.colorIdx++ % COLORS.length], overlay: false,
+    stepOpts: {}, manual: null, comp: null, reactions: [], calib: false, deconv: null, dcPeaks: [], dcPreset: "",
+    search: null, hitSel: 0, searchStale: false, searchRep: true,
+    mix: null, mixSel: 0, mixStale: false, mixRep: true,
+  };
+}
+async function openFiles(files, mapping = null) {
+  for (const f of files) {
+    const buf = await f.arrayBuffer();
+    const j = await withBusy(() => api("api/load?name=" + encodeURIComponent(f.name) + (mapping ? "&mapping=" + encodeURIComponent(JSON.stringify(mapping)) : ""), buf, true));
+    if (j.error) { toast(`${f.name}: ${j.error}`, true); continue; }
+    await addRuns(j.runs);
+    if (j.runs.length > 1) toast(`${f.name}: ${j.runs.length} Läufe gelesen.`);
+  }
+}
+async function loadSample(which) {
+  const j = await withBusy(() => api("api/sample", { which }));
+  if (j.error) return toast(j.error, true);
+  await addRuns(j.runs);
+  if (which === "kinetik") {
+    S.runs.forEach(o => o.overlay = j.runs.some(r => r.id === o.id));
+    S.kinSel = j.runs.map(r => r.id);
+    updateCompare(); updateKin(); switchTab("kinetik");
+  }
+}
+async function addRuns(list) {
+  if (!list || !list.length) return;
+  let ask = null;
+  for (const d of list) {
+    const o = newRun(d);
+    S.runs.push(o);
+    try { await refresh(o); } catch (e) { toast(`${o.name}: ${e.message}`, true); }
+    if (d.meta && (d.meta.guessed || !(d.meta.columns || []).some(c => c.role === "m"))) ask = ask || o;
+  }
+  S.sel = S.runs.length - 1;
+  S.view = null;
+  updateChips(); updateAll(); draw();
+  if (ask) { S.sel = S.runs.indexOf(ask); updateChips(); updateAll(); mapDialog(ask); }
+}
+async function closeRun(i) {
+  const o = S.runs[i]; if (!o) return;
+  await api("api/remove", { id: o.id });
+  S.runs.splice(i, 1);
+  S.sel = Math.min(S.sel, S.runs.length - 1);
+  S.view = null;
+  updateChips(); updateAll(); draw();
+}
+function stateOf(o, report = false) {
+  const st = {
+    pipeline: o.pipeline, steps: { opts: o.stepOpts, manual: o.manual }, composition: o.comp, reactions: o.reactions,
+    calib: o.calib, deconv: o.deconv, equations: activeEqs(),
+  };
+  if (S.ext && S.ext.length) st.ext_values = S.ext;                  // Werte anderer Umgebungen (Verbindung)
+  if (o.dsc && ((o.dsc.peaks || []).length || (o.dsc.tg || []).length)) st.dsc = o.dsc;
+  if (report) {
+    if (o.search && o.searchRep && !o.searchStale) {
+      st.search = { hits: o.search.hits.slice(0, 10).map(h => slimHit(h)), query: arr(o.search.query), mode: o.search.mode, shift: o.search.shift };
+    }
+    const c = o.mix && o.mixRep && !o.mixStale && o.mix.combos[o.mixSel];
+    if (c) st.mixture = { ...c, fit: arr(c.fit), tg: arr(c.tg), residual: arr(c.residual), query: arr(o.mix.query), components: c.components.map(x => ({ ...x, y: arr(x.y) })) };
+    if (S.refs.length) st.overlays = S.refs.map(r => ({ name: r.name, lib: r.lib, lib_name: r.lib_name, source: r.source, modelled: r.modelled, tg: arr(r.tg), dtg: arr(r.dtg) }));
+  }
+  return st;
+}
+const arr = (a) => a ? Array.from(a, v => (v === null || !isFinite(v)) ? null : +(+v).toPrecision(6)) : null;
+function slimHit(h) { const o = { ...h }; if (h.y) o.y = arr(h.y); if (h.tg) o.tg = arr(h.tg); return o; }
+async function refresh(o) {
+  const j = await withBusy(() => api("api/run", { id: o.id, state: stateOf(o) }));
+  if (j.error) { toast(`${o.name}: ${j.error}`, true); return false; }
+  o.data = j;
+  return true;
+}
+async function refreshCur() { const o = cur(); if (!o) return; if (await refresh(o)) { updateAll(); draw(); } }
+function markStale(o) { if (o.search) o.searchStale = true; if (o.mix) o.mixStale = true; }
+
+// ---------------------------------------------------------------- Spalten zuordnen
+async function mapDialog(o) {
+  o = o || cur(); if (!o) return;
+  const cols = (o.info.meta && o.info.meta.columns) || [];
+  const roles = Object.entries(META.roles).filter(([k]) => k);
+  const cur_ = {};
+  cols.forEach((c, i) => { if (c.role) cur_[c.role] = i; });
+  const sel = (r) => `<select data-role="${r}"><option value="">–</option>${cols.map((c, i) => `<option value="${i}"${cur_[r] === i ? " selected" : ""}>${i + 1}: ${esc(c.name || "Spalte " + (i + 1))}${c.unit ? " [" + esc(c.unit) + "]" : ""}</option>`).join("")}</select>`;
+  const unitSel = (r, opts) => `<select data-unit="${r}"><option value="">aus Datei</option>${opts.map(u => `<option>${u}</option>`).join("")}</select>`;
+  const html = `<div class="small">Datei <b>${esc(o.file)}</b> (${esc(o.info.meta.format)}). ${o.info.meta.guessed ? "Die Spalten wurden geraten; bitte prüfen." : ""}</div>
+    <div class="row2">${roles.map(([r, lab]) => `<div><label>${esc(lab)}</label>${sel(r)}</div>`).join("")}</div>
+    <div class="row3"><div><label>Einheit Masse</label>${unitSel("m", ["mg", "%", "g", "µg"])}</div><div><label>Einheit Zeit</label>${unitSel("t", ["min", "s", "h"])}</div><div><label>Einheit Temperatur</label>${unitSel("T", ["°C", "K"])}</div></div>
+    <details><summary>Kopfzeilen der Datei</summary><pre class="small" style="white-space:pre-wrap">${esc((o.info.meta.header || []).join("\n"))}</pre></details>`;
+  const r = await dialog("Spalten zuordnen", html, [{ value: "cancel", label: "Abbrechen" }, { value: "ok", label: "Übernehmen", primary: true }], "", null, true);
+  if (r !== "ok") return;
+  const mapping = {};
+  $$("[data-role]", $("#dlgBody")).forEach(s => { if (s.value !== "") mapping[s.dataset.role] = +s.value; });
+  $$("[data-unit]", $("#dlgBody")).forEach(s => { if (s.value) mapping[s.dataset.unit + "_unit"] = s.value; });
+  if (mapping.m === undefined) return toast("Ohne Massenspalte geht es nicht.", true);
+  const j = await withBusy(() => api("api/remap", { id: o.id, mapping }));
+  if (j.error) return toast(j.error, true);
+  o.info = j.run; o.name = j.run.name;
+  markStale(o);
+  await refresh(o); S.view = null; updateChips(); updateAll(); draw();
+}
+
+// ---------------------------------------------------------------- Protokoll
+async function setPipeline(o, p) {
+  const old = o.pipeline;
+  o.pipeline = p;
+  if (!(await refresh(o))) { o.pipeline = old; return false; }
+  markStale(o);
+  updateAll(); draw();
+  return true;
+}
+async function pushStep(step) {
+  const o = cur(); if (!o) return;
+  if (await setPipeline(o, [...o.pipeline, step])) o.redo = [];
+}
+async function undo() { const o = cur(); if (!o || !o.pipeline.length) return; const last = o.pipeline[o.pipeline.length - 1]; if (await setPipeline(o, o.pipeline.slice(0, -1))) o.redo.push(last); updateEdit(); }
+async function redo() { const o = cur(); if (!o || !o.redo.length) return; const s = o.redo.pop(); await setPipeline(o, [...o.pipeline, s]); updateEdit(); }
+function paramField(p, v) {
+  const id = "ep_" + p.key;
+  if (p.type === "select") return `<div><label for="${id}">${esc(p.label)}</label><select id="${id}" data-k="${p.key}">${p.options.map(([k, l]) => `<option value="${k}"${k === v ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>`;
+  if (p.type === "text") return `<div><label for="${id}">${esc(p.label)}</label><input type="text" id="${id}" data-k="${p.key}" value="${esc(v ?? "")}"></div>`;
+  return `<div><label for="${id}">${esc(p.label)}</label><input type="number" id="${id}" data-k="${p.key}" value="${v ?? ""}" step="${p.step ?? "any"}"${p.min !== undefined ? ` min="${p.min}"` : ""}${p.max !== undefined ? ` max="${p.max}"` : ""}></div>`;
+}
+function renderParams() {
+  const op = $("#eOp").value, def = META.ops[op];
+  $("#eParams").innerHTML = def ? `<div class="row2">${def.params.map(p => paramField(p, p.default)).join("")}</div>` : "";
+  $("#eApply").disabled = !def || !cur();
+}
+function readParams() {
+  const step = { op: $("#eOp").value };
+  $$("#eParams [data-k]").forEach(el => { step[el.dataset.k] = el.type === "number" ? pnum(el.value) : el.value; });
+  return step;
+}
+function updateEdit() {
+  const o = cur();
+  $("#runInfo").innerHTML = o ? runInfoHtml(o) : "Kein Lauf geladen.";
+  const ds = dsOf(o), lat = o && o.info ? o.info.ds_latest : null;      // DP-13: neuere Datensatz-Version
+  $("#dsUp").hidden = !(ds && lat && lat > ds.version);
+  if (!$("#dsUp").hidden) $("#dsUp").innerHTML = ds.mode === "pin" ? `${esc(tr("tg.ds_newer", { v: lat }))} · <a href="#" data-dsup="1">${esc(tr("tg.ds_upd", { v: lat }))}</a>`
+    : `<a href="#" data-dsup="1">${esc(tr("tg.ds_upd", { v: lat }))}</a>`;
+  const p = (o && o.data && o.data.proc) || [];
+  $("#proto").innerHTML = p.length ? p.map((t, i) => `<li><span>${esc(t)}</span><button data-del="${i}" title="Schritt entfernen">×</button></li>`).join("") : `<li class="empty small">Keine Schritte; es wird mit den Originaldaten gerechnet.</li>`;
+  $$("#proto [data-del]").forEach(b => b.addEventListener("click", () => { const o = cur(); const p = [...o.pipeline]; p.splice(+b.dataset.del, 1); setPipeline(o, p); }));
+  $("#pUndo").disabled = !o || !o.pipeline.length;
+  $("#pRedo").disabled = !o || !o.redo.length;
+  $("#pReset").disabled = !o || !o.pipeline.length;
+  $("#pAll").disabled = !o || S.runs.length < 2;
+  $("#pMap").disabled = !o;
+  $("#eApply").disabled = !o || !META.ops[$("#eOp").value];
+}
+function runInfoHtml(o) {
+  const d = o.data ? o.data.orig : o.info, m = d.meta || {};
+  const ds = m.dataset && m.dataset.share ? m.dataset : null;           // DP-13: Herkunft aus einem Datensatz
+  const bits = [`<b>${esc(o.name)}</b>`, ds ? esc(tr("tg.ds_from", { t: ds.title || ds.share, v: ds.version }) + ` (${ds.share}, ${tr(ds.mode === "pin" ? "tg.ds_pin_s" : "tg.ds_live_s")})`) : esc(m.format || ""),
+    `${d.n} Punkte`, d.m0 ? `Einwaage ${fmt(d.m0, 4)} mg` : "Einwaage unbekannt (Masse in %)",
+    m.rate ? `${fmt(m.rate, 2)} K/min` : "", m.gas ? `Gas ${esc(m.gases ? m.gases.join(" → ") : m.gas)}` : "", d.has_T ? `${fmt(d.Tmin, 0)}–${fmt(d.Tmax, 0)} °C` : "ohne Temperatur"];
+  return bits.filter(Boolean).join(" · ");
+}
+
+// ---------------------------------------------------------------- DP-13: Lauf aus Datensatz (Datenaufbereitung)
+const DS_MAIN = ["t", "T", "m"], DS_MORE = ["Tprog", "dtg", "hf", "flow", "seg", "gas"];
+const dsOf = (o) => (o && o.info && o.info.meta && o.info.meta.dataset && o.info.meta.dataset.share) ? o.info.meta.dataset : null;
+function dsRoleSel(d, r, pick) {
+  const cols = d.columns.filter(c => r === "gas" ? c.dtype === "text" : c.dtype !== "text");
+  return `<div><label>${esc(tr("tg.r_" + r))}</label><select data-dsrole="${r}"><option value="">–</option>${cols.map(c =>
+    `<option value="${esc(c.key)}"${pick[r] === c.key ? " selected" : ""}>${esc(c.name)}${c.unit ? " [" + esc(c.unit) + "]" : ""}</option>`).join("")}</select></div>`;
+}
+function dsRolesHtml(d, pick) {
+  const more = DS_MORE.some(r => pick[r]);
+  return `<div class="row3">${DS_MAIN.map(r => dsRoleSel(d, r, pick)).join("")}</div>
+    <details${more ? " open" : ""}><summary class="small">${esc(tr("tg.ds_more"))}</summary><div class="row3">${DS_MORE.map(r => dsRoleSel(d, r, pick)).join("")}</div></details>`;
+}
+function dsGuess(d) {
+  const pick = {};
+  for (const c of d.columns) if (c.guess && !pick[c.guess]) pick[c.guess] = c.key;
+  return pick;
+}
+// I-03: „Lauf aus Datensatz …“ und „⤓ Importieren“ öffnen das Import-Fenster (labimport.js); danach die Spaltenrollen
+const TG_IMP = { actions: [{ id: "run", label: () => tr("tg.imp_run"), hint: () => tr("tg.imp_run_t") }],
+                 check: (d) => ((d.columns || []).filter(c => c.dtype !== "text").length >= 2 ? "" : tr("tg.imp_two")), run: (p) => dsDialog(p) };
+async function dsDialog(pk = null) {
+  if (!pk && window.LabImport && OV && OV.ok) return OV.importDataset();
+  const j = await withBusy(() => api("api/dataset", { list: true }));
+  if (j.error) return toast(j.error, true);
+  const L = j.datasets || [];
+  if (!L.length) return toast(tr("tg.ds_none"), true);
+  const first = (pk && L.find(x => x.id === pk.id)) || L[0];
+  const st = { id: first.id, pick: dsGuess(first), mode: pk && pk.mode === "pin" ? "pin" : "live", ver: pk && pk.mode === "pin" ? pk.version : null };
+  const ds = () => L.find(x => x.id === st.id) || L[0];
+  const pinV = (d) => (st.ver && d.id === (pk || {}).id ? st.ver : d.latest);
+  const modeHtml = (d) => `<div class="row2"><label class="chk"><input type="radio" name="dsMode" value="live"${st.mode !== "pin" ? " checked" : ""}>${esc(tr("tg.ds_live"))}</label>
+    <label class="chk"><input type="radio" name="dsMode" value="pin"${st.mode === "pin" ? " checked" : ""}>${esc(tr("tg.ds_pin", { v: pinV(d) }))}</label></div>`;
+  const wire = (b) => {
+    const sel = $("#dsSel", b);
+    if (sel) sel.addEventListener("change", (e) => {
+      st.id = e.target.value; st.pick = dsGuess(ds());
+      $("#dsRoles", b).innerHTML = dsRolesHtml(ds(), st.pick); $("#dsMode", b).innerHTML = modeHtml(ds());
+    });
+  };
+  for (;;) {
+    const d = ds();
+    const head = pk ? `<div><b>${esc(d.title || d.id)}</b> <span class="small">· ${esc(tr("tg.ds_rows", { n: d.rows }))}${d.producer && d.producer.env_name ? " · " + esc(d.producer.env_name) : ""}</span></div>`
+      : `<label for="dsSel">${esc(tr("tg.ds_set"))}</label><select id="dsSel">${L.map(x => `<option value="${esc(x.id)}"${x.id === st.id ? " selected" : ""}>${esc(x.title || x.id)} · v${x.latest} · ${esc(tr("tg.ds_rows", { n: x.rows }))}${x.producer && x.producer.env_name ? " · " + esc(x.producer.env_name) : ""}</option>`).join("")}</select>`;
+    const html = `${head}<div id="dsRoles">${dsRolesHtml(d, st.pick)}</div><div id="dsMode">${modeHtml(d)}</div><div class="small">${esc(tr("tg.ds_hint"))}</div>`;
+    const r = await dialog(tr("tg.ds_title"), html, [{ value: "cancel", label: tr("tg.ds_cancel") }, { value: "ok", label: tr("tg.ds_ok"), primary: true }], "", wire, true);
+    if (r !== "ok") return;
+    const body = $("#dlgBody");
+    st.pick = {};
+    $$("[data-dsrole]", body).forEach(s => { if (s.value) st.pick[s.dataset.dsrole] = s.value; });
+    st.mode = ($("input[name=dsMode]:checked", body) || {}).value === "pin" ? "pin" : "live";
+    const res = await withBusy(() => api("api/dataset/run", { id: st.id, mode: st.mode, version: st.mode === "pin" ? pinV(ds()) : null, roles: st.pick }));
+    if (!res.error) return addRuns(res.runs);
+    toast(res.error, true);                                               // Dialog mit derselben Auswahl erneut
+  }
+}
+async function dsRefresh(o) {
+  if (!dsOf(o)) return;
+  const j = await withBusy(() => api("api/dataset/refresh", { id: o.id }));
+  if (j.error) return toast(j.error, true);
+  const v = j.run.meta && j.run.meta.dataset ? j.run.meta.dataset.version : "?";
+  if (!j.changed) { o.info = j.run; updateEdit(); return toast(tr("tg.ds_same", { v })); }
+  o.info = j.run; o.name = j.run.name;
+  markStale(o);
+  await refresh(o); S.view = null; updateChips(); updateAll(); draw();
+  toast(tr("tg.ds_done", { v }));
+}
+async function applyAll() {
+  const o = cur(); if (!o) return;
+  if (!confirm(`Protokoll von „${o.name}“ (${o.pipeline.length} Schritte) auf alle ${S.runs.length} Läufe anwenden?`)) return;
+  for (const x of S.runs) { if (x === o) continue; x.pipeline = JSON.parse(JSON.stringify(o.pipeline)); markStale(x); await refresh(x); }
+  updateAll(); draw();
+}
+function saveProtocol() {
+  const o = cur(); if (!o) return;
+  download(`${stem(o.name)}_protokoll.json`, JSON.stringify({ format: "folio-tga-protokoll/1", pipeline: o.pipeline, steps: { opts: o.stepOpts, manual: o.manual }, composition: o.comp, reactions: o.reactions }, null, 1), "application/json", false);
+}
+let jsonTarget = null;
+function pickJson(fn) { jsonTarget = fn; $("#jsonFile").click(); }
+async function loadProtocol(data) {
+  const o = cur(); if (!o) return;
+  if (!Array.isArray(data.pipeline)) return toast("Keine Protokolldatei.", true);
+  if (data.steps) { o.stepOpts = data.steps.opts || {}; o.manual = data.steps.manual || null; }
+  if (data.composition !== undefined) o.comp = data.composition;
+  if (data.reactions) o.reactions = data.reactions;
+  await setPipeline(o, data.pipeline);
+}
+
+// ---------------------------------------------------------------- Stufen
+function stepX(s, k) { return s.x === "T" ? s["T_" + k] : s["t_" + k]; }
+function updateSteps() {
+  const o = cur(), d = o && o.data;
+  const so = { ...META.step_defaults, ...((o && o.stepOpts) || {}) };
+  $("#stW").value = so.width; $("#stRel").value = so.rel; $("#stMin").value = so.min_loss;
+  $("#stMode").textContent = o && o.manual ? "Grenzen von Hand gesetzt" : "automatisch";
+  if (!d) { $("#stWrap").innerHTML = ""; return; }
+  const u = d.steps.some(s => s.x === "t") ? "" : "";
+  const rows = d.steps.map(s => {
+    const xu = s.x === "T" ? "°C" : "min";
+    return `<tr class="click" data-no="${s.no}"><td>${s.no}</td><td>${fx(stepX(s, "onset"), 1)}</td><td>${fx(stepX(s, "peak"), 1)}</td><td>${fx(stepX(s, "endset"), 1)}</td><td>${fx(stepX(s, "mid"), 1)}</td><td>${xu}</td><td><b>${fx(s.loss, 2)}</b>${shr("L" + s.no)}</td><td>${fx(s.loss_mg, 3)}</td><td><button data-rm="${s.no}" title="Stufe entfernen">×</button></td></tr>`;
+  }).join("");
+  $("#stWrap").innerHTML = d.steps.length ? `<table class="res"><thead><tr><th>Nr</th><th>Onset</th><th>Spitze</th><th>Endset</th><th>Mitte</th><th></th><th>Verlust %</th><th>mg</th><th></th></tr></thead><tbody>${rows}</tbody></table>` + u
+    : `<div class="small" style="padding:8px">Keine Stufe gefunden. Mindesthöhe oder Mindestverlust verringern, oder Grenzen mit dem Werkzeug R setzen.</div>`;
+  $$("#stWrap [data-rm]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); removeStep(+b.dataset.rm); }));
+  $$("#stWrap tr[data-no]").forEach(tr => tr.addEventListener("click", () => { const s = d.steps.find(x => x.no === +tr.dataset.no); zoomTo(stepX(s, "start") ?? s.T_start, stepX(s, "end") ?? s.T_end, 0.4); }));
+}
+function manualFrom(o) { return (o.data.steps || []).map(s => ({ lo: s.x === "T" ? s.T_start : s.t_start, hi: s.x === "T" ? s.T_end : s.t_end, x: s.x })); }
+async function addManualStep(lo, hi) {
+  const o = cur(); if (!o || !o.data) return;
+  const x = S.x === "T" && o.data.orig.has_T ? "T" : "t";
+  const list = o.manual ? [...o.manual] : manualFrom(o);
+  const kept = list.filter(s => s.x !== x || s.hi <= lo || s.lo >= hi);    // überlappende ersetzen
+  kept.push({ lo, hi, x });
+  kept.sort((a, b) => a.lo - b.lo);
+  o.manual = kept; markStale(o);
+  await refreshCur();
+  switchTab("stufen");
+}
+async function removeStep(no) {
+  const o = cur(); if (!o) return;
+  const list = o.manual ? [...o.manual] : manualFrom(o);
+  list.splice(no - 1, 1);
+  o.manual = list; markStale(o);
+  await refreshCur();
+}
+function stepsCsv() {
+  const o = cur(); if (!o || !o.data || !o.data.steps.length) return "";
+  const head = "Nr;Achse;Onset;Spitze;Endset;Mitte;Verlust_%;Verlust_mg;Beginn;Ende";
+  return [head, ...o.data.steps.map(s => [s.no, s.x === "T" ? "°C" : "min", stepX(s, "onset"), stepX(s, "peak"), stepX(s, "endset"), stepX(s, "mid"), s.loss, s.loss_mg, stepX(s, "start"), stepX(s, "end")].map(csvNum).join(";"))].join("\n");
+}
+
+// ---------------------------------------------------------------- DSC (TGA-03)
+const dscRanges = s => String(s || "").split(/[;\n]+/).map(x => x.trim().replace(/,/g, ".").match(/^(-?\d+(?:\.\d+)?)\s*(?:-|–|bis|\.\.)\s*(-?\d+(?:\.\d+)?)$/)).filter(Boolean).map(m => ({ lo: +m[1], hi: +m[2] }));
+const dscText = l => (l || []).map(r => `${r.lo}-${r.hi}`).join("; ");
+function updateDsc(o, d) {
+  const has = !!(d.orig.extra || []).includes("hf");
+  $("#dscFold").hidden = !has;
+  if (!has) return;
+  const c = o.dsc || {};
+  $("#dscUnit").value = c.unit || ""; $("#dscSign").value = c.sign || "exo_up";
+  if (document.activeElement !== $("#dscPk")) $("#dscPk").value = dscText(c.peaks);
+  if (document.activeElement !== $("#dscTg")) $("#dscTg").value = dscText(c.tg);
+  const r = d.dsc;
+  if (!r) { $("#dscWrap").innerHTML = ""; return; }
+  const kind = { endo: "endotherm", exo: "exotherm" };
+  let h = "";
+  if (r.peaks.length) h += `<table class="res"><thead><tr><th>Nr</th><th class="l">Art</th><th>Bereich</th><th>T<sub>on</sub></th><th>T<sub>p</sub></th><th>T<sub>end</sub></th><th>Δh / Fläche</th></tr></thead><tbody>${r.peaks.map((p, i) => p.error ? `<tr><td>${i + 1}</td><td class="l" colspan="6">${esc(p.error)}</td></tr>` :
+    `<tr><td>${i + 1}</td><td class="l">${kind[p.kind]}</td><td>${fx(p.lo, 0)}–${fx(p.hi, 0)}</td><td>${p.T_onset != null ? fx(p.T_onset, 1) : "–"}</td><td><b>${fx(p.T_peak, 1)}</b></td><td>${p.T_endset != null ? fx(p.T_endset, 1) : "–"}</td><td><b>${p.dH != null ? fx(p.dH_signed, 2) + " J/g" : fx(p.area, 2) + " " + esc(p.area_unit)}</b></td></tr>`).join("")}</tbody></table>`;
+  if (r.tg.length) h += `<table class="res" style="margin-top:6px"><thead><tr><th>Nr</th><th>T<sub>g,on</sub></th><th>T<sub>g,mid</sub></th><th>T<sub>g,end</sub></th><th>Δc<sub>p</sub> [J/(g·K)]</th></tr></thead><tbody>${r.tg.map((g, i) => g.error ? `<tr><td>${i + 1}</td><td colspan="4" class="l">${esc(g.error)}</td></tr>` :
+    `<tr><td>${i + 1}</td><td>${g.T_onset != null ? fx(g.T_onset, 1) : "–"}</td><td><b>${fx(g.Tg_mid, 1)}</b></td><td>${g.T_endset != null ? fx(g.T_endset, 1) : "–"}</td><td>${g.dcp != null ? fx(g.dcp, 3) : "–"}</td></tr>`).join("")}</tbody></table>`;
+  const notes = [...new Set(r.peaks.map(p => p.note).filter(Boolean))];
+  $("#dscWrap").innerHTML = h + notes.map(n => `<div class="small">${esc(n)}</div>`).join("");
+}
+function dscChanged() {
+  const o = cur(); if (!o) return;
+  o.dsc = { unit: $("#dscUnit").value || undefined, sign: $("#dscSign").value, peaks: dscRanges($("#dscPk").value), tg: dscRanges($("#dscTg").value) };
+  refreshCur();
+}
+
+// ---------------------------------------------------------------- Gasanalyse TGA-FTIR (TGA-04)
+const EGS = { s: null, t: null, sp: null, chem: null };
+function egsSvg(xs, ys, xl, yl, opt = {}) {
+  const W = 560, H = 200, L = 52, R = 10, T = 8, Bm = 30;
+  const fin = (a) => Array.from(a).filter(v => isFinite(v));
+  const xa = fin(xs), ya = fin(ys); if (!xa.length || !ya.length) return "";
+  let x0 = Math.min(...xa), x1 = Math.max(...xa), y0 = Math.min(0, ...ya), y1 = Math.max(...ya); if (y1 === y0) y1 = y0 + 1;
+  if (opt.rev) [x0, x1] = [x1, x0];
+  const px = v => L + (v - x0) / (x1 - x0) * (W - L - R), py = v => H - Bm - (v - y0) / (y1 - y0) * (H - T - Bm);
+  let d = ""; for (let i = 0; i < xs.length; i++) if (isFinite(ys[i])) d += (d ? "L" : "M") + px(xs[i]).toFixed(1) + " " + py(ys[i]).toFixed(1);
+  const ticks = n => Array.from({ length: n + 1 }, (_, i) => x0 + (x1 - x0) * i / n);
+  return `<svg class="egsplot" viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;cursor:${opt.click ? "crosshair" : "default"}" data-x0="${x0}" data-x1="${x1}" data-l="${L}" data-w="${W - L - R}">
+    <line x1="${L}" y1="${H - Bm}" x2="${W - R}" y2="${H - Bm}" stroke="currentColor" stroke-opacity=".4"/><line x1="${L}" y1="${T}" x2="${L}" y2="${H - Bm}" stroke="currentColor" stroke-opacity=".4"/>
+    ${ticks(5).map(v => `<text x="${px(v)}" y="${H - Bm + 14}" font-size="10" text-anchor="middle" fill="currentColor">${fx(v, Math.abs(x1 - x0) < 20 ? 1 : 0)}</text>`).join("")}
+    <text x="${(L + W - R) / 2}" y="${H - 2}" font-size="10" text-anchor="middle" fill="currentColor">${xl}</text>
+    <text x="12" y="${(T + H - Bm) / 2}" font-size="10" text-anchor="middle" fill="currentColor" transform="rotate(-90 12 ${(T + H - Bm) / 2})">${yl}</text>
+    <path d="${d}" fill="none" stroke="var(--accent, #2563eb)" stroke-width="1.3"/>
+    ${opt.mark != null ? `<line x1="${px(opt.mark)}" y1="${T}" x2="${px(opt.mark)}" y2="${H - Bm}" stroke="#d97706" stroke-dasharray="3 3"/>` : ""}</svg>`;
+}
+function egsRender() {
+  const s = EGS.s; if (!s) { $("#egsOut").innerHTML = ""; return; }
+  let h = `<div class="small" style="margin-top:6px"><b>${esc(s.name)}</b>: ${s.n} Spektren, ${fx(s.t[0], 1)}–${fx(s.t[s.t.length - 1], 1)} min, ${fx(s.x[0], 0)}–${fx(s.x[1], 0)} cm⁻¹ (${esc(s.meta.format || "")})</div>`;
+  h += `<div class="row2"><div><label for="egsK">Hintergrund: erste k Spektren</label><input type="number" id="egsK" min="1" max="50" value="${s.k}"></div><div><label for="egsT">Zeit [min]</label><input type="number" id="egsT" step="0.1" value="${EGS.t != null ? fx(EGS.t, 2).replace(",", ".") : ""}"></div></div>`;
+  h += `<div id="egsGs">${egsSvg(s.t, s.gs, "t [min]", "Gram-Schmidt", { click: true, mark: EGS.t })}</div>`;
+  if (EGS.sp) h += `<h4 class="sub">Spektrum bei ${fx(EGS.sp.t, 2)} min (Hintergrund abgezogen)</h4>${egsSvg(EGS.sp.x, EGS.sp.y, "Wellenzahl [cm⁻¹]", "A", { rev: true })}
+    <div class="row"><button id="egsFtir" class="primary" title="Im FTIR-Modul öffnen und dort durchsuchen">In FTIR öffnen</button><button id="egsJdx">Als JCAMP-DX speichern</button></div>`;
+  h += `<div class="row2" style="margin-top:6px"><div><label for="egsBand">Chemigramm, Bereich [cm⁻¹]</label><input id="egsBand" placeholder="z. B. 2250-2400 (CO₂)" value="${EGS.chem ? EGS.chem.lo + "-" + EGS.chem.hi : ""}"></div></div>`;
+  if (EGS.chem) h += egsSvg(EGS.chem.t, EGS.chem.y, "t [min]", `∫A ${EGS.chem.lo}–${EGS.chem.hi}`, { mark: EGS.t });
+  $("#egsOut").innerHTML = h;
+  const svg = $("#egsGs svg");
+  if (svg) svg.addEventListener("click", (e) => { const r = svg.getBoundingClientRect(), sc = 560 / r.width, x = (e.clientX - r.left) * sc; const t = +svg.dataset.x0 + (x - +svg.dataset.l) / +svg.dataset.w * (+svg.dataset.x1 - +svg.dataset.x0); egsSpec(t); });
+  $("#egsT").addEventListener("change", (e) => egsSpec(+String(e.target.value).replace(",", ".")));
+  $("#egsK").addEventListener("change", async (e) => { const j = await api("api/egs/gs", { id: s.id, k: +e.target.value }); if (j.error) return toast(j.error, true); EGS.s = j; if (EGS.t != null) await egsSpec(EGS.t); else egsRender(); });
+  $("#egsBand").addEventListener("change", async (e) => { const m = String(e.target.value).replace(/,/g, ".").match(/(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)/); if (!m) { EGS.chem = null; return egsRender(); } const j = await api("api/egs/chemigram", { id: s.id, lo: +m[1], hi: +m[2] }); if (j.error) return toast(j.error, true); EGS.chem = j; egsRender(); });
+  if (EGS.sp) {
+    $("#egsJdx").addEventListener("click", () => download(EGS.sp.title.replace(/[^\w\-. ]+/g, "_") + ".jdx", EGS.sp.jcamp, "chemical/x-jcamp-dx", false));
+    $("#egsFtir").addEventListener("click", egsToFtir);
+  }
+}
+async function egsSpec(t) {
+  if (!EGS.s || !isFinite(t)) return;
+  const j = await api("api/egs/spectrum", { id: EGS.s.id, t, k: EGS.s.k });
+  if (j.error) return toast(j.error, true);
+  EGS.t = j.t; EGS.sp = j; egsRender();
+}
+function egsToFtir() {
+  const sp = EGS.sp; if (!sp) return;
+  let ok = false;
+  try { const k = "folio.ftir.inbox", old = JSON.parse(localStorage.getItem(k) || "[]"); old.push({ name: sp.title + ".jdx", jcamp: sp.jcamp, from: "TGA", at: Date.now() }); localStorage.setItem(k, JSON.stringify(old.slice(-10))); ok = true; } catch (e) { ok = false; }
+  if (ok && window.Lab) toast("Spektrum an das FTIR-Modul übergeben; es erscheint dort beim nächsten Öffnen oder Neuladen.");
+  else { download(sp.title.replace(/[^\w\-. ]+/g, "_") + ".jdx", sp.jcamp, "chemical/x-jcamp-dx", false); toast("Ausserhalb von Folio Lab: als JCAMP-DX gespeichert – im FTIR-Modul öffnen."); }
+}
+async function egsLoad(file) {
+  const j = file ? await withBusy(async () => api("api/egs/load?name=" + encodeURIComponent(file.name), await file.arrayBuffer(), true)) : await api("api/egs/sample", {});
+  if (j.error) return toast(j.error, true);
+  EGS.s = j; EGS.sp = null; EGS.chem = null;
+  let im = 0; for (let i = 1; i < j.gs.length; i++) if (j.gs[i] > j.gs[im]) im = i;
+  await egsSpec(j.t[im]);
+}
+
+// ---------------------------------------------------------------- Kennwerte
+function updateValues() {
+  const o = cur(), d = o && o.data;
+  if (!d) { ["#ltWrap", "#resWrap", "#segWrap", "#fileInfo"].forEach(s => $(s).innerHTML = ""); return; }
+  $("#ltWrap").innerHTML = `<table class="res"><thead><tr><th class="l">Verlust</th><th>T [°C]</th><th>t [min]</th></tr></thead><tbody>${Object.entries(d.loss_T).map(([k, v]) => `<tr><td class="l">${k} %</td><td>${v ? fx(v.T, 1) + shr("T" + k) : "–"}</td><td>${v ? fx(v.t, 2) : "–"}</td></tr>`).join("")}</tbody></table>`;
+  $("#resT").value = o.stepOpts.residue_T ?? ""; $("#isoAfter").value = o.stepOpts.iso_after ?? "";
+  const r = d.residue || {};
+  let h = `<table class="res"><tbody><tr><td class="l">Rückstand am Ende${r.T_end != null ? ` (${fx(r.T_end, 0)} °C)` : ""}</td><td><b>${fx(r.end, 2)} %</b>${shr("res")}</td><td>${r.end_mg != null ? fx(r.end_mg, 3) + " mg" : ""}</td></tr>`;
+  if (r.at) h += `<tr><td class="l">Masse bei ${fx(r.at.T, 0)} °C</td><td><b>${fx(r.at.m, 2)} %</b></td><td>${r.at.mg != null ? fx(r.at.mg, 3) + " mg" : ""}</td></tr>`;
+  h += `</tbody></table>`;
+  if (d.iso && d.iso.length) h += `<table class="res" style="margin-top:6px"><thead><tr><th>Segment</th><th>T [°C]</th><th>Dauer [min]</th><th>Verlust [%]</th><th>nach t</th></tr></thead><tbody>${d.iso.map(i => `<tr><td>${i.no}</td><td>${fx(i.T, 1)}</td><td>${fx(i.duration, 1)}</td><td>${fx(i.loss, 3)}</td><td>${i.loss_after != null ? fx(i.loss_after, 3) + " % (" + fx(i.after, 0) + " min)" : "–"}</td></tr>`).join("")}</tbody></table>`;
+  $("#resWrap").innerHTML = h;
+  updateDsc(o, d);
+  $("#segWrap").innerHTML = `<table class="res"><thead><tr><th>Nr</th><th class="l">Art</th><th>von</th><th>bis</th><th class="l">Gas</th></tr></thead><tbody>${(d.segments || []).map(s => `<tr><td>${s.no}</td><td class="l">${esc(s.label)}</td><td>${fx(s.T0, 0)} °C</td><td>${fx(s.T1, 0)} °C</td><td class="l">${esc(s.gas || "")}</td></tr>`).join("")}</tbody></table>`;
+  const m = d.orig.meta || {};
+  const cols = (m.columns || []).map(c => `${esc(c.name || "?")}${c.unit ? " [" + esc(c.unit) + "]" : ""} → ${esc(META.roles[c.role] || "–")}`).join("<br>");
+  $("#fileInfo").innerHTML = `${runInfoHtml(o)}<br>${m.crucible ? "Tiegel: " + esc(m.crucible) + "<br>" : ""}${m.instrument ? "Gerät: " + esc(m.instrument) + "<br>" : ""}${m.date ? "Datum: " + esc(m.date) + "<br>" : ""}<div style="margin-top:6px">${cols}</div><div class="row"><button id="fiMap">Spalten zuordnen …</button></div>`;
+  $("#fiMap").addEventListener("click", () => mapDialog());
+}
+
+// ---------------------------------------------------------------- Zusammensetzung, Reaktionen, Kalibrierung
+function updateComp() {
+  const o = cur(), d = o && o.data;
+  const p = (o && o.comp) ? o.comp.preset : "";
+  $("#cpPreset").value = p;
+  const def = META.presets[p];
+  const params = { ...(def ? def.params : {}), ...((o && o.comp && o.comp.params) || {}) };
+  $("#cpParams").innerHTML = def ? Object.entries(params).map(([k, v]) => `<div><label>${k === "T1" ? "Grenze 1 [°C]" : k === "T2" ? "Grenze 2 [°C]" : "Grenzen [°C], Komma"}</label><input data-cp="${k}" value="${Array.isArray(v) ? v.join("; ") : v}"></div>`).join("") : "";
+  const c = d && d.comp;
+  $("#cpOut").innerHTML = !c ? "" : c.error ? `<div class="note err">${esc(c.error)}</div>` :
+    `<div class="tw"><table class="res"><thead><tr><th class="l">Anteil</th><th class="l">Bereich</th><th>%</th></tr></thead><tbody>${c.rows.map(r => `<tr><td class="l">${esc(r.name)}</td><td class="l small">${esc([r.from, r.to].filter(x => x !== "" && x != null).map(x => typeof x === "number" ? fmt(x, 0) + " °C" : x).join(" – "))}</td><td><b>${fx(r.pct, 2)}</b></td></tr>`).join("")}</tbody></table></div>` +
+    (c.warnings || []).map(w => `<div class="note warn">${esc(w)}</div>`).join("") + (c.ref ? `<div class="small">Verfahren: ${esc(META.refs[c.ref] ? META.refs[c.ref].text : c.ref)}</div>` : "");
+  // Reaktionen
+  $("#rxStep").innerHTML = d ? d.steps.map(s => `<option value="${s.no}">Stufe ${s.no}: ${fx(s.loss, 2)} % bei ${fx(stepX(s, "peak"), 0)}</option>`).join("") : "";
+  const rx = (d && d.reactions) || [];
+  $("#rxWrap").innerHTML = (o && o.reactions.length) ? `<table class="res"><thead><tr><th>Stufe</th><th class="l">Zersetzung</th><th>theor. %</th><th>Gehalt %</th><th></th></tr></thead><tbody>${o.reactions.map((r, i) => {
+    const x = rx.find(y => y.step === r.step && y.key === r.key);
+    return `<tr><td>${r.step}</td><td class="l wrap">${esc(x ? x.label : r.key)}</td><td>${x ? fx(x.theory, 2) : "–"}</td><td><b>${x ? fx(x.content, 1) : "–"}</b></td><td><button data-rx="${i}">×</button></td></tr>`;
+  }).join("")}</tbody></table>` : "";
+  $$("#rxWrap [data-rx]").forEach(b => b.addEventListener("click", async () => { cur().reactions.splice(+b.dataset.rx, 1); await refreshCur(); }));
+  $("#rxAdd").disabled = !d || !d.steps.length;
+  // Kalibrierung
+  $("#calOx").checked = !!(o && o.calib);
+  const cal = d && d.calib;
+  $("#calOut").innerHTML = !cal ? "" : `<div class="note ${cal.ok ? "ok" : "warn"}">${cal.ok ? "Bestanden" : cal.complete ? "Nicht bestanden" : "Weniger als drei Stufen gefunden"} (Toleranz ± ${fx(cal.tol, 1)} %)</div>` +
+    `<table class="res"><thead><tr><th class="l">Gas</th><th>theor.</th><th>gemessen</th><th>Δ</th><th>Spitze °C</th></tr></thead><tbody>${cal.rows.map(r => `<tr><td class="l">${esc(r.gas)}</td><td>${fx(r.theory, 2)}</td><td>${fx(r.measured, 2)}</td><td style="color:${r.ok ? "var(--ok-ink)" : "var(--err-ink)"}">${fx(r.delta, 2)}</td><td>${fx(r.T_peak, 0)}</td></tr>`).join("")}</tbody></table>`;
+  renderIts();
+}
+async function runComp() {
+  const o = cur(); if (!o) return;
+  const p = $("#cpPreset").value;
+  if (!p) { o.comp = null; return refreshCur(); }
+  const params = {};
+  $$("#cpParams [data-cp]").forEach(el => {
+    const v = el.value;
+    params[el.dataset.cp] = el.dataset.cp === "bounds" ? v.split(/[;\s]+/).map(pnum).filter(x => x !== null && isFinite(x)) : pnum(v);
+  });
+  o.comp = { preset: p, params };
+  await refreshCur();
+}
+function renderIts() {
+  $("#itsRows").innerHTML = S.its.map((r, i) => `<div class="row3"><div><select data-its="std" data-i="${i}">${Object.entries(META.its90).map(([k, v]) => `<option value="${k}"${k === r.std ? " selected" : ""}>${k} (${fmt(v, 3)} °C)</option>`).join("")}</select></div><div><input type="number" step="any" data-its="meas" data-i="${i}" value="${r.meas ?? ""}" placeholder="gemessen °C"></div><div><button data-its-rm="${i}">×</button></div></div>`).join("");
+  $$("#itsRows [data-its]").forEach(el => el.addEventListener("change", () => { const r = S.its[+el.dataset.i]; r[el.dataset.its] = el.dataset.its === "meas" ? pnum(el.value) : el.value; }));
+  $$("#itsRows [data-its-rm]").forEach(b => b.addEventListener("click", () => { S.its.splice(+b.dataset.itsRm, 1); renderIts(); }));
+  $("#itsUse").disabled = !S.itsRes || !cur();
+}
+
+// ---------------------------------------------------------------- Suche
+function libsForSearch() {
+  if (!S.searchLibs) S.searchLibs = store.get("searchLibs", null) || S.libs.map(l => l.id);
+  return S.searchLibs.filter(id => S.libs.some(l => l.id === id));
+}
+function updateSearch() {
+  const sl = libsForSearch();
+  $("#sLibs").innerHTML = S.libs.map(l => `<label class="it"><input type="checkbox" data-lib="${esc(l.id)}"${sl.includes(l.id) ? " checked" : ""}><span class="nm">${esc(l.name)}</span><span class="cv">${l.count}${l.kind === "model" ? " · modelliert" : ""}</span></label>`).join("") || `<div class="empty">Keine Bibliothek.</div>`;
+  $$("#sLibs [data-lib]").forEach(c => c.addEventListener("change", () => { S.searchLibs = $$("#sLibs [data-lib]").filter(x => x.checked).map(x => x.dataset.lib); store.set("searchLibs", S.searchLibs); updateFoldCounts(); }));
+  const cats = [...new Set(S.libs.flatMap(l => l.categories || []))].sort();
+  const cv = $("#sCat").value;
+  $("#sCat").innerHTML = `<option value="">alle</option>` + cats.map(c => `<option${c === cv ? " selected" : ""}>${esc(c)}</option>`).join("");
+  $("#sModelNote").hidden = !sl.includes(META.model_id);
+  const o = cur();
+  $("#sStale").hidden = !(o && o.search && o.searchStale);
+  $("#sRep").checked = !o || o.searchRep;
+  if (!o || !o.search) { $("#sWrap").innerHTML = ""; $("#sDetail").hidden = true; return; }
+  const hits = o.search.hits;
+  $("#sWrap").innerHTML = hits.length ? `<table class="res"><thead><tr><th>#</th><th class="l">Referenz</th><th>HQI</th><th>Kurve</th><th>Stufen</th><th>ΔT</th><th class="l">Atm.</th></tr></thead><tbody>${hits.map((h, i) =>
+    `<tr class="click${i === o.hitSel ? " hl" : ""}" data-i="${i}"><td>${i + 1}</td><td class="l wrap">${esc(h.name)} ${h.modelled ? '<span class="badge model">Modell</span>' : '<span class="badge own">gemessen</span>'}${h.warnings && h.warnings.length ? " ⚠" : ""}<div class="small">${esc(srcShort(h.source))}</div></td><td><b>${fx(h.hqi, 1)}</b></td><td>${fx(h.curve, 0)}</td><td>${fx(h.step, 0)}</td><td>${h.shift ? (h.shift > 0 ? "+" : "") + h.shift : "0"}</td><td class="l">${esc(h.atmosphere || "")}</td></tr>`).join("")}</tbody></table>`
+    : `<div class="small" style="padding:8px">Keine Treffer.</div>`;
+  $$("#sWrap tr[data-i]").forEach(tr => tr.addEventListener("click", () => { o.hitSel = +tr.dataset.i; S.mode = "search"; updateMode(); updateSearch(); draw(); }));
+  const h = hits[o.hitSel];
+  $("#sDetail").hidden = !h;
+  if (h) {
+    $("#sDetail").innerHTML = `<b>${esc(h.name)}</b> · ${esc(h.lib_name)}${h.category ? " · " + esc(h.category) : ""}<br>${h.rate ? "Heizrate " + fmt(h.rate, 1) + " K/min · " : ""}${h.residue != null ? "Rückstand " + fx(h.residue, 1) + " % · " : ""}Abdeckung ${fx(100 * h.coverage, 0)} %` +
+      (h.warnings || []).map(w => `<div class="note warn">${esc(w)}</div>`).join("") +
+      `<div style="margin-top:6px">${esc(srcText(h.source))}</div>${h.note ? `<div class="small" style="margin-top:4px">${esc(h.note)}</div>` : ""}` +
+      `<div class="row"><button id="sOverlay">Im Lauf einblenden</button></div>`;
+    $("#sOverlay").addEventListener("click", () => addRef(h.lib, h.id));
+  }
+}
+const srcShort = (s) => (window.LabRef && s && (s.title || s.authors)) ? LabRef.short(s) : "";
+const srcText = (s) => (window.LabRef && s && (s.title || s.authors)) ? LabRef.text(s) : "";
+async function runSearch() {
+  const o = cur(); if (!o) return;
+  const libs = libsForSearch();
+  if (!libs.length) return toast("Bitte mindestens eine Bibliothek wählen.", true);
+  const j = await withBusy(() => api("api/search", { id: o.id, state: stateOf(o), libs, mode: $("#sMode").value, shift: pnum($("#sShift").value) ?? 20, category: $("#sCat").value, same_atm: $("#sAtm").checked }));
+  if (j.error) return toast(j.error, true);
+  o.search = j; o.hitSel = 0; o.searchStale = false;
+  S.mode = "search"; updateMode(); updateSearch(); draw();
+}
+async function runMixture() {
+  const o = cur(); if (!o) return;
+  const libs = libsForSearch();
+  if (!libs.length) return toast("Bitte in der Suche mindestens eine Bibliothek wählen.", true);
+  const j = await withBusy(() => api("api/mixture", { id: o.id, state: stateOf(o), libs, max: +$("#mMax").value, shift: pnum($("#sShift").value) ?? 20 }));
+  if (j.error) return toast(j.error, true);
+  o.mix = j; o.mixSel = 0; o.mixStale = false;
+  S.mode = "mix"; updateMode(); updateMix(); draw();
+}
+function updateMix() {
+  const o = cur();
+  $("#mStale").hidden = !(o && o.mix && o.mixStale);
+  $("#mRep").checked = !o || o.mixRep;
+  if (!o || !o.mix) { $("#mList").innerHTML = `<div class="empty">Noch nicht gerechnet.</div>`; $("#mDetail").hidden = true; return; }
+  const cs = o.mix.combos;
+  $("#mList").innerHTML = cs.length ? cs.map((c, i) => `<div class="combo${i === o.mixSel ? " sel" : ""}" data-i="${i}"><div class="h"><b>${c.components.map(x => esc(x.name)).join(" + ")}</b><span class="hqi">${fx(c.hqi, 1)}</span></div><div class="c">${c.components.map(x => `${esc(x.name)} ${fx(100 * x.frac, 1)} %`).join(" · ")}${c.inert > 0.005 ? ` · inert ${fx(100 * c.inert, 1)} %` : ""}</div></div>`).join("") : `<div class="empty">${esc(o.mix.note || "Keine Kombination gefunden.")}</div>`;
+  $$("#mList .combo").forEach(el => el.addEventListener("click", () => { o.mixSel = +el.dataset.i; S.mode = "mix"; updateMode(); updateMix(); draw(); }));
+  const c = cs[o.mixSel];
+  $("#mDetail").hidden = !c;
+  if (c) $("#mDetail").innerHTML = `${o.mix.note ? `<div class="note warn">${esc(o.mix.note)}</div>` : ""}Vorhergesagter Rückstand ${fx(c.residue_pred, 1)} %${o.data && o.data.residue ? `, gemessen ${fx(o.data.residue.end, 1)} %` : ""}<ol>${c.components.map(x => `<li>${esc(x.name)} (${esc(x.lib_name)}${x.modelled ? ", modelliert" : ""}): ${fx(100 * x.frac, 1)} %${x.shift ? `, ${x.shift > 0 ? "+" : ""}${x.shift} K` : ""}<div class="small">${esc(srcText(x.source))}</div></li>`).join("")}</ol>`;
+}
+
+// ---------------------------------------------------------------- Vergleich und eingeblendete Referenzen
+function updateCompare() {
+  $("#cList").innerHTML = S.runs.map((o, i) => `<div class="it${i === S.sel ? " sel" : ""}" data-i="${i}"><input type="checkbox" data-ov="${i}"${o.overlay || i === S.sel ? " checked" : ""}${i === S.sel ? " disabled" : ""}><input type="color" data-col="${i}" value="${o.color}" style="width:22px;height:18px;padding:0;border:0;background:none"><input type="text" data-nm="${i}" value="${esc(o.name)}"><span class="cv">${o.data && o.data.orig.meta.rate ? fmt(o.data.orig.meta.rate, 1) + " K/min" : ""}</span><button data-x="${i}" title="Schliessen">×</button></div>`).join("") || `<div class="empty">Keine Läufe.</div>`;
+  $$("#cList [data-ov]").forEach(c => c.addEventListener("change", () => { S.runs[+c.dataset.ov].overlay = c.checked; updateCompare(); draw(); }));
+  $$("#cList [data-col]").forEach(c => c.addEventListener("input", () => { S.runs[+c.dataset.col].color = c.value; updateChips(); draw(); }));
+  $$("#cList [data-nm]").forEach(c => c.addEventListener("change", async () => { const o = S.runs[+c.dataset.nm]; const j = await api("api/rename", { id: o.id, name: c.value }); if (!j.error) { o.name = j.name; updateChips(); draw(); } }));
+  $$("#cList [data-x]").forEach(b => b.addEventListener("click", () => closeRun(+b.dataset.x)));
+  const shown = S.runs.filter((o, i) => (o.overlay || i === S.sel) && o.data);
+  if (shown.length > 1) {
+    const n = Math.max(...shown.map(o => o.data.steps.length));
+    let h = `<table class="res"><thead><tr><th class="l">Lauf</th>${Array.from({ length: n }, (_, k) => `<th>Stufe ${k + 1}<br>Spitze / %</th>`).join("")}<th>T5</th><th>Rückstand</th></tr></thead><tbody>`;
+    for (const o of shown) h += `<tr><td class="l"><span class="sw" style="display:inline-block;background:${o.color}"></span> ${esc(o.name)}</td>${Array.from({ length: n }, (_, k) => { const s = o.data.steps[k]; return `<td>${s ? fx(stepX(s, "peak"), 0) + " / " + fx(s.loss, 2) : "–"}</td>`; }).join("")}<td>${o.data.loss_T["5"] ? fx(o.data.loss_T["5"].T, 1) : "–"}</td><td>${fx(o.data.residue.end, 2)}</td></tr>`;
+    const ms = (vals) => { const v = vals.filter(x => x != null && isFinite(x)); if (v.length < 2) return "–"; const m = v.reduce((a, b) => a + b, 0) / v.length; const s = Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / (v.length - 1)); return fx(m, 2) + " ± " + fx(s, 2); };
+    h += `<tr><td class="l"><b>Mittel ± s</b></td>${Array.from({ length: n }, (_, k) => `<td>${ms(shown.map(o => o.data.steps[k] && o.data.steps[k].loss))}</td>`).join("")}<td>${ms(shown.map(o => o.data.loss_T["5"] && o.data.loss_T["5"].T))}</td><td>${ms(shown.map(o => o.data.residue.end))}</td></tr></tbody></table>`;
+    $("#cTable").innerHTML = h;
+  } else $("#cTable").innerHTML = "";
+  $("#refList").innerHTML = S.refs.map((r, i) => `<div class="it"><span class="sw" style="background:${r.color}"></span><span class="nm" title="${esc(srcText(r.source))}">${esc(r.name)} <span class="small">(${esc(r.lib_name)}${r.modelled ? ", modelliert" : ""}${srcShort(r.source) ? ", " + esc(srcShort(r.source)) : ""})</span></span><button data-rr="${i}" title="Ausblenden">×</button></div>`).join("") || `<div class="empty">Keine Referenz eingeblendet.</div>`;
+  $$("#refList [data-rr]").forEach(b => b.addEventListener("click", () => { S.refs.splice(+b.dataset.rr, 1); updateCompare(); draw(); }));
+  const opts = S.runs.map((o, i) => `<option value="${i}">${esc(o.name)}</option>`).join("");
+  const a = $("#dA").value, b = $("#dB").value;
+  $("#dA").innerHTML = opts; $("#dB").innerHTML = opts;
+  if (a) $("#dA").value = a; if (b) $("#dB").value = b; else if (S.runs.length > 1) $("#dB").value = "1";
+}
+async function addRef(lib, eid) {
+  if (S.refs.some(r => r.lib === lib && r.eid === eid)) return toast("Schon eingeblendet.");
+  const j = await withBusy(() => api("api/library/curve", { lib, eid }));
+  if (j.error) return toast(j.error, true);
+  const l = S.libs.find(x => x.id === lib) || {};
+  S.refs.push({ lib, eid, name: j.name, lib_name: l.name || lib, source: j.entry.source || {}, modelled: !!(j.ref && j.ref.modelled),
+    tg: j.tg, dtg: j.dtg, color: REFCOL[S.refs.length % REFCOL.length] });
+  if (S.mode !== "run") { S.mode = "run"; updateMode(); }
+  if (S.x !== "T") setX("T");
+  updateCompare(); draw();
+  toast(`Eingeblendet: ${j.name}`);
+}
+async function refPicker() {
+  const libs = S.libs;
+  if (!libs.length) return;
+  let entries = [], lib = S.libSel || libs[0].id;
+  const html = `<div class="row2"><div><label>Bibliothek</label><select id="rpLib">${libs.map(l => `<option value="${esc(l.id)}"${l.id === lib ? " selected" : ""}>${esc(l.name)}</option>`).join("")}</select></div><div><label>Filter</label><input id="rpF" placeholder="z. B. PE, Calcit, Cellulose"></div></div><div class="list" id="rpList" style="max-height:320px"></div>`;
+  const pick = new Set();
+  const draw_ = () => {
+    const f = ($("#rpF").value || "").toLowerCase();
+    $("#rpList").innerHTML = entries.filter(e => !f || (e.name + " " + (e.category || "")).toLowerCase().includes(f)).slice(0, 300).map(e => `<label class="it"><input type="checkbox" data-e="${esc(e.id)}"${pick.has(e.id) ? " checked" : ""}><span class="nm">${esc(e.name)}</span><span class="cv">${esc(e.category || "")} ${esc(e.atmosphere || "")}</span></label>`).join("") || `<div class="empty">Keine Einträge.</div>`;
+    $$("#rpList [data-e]").forEach(c => c.addEventListener("change", () => { c.checked ? pick.add(c.dataset.e) : pick.delete(c.dataset.e); }));
+  };
+  const load = async () => { const j = await api("api/library/entries", { lib }); entries = j.entries || []; pick.clear(); draw_(); };
+  const r = await dialog("Referenz einblenden", html, [{ value: "cancel", label: "Abbrechen" }, { value: "ok", label: "Einblenden", primary: true }], "", (b) => {
+    $("#rpLib", b).addEventListener("change", (e) => { lib = e.target.value; load(); });
+    $("#rpF", b).addEventListener("input", draw_);
+    load();
+  }, true);
+  if (r !== "ok") return;
+  for (const id of pick) await addRef(lib, id);
+}
+async function derive(op) {
+  const ids = op === "blank" ? [S.runs[+$("#dA").value], S.runs[+$("#dB").value]] : S.runs.filter((o, i) => o.overlay || i === S.sel);
+  if (ids.length < 2 || !ids[0] || !ids[1] || ids[0] === ids[1]) return toast("Bitte zwei verschiedene Läufe wählen bzw. markieren.", true);
+  const pipes = {}; ids.forEach(o => pipes[o.id] = o.pipeline);
+  const j = await withBusy(() => api("api/derive", { op, ids: ids.map(o => o.id), pipelines: pipes, axis: $("#dAxis").value }));
+  if (j.error) return toast(j.error, true);
+  await addRuns(j.runs);
+}
+
+// ---------------------------------------------------------------- Kinetik
+function updateKin() {
+  const sel = S.kinSel || S.runs.filter(o => o.overlay || S.runs.indexOf(o) === S.sel).map(o => o.id);
+  $("#kRuns").innerHTML = S.runs.map(o => `<label class="it"><input type="checkbox" data-k="${o.id}"${sel.includes(o.id) ? " checked" : ""}><span class="sw" style="background:${o.color}"></span><span class="nm">${esc(o.name)}</span><span class="cv">${o.data && o.data.orig.meta.rate ? fmt(o.data.orig.meta.rate, 1) + " K/min" : "Heizrate?"}</span></label>`).join("") || `<div class="empty">Keine Läufe.</div>`;
+  $$("#kRuns [data-k]").forEach(c => c.addEventListener("change", () => { S.kinSel = $$("#kRuns [data-k]").filter(x => x.checked).map(x => x.dataset.k); }));
+  $("#kRep").checked = S.kinRep;
+  $$("#kView button").forEach(b => b.classList.toggle("sel", b.dataset.kv === S.kinView));
+  const k = S.kin && S.kin.res;
+  if (!k) { $("#kOut").innerHTML = ""; return; }
+  const names = { friedman: "Friedman", ofw: "Ozawa-Flynn-Wall", kas: "Kissinger-Akahira-Sunose", starink: "Starink", vyazovkin: "Vyazovkin" };
+  let h = (k.iso.warnings || []).map(w => `<div class="note warn">${esc(w)}</div>`).join("");
+  h += `<table class="res" style="margin-top:6px"><thead><tr><th class="l">Verfahren</th><th>Eₐ [kJ/mol]</th><th>min–max</th></tr></thead><tbody>${Object.entries(k.iso.summary).map(([m, s]) => `<tr><td class="l">${names[m] || m}</td><td><b>${fx(s.mean, 1)}</b> ± ${fx(s.sd, 1)}</td><td>${fx(s.min, 0)}–${fx(s.max, 0)}</td></tr>`).join("")}` +
+    (k.kissinger && !k.kissinger.error ? `<tr><td class="l">Kissinger</td><td><b>${fx(k.kissinger.E, 1)}</b>${k.kissinger.ci != null ? " ± " + fx(k.kissinger.ci, 1) : ""}</td><td>ln A ${fx(k.kissinger.lnA, 1)}</td></tr>` : "") + `</tbody></table>`;
+  h += `<div class="small" style="margin-top:4px">Mittel über α = 0,1…0,9; ± Standardabweichung über α (Kissinger: 95-%-Vertrauensbereich).</div>`;
+  if (k.master) h += `<h4 class="sub">Reaktionsmodell</h4><div class="small">Masterplot (beste zuerst): ${k.master.ranking.slice(0, 4).map(r => `${esc(r.model)} (${fx(r.rms, 3)})`).join(", ")}. Gewählt: <b>${esc(k.model)}</b>.</div>`;
+  if (k.coats_redfern) h += `<details><summary>Coats-Redfern (${esc(k.coats_redfern.run)})</summary><table class="res"><thead><tr><th class="l">Modell</th><th>Eₐ</th><th>ln A</th><th>R²</th></tr></thead><tbody>${k.coats_redfern.models.slice(0, 14).map(m => `<tr><td class="l">${esc(m.model)} <span class="small">${esc(m.label)}</span></td><td>${fx(m.E, 1)}</td><td>${fx(m.lnA, 1)}</td><td>${fx(m.r2, 4)}</td></tr>`).join("")}</tbody></table><div class="small">Einzelheizraten-Verfahren geben oft scheinbar gute Geraden mit falschem Eₐ (ICTAC 2011); nur zur Modellwahl verwenden.</div></details>`;
+  if (k.lifetime) h += `<h4 class="sub">Lebensdauer (ASTM E1877)</h4><table class="res"><thead><tr><th>T [°C]</th><th>Zeit bis α = ${fx(k.lifetime.alpha_f, 2)}</th></tr></thead><tbody>${k.lifetime.rows.map(r => `<tr><td>${fx(r.T, 0)}</td><td>${r.t_h > 87600 ? fx(r.t_h / 8760, 1) + " Jahre" : fx(r.t_h, 1) + " h"}</td></tr>`).join("")}</tbody></table>${k.lifetime.T_index != null ? `<div class="small">Temperaturindex für ${fmt(k.lifetime.t_target_h, 0)} h: <b>${fx(k.lifetime.T_index, 1)} °C</b></div>` : ""}<div class="small">Extrapolation weit unter den Messtemperaturen ist unsicher; Eₐ und Modell gelten nur, wenn der Mechanismus gleich bleibt.</div>`;
+  $("#kOut").innerHTML = h;
+}
+async function runKin() {
+  const ids = S.kinSel || $$("#kRuns [data-k]").filter(x => x.checked).map(x => x.dataset.k);
+  if (ids.length < 3) return toast("Bitte mindestens drei Läufe mit verschiedenen Heizraten wählen.", true);
+  const lo = pnum($("#kLo").value), hi = pnum($("#kHi").value);
+  if (lo === null || hi === null || !(hi > lo)) return toast("Bitte den Temperaturbereich der Stufe angeben (oder mit R aufziehen).", true);
+  const opts = { alpha_f: pnum($("#kAf").value) ?? 0.05 };
+  if ($("#kModel").value) opts.model = $("#kModel").value;
+  const th = pnum($("#kTh").value); if (th) opts.t_target_h = th;
+  const tu = $("#kTuse").value.split(/[;,\s]+/).map(pnum).filter(v => v !== null && isFinite(v)); if (tu.length) opts.T_use = tu;
+  const pipes = {}; ids.forEach(id => { const o = S.runs.find(x => x.id === id); if (o) pipes[id] = o.pipeline; });
+  const j = await withBusy(() => api("api/kinetics", { ids, pipelines: pipes, T_lo: lo, T_hi: hi, opts }));
+  if (j.error) return toast(j.error, true);
+  S.kin = { ids, T_lo: lo, T_hi: hi, opts, res: j };
+  S.mode = "kin"; updateMode(); updateKin(); S.view = null; draw();
+}
+
+// ---------------------------------------------------------------- Trennung
+function updateDeconv() {
+  const o = cur();
+  $("#dcPreset").innerHTML = `<option value="">ohne Vorlage</option>` + Object.entries(META.deconv_presets).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("");
+  if (!o) { $("#dcPeaks").innerHTML = ""; $("#dcOut").innerHTML = ""; return; }
+  $("#dcPreset").value = o.dcPreset || "";
+  if (o.deconv) { $("#dcLo").value = o.deconv.lo; $("#dcHi").value = o.deconv.hi; $("#dcFix").checked = !!o.deconv.fix_pos; }
+  $("#dcPeaks").innerHTML = o.dcPeaks.length ? `<table class="res"><thead><tr><th class="l">Name</th><th>Lage °C</th><th>Fläche %</th><th>HW links</th><th>HW rechts</th><th></th></tr></thead><tbody>${o.dcPeaks.map((p, i) => `<tr><td><input data-pk="name" data-i="${i}" value="${esc(p.name || "")}"></td>${["x0", "area", "hwl", "hwr"].map(k => `<td><input type="number" step="any" data-pk="${k}" data-i="${i}" value="${p[k] ?? ""}" placeholder="${k === "area" ? "auto" : ""}"></td>`).join("")}<td><button data-pkrm="${i}">×</button></td></tr>`).join("")}</tbody></table>` : `<div class="small" style="padding:8px">Noch keine Spitzen. „Startwerte“ schätzt sie aus der DTG.</div>`;
+  $$("#dcPeaks [data-pk]").forEach(el => el.addEventListener("change", () => { const p = o.dcPeaks[+el.dataset.i]; p[el.dataset.pk] = el.dataset.pk === "name" ? el.value : pnum(el.value); }));
+  $$("#dcPeaks [data-pkrm]").forEach(b => b.addEventListener("click", () => { o.dcPeaks.splice(+b.dataset.pkrm, 1); updateDeconv(); }));
+  const r = o.data && o.data.deconv;
+  $("#dcOut").innerHTML = !r ? "" : r.error ? `<div class="note err">${esc(r.error)}</div>` :
+    `<div class="small" style="margin-top:6px">R² = ${fx(r.r2, 4)}; Gesamtfläche ${fx(r.total, 2)} %</div><table class="res"><thead><tr><th class="l">Spitze</th><th>Lage °C</th><th>Fläche %</th><th>HW l/r</th></tr></thead><tbody>${r.peaks.map(p => `<tr><td class="l">${esc(p.name)}</td><td>${fx(p.x0, 1)}</td><td><b>${fx(p.area, 2)}</b></td><td>${fx(p.hwl, 1)} / ${fx(p.hwr, 1)}</td></tr>`).join("")}</tbody></table>`;
+}
+async function dcGuess() {
+  const o = cur(); if (!o) return;
+  const lo = pnum($("#dcLo").value), hi = pnum($("#dcHi").value);
+  if (lo === null || hi === null || !(hi > lo)) return toast("Bitte den Bereich angeben oder mit R aufziehen.", true);
+  const p = $("#dcPreset").value;
+  o.dcPreset = p;
+  if (p) { o.dcPeaks = META.deconv_presets[p].peaks.map(x => ({ ...x })); updateDeconv(); return; }
+  const j = await withBusy(() => api("api/deconv_guess", { id: o.id, state: stateOf(o), lo, hi, n: pnum($("#dcN").value) || null }));
+  if (j.error) return toast(j.error, true);
+  o.dcPeaks = j.peaks; updateDeconv();
+}
+async function dcFit() {
+  const o = cur(); if (!o) return;
+  const lo = pnum($("#dcLo").value), hi = pnum($("#dcHi").value);
+  if (lo === null || hi === null || !(hi > lo) || !o.dcPeaks.length) return toast("Bereich und mindestens eine Spitze angeben.", true);
+  o.deconv = { lo, hi, peaks: o.dcPeaks.map(p => ({ ...p, area: p.area === null || p.area === "" ? undefined : p.area })), fix_pos: $("#dcFix").checked, preset: o.dcPreset || null };
+  await refreshCur();
+  S.mode = "dc"; updateMode(); S.view = null; draw();
+}
+
+// ---------------------------------------------------------------- Bibliotheken
+async function loadLibs() {
+  const j = await api("api/library/list", {});
+  if (j.error) return;
+  S.libs = j.libs;
+  if (!S.libSel || !S.libs.some(l => l.id === S.libSel)) S.libSel = (S.libs.find(l => !l.readonly) || S.libs[0] || {}).id;
+}
+async function updateLibs() {
+  $("#lSel").innerHTML = S.libs.map(l => `<option value="${esc(l.id)}"${l.id === S.libSel ? " selected" : ""}>${esc(l.name)} (${l.count})</option>`).join("");
+  const l = S.libs.find(x => x.id === S.libSel);
+  $("#lInfo").innerHTML = l ? `${esc(l.description || "")}${l.source && (l.source.title || l.source.authors) ? "<br>Quelle: " + esc(srcText(l.source)) : ""}${l.readonly ? "<br><i>Mitgeliefert, schreibgeschützt.</i>" : ""}` : "";
+  $("#lDel").disabled = !l || l.readonly; $("#lImp").disabled = !l || l.readonly;
+  $("#lAddRun").disabled = !cur();
+  if (!l) { $("#lList").innerHTML = ""; return; }
+  const j = await api("api/library/entries", { lib: l.id });
+  S.libEntries = j.entries || [];
+  drawLibList();
+}
+function drawLibList() {
+  const f = ($("#lFilter").value || "").toLowerCase();
+  const l = S.libs.find(x => x.id === S.libSel) || {};
+  const es = S.libEntries.filter(e => !f || (e.name + " " + (e.category || "") + " " + (e.atmosphere || "")).toLowerCase().includes(f));
+  $("#lList").innerHTML = es.slice(0, 500).map(e => `<div class="it${S.libEntry === e.id ? " sel" : ""}" data-e="${esc(e.id)}"><span class="nm">${esc(e.name)}</span><span class="cv">${esc(e.category || "")} · ${esc(e.atmosphere || "?")}</span><button data-ov="${esc(e.id)}" title="Im Lauf einblenden">⤵</button>${l.readonly ? "" : `<button data-ed="${esc(e.id)}" title="Bearbeiten">✎</button><button data-rm="${esc(e.id)}" title="Löschen">×</button>`}</div>`).join("") || `<div class="empty">Keine Einträge. „Aktuellen Lauf als Referenz“ oder „Referenz aus Stufenwerten“ fügt welche hinzu.</div>`;
+  $$("#lList .it[data-e]").forEach(el => el.addEventListener("click", () => { S.libEntry = el.dataset.e; drawLibList(); showEntry(); }));
+  $$("#lList [data-ov]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); addRef(S.libSel, b.dataset.ov); }));
+  $$("#lList [data-ed]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); editEntry(b.dataset.ed); }));
+  $$("#lList [data-rm]").forEach(b => b.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const en = S.libEntries.find(x => x.id === b.dataset.rm);
+    if (!confirm(`„${en.name}“ aus der Bibliothek löschen?`)) return;
+    const j = await api("api/library/remove", { lib: S.libSel, eid: b.dataset.rm });
+    if (j.error) return toast(j.error, true);
+    await loadLibs(); updateLibs(); updateSearch();
+  }));
+}
+function showEntry() {
+  const e = S.libEntries.find(x => x.id === S.libEntry);
+  $("#lDetail").hidden = !e;
+  if (!e) return;
+  const st = (e.steps || []).map(s => `${fx(s.T_peak, 0)} °C: ${fx(s.loss, 2)} %${s.label ? " (" + esc(s.label) + ")" : ""}`).join("<br>");
+  $("#lDetail").innerHTML = `<b>${esc(e.name)}</b>${e.kind === "curve" ? ' <span class="badge own">gemessene Kurve</span>' : e.kind === "steps" ? ' <span class="badge">Stufenwerte</span>' : ' <span class="badge model">Modell</span>'}<br>${esc(e.category || "")} · ${esc(e.atmosphere || "")}${e.rate ? " · " + fmt(e.rate, 1) + " K/min" : ""}${e.residue != null ? " · Rückstand " + fx(e.residue, 1) + " %" : ""}${st ? `<div style="margin-top:4px">${st}</div>` : ""}<div style="margin-top:6px">${esc(srcText(e.source))}</div>${e.note ? `<div class="small" style="margin-top:4px">${esc(e.note)}</div>` : ""}${(e.derived || []).length ? `<div class="small">Abgeleitet: ${esc(e.derived.join("; "))}</div>` : ""}`;
+}
+function ownLib() { const l = S.libs.find(x => x.id === S.libSel); return l && !l.readonly ? l.id : null; }
+const CATS = ["Kunststoff", "Elastomer", "Biomasse", "Mineral / Füllstoff", "Flammschutzmittel", "Kohlenstoff", "Kalibrierstandard", "Sonstiges"];
+function refMetaForm(e = {}, withSteps = false, stepsInit = []) {
+  const steps = withSteps ? `<h4 class="sub" style="margin-top:12px">Stufen</h4><div class="small">Je Stufe mindestens DTG-Spitze und Verlust; Onset und Ende machen die Modellkurve genauer.</div>
+    <table class="res" id="rfSteps"><thead><tr><th>Onset °C</th><th>Spitze °C</th><th>Ende °C</th><th>Verlust %</th><th class="l">Vorgang</th><th></th></tr></thead><tbody></tbody></table><div class="row"><button type="button" id="rfAddSt">Stufe hinzufügen</button></div>` : "";
+  return `<div class="row2"><div><label>Name</label><input id="rfName" value="${esc(e.name || "")}"></div><div><label>Kategorie</label><input id="rfCat" list="rfCats" value="${esc(e.category || "")}"><datalist id="rfCats">${CATS.map(c => `<option>${c}</option>`).join("")}</datalist></div></div>
+    <div class="row3"><div><label>Atmosphäre</label><input id="rfAtm" list="rfAtms" value="${esc(e.atmosphere || "")}"><datalist id="rfAtms"><option>N₂</option><option>Luft</option><option>Ar</option><option>O₂</option><option>N₂ → Luft</option></datalist></div><div><label>Heizrate [K/min]</label><input type="number" step="any" id="rfRate" value="${e.rate ?? ""}"></div><div><label>Rückstand [%]</label><input type="number" step="any" id="rfRes" value="${e.residue ?? ""}"></div></div>
+    <label>Bemerkung</label><input id="rfNote" value="${esc(e.note || "")}">${steps}
+    <h4 class="sub" style="margin-top:12px">Quelle</h4>${LabRef.form(e.source || {})}`;
+}
+function stepRow(s = {}) { return `<tr>${["T_onset", "T_peak", "T_end", "loss"].map(k => `<td><input type="number" step="any" data-sk="${k}" value="${s[k] ?? ""}"></td>`).join("")}<td><input data-sk="label" value="${esc(s.label || "")}"></td><td><button type="button" data-srm>×</button></td></tr>`; }
+function wireSteps(b, init) {
+  const tb = $("#rfSteps tbody", b); if (!tb) return;
+  const add = (s) => { tb.insertAdjacentHTML("beforeend", stepRow(s)); $$("[data-srm]", tb).forEach(x => x.onclick = () => x.closest("tr").remove()); };
+  (init.length ? init : [{}]).forEach(add);
+  $("#rfAddSt", b).addEventListener("click", () => add({}));
+}
+function readRefMeta(b, withSteps) {
+  const m = { name: $("#rfName", b).value.trim(), category: $("#rfCat", b).value.trim(), atmosphere: $("#rfAtm", b).value.trim(), note: $("#rfNote", b).value.trim() };
+  const rate = pnum($("#rfRate", b).value); if (rate !== null) m.rate = rate;
+  const res = pnum($("#rfRes", b).value); if (res !== null) m.residue = res;
+  m.source = LabRef.read(b);
+  if (withSteps) m.steps = $$("#rfSteps tbody tr", b).map(tr => { const s = {}; $$("[data-sk]", tr).forEach(i => { const v = i.dataset.sk === "label" ? i.value.trim() : pnum(i.value); if (v !== null && v !== "") s[i.dataset.sk] = v; }); return s; }).filter(s => s.T_peak !== undefined || s.loss !== undefined);
+  return m;
+}
+function refErrors(m, withSteps) {
+  const e = [];
+  if (!m.name) e.push("Name fehlt");
+  e.push(...LabRef.errors(m.source));
+  if (withSteps) { if (!m.steps.length) e.push("mindestens eine Stufe"); m.steps.forEach((s, i) => { if (s.T_peak === undefined || s.loss === undefined) e.push(`Stufe ${i + 1}: Spitze und Verlust angeben`); }); }
+  return e;
+}
+async function ensureOwnLib() {
+  let lib = ownLib();
+  if (lib) return lib;
+  const own = S.libs.find(l => !l.readonly && l.name === "Eigene Referenzen");
+  return own ? own.id : null;     // null -> Server legt „Eigene Referenzen“ an
+}
+async function libAddRun() {
+  const o = cur(); if (!o) return;
+  const m0 = o.data.orig.meta || {};
+  const init = { name: o.name, atmosphere: m0.gases ? m0.gases.join(" → ") : (m0.gas || ""), rate: m0.rate, residue: o.data.residue ? +o.data.residue.end.toFixed(2) : undefined, source: { type: "misc", title: "Eigene Messung: " + o.name, year: String(new Date().getFullYear()) } };
+  const res = await dialogCheck("Lauf als Referenz speichern", `<div class="small">Die bearbeitete Kurve (mit Protokoll) wird als gemessene Referenz gespeichert, in „${esc((S.libs.find(l => l.id === ownLib()) || {}).name || "Eigene Referenzen")}“.</div>` + refMetaForm(init), "Speichern", async (b) => {
+    const m = readRefMeta(b, false); const e = refErrors(m, false);
+    if (e.length) { toast(e.join("\n"), true); return { retry: true }; }
+    return m;
+  });
+  if (!res) return;
+  const lib = await ensureOwnLib();
+  const j = await withBusy(() => api("api/library/add_run", { lib, id: o.id, pipeline: o.pipeline, meta: res }));
+  if (j.error) return toast(j.error, true);
+  S.libSel = j.lib.id; await loadLibs(); updateLibs(); updateSearch();
+  toast(`Gespeichert in „${j.lib.name}“: ${j.entry.name}`);
+}
+async function libAddSteps(fromRun = false, overlay = false) {
+  const o = cur();
+  const init = fromRun && o && o.data ? { name: o.name, rate: (o.data.orig.meta || {}).rate, atmosphere: (o.data.orig.meta || {}).gas || "", residue: +o.data.residue.end.toFixed(2) } : {};
+  const steps = fromRun && o && o.data ? o.data.steps.filter(s => s.x === "T").map(s => ({ T_onset: s.T_onset != null ? +s.T_onset.toFixed(1) : undefined, T_peak: +s.T_peak.toFixed(1), T_end: s.T_endset != null ? +s.T_endset.toFixed(1) : undefined, loss: +s.loss.toFixed(2) })) : [];
+  const res = await dialogCheck("Referenz aus Stufenwerten", `<div class="small">Werte z. B. aus einer Tabelle eines Papers. Daraus wird eine Modellkurve berechnet (Fraser-Suzuki-Spitzen), die in Suche, Mischung und Diagramm wie jede Referenz verwendet und zitiert wird.</div>` + refMetaForm(init, true), "Speichern", async (b) => {
+    const m = readRefMeta(b, true); const e = refErrors(m, true);
+    if (e.length) { toast(e.join("\n"), true); return { retry: true }; }
+    return m;
+  }, (b) => wireSteps(b, steps));
+  if (!res) return;
+  const lib = await ensureOwnLib();
+  const j = await withBusy(() => api("api/library/add_steps", { lib, meta: res }));
+  if (j.error) return toast(j.error, true);
+  S.libSel = j.lib.id; await loadLibs(); updateLibs(); updateSearch();
+  toast(`Gespeichert in „${j.lib.name}“: ${j.entry.name}`);
+  if (overlay) await addRef(j.lib.id, j.entry.id);
+}
+async function editEntry(eid) {
+  const e = S.libEntries.find(x => x.id === eid); if (!e) return;
+  const withSteps = e.kind !== "curve";
+  const res = await dialogCheck("Referenz bearbeiten", refMetaForm(e, withSteps), "Speichern", async (b) => {
+    const m = readRefMeta(b, withSteps); const er = refErrors(m, withSteps);
+    if (er.length) { toast(er.join("\n"), true); return { retry: true }; }
+    return m;
+  }, withSteps ? (b) => wireSteps(b, e.steps || []) : null);
+  if (!res) return;
+  const j = await withBusy(() => api("api/library/update", { lib: S.libSel, eid, meta: res }));
+  if (j.error) return toast(j.error, true);
+  await updateLibs(); showEntry();
+  S.refs.filter(r => r.lib === S.libSel && r.eid === eid).forEach(r => { r.name = j.entry.name; r.source = j.entry.source || {}; });
+}
+async function libNew() {
+  const res = await dialogCheck("Neue Bibliothek", `<label>Name</label><input id="lnName"><label>Beschreibung</label><input id="lnDesc"><details><summary>Quelle der ganzen Sammlung (optional)</summary>${LabRef.form({ type: "dataset" })}</details>`, "Anlegen", async (b) => {
+    const name = $("#lnName", b).value.trim(); if (!name) { toast("Name fehlt.", true); return { retry: true }; }
+    const src = LabRef.read(b);
+    return { name, description: $("#lnDesc", b).value.trim(), source: (src.title || src.doi || src.url) ? src : null };
+  }, null, false);
+  if (!res) return;
+  const j = await api("api/library/create", res);
+  if (j.error) return toast(j.error, true);
+  S.libSel = j.lib.id; await loadLibs(); updateLibs(); updateSearch();
+}
+async function libDelete() {
+  const l = S.libs.find(x => x.id === S.libSel); if (!l || l.readonly) return;
+  if (!confirm(`Bibliothek „${l.name}“ mit ${l.count} Einträgen löschen? Das lässt sich nicht rückgängig machen; vorher exportieren, wenn sie noch gebraucht wird.`)) return;
+  const j = await api("api/library/delete", { lib: l.id });
+  if (j.error) return toast(j.error, true);
+  S.libSel = null; await loadLibs(); updateLibs(); updateSearch();
+}
+async function libExport() {
+  const j = await withBusy(() => api("api/library/export", { lib: S.libSel }));
+  if (j.error) return toast(j.error, true);
+  download(j.filename, j.text, j.mime, false);
+}
+async function libImport(data) {
+  const j = await withBusy(() => api("api/library/import", { lib: S.libSel, data }));
+  if (j.error) return toast(j.error, true);
+  toast(`${j.added} Einträge importiert.`);
+  await loadLibs(); updateLibs(); updateSearch();
+}
+
+// ---------------------------------------------------------------- Eigene Gleichungen
+async function loadEqs() {
+  const j = await api("api/equations/list", {});
+  S.eqs = j.items || [];
+  if (S.eqOn === null) S.eqOn = store.get("eqOn", null);
+  if (S.eqOn === null) S.eqOn = S.eqs.map(e => e.id);
+}
+function activeEqs() { return S.eqs.filter(e => (S.eqOn || []).includes(e.id)).map(e => ({ sym: e.sym, label: e.label, expr: e.expr, unit: e.unit, digits: e.digits, source: e.source })); }
+function updateEqs() {
+  $("#eqList").innerHTML = S.eqs.map(e => `<div class="it"><input type="checkbox" data-on="${esc(e.id)}"${S.eqOn.includes(e.id) ? " checked" : ""}><span class="nm"><code>${esc(e.sym)} = ${esc(e.expr)}</code> ${esc(e.label || "")}${e.unit ? " [" + esc(e.unit) + "]" : ""}${e.source && (e.source.title || e.source.authors) ? ` <span class="small">(${esc(srcShort(e.source))})</span>` : ""}</span><button data-ed="${esc(e.id)}">✎</button><button data-rm="${esc(e.id)}">×</button></div>`).join("") || `<div class="empty">Noch keine eigenen Gleichungen.</div>`;
+  $$("#eqList [data-on]").forEach(c => c.addEventListener("change", async () => { S.eqOn = $$("#eqList [data-on]").filter(x => x.checked).map(x => x.dataset.on); store.set("eqOn", S.eqOn); await refreshAllEq(); }));
+  $$("#eqList [data-ed]").forEach(b => b.addEventListener("click", () => eqDialog(S.eqs.find(e => e.id === b.dataset.ed))));
+  $$("#eqList [data-rm]").forEach(b => b.addEventListener("click", async () => { if (!confirm("Gleichung löschen?")) return; const j = await api("api/equations/delete", { id: b.dataset.rm }); if (j.error) return toast(j.error, true); S.eqs = j.items; await refreshAllEq(); }));
+  const o = cur(), d = o && o.data;
+  const res = (d && d.equations) || [];
+  $("#eqRes").innerHTML = res.length ? `<table class="res"><thead><tr><th class="l">Name</th><th class="l">Bedeutung</th><th>Wert</th><th class="l">Einheit</th></tr></thead><tbody>${res.map(r => `<tr><td class="l"><code>${esc(r.sym)}</code></td><td class="l wrap">${esc(r.label || "")}</td><td>${r.error ? `<span style="color:var(--err-ink)">${esc(r.error)}</span>` : `<b>${esc(r.text)}</b>${shr(r.sym)}`}</td><td class="l">${esc(r.unit || "")}</td></tr>`).join("")}</tbody></table>` : `<div class="small" style="padding:8px">Keine aktive Gleichung.</div>`;
+  $("#eqVars").innerHTML = ((d && d.variables) || []).map(v => `<button title="${esc(v.label)}: ${fmt(v.value, 4)} ${esc(v.unit || "")}" data-v="${esc(v.name)}"${v.ext ? ' class="ext"' : ""}>${v.ext ? "← " : ""}${esc(v.name)}</button>`).join("") + ["m(T)", "dtg(T)", "loss(T1, T2)"].map(f => `<button data-v="${f}" title="Funktion">${f}</button>`).join("");
+  $$("#eqVars [data-v]").forEach(b => b.addEventListener("click", async () => { try { await navigator.clipboard.writeText(b.dataset.v); toast(`„${b.dataset.v}“ kopiert.`); } catch (e) { /* ohne Zwischenablage */ } }));
+}
+async function refreshAllEq() { for (const o of S.runs) await refresh(o); updateEqs(); updateAll(); }
+async function eqDialog(e) {
+  const o = cur(), vars = (o && o.data && o.data.variables) || [];
+  e = e || { sym: "", label: "", expr: "", unit: "", digits: 4 };
+  const html = `<div class="row3"><div><label>Name</label><input id="eqSym" value="${esc(e.sym)}" placeholder="z. B. nH2O"></div><div><label>Einheit</label><input id="eqUnit" value="${esc(e.unit || "")}" placeholder="%, mg, °C …"></div><div><label>Stellen</label><input type="number" id="eqDig" min="1" max="10" value="${e.digits ?? 4}"></div></div>
+    <label>Bedeutung</label><input id="eqLab" value="${esc(e.label || "")}" placeholder="z. B. Kristallwasser je Formeleinheit">
+    <label>Formel</label><input id="eqExpr" value="${esc(e.expr)}" placeholder="z. B. L1/100*146.11/18.015" style="font-family:ui-monospace,Consolas,monospace">
+    <div class="vars">${vars.map(v => `<button type="button" data-ins="${esc(v.name)}" title="${esc(v.label)}">${esc(v.name)}</button>`).join("")}${["m(", "dtg(", "loss(", "ln(", "exp(", "sqrt("].map(f => `<button type="button" data-ins="${f}">${f}</button>`).join("")}</div>
+    <details${e.source && (e.source.title || e.source.doi) ? " open" : ""}><summary>Quelle der Gleichung (empfohlen)</summary>${LabRef.form(e.source || { type: "book" })}</details>`;
+  const res = await dialogCheck(e.id ? "Gleichung bearbeiten" : "Neue Gleichung", html, "Speichern", async (b) => {
+    const src = LabRef.read(b);
+    const item = { id: e.id, sym: $("#eqSym", b).value.trim(), unit: $("#eqUnit", b).value.trim(), digits: +$("#eqDig", b).value || 4, label: $("#eqLab", b).value.trim(), expr: $("#eqExpr", b).value.trim(), source: (src.title || src.doi || src.url) ? src : null };
+    const j = await api("api/equations/save", { item });
+    if (j.error) { toast(j.error, true); return { retry: true }; }
+    return j;
+  }, (b) => { $$("[data-ins]", b).forEach(x => x.addEventListener("click", () => { const i = $("#eqExpr", b); const p = i.selectionStart ?? i.value.length; i.value = i.value.slice(0, p) + x.dataset.ins + i.value.slice(i.selectionEnd ?? p); i.focus(); })); });
+  if (!res) return;
+  S.eqs = res.items;
+  if (!S.eqOn.includes(res.item.id)) { S.eqOn.push(res.item.id); store.set("eqOn", S.eqOn); }
+  await refreshAllEq();
+}
+
+// ---------------------------------------------------------------- Diagramm
+const cv = $("#plot");
+const ctx = cv.getContext("2d");
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function sizeCanvas() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = Math.max(1, r.width * d); cv.height = Math.max(1, r.height * d); draw(); }
+function frame() { const r = cv.getBoundingClientRect(); return { L: 62, R: 66, T: 16, B: 40, W: r.width, H: r.height, w: r.width - 128, h: r.height - 56 }; }
+function ticks(a, b, n = 7) {
+  const span = Math.abs(b - a) || 1, raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(f => f * p).find(s => s >= raw) || p * 10;
+  const out = []; for (let v = Math.ceil(Math.min(a, b) / step) * step; v <= Math.max(a, b) + 1e-9; v += step) out.push(+v.toPrecision(10));
+  return { vals: out, nd: Math.max(0, -Math.floor(Math.log10(step) + 1e-9)) };
+}
+const GRIDX = () => { const g = META.grid, x = new Float64Array(g.n); for (let i = 0; i < g.n; i++) x[i] = g.x0 + i * g.dx; return x; };
+let _grid = null;
+const grid = () => (_grid = _grid || GRIDX());
+function runX(o) { const d = o.data; return S.x === "T" && d.orig.has_T ? d.x.T : d.x.t; }
+function runDtg(o) { const d = o.data; return S.x === "T" && d.orig.has_T ? d.dtg.dT : d.dtg.dt; }
+function normMax(y) { let m = 0; for (const v of y) if (v !== null && isFinite(v) && v > m) m = v; return m || 1; }
+
+// Was gezeichnet wird, je Ansicht
+function scene() {
+  const o = cur();
+  const sc = { s1: [], s2: [], bands: [], marks: [], labels: [], xl: "", y1: "", y2: "", xr: null };
+  if (!o || !o.data) return sc;
+  const xT = S.x === "T" && o.data.orig.has_T;
+  if (S.mode === "kin" && S.kin && S.kin.res) {
+    const k = S.kin.res;
+    if (S.kinView === "a") {
+      sc.xl = "Temperatur [°C]"; sc.y1 = "Umsatz α";
+      k.curves.forEach((c, i) => { const o2 = S.runs.find(r => r.name === c.name); sc.s1.push({ x: c.T, y: c.a, color: o2 ? o2.color : COLORS[i % COLORS.length], w: 1.4, name: `${fmt(c.beta, 1)} K/min` }); });
+    } else if (S.kinView === "m" && k.master) {
+      sc.xl = "Umsatz α"; sc.y1 = "y(α) / y(0,5)";
+      const m = k.master;
+      sc.s1.push({ x: m.alphas, y: m.mean, color: css("--ink"), w: 2, name: "Messung (Mittel)" });
+      Object.entries(m.models).forEach(([key, y], i) => sc.s1.push({ x: m.alphas, y, color: key === k.model ? css("--accent") : COLORS[(i + 1) % COLORS.length], w: key === k.model ? 1.8 : 0.8, dash: key === k.model ? null : [4, 3], name: key }));
+    } else {
+      sc.xl = "Umsatz α"; sc.y1 = "Eₐ [kJ/mol]";
+      const names = { friedman: "Friedman", ofw: "OFW", kas: "KAS", starink: "Starink", vyazovkin: "Vyazovkin" };
+      Object.entries(k.iso.methods).forEach(([m, rows], i) => sc.s1.push({ x: rows.map(r => r.alpha), y: rows.map(r => r.E), ci: rows.map(r => r.ci), color: COLORS[i % COLORS.length], w: 1.4, dots: true, name: names[m] || m }));
+    }
+    return sc;
+  }
+  if (S.mode === "dc" && o.data.deconv && !o.data.deconv.error) {
+    const r = o.data.deconv;
+    sc.xl = "Temperatur [°C]"; sc.y1 = "DTG, −dm/dT [%/°C]";
+    sc.s1.push({ x: r.x, y: r.y, color: css("--ink"), w: 1.6, name: o.name });
+    sc.s1.push({ x: r.x, y: r.fit, color: css("--accent"), w: 1.4, dash: [6, 3], name: `Anpassung (R² ${fx(r.r2, 4)})` });
+    r.peaks.forEach((p, i) => sc.s1.push({ x: r.x, y: p.y, color: COLORS[(i + 1) % COLORS.length], w: 1, fill: true, name: `${p.name}: ${fx(p.area, 1)} %` }));
+    return sc;
+  }
+  if (S.mode === "search" && o.search && o.search.hits.length) {
+    const h = o.search.hits[o.hitSel], g = grid();
+    sc.xl = "Temperatur [°C]"; sc.y1 = "Masse [%]"; sc.y2 = "DTG, normiert";
+    if (o.data.orig.has_T) sc.s1.push({ x: o.data.x.T, y: o.data.m, color: css("--ink"), w: 1.4, name: o.name });
+    if (h && h.tg) sc.s1.push({ x: g, y: h.tg, color: css("--accent2"), w: 1.2, dash: [6, 3], name: h.name });
+    const q = o.search.query, mq = normMax(q);
+    sc.s2.push({ x: g, y: Array.from(q, v => v === null ? null : v / mq), color: css("--ink"), w: 1.2, fill: true, alpha: .08 });
+    if (h && h.y) { const mh = normMax(h.y); sc.s2.push({ x: g, y: Array.from(h.y, v => v / mh), color: css("--accent2"), w: 1.2, name: `${h.name} (HQI ${fx(h.hqi, 1)}${h.shift ? ", " + (h.shift > 0 ? "+" : "") + h.shift + " K" : ""})` }); }
+    if (h) sc.labels.push(`Referenz: ${h.lib_name}${h.modelled && !/modell/i.test(h.lib_name) ? " (modelliert aus Literaturwerten)" : ""}${srcShort(h.source) ? ", Quelle " + srcShort(h.source) : ""}`);
+    return sc;
+  }
+  if (S.mode === "mix" && o.mix && o.mix.combos.length) {
+    const c = o.mix.combos[o.mixSel], g = grid();
+    sc.xl = "Temperatur [°C]"; sc.y1 = "Masse [%]"; sc.y2 = "DTG [%/°C]";
+    if (o.data.orig.has_T) sc.s1.push({ x: o.data.x.T, y: o.data.m, color: css("--ink"), w: 1.4, name: o.name });
+    sc.s1.push({ x: g, y: c.tg, color: css("--accent"), w: 1.2, dash: [6, 3], name: "Mischung (TG)" });
+    sc.s2.push({ x: g, y: o.mix.query, color: css("--ink"), w: 1.1 });
+    sc.s2.push({ x: g, y: c.fit, color: css("--accent"), w: 1.2, dash: [6, 3] });
+    c.components.forEach((x, i) => sc.s2.push({ x: g, y: x.y, color: COLORS[(i + 1) % COLORS.length], w: 1, fill: true, alpha: .15, name: `${x.name}: ${fx(100 * x.frac, 1)} %` }));
+    return sc;
+  }
+  // Lauf
+  sc.xl = xT ? "Temperatur [°C]" : "Zeit [min]"; sc.y1 = "Masse [%]"; sc.y2 = xT ? "DTG, −dm/dT [%/°C]" : "DTG, −dm/dt [%/min]";
+  const shown = S.runs.filter((r, i) => (r.overlay || i === S.sel) && r.data);
+  const multi = shown.length > 1;
+  for (const r of shown) {
+    const x = runX(r);
+    sc.s1.push({ x, y: r.data.m, color: multi ? r.color : css("--ink"), w: r === o ? 1.6 : 1.1, name: r.name });
+    if (S.dtg) sc.s2.push({ x, y: runDtg(r), color: multi ? r.color : css("--accent"), w: 1, dash: multi ? [5, 3] : null });
+  }
+  if (xT) {
+    const g = grid();
+    for (const r of S.refs) {
+      sc.s1.push({ x: g, y: r.tg, color: r.color, w: 1.2, dash: [7, 4], name: `${r.name} (${r.modelled ? "Modell" : r.lib_name}${srcShort(r.source) ? ", " + srcShort(r.source) : ""})` });
+      if (S.dtg && r.dtg) sc.s2.push({ x: g, y: r.dtg, color: r.color, w: 0.9, dash: [2, 3] });
+    }
+  }
+  if (!multi) {
+    for (const s of o.data.steps) {
+      if ((s.x === "T") !== xT) continue;
+      sc.bands.push({ a: stepX(s, "start"), b: stepX(s, "end"), label: `−${fx(s.loss, 2)} %`, y: (s.m_start + s.m_end) / 2 });
+      for (const k of ["onset", "endset"]) { const v = stepX(s, k); if (v != null) sc.marks.push({ x: v, kind: k }); }
+      if (s.tangent) sc.marks.push({ kind: "tan", s });
+    }
+  }
+  if (S.mode === "kin" || S.tab === "kinetik") { const lo = pnum($("#kLo").value), hi = pnum($("#kHi").value); if (lo !== null && hi !== null && xT) sc.bands.push({ a: lo, b: hi, label: "Kinetik", kin: true }); }
+  if (S.tab === "trennung") { const lo = pnum($("#dcLo").value), hi = pnum($("#dcHi").value); if (lo !== null && hi !== null && xT) sc.bands.push({ a: lo, b: hi, label: "Trennung", kin: true }); }
+  return sc;
+}
+function extent(series, x0, x1) {
+  let lo = Infinity, hi = -Infinity;
+  for (const s of series) {
+    const n = Math.min(s.x.length, s.y.length);
+    for (let i = 0; i < n; i++) {
+      const x = s.x[i], y = s.y[i]; if (y === null || !isFinite(y) || x < x0 || x > x1) continue;
+      const c = s.ci && s.ci[i] && isFinite(s.ci[i]) ? s.ci[i] : 0;
+      if (y - c < lo) lo = y - c; if (y + c > hi) hi = y + c;
+    }
+  }
+  if (!isFinite(lo)) return [0, 1];
+  if (hi - lo < 1e-9) { lo -= 0.5; hi += 0.5; }
+  const p = (hi - lo) * 0.06;
+  return [lo - p, hi + p];
+}
+function xExtent(sc) {
+  let lo = Infinity, hi = -Infinity;
+  for (const s of [...sc.s1, ...sc.s2]) for (let i = 0; i < s.x.length; i++) { const y = s.y[i]; if (y === null || !isFinite(y)) continue; const x = s.x[i]; if (x < lo) lo = x; if (x > hi) hi = x; }
+  const o = cur();
+  if (S.mode === "run" && o && o.data) { const x = runX(o); lo = Math.max(lo, Math.min(...[x[0], x[x.length - 1]]) - 5); }
+  return isFinite(lo) ? [lo, hi] : [0, 1];
+}
+let SC = null;
+function draw() {
+  const d = devicePixelRatio || 1, f = frame();
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  ctx.fillStyle = css("--plot"); ctx.fillRect(0, 0, f.W, f.H);
+  $("#empty").hidden = S.runs.length > 0;
+  const sc = SC = scene();
+  if (!sc.s1.length && !sc.s2.length) return;
+  if (!S.view || S.view.mode !== S.mode + S.x + S.kinView) { const [a, b] = xExtent(sc); S.view = { x0: a, x1: b, mode: S.mode + S.x + S.kinView }; }
+  const v = S.view;
+  const [a1, b1] = extent(sc.s1, v.x0, v.x1);
+  const [a2, b2] = sc.s2.length ? extent(sc.s2, v.x0, v.x1) : [0, 1];
+  const X = (x) => f.L + (x - v.x0) / (v.x1 - v.x0) * f.w;
+  const Y1 = (y) => f.T + (1 - (y - a1) / (b1 - a1)) * f.h;
+  const Y2 = (y) => f.T + (1 - (y - a2) / (b2 - a2)) * f.h;
+  S.tx = { X, Y1, Y2, f, inv: (px) => v.x0 + (px - f.L) / f.w * (v.x1 - v.x0) };
+  // Gitter und Achsen
+  ctx.font = "11px system-ui, sans-serif"; ctx.lineWidth = 1;
+  const tx = ticks(v.x0, v.x1, Math.max(3, f.w / 90)), t1 = ticks(a1, b1, Math.max(3, f.h / 60));
+  ctx.strokeStyle = css("--grid"); ctx.fillStyle = css("--muted");
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (const t of tx.vals) { const x = X(t); if (x < f.L - 1 || x > f.L + f.w + 1) continue; ctx.beginPath(); ctx.moveTo(x, f.T); ctx.lineTo(x, f.T + f.h); ctx.stroke(); ctx.fillText(fmt(t, tx.nd), x, f.T + f.h + 5); }
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (const t of t1.vals) { const y = Y1(t); if (y < f.T - 1 || y > f.T + f.h + 1) continue; ctx.beginPath(); ctx.moveTo(f.L, y); ctx.lineTo(f.L + f.w, y); ctx.stroke(); ctx.fillText(fmt(t, t1.nd), f.L - 6, y); }
+  if (sc.s2.length) { const t2 = ticks(a2, b2, Math.max(3, f.h / 60)); ctx.textAlign = "left"; ctx.fillStyle = css("--accent"); for (const t of t2.vals) { const y = Y2(t); if (y < f.T - 1 || y > f.T + f.h + 1) continue; ctx.fillText(fmt(t, t2.nd), f.L + f.w + 6, y); } }
+  ctx.strokeStyle = css("--line"); ctx.strokeRect(f.L, f.T, f.w, f.h);
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "center"; ctx.textBaseline = "bottom"; ctx.fillText(sc.xl, f.L + f.w / 2, f.H - 4);
+  ctx.save(); ctx.translate(14, f.T + f.h / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = "top"; ctx.fillText(sc.y1, 0, 0); ctx.restore();
+  if (sc.y2 && sc.s2.length) { ctx.save(); ctx.translate(f.W - 12, f.T + f.h / 2); ctx.rotate(Math.PI / 2); ctx.fillStyle = css("--accent"); ctx.textBaseline = "top"; ctx.fillText(sc.y2, 0, 0); ctx.restore(); }
+  ctx.save(); ctx.beginPath(); ctx.rect(f.L, f.T, f.w, f.h); ctx.clip();
+  // Stufenbänder
+  sc.bands.forEach((b, bi) => {
+    const xa = X(Math.min(b.a, b.b)), xb = X(Math.max(b.a, b.b));
+    ctx.fillStyle = b.kin ? "rgba(29,78,216,.08)" : css("--accent-soft");
+    ctx.globalAlpha = b.kin || bi % 2 === 0 ? 1 : 0.45;
+    ctx.fillRect(xa, f.T, xb - xa, f.h); ctx.globalAlpha = 1;
+    if (b.y !== undefined) { ctx.fillStyle = css("--ink"); ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.font = "11.5px system-ui, sans-serif"; ctx.fillText(b.label, Math.min(xb + 4, f.L + f.w - 50), Y1(b.y)); }
+    else { ctx.fillStyle = css("--accent2"); ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText(b.label, xa + 4, f.T + 4); }
+  });
+  const line = (s, Y) => {
+    const n = Math.min(s.x.length, s.y.length), step = Math.max(1, Math.floor(n / (f.w * 3)));
+    ctx.beginPath(); let pen = false;
+    for (let i = 0; i < n; i += step) { const y = s.y[i]; if (y === null || !isFinite(y)) { pen = false; continue; } const px = X(s.x[i]), py = Y(y); pen ? ctx.lineTo(px, py) : ctx.moveTo(px, py); pen = true; }
+    ctx.strokeStyle = s.color; ctx.lineWidth = s.w || 1; ctx.setLineDash(s.dash || []); ctx.stroke(); ctx.setLineDash([]);
+    if (s.fill) { ctx.globalAlpha = s.alpha || .12; ctx.fillStyle = s.color; ctx.beginPath(); let st = null; for (let i = 0; i < n; i += step) { const y = s.y[i]; if (y === null || !isFinite(y)) continue; const px = X(s.x[i]); if (st === null) { st = px; ctx.moveTo(px, Y(0)); } ctx.lineTo(px, Y(y)); } if (st !== null) { ctx.lineTo(X(s.x[n - 1]), Y(0)); ctx.closePath(); ctx.fill(); } ctx.globalAlpha = 1; }
+    if (s.dots) { ctx.fillStyle = s.color; for (let i = 0; i < n; i++) { const y = s.y[i]; if (y === null || !isFinite(y)) continue; ctx.beginPath(); ctx.arc(X(s.x[i]), Y(y), 2.5, 0, 7); ctx.fill(); if (s.ci && s.ci[i]) { ctx.beginPath(); ctx.moveTo(X(s.x[i]), Y(y - s.ci[i])); ctx.lineTo(X(s.x[i]), Y(y + s.ci[i])); ctx.stroke(); } } }
+  };
+  sc.s2.forEach(s => line(s, Y2));
+  sc.s1.forEach(s => line(s, Y1));
+  // Onset/Endset und Tangenten
+  for (const m of sc.marks) {
+    if (m.kind === "tan") {
+      const s = m.s, xs = [stepX(s, "onset") ?? stepX(s, "start"), stepX(s, "endset") ?? stepX(s, "end")];
+      ctx.strokeStyle = css("--muted"); ctx.lineWidth = 0.8; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(X(xs[0]), Y1(s.tangent[0] * xs[0] + s.tangent[1])); ctx.lineTo(X(xs[1]), Y1(s.tangent[0] * xs[1] + s.tangent[1])); ctx.stroke();
+      ctx.setLineDash([]);
+      continue;
+    }
+    ctx.strokeStyle = css("--muted"); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(m.x), f.T + f.h); ctx.lineTo(X(m.x), f.T + f.h - 10); ctx.stroke();
+  }
+  // Ziehen
+  if (S.drag && S.drag.kind === "range") {
+    const xa = Math.min(S.drag.x0, S.drag.x1), xb = Math.max(S.drag.x0, S.drag.x1);
+    ctx.fillStyle = S.tool === "range" ? "rgba(29,78,216,.15)" : "rgba(127,127,127,.15)"; ctx.fillRect(xa, f.T, xb - xa, f.h);
+  }
+  ctx.restore();
+  // Legende
+  const leg = [...sc.s1, ...sc.s2].filter(s => s.name);
+  ctx.font = "11.5px system-ui, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  let ly = f.T + 12;
+  const lx = S.mode === "kin" && S.kinView !== "a" ? f.L + f.w - 230 : f.L + 12;
+  const lshow = leg.slice(0, 12), nm = (s) => s.name.length > 70 ? s.name.slice(0, 68) + "…" : s.name;
+  const lw = Math.max(0, ...lshow.map(s => ctx.measureText(nm(s)).width + 30), ...sc.labels.map(t => ctx.measureText(t).width + 6));
+  if (lw) { ctx.fillStyle = css("--plot"); ctx.globalAlpha = .88; ctx.fillRect(lx - 6, f.T + 3, lw + 12, 16 * (lshow.length + sc.labels.length) + 2); ctx.globalAlpha = 1; }
+  for (const s of lshow) {
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.setLineDash(s.dash || []); ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 18, ly); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css("--ink"); ctx.fillText(nm(s), lx + 24, ly); ly += 16;
+  }
+  for (const t of sc.labels) { ctx.fillStyle = css("--muted"); ctx.fillText(t, lx, ly); ly += 16; }
+  // Fadenkreuz
+  if (S.mouse && S.mouse.in) { ctx.strokeStyle = css("--muted"); ctx.globalAlpha = .5; ctx.beginPath(); ctx.moveTo(S.mouse.px, f.T); ctx.lineTo(S.mouse.px, f.T + f.h); ctx.stroke(); ctx.globalAlpha = 1; }
+}
+function readout(px) {
+  if (!S.tx || !SC) return;
+  const x = S.tx.inv(px), o = cur();
+  const parts = [`${S.mode === "kin" && S.kinView !== "a" ? "α" : S.x === "T" ? "T" : "t"} = ${fmt(x, 2)}`];
+  const at = (s) => { let best = -1, bd = Infinity; for (let i = 0; i < s.x.length; i += Math.max(1, Math.floor(s.x.length / 4000))) { const dd = Math.abs(s.x[i] - x); if (dd < bd) { bd = dd; best = i; } } return best >= 0 ? s.y[best] : null; };
+  if (SC.s1[0]) parts.push(`${SC.y1.split(" [")[0]} ${fmt(at(SC.s1[0]), 3)}`);
+  if (SC.s2[0]) parts.push(`DTG ${fmt(at(SC.s2[0]), 4)}`);
+  $("#stPos").textContent = parts.join("   ");
+}
+function zoomTo(a, b, pad = 0.1) { if (a == null || b == null) return; const w = Math.abs(b - a) || 10; S.view = { ...S.view, x0: Math.min(a, b) - pad * w, x1: Math.max(a, b) + pad * w }; draw(); }
+function resetView() { S.view = null; draw(); }
+function evX(e) { const r = cv.getBoundingClientRect(); return e.clientX - r.left; }
+function onDown(e) {
+  if (!S.tx) return;
+  cv.setPointerCapture(e.pointerId);
+  const px = evX(e);
+  if (S.tool === "pan") S.drag = { kind: "pan", px, v: { ...S.view } };
+  else S.drag = { kind: "range", x0: px, x1: px };
+}
+function onMove(e) {
+  const px = evX(e);
+  S.mouse = { px, in: true };
+  if (S.drag && S.drag.kind === "pan") { const f = S.tx.f, dx = (px - S.drag.px) / f.w * (S.drag.v.x1 - S.drag.v.x0); S.view = { ...S.drag.v, x0: S.drag.v.x0 - dx, x1: S.drag.v.x1 - dx }; }
+  else if (S.drag) S.drag.x1 = px;
+  readout(px); draw();
+}
+async function onUp() {
+  const dr = S.drag; S.drag = null;
+  if (!dr || dr.kind !== "range" || Math.abs(dr.x1 - dr.x0) < 4) { draw(); return; }
+  const a = S.tx.inv(Math.min(dr.x0, dr.x1)), b = S.tx.inv(Math.max(dr.x0, dr.x1));
+  if (S.tool === "zoom") { S.view = { ...S.view, x0: a, x1: b }; draw(); return; }
+  // Bereich: je nach Tab
+  if (S.tab === "kinetik") { $("#kLo").value = fx(a, 1).replace(",", "."); $("#kHi").value = fx(b, 1).replace(",", "."); draw(); return; }
+  if (S.tab === "trennung") { $("#dcLo").value = fx(a, 1).replace(",", "."); $("#dcHi").value = fx(b, 1).replace(",", "."); draw(); return; }
+  if (S.mode !== "run") { toast("Stufen von Hand nur in der Ansicht „Lauf“.", true); draw(); return; }
+  await addManualStep(+a.toFixed(2), +b.toFixed(2));
+}
+
+// ---------------------------------------------------------------- Werkzeuge, Ansicht
+const TOOLS = [
+  { id: "zoom", key: "Z", title: "Zoom: Bereich aufziehen (Doppelklick: ganz)", svg: '<circle cx="10" cy="10" r="6"/><path d="M15 15l5 5M7 10h6M10 7v6"/>' },
+  { id: "pan", key: "H", title: "Verschieben", svg: '<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>' },
+  { id: "range", key: "R", title: "Bereich: Stufengrenzen von Hand (Tab Stufen), Kinetik- oder Trennungsbereich (je nach Tab)", svg: '<path d="M5 4v16M19 4v16"/><path d="M5 12h14" stroke-dasharray="2 2"/>' },
+];
+function buildTools() {
+  $("#tools").innerHTML = TOOLS.map(t => `<button data-tool="${t.id}" title="${esc(t.title)} (${t.key})"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${t.svg}</svg></button>`).join("");
+  $$("#tools [data-tool]").forEach(b => b.addEventListener("click", () => setTool(b.dataset.tool)));
+  setTool(S.tool);
+}
+function setTool(t) { S.tool = t; $$("#tools [data-tool]").forEach(b => b.classList.toggle("sel", b.dataset.tool === t)); updateHint(); }
+function setX(x) { S.x = x; $$("#xSeg button").forEach(b => b.classList.toggle("sel", b.dataset.x === x)); S.view = null; draw(); }
+function updateMode() {
+  const o = cur();
+  const ok = { run: true, search: !!(o && o.search && o.search.hits.length), mix: !!(o && o.mix && o.mix.combos.length), kin: !!(S.kin && S.kin.res), dc: !!(o && o.data && o.data.deconv && !o.data.deconv.error) };
+  if (!ok[S.mode]) S.mode = "run";
+  $$("#modeSeg button").forEach(b => { b.disabled = !ok[b.dataset.mode]; b.classList.toggle("sel", b.dataset.mode === S.mode); });
+  $("#xSeg").hidden = S.mode !== "run";
+  updateHint();
+}
+function updateHint() {
+  const h = { zoom: "Bereich aufziehen zum Vergrössern, Mausrad zoomt, Doppelklick zeigt alles.", pan: "Ziehen verschiebt.",
+    range: S.tab === "kinetik" ? "Bereich der Stufe für die Kinetik aufziehen." : S.tab === "trennung" ? "Bereich für die Trennung aufziehen." : "Stufe von Hand: von Beginn bis Ende der Stufe aufziehen." };
+  $("#optHint").textContent = h[S.tool] || "";
+}
+function updateChips() {
+  $("#chips").innerHTML = S.runs.map((o, i) => `<span class="chip${i === S.sel ? " sel" : ""}" data-i="${i}" title="${esc(o.file)}"><i style="background:${o.color}"></i><span>${esc(o.name)}</span><button class="x" data-x="${i}" title="Schliessen">×</button></span>`).join("");
+  $$("#chips .chip").forEach(c => c.addEventListener("click", () => { S.sel = +c.dataset.i; S.view = null; updateChips(); updateAll(); draw(); }));
+  $$("#chips .x").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); closeRun(+b.dataset.x); }));
+}
+
+// ---------------------------------------------------------------- Speichern, Export, Bericht
+async function saveRun() {
+  const o = cur(); if (!o) return;
+  const j = await api("api/save", { id: o.id, pipeline: o.pipeline });
+  if (j.error) return toast(j.error, true);
+  download(j.filename, j.text, j.mime, false);
+}
+function savePng() { const o = cur(); if (!o) return; cv.toBlob(b => download(`${stem(o.name)}_ansicht.png`, b), "image/png"); }
+async function doExport(overwrite = false) {
+  const o = cur(); if (!o) return;
+  const j = await withBusy(() => api("api/export", { id: o.id, state: stateOf(o), overwrite }));
+  if (j.exists) { if (confirm(`Der Ordner\n${j.folder}\nenthält schon Dateien. Überschreiben?`)) return doExport(true); return; }
+  if (j.error) return toast(j.error, true);
+  toast(`Exportiert: ${j.files.join(", ")}`, false, j.folder);
+}
+function sendToReport() {
+  const o = cur();
+  if (!o || !window.Lab) return;
+  const scopes = [{ id: "sel", label: `Aktueller Lauf (${o.name})` }];
+  const shown = S.runs.filter((r, i) => r.overlay || i === S.sel);
+  if (shown.length > 1) scopes.push({ id: "shown", label: `Überlagerte Läufe (${shown.length}) als Vergleich` });
+  if (S.runs.length > 1) scopes.push({ id: "all", label: `Alle ${S.runs.length} Läufe als Vergleich` });
+  if (S.kin && S.kin.res) scopes.push({ id: "kin", label: `Kinetik (${S.kin.ids.length} Heizraten, ${fmt(S.kin.T_lo, 0)}–${fmt(S.kin.T_hi, 0)} °C)` });
+  window.Lab.sendToReport({
+    module: "tga",
+    title: "TGA " + o.name,
+    scopes,
+    include: [
+      { id: "figures", label: "Abbildungen (TG/DTG mit Stufen und eingeblendeten Referenzen, Suche, Mischung, Zusammensetzung, Trennung, Kinetik)" },
+      { id: "tables", label: "Tabellen (Stufen, Kennwerte, Zusammensetzung, Treffer, Kinetik, eigene Gleichungen)" },
+      { id: "values", label: "Kennwerte als \\labval (Stufenverluste, Onset, T5, Rückstand, Gehalte, bester Treffer, Gleichungen)" },
+      { id: "data", label: "Daten (Lauf und Stufen als CSV, für pgfplots)" },
+      { id: "citations", label: "Quellen (Datei, Normen, Verfahren, Referenzen, Gleichungen)" },
+      { id: "text", label: "Textbausteine (Methodik, Ergebnisse)" },
+    ],
+    build: ({ scope, lang, include, title }) => {
+      const list = scope === "kin" ? S.kin.ids.map(id => S.runs.find(r => r.id === id)).filter(Boolean) : scope === "all" ? S.runs : scope === "shown" ? shown : [o];
+      const body = { items: list.map(s => ({ id: s.id, state: stateOf(s, scope !== "kin") })), lang, include, title };
+      if ((scope === "kin" || S.kinRep) && S.kin && S.kin.res && S.kin.ids.every(id => list.some(r => r.id === id))) body.kinetics = { T_lo: S.kin.T_lo, T_hi: S.kin.T_hi, opts: S.kin.opts };
+      return api("api/bundle", body);
+    },
+  });
+}
+
+// A3: Stufentabelle (nur Zahlen, nie die Kurve) im Projekt für den Elementrechner veröffentlichen.
+async function shareSteps() {
+  const o = cur();
+  if (!o) return;
+  try {
+    const e = await api("api/share/steps", { id: o.id, state: stateOf(o) });
+    const rows = e.outputs.map(x => `<tr><td>${esc(x.label)}</td><td style="text-align:right">${x.quantity.value.toFixed(2)} ${esc(x.quantity.unit)}</td></tr>`).join("");
+    dialog("Geteilt", `<p>Freigabe <b>${esc(e.id)}</b>, Version ${e.version} – im Elementrechner unter „Geteilte Eingabe …“ verfügbar.
+      Erneutes Teilen desselben Laufs erzeugt eine neue Version; gebundene Versionen ändern sich nicht.</p>
+      <table>${rows}</table>`, [{ value: "ok", label: "OK", primary: true }]);
+  } catch (err) { toast(err.message, true); }
+}
+
+// A7: Stufen (Verlust %, Temperaturen als Bedingungen) und Rückstand als unveränderliche Einträge in den Projektindex
+function indexSteps() {
+  const o = cur();
+  if (!o || !o.data || !(o.data.steps || []).length) return toast("Keine Stufen ausgewertet.", true);
+  const prov = { item: o.id, item_name: o.name };
+  const e = o.data.steps.map(s => ({ key: `${o.name}: Stufe ${s.no} Massenverlust`, label: `Stufe ${s.no}`, type: "measured",
+    quantity: { value: +(+s.loss).toFixed(3), unit: "%" }, provenance: prov,
+    conditions: { T_onset: stepX(s, "onset"), T_peak: stepX(s, "peak"), T_endset: stepX(s, "endset") } }));
+  if (o.data.residue && o.data.residue.end != null) e.push({ key: `${o.name}: Rückstand`, label: "Rückstand am Ende", type: "measured",
+    quantity: { value: +(+o.data.residue.end).toFixed(3), unit: "%" }, provenance: prov });
+  return LabIndex.addMany(api, toast, e, "Stufen in den Projektindex");
+}
+
+// ---------------------------------------------------------------- Menüs
+const MENUS = [
+  { label: "Datei", tkey: "tg.m_file", items: [
+    { label: "Öffnen …", key: "Strg+O", always: true, act: () => $("#file").click() },
+    { label: "Öffnen mit Spaltenzuordnung …", always: true, act: () => { S.forceMap = true; $("#file").click(); } },
+    { label: "Lauf aus Datensatz …", tkey: "tg.ds_open", always: true, act: () => dsDialog() },
+    { label: "Aus Datensatz aktualisieren", tkey: "tg.ds_refresh", enabled: () => !!dsOf(cur()), act: () => dsRefresh(cur()) },
+    "-",
+    { label: "Umgebungen …", always: true, act: () => ENVS.dialog() },
+    "-",
+    { label: "Lauf als CSV speichern", act: saveRun },
+    { label: "Ansicht als PNG speichern", act: savePng },
+    { label: "Exportieren (Ordner mit Abbildung, Stufen, Protokoll)", act: () => doExport() },
+    { label: "Zum Bericht …", enabled: () => !!window.Lab, act: sendToReport },
+    { label: "Stufentabelle teilen (Elementrechner) …", act: shareSteps },
+    { label: "Stufen in den Projektindex …", act: indexSteps },
+    { label: "Projektindex …", always: true, act: () => LabIndex.browse(api, toast) },
+    "-",
+    { label: "Schliessen", act: () => closeRun(S.sel) },
+    { label: "Alle schliessen", act: async () => { if (confirm("Alle Läufe schliessen?")) { while (S.runs.length) await closeRun(0); } } },
+  ] },
+  { label: "Beispiele", tkey: "tg.m_samples", items: [] },
+  { label: "Bearbeiten", tkey: "tg.m_edit", items: [
+    { label: "Rückgängig", key: "Strg+Z", enabled: () => cur() && cur().pipeline.length, act: undo },
+    { label: "Wiederholen", key: "Strg+Y", enabled: () => cur() && cur().redo.length, act: redo },
+    "-",
+    { ops: true },
+    "-",
+    { label: "Spalten zuordnen …", act: () => mapDialog() },
+    { label: "Protokoll speichern …", act: saveProtocol },
+    { label: "Protokoll laden …", act: () => pickJson(loadProtocol) },
+    { label: "Protokoll auf alle Läufe anwenden", enabled: () => S.runs.length > 1, act: applyAll },
+  ] },
+  { label: "Analyse", tkey: "tg.m_analysis", items: [
+    { label: "Stufen", act: () => switchTab("stufen") },
+    { label: "Kennwerte (T bei x %, Rückstand)", act: () => switchTab("kennwerte") },
+    { label: "Zusammensetzung ASTM E1131", act: () => { switchTab("zusammensetzung"); $("#cpPreset").value = "e1131"; runComp(); } },
+    { label: "Kurzanalyse ASTM D7582", act: () => { switchTab("zusammensetzung"); $("#cpPreset").value = "d7582"; runComp(); } },
+    { label: "Calciumoxalat-Prüfung", act: async () => { switchTab("zusammensetzung"); cur().calib = true; await refreshCur(); } },
+    "-",
+    { label: "Bibliothekssuche", key: "F3", act: () => { switchTab("suche"); runSearch(); } },
+    { label: "Mischungsanalyse", act: () => { switchTab("mischung"); runMixture(); } },
+    { label: "Kinetik (mehrere Heizraten)", always: true, act: () => switchTab("kinetik") },
+    { label: "Stufen trennen (Fraser-Suzuki)", act: () => switchTab("trennung") },
+    { label: "Eigene Gleichungen", always: true, act: () => switchTab("gleichungen") },
+  ] },
+  { label: "Ansicht", tkey: "tg.m_view", items: [
+    { label: "Ganzer Bereich", key: "0", act: resetView },
+    { label: "x = Temperatur", check: () => S.x === "T", act: () => setX("T") },
+    { label: "x = Zeit", check: () => S.x === "t", act: () => setX("t") },
+    { label: "DTG zeigen", check: () => S.dtg, always: true, act: () => { S.dtg = !S.dtg; $("#showDtg").checked = S.dtg; draw(); } },
+    "-",
+    { label: "Referenz einblenden …", always: true, act: refPicker },
+    { label: "Eigene Referenz eingeben und einblenden …", always: true, act: () => libAddSteps(false, true) },
+    { label: "Eingeblendete Referenzen entfernen", enabled: () => S.refs.length, act: () => { S.refs = []; updateCompare(); draw(); } },
+  ] },
+  { label: "Bibliothek", tkey: "tg.m_lib", items: [
+    { label: "Neue Bibliothek …", always: true, act: libNew },
+    { label: "Aktuellen Lauf als Referenz …", act: () => { switchTab("bibliotheken"); libAddRun(); } },
+    { label: "Referenz aus Stufenwerten (z. B. aus einem Paper) …", always: true, act: () => { switchTab("bibliotheken"); libAddSteps(); } },
+    { label: "Stufen dieses Laufs als Referenz …", act: () => libAddSteps(true) },
+    { label: "Bibliotheken verwalten", always: true, act: () => switchTab("bibliotheken") },
+  ] },
+];
+let menusBound = false;
+function buildMenus() {                 // auch nach einem Sprachwechsel (UI-06): Leiste neu, Dokument-Klick nur einmal
+  MENUS[1].items = Object.entries(META.samples).map(([k, v]) => ({ label: v, always: true, act: () => loadSample(k) }));
+  const bar = $("#menubar");
+  closeMenus(); bar.innerHTML = "";
+  MENUS.forEach((m, mi) => {
+    const w = document.createElement("div"); w.className = "m";
+    const b = document.createElement("button"); b.textContent = m.tkey ? tr(m.tkey) : m.label;
+    b.addEventListener("click", (e) => { e.stopPropagation(); const open = b.classList.contains("open"); closeMenus(); if (!open) openMenu(mi, w, b); });
+    b.addEventListener("mouseenter", () => { if ($(".dd") && !b.classList.contains("open")) { closeMenus(); openMenu(mi, w, b); } });
+    w.appendChild(b); bar.appendChild(w);
+  });
+  if (!menusBound) { document.addEventListener("click", closeMenus); menusBound = true; }
+}
+function closeMenus() { $$(".dd").forEach(d => d.remove()); $$("#menubar button.open").forEach(b => b.classList.remove("open")); }
+function openMenu(mi, w, b) {
+  b.classList.add("open");
+  const dd = document.createElement("div"); dd.className = "dd"; dd.setAttribute("role", "menu");
+  const o = cur();
+  const items = MENUS[mi].items.flatMap(it => it.ops ? Object.entries(META.ops).map(([k, d]) => ({ label: d.de + (d.params.length ? " …" : ""), act: () => { switchTab("bearbeiten"); $("#eOp").value = k; renderParams(); if (!d.params.length) pushStep({ op: k }); } })) : [it]);
+  for (const it of items) {
+    if (it === "-") { dd.appendChild(document.createElement("hr")); continue; }
+    let ok = it.always || !!(o && o.data);
+    if (ok && it.enabled) ok = !!it.enabled();
+    const x = document.createElement("button");
+    x.type = "button"; x.disabled = !ok; x.setAttribute("role", "menuitem");
+    if (it.check && it.check()) x.classList.add("on");
+    x.innerHTML = `<span>${esc(it.tkey ? tr(it.tkey) : it.label)}</span>${it.key ? `<span class="k">${esc(it.key)}</span>` : ""}`;
+    x.addEventListener("click", (e) => { e.stopPropagation(); closeMenus(); it.act(); });
+    dd.appendChild(x);
+  }
+  w.appendChild(dd);
+}
+
+// ---------------------------------------------------------------- Tabs, Gesamtaktualisierung
+function switchTab(t) {
+  S.tab = t;
+  $$(".tabs button").forEach(b => b.classList.toggle("sel", b.dataset.tab === t));
+  $$(".pane").forEach(p => p.hidden = p.dataset.pane !== t);
+  const o = cur();
+  if (t === "suche" && o && o.search && o.search.hits.length) S.mode = "search";
+  else if (t === "mischung" && o && o.mix && o.mix.combos.length) S.mode = "mix";
+  else if (t === "kinetik" && S.kin && S.kin.res) S.mode = "kin";
+  else if (t === "trennung" && o && o.data && o.data.deconv && !o.data.deconv.error) S.mode = "dc";
+  else if (!["suche", "mischung", "kinetik", "trennung"].includes(t)) S.mode = "run";
+  if (t === "bibliotheken") updateLibs();
+  if ((t === "kinetik" || t === "trennung" || t === "stufen") && S.tool === "zoom") setTool("range");
+  renderTabs();
+  updateMode(); updateHint(); draw();
+}
+// UI-06: nur die Tabs der laufenden Aufgabe; Kinetik, Trennung, Zusammensetzung u. a. unter „Mehr“ (ein gewählter Tab
+// bleibt sichtbar, solange er offen ist; Menüeinträge springen weiter in jeden Tab)
+const TABS = ["bearbeiten", "stufen", "kennwerte", "zusammensetzung", "suche", "mischung", "vergleich", "kinetik", "trennung", "bibliotheken", "gleichungen"];
+const TAB_MAIN = window.LabUI ? ["bearbeiten", "stufen", "kennwerte", "suche"] : TABS;
+const tabShown = (t) => TAB_MAIN.includes(t) || t === S.tab || (t === "vergleich" && S.runs.length > 1);
+function renderTabs() {
+  $$(".tabs button[data-tab]").forEach(b => { b.hidden = !tabShown(b.dataset.tab); });
+  $("#tabMore").hidden = TABS.every(tabShown);
+}
+function openTabMenu() {
+  const rest = TABS.filter(t => !tabShown(t));
+  const p = LabUI.popover($("#tabMore"), `<div class="tabmenu" role="menu">${rest.map(t =>
+    `<button type="button" role="menuitem" data-go="${t}"><b>${esc(tr("tg.tab_" + t))}</b><small>${esc(tr("tg.tab_h_" + t))}</small></button>`).join("")}</div>`);
+  p.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) { LabUI.closePop(); switchTab(b.dataset.go); } });
+  p.querySelector("button")?.focus();
+}
+function updateFoldCounts() {
+  const o = cur(), nr = o && o.reactions ? o.reactions.length : 0;
+  $("#rxCnt").textContent = nr ? `(${nr})` : "";
+  $("#sOptCnt").textContent = S.libs && S.libs.length ? `(${trn("tg.n_libs", libsForSearch().length)})` : "";
+}
+function envSummary() {          // Kasten der Umgebung in der Übersicht
+  const tags = [trn("tg.n_runs", S.runs.length)];
+  for (const o of S.runs.slice(0, 5)) {
+    const n = o.data && o.data.steps ? o.data.steps.length : 0;
+    const h = o.search && !o.searchStale && o.search.hits && o.search.hits[0];
+    if (n) tags.push(`${o.name.slice(0, 18)}: ${trn("tg.n_steps", n)}`);
+    if (h) tags.push(`${tr("tg.hit")}: ${h.name}`.slice(0, 60));
+  }
+  if (S.kin && S.kin.res) tags.push(tr("tg.t_kin"));
+  let values = [];                                                    // Wertekatalog für Verbindungen zu anderen Umgebungen
+  try { values = LabOverview.summaryValues(valCatalogue()); } catch (e) { values = []; }
+  // UI-18: TG- und DTG-Kurven (bis 4 Läufe) als kleine Grafiken im Kasten der Übersicht
+  const en = /^en/i.test(document.documentElement.lang || ""), runs = S.runs.filter(o => o.data && o.data.m).slice(0, 4);
+  const xT = runs.length && runs.every(o => o.data.orig && o.data.orig.has_T && o.data.x.T);
+  const xs = (o) => (xT ? o.data.x.T : o.data.x.t);
+  const xl = xT ? (en ? "Temperature [°C]" : "Temperatur [°C]") : (en ? "Time [min]" : "Zeit [min]");
+  const plots = !runs.length ? [] : [
+    { title: "TG", xlab: xl, ylab: en ? "Mass [%]" : "Masse [%]", series: runs.map(o => ({ name: o.name, x: xs(o), y: o.data.m })) },
+    { title: "DTG", xlab: xl, ylab: xT ? "−dm/dT [%/°C]" : "−dm/dt [%/min]",
+      series: runs.filter(o => o.data.dtg).map(o => ({ name: o.name, x: xs(o), y: xT ? o.data.dtg.dT : o.data.dtg.dt })) },
+  ].filter(p => p.series.length);
+  return { title: S.runs.map(o => o.name).join(" · ").slice(0, 200), tags: tags.slice(0, 8), values, plots };
+}
+// ⇄: Kennwerte und Gleichungsergebnisse an andere Umgebungen weitergeben; übernommene Werte als Variablen (S.ext)
+function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.runs.map(o => ({ name: o.name, vars: o.data && o.data.variables, eqs: o.data && o.data.equations }))) : []; }
+function shr(name) {
+  if (!OV || !OV.shareButton) return "";
+  const i = S.runs.indexOf(cur());
+  return OV.shareButton(String(name).slice(0, 21) + (i > 0 ? "_" + (i + 1) : ""));
+}
+async function applyExt(rows) {
+  const r = LabOverview.extValues(S.ext, rows);
+  if (!r.changed && !S.extDirty) return;                              // extDirty: Umgebung eben geöffnet, Auswertung noch ohne
+  S.ext = r.list; S.extDirty = false;
+  for (const o of S.runs) await refresh(o);
+  updateAll(); draw();
+}
+function updateAll() {
+  updateEdit(); updateSteps(); updateValues(); updateComp(); updateSearch(); updateMix(); updateCompare(); updateKin(); updateDeconv(); updateEqs(); updateMode();
+  renderTabs(); updateFoldCounts();
+  if (OV && OV.changed) OV.changed();                                 // ausgehende Verbindungen nachführen
+  $("#lAddRun").disabled = !cur();
+  const o = cur();
+  $("#stInfo").textContent = o && o.data ? runInfoHtml(o).replace(/<[^>]+>/g, "") : "";
+  if (window.ENVS) ENVS.save();
+}
+
+// ---------------------------------------------------------------- Ereignisse
+function bind() {
+  cv.addEventListener("pointerdown", onDown);
+  cv.addEventListener("pointermove", onMove);
+  cv.addEventListener("pointerup", onUp);
+  cv.addEventListener("pointercancel", () => { S.drag = null; draw(); });
+  cv.addEventListener("pointerleave", () => { if (S.mouse) S.mouse.in = false; $("#stPos").textContent = "–"; draw(); });
+  cv.addEventListener("dblclick", resetView);
+  cv.addEventListener("wheel", (e) => {
+    if (!S.view || !S.tx) return;
+    e.preventDefault();
+    const x = S.tx.inv(evX(e)), k = e.deltaY < 0 ? 1 / 1.25 : 1.25;
+    S.view = { ...S.view, x0: x - (x - S.view.x0) * k, x1: x + (S.view.x1 - x) * k }; draw();
+  }, { passive: false });
+  new ResizeObserver(sizeCanvas).observe($("#stage"));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+
+  $("#file").addEventListener("change", async (e) => {
+    const files = [...e.target.files]; e.target.value = "";
+    const force = S.forceMap; S.forceMap = false;
+    const n0 = S.runs.length;
+    await openFiles(files);
+    if (force && S.runs.length > n0) mapDialog(S.runs[S.runs.length - 1]);
+  });
+  $("#jsonFile").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; e.target.value = "";
+    if (!f || !jsonTarget) return;
+    try { await jsonTarget(JSON.parse(await f.text())); } catch (err) { toast("Datei ist kein gültiges JSON: " + err.message, true); }
+  });
+  $("#emptyOpen").addEventListener("click", () => $("#file").click());
+  const stage = $("#stage");
+  stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.classList.add("drop"); });
+  stage.addEventListener("dragleave", () => stage.classList.remove("drop"));
+  stage.addEventListener("drop", (e) => { e.preventDefault(); stage.classList.remove("drop"); openFiles([...e.dataTransfer.files]); });
+
+  $$(".tabs button[data-tab]").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+  $("#tabMore").addEventListener("click", openTabMenu);
+  $$("#modeSeg button").forEach(b => b.addEventListener("click", () => { S.mode = b.dataset.mode; S.view = null; updateMode(); draw(); }));
+  $$("#xSeg button").forEach(b => b.addEventListener("click", () => setX(b.dataset.x)));
+  $("#showDtg").addEventListener("change", (e) => { S.dtg = e.target.checked; draw(); });
+  $("#viewAll").addEventListener("click", resetView);
+
+  // Bearbeiten
+  $("#eOp").addEventListener("change", renderParams);
+  $("#eApply").addEventListener("click", () => pushStep(readParams()));
+  $("#pUndo").addEventListener("click", undo);
+  $("#pRedo").addEventListener("click", redo);
+  $("#pReset").addEventListener("click", async () => { const o = cur(); if (o && confirm("Alle Bearbeitungsschritte entfernen?")) { const old = o.pipeline; if (await setPipeline(o, [])) o.redo = [...old].reverse(); updateEdit(); } });
+  $("#pSave").addEventListener("click", saveProtocol);
+  $("#pLoad").addEventListener("click", () => pickJson(loadProtocol));
+  $("#pAll").addEventListener("click", applyAll);
+  $("#pMap").addEventListener("click", () => mapDialog());
+  $("#dsUp").addEventListener("click", (e) => { if (e.target.closest("[data-dsup]")) { e.preventDefault(); dsRefresh(cur()); } });
+
+  // Stufen
+  $("#stRun").addEventListener("click", async () => { const o = cur(); if (!o) return; o.stepOpts = { ...o.stepOpts, width: pnum($("#stW").value), rel: pnum($("#stRel").value), min_loss: pnum($("#stMin").value) }; o.manual = null; markStale(o); await refreshCur(); });
+  $("#stAuto").addEventListener("click", async () => { const o = cur(); if (!o) return; o.manual = null; markStale(o); await refreshCur(); });
+  $("#stCopy").addEventListener("click", async () => { const t = stepsCsv(); if (!t) return; try { await navigator.clipboard.writeText(t.replace(/;/g, "\t")); toast("Stufentabelle kopiert (für Excel)."); } catch (e) { toast("Kopieren nicht erlaubt; bitte CSV speichern.", true); } });
+  $("#stCsv").addEventListener("click", () => { const t = stepsCsv(); if (t) download(`${stem(cur().name)}_stufen.csv`, t); });
+  $("#stLib").addEventListener("click", () => libAddSteps(true));
+
+  // Kennwerte
+  $("#resT").addEventListener("change", async () => { const o = cur(); if (!o) return; o.stepOpts = { ...o.stepOpts, residue_T: pnum($("#resT").value) }; await refreshCur(); });
+  $("#isoAfter").addEventListener("change", async () => { const o = cur(); if (!o) return; o.stepOpts = { ...o.stepOpts, iso_after: pnum($("#isoAfter").value) }; await refreshCur(); });
+
+  // Zusammensetzung
+  $("#cpPreset").addEventListener("change", () => { const o = cur(); if (o) { o.comp = $("#cpPreset").value ? { preset: $("#cpPreset").value, params: {} } : null; } updateComp(); });
+  $("#cpRun").addEventListener("click", runComp);
+  $("#rxAdd").addEventListener("click", async () => { const o = cur(); if (!o) return; o.reactions.push({ step: +$("#rxStep").value, key: $("#rxKey").value }); await refreshCur(); });
+  $("#egsOpen").addEventListener("click", () => $("#egsFile").click());
+  $("#egsSample").addEventListener("click", () => egsLoad(null));
+  $("#egsFile").addEventListener("change", (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) egsLoad(f); });
+  for (const id of ["#dscUnit", "#dscSign"]) $(id).addEventListener("change", dscChanged);
+  for (const id of ["#dscPk", "#dscTg"]) $(id).addEventListener("change", dscChanged);
+  $("#calOx").addEventListener("change", async (e) => { const o = cur(); if (!o) return; o.calib = e.target.checked; await refreshCur(); });
+  $("#itsAdd").addEventListener("click", () => { S.its.push({ std: Object.keys(META.its90)[S.its.length % 5], meas: null }); renderIts(); });
+  $("#itsCalc").addEventListener("click", async () => {
+    const pts = S.its.filter(r => r.meas !== null && isFinite(r.meas)).map(r => [r.meas, META.its90[r.std]]);
+    if (!pts.length) return toast("Bitte mindestens einen gemessenen Wert eintragen.", true);
+    const j = await api("api/calib", { points: pts });
+    if (j.error) return toast(j.error, true);
+    S.itsRes = j; $("#itsOut").textContent = `T_wahr = ${fx(j.a, 3)} + ${fx(j.b, 5)} · T_gemessen (${j.n} Punkte${j.resid ? ", Reste " + j.resid.map(r => fx(r, 2)).join(" / ") + " K" : ""})`; renderIts();
+  });
+  $("#itsUse").addEventListener("click", () => { if (S.itsRes) pushStep({ op: "tcal", a: +S.itsRes.a.toFixed(4), b: +S.itsRes.b.toFixed(6) }); });
+
+  // Suche / Mischung
+  $("#sRun").addEventListener("click", runSearch);
+  $("#sRep").addEventListener("change", (e) => { const o = cur(); if (o) o.searchRep = e.target.checked; });
+  $("#mRun").addEventListener("click", runMixture);
+  $("#mRep").addEventListener("change", (e) => { const o = cur(); if (o) o.mixRep = e.target.checked; });
+
+  // Vergleich
+  $("#refAdd").addEventListener("click", refPicker);
+  $("#refNew").addEventListener("click", () => libAddSteps(false, true));
+  $("#dBlank").addEventListener("click", () => derive("blank"));
+  $("#dAvg").addEventListener("click", () => derive("avg"));
+
+  // Kinetik
+  $("#kRun").addEventListener("click", runKin);
+  $("#kRep").addEventListener("change", (e) => { S.kinRep = e.target.checked; });
+  $$("#kView button").forEach(b => b.addEventListener("click", () => { S.kinView = b.dataset.kv; if (S.kin && S.kin.res) S.mode = "kin"; updateKin(); updateMode(); S.view = null; draw(); }));
+  ["#kLo", "#kHi", "#dcLo", "#dcHi"].forEach(s => $(s).addEventListener("change", draw));
+
+  // Trennung
+  $("#dcGuess").addEventListener("click", dcGuess);
+  $("#dcFit").addEventListener("click", dcFit);
+  $("#dcAddPk").addEventListener("click", () => { const o = cur(); if (!o) return; const lo = pnum($("#dcLo").value) ?? 300, hi = pnum($("#dcHi").value) ?? 500; o.dcPeaks.push({ name: `Spitze ${o.dcPeaks.length + 1}`, x0: (lo + hi) / 2, hwl: 20, hwr: 15 }); updateDeconv(); });
+  $("#dcOff").addEventListener("click", async () => { const o = cur(); if (!o) return; o.deconv = null; await refreshCur(); });
+  $("#dcPreset").addEventListener("change", (e) => { const o = cur(); if (o) o.dcPreset = e.target.value; });
+
+  // Bibliotheken
+  $("#lSel").addEventListener("change", (e) => { S.libSel = e.target.value; S.libEntry = null; $("#lDetail").hidden = true; updateLibs(); });
+  $("#lNew").addEventListener("click", libNew);
+  $("#lDel").addEventListener("click", libDelete);
+  $("#lExp").addEventListener("click", libExport);
+  $("#lImp").addEventListener("click", () => pickJson(libImport));
+  $("#lAddRun").addEventListener("click", libAddRun);
+  $("#lAddSteps").addEventListener("click", () => libAddSteps(false));
+  $("#lFilter").addEventListener("input", drawLibList);
+
+  // Gleichungen
+  $("#eqNew").addEventListener("click", () => eqDialog(null));
+  $("#eqExp").addEventListener("click", async () => { const j = await api("api/equations/export", {}); if (j.error) return toast(j.error, true); download(j.filename, j.text, j.mime, false); });
+  $("#eqImp").addEventListener("click", () => pickJson(async (data) => { const j = await api("api/equations/import", { data }); if (j.error) return toast(j.error, true); S.eqs = j.items; S.eqOn = [...new Set([...S.eqOn, ...j.items.map(e => e.id)])]; store.set("eqOn", S.eqOn); toast(`${j.added} Gleichungen importiert.`); await refreshAllEq(); }));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input,textarea,select") || $("#dlg").open) return;
+    const k = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && k === "o") { e.preventDefault(); $("#file").click(); }
+    else if ((e.ctrlKey || e.metaKey) && k === "z") { e.preventDefault(); undo(); }
+    else if ((e.ctrlKey || e.metaKey) && k === "y") { e.preventDefault(); redo(); }
+    else if (e.key === "F3") { e.preventDefault(); switchTab("suche"); runSearch(); }
+    else if (e.ctrlKey || e.metaKey || e.altKey) return;
+    else if (k === "0") resetView();
+    else { const t = TOOLS.find(x => x.key.toLowerCase() === k); if (t) setTool(t.id); }
+  });
+}
+
+// ---------------------------------------------------------------- Start
+async function init() {
+  META = await api("api/meta");
+  if (META.error) { toast(META.error, true); return; }
+  META.step_defaults = META.step_defaults || { width: 4, rel: 0.03, min_loss: 0.3 };
+  $("#eOp").innerHTML = Object.entries(META.ops).map(([k, d]) => `<option value="${k}">${esc(d.de)}</option>`).join("");
+  $("#cpPreset").innerHTML = `<option value="">keine</option>` + Object.entries(META.presets).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("");
+  $("#rxKey").innerHTML = META.reactions.map(r => `<option value="${r.key}">${esc(r.label)} (${fx(r.loss, 2)} %)</option>`).join("");
+  $("#kModel").innerHTML = `<option value="">automatisch (Masterplot)</option>` + Object.entries(META.models).map(([k, l]) => `<option value="${k}">${k}: ${esc(l)}</option>`).join("");
+  $("#emptySamples").innerHTML = Object.entries(META.samples).map(([k, v]) => `<button data-s="${k}">${esc(v)}</button>`).join("");
+  $$("#emptySamples [data-s]").forEach(b => b.addEventListener("click", () => loadSample(b.dataset.s)));
+  S.libs = META.libs;
+  if ((META.lib_errors || []).length) toast("Bibliotheken mit Fehlern: " + META.lib_errors.join("; "), true);
+  await loadLibs();
+  await loadEqs();
+  buildMenus(); buildTools(); bind(); renderParams();
+  updateAll(); sizeCanvas();
+  if (window.Lab) { $("#labBtn").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
+  // A2: Läufe und Arbeitsstand der Umgebung wiederherstellen
+  window.ENVS = LabEnv.create({
+    api, toast, label: $("#envName"),
+    keep: ["name", "pipeline", "redo", "color", "overlay", "stepOpts", "manual", "comp", "reactions", "calib", "deconv", "dcPeaks", "dcPreset", "dsc"],
+    list: () => S.runs, sel: () => S.sel,
+    reset: () => { S.runs = []; S.sel = -1; S.ext = []; },
+    add: async (d, saved) => { const o = Object.assign(newRun(d), saved); S.runs.push(o); await refresh(o); },
+    extra: () => ({ kinSel: S.kinSel || null, ext: S.ext || [] }), summary: envSummary,
+    done: (sel, extra) => { S.sel = sel; if (extra && Array.isArray(extra.kinSel)) S.kinSel = extra.kinSel; S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.view = null; updateChips(); updateAll(); draw(); if (OV) setTimeout(() => OV.sync(), 0); },
+  });
+  await withBusy(() => ENVS.open());
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("tga"); LabUI.onLang(() => { buildMenus(); renderTabs(); updateFoldCounts(); }); }
+  // UI-06 (Q27): Startansicht Übersicht – Umgebungen, Projektindex, eigene Freigaben (Stufentabellen)
+  if (window.LabOverview) {
+    OV = LabOverview.create({
+      api: (p, b) => api(p, b), toast, module: "tga", envs: () => window.ENVS,
+      detail: [$("#menubar"), $("main")], crumbs: $("#crumbs"),
+      values: { catalogue: valCatalogue, apply: applyExt, version: (META && META.version) || "" },
+      imports: TG_IMP,                                                         // I-03: Datensatz → Lauf
+      onView: (v) => { if (v === "detail") setTimeout(() => { sizeCanvas(); draw(); }, 0); },   // Canvas war verborgen
+    });
+    if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }
+  }
+}
+init();
+</script>
+</body>
+</html>

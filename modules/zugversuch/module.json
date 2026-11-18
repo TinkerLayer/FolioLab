@@ -1,0 +1,25 @@
+{
+  "id": "zugversuch",
+  "name": "Zugversuch",
+  "name_en": "Tensile test",
+  "description": "IMADA Force Logger (.flps): Kraft- und Spannungsverlauf, linearer Abschnitt, Fliessbeginn, Bruch, Werkstoffvergleich mit 88 Werkstoffen und 40 Normproben.",
+  "description_en": "IMADA Force Logger (.flps): force/stress curve, linear range, yield onset, break, comparison with 88 materials and 40 standard specimens.",
+  "icon": "chart",
+  "icon_svg": "<path d=\"M3 4v16h18\"/><path d=\"M6 18l3.5-9c1.5-3 5-3.6 7.5-2l2 3.5\"/>",
+  "color": "#d93025",
+  "status": "ready",
+  "order": 10,
+  "version": "1.2.0",
+  "accepts": [".flps"],
+  "produces": ["figure", "table", "values", "data", "citation", "text"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "flps.ui.server", "--port", "{port}", "--aus", "{outputs}", "--kein-browser"],
+    "health": "/api/meta",
+    "requires": ["numpy", "matplotlib", "openpyxl", "reportlab"]
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

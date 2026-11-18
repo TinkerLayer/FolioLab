@@ -1,0 +1,8 @@
+{
+  "name": "Lab report (Deutsch)",
+  "description": "Versuchsbericht mit Folio Lab: Abbildungen, Tabellen, Kennwerte und Quellen aus den Auswertungen.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 0,
+  "icon": "chart"
+}

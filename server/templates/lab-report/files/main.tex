@@ -1,0 +1,46 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[english,ngerman]{babel}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage{hyperref}
+
+\addbibresource{references.bib}       % eigene Quellen
+\addbibresource{lab/references.bib}   % Quellen aus den Auswertungen (Folio Lab)
+
+% Kennwerte aus den Auswertungen: \labval{<ergebnis>}{<kennwert>}
+\input{lab/labdata}
+
+\title{Versuchsbericht}
+\author{Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Einleitung}
+Ziel und Hintergrund des Versuchs.
+
+\section{Material und Methodik}
+Proben, Prüfaufbau und Auswertung. Der Knopf \emph{Lab} in der Werkzeugleiste fügt
+Textbausteine zur Methodik aus jeder Auswertung ein.
+
+\section{Ergebnisse}
+% Auswertung in Folio Lab öffnen (Startseite, Bereich "Analyses"), Ergebnis mit
+% "Zum Bericht ..." in dieses Projekt schicken und hier mit dem Lab-Knopf einfügen:
+% Abbildungen, Tabellen, einzelne Kennwerte (\labval), Messdaten als pgfplots-Diagramm.
+
+\section{Diskussion}
+Einordnung der Ergebnisse.
+
+\printbibliography
+
+\end{document}

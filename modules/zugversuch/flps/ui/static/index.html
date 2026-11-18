@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FLPS Auswertung</title>
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #1f2328; --muted: #5f6368; --line: #dadce0; --soft: #eef0f3;
+  --accent: #1a73e8; --accent-ink: #ffffff; --warn-bg: #fff4e0; --warn-ink: #8a4b00; --err-bg: #fde7e7; --err-ink: #a50e0e;
+  --info-bg: #eef3fb; --info-ink: #2b4a7a; --key: #fff2a8; --grid: #e6e8eb; --axis: #5f6368;
+  --ph0: #9aa0a6; --ph1: #1a73e8; --ph2: #e8710a; --ph3: #d93025; --m-yield: #188038; --m-max: #d93025; --m-break: #202124;
+  --band: rgba(26,115,232,.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --panel: #1e2125; --ink: #e8eaed; --muted: #9aa0a6; --line: #3c4043; --soft: #2a2e33;
+    --accent: #8ab4f8; --accent-ink: #15171a; --warn-bg: #3a2c12; --warn-ink: #fdd28a; --err-bg: #3b1a1a; --err-ink: #f6aea9;
+    --info-bg: #1d2a3d; --info-ink: #aecbfa; --key: #4a4315; --grid: #2f3337; --axis: #9aa0a6;
+    --ph0: #80868b; --ph1: #8ab4f8; --ph2: #fcad70; --ph3: #f28b82; --m-yield: #81c995; --m-max: #f28b82; --m-break: #e8eaed;
+    --band: rgba(138,180,248,.16);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --panel: #1e2125; --ink: #e8eaed; --muted: #9aa0a6; --line: #3c4043; --soft: #2a2e33;
+  --accent: #8ab4f8; --accent-ink: #15171a; --warn-bg: #3a2c12; --warn-ink: #fdd28a; --err-bg: #3b1a1a; --err-ink: #f6aea9;
+  --info-bg: #1d2a3d; --info-ink: #aecbfa; --key: #4a4315; --grid: #2f3337; --axis: #9aa0a6;
+  --ph0: #80868b; --ph1: #8ab4f8; --ph2: #fcad70; --ph3: #f28b82; --m-yield: #81c995; --m-max: #f28b82; --m-break: #e8eaed;
+  --band: rgba(138,180,248,.16);
+}
+* { box-sizing: border-box; }
+div[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+header h1 { font-size: 17px; margin: 0 8px 0 0; }
+header h1.brand { display: flex; align-items: center; gap: 8px; }
+header h1.brand svg { color: var(--accent); flex: none; }
+button, .btn { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 16px; border: 1px solid var(--line); background: var(--soft); cursor: pointer; }
+.chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.chip .dot { width: 10px; height: 10px; border-radius: 50%; }
+.chip .x { border: 0; background: transparent; padding: 0 4px; color: var(--muted); }
+main { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 14px; padding: 14px 16px; }
+main > * { min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 8px; }
+.panel h2:first-child { margin-top: 0; }
+label { display: block; font-size: 12px; color: var(--muted); margin: 6px 0 2px; }
+input[type=text], input[type=number], select, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 5px 7px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.a0box { margin-top: 8px; padding: 8px; border-radius: 6px; background: var(--key); }
+.a0box input { font-size: 22px; font-weight: 700; padding: 4px 8px; }
+.a0box .src { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; align-items: center; margin-top: 3px; }
+.a0box .src button { padding: 2px 8px; font-size: 12px; }
+.radio { display: flex; gap: 14px; font-size: 13px; margin-top: 4px; }
+.radio label { display: inline-flex; gap: 4px; margin: 0; color: var(--ink); font-size: 13px; }
+.slider { margin-top: 4px; }
+.slider input { width: 100%; }
+.ticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.slider .val { font-size: 13px; margin-top: 4px; }
+.small { font-size: 12px; color: var(--muted); }
+.right { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.tabs button { border-radius: 6px 6px 0 0; border-bottom: 0; }
+.tabs button.on { background: var(--soft); font-weight: 600; }
+.tabs .sp { flex: 1; }
+.chartwrap { position: relative; width: 100%; }
+svg.plot { width: 100%; height: auto; display: block; }
+svg.plot text { fill: var(--ink); font-size: 12px; }
+svg.plot .grid line { stroke: var(--grid); }
+svg.plot .axis line, svg.plot .axis path { stroke: var(--axis); }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 3px 7px; font-size: 12px; white-space: nowrap; display: none; }
+.notes { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.w { border-radius: 5px; padding: 6px 9px; font-size: 12.5px; }
+.w b { margin-right: 6px; }
+.w.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.w.error { background: var(--err-bg); color: var(--err-ink); }
+.w.info { background: var(--info-bg); color: var(--info-ink); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; background: var(--soft); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+tr.sel td { background: var(--soft); }
+tr.clk { cursor: pointer; }
+.key { background: var(--key); font-weight: 700; }
+.tablewrap { overflow-x: auto; }
+.badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 11px; background: var(--soft); color: var(--muted); }
+.badge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.status-k { color: var(--m-yield); font-weight: 600; }
+.status-z { color: var(--warn-ink); }
+.status-x { color: var(--muted); }
+#drop { position: fixed; inset: 0; background: rgba(26,115,232,.18); border: 3px dashed var(--accent); display: none; align-items: center; justify-content: center; font-size: 22px; z-index: 50; }
+#empty { padding: 50px 20px; text-align: center; color: var(--muted); }
+#empty .big { font-size: 18px; color: var(--ink); margin-bottom: 8px; }
+.devgrid { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 12.5px; }
+.devgrid div:nth-child(odd) { color: var(--muted); }
+.flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.msg { font-size: 13px; }
+details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; margin-bottom: 4px; }
+.seg button { border: 0; border-radius: 0; padding: 5px 14px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
+.sketch { margin-top: 6px; }
+.sketch svg { width: 100%; height: auto; max-height: 150px; display: block; background: #fff; border-radius: 6px; border: 1px solid var(--line); }
+.sketch:empty { display: none; }
+.refinfo { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.refinfo b { color: var(--ink); }
+.refcard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.refcard .c { border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; background: var(--soft); }
+.refcard .c .l { font-size: 11.5px; color: var(--muted); }
+.refcard .c .v { font-size: 15px; font-weight: 700; }
+.refcard .c .s { font-size: 11.5px; color: var(--muted); }
+.bar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 4px; position: relative; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--m-max); }
+.bar .ref { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #9334e6; }
+.btnrow { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.btnrow button { padding: 4px 10px; font-size: 12.5px; }
+.xlist { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.xlist .chip { font-size: 12px; padding: 2px 4px 2px 8px; cursor: default; }
+.ownbadge { display: inline-block; padding: 0 5px; border-radius: 8px; font-size: 10.5px; background: var(--info-bg); color: var(--info-ink); margin-left: 4px; }
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 0; width: min(560px, calc(100vw - 32px)); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+dialog.wide { width: min(860px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(8,12,14,.45); }
+dialog h3 { margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+dialog .body { padding: 8px 16px 12px; max-height: 70vh; overflow-y: auto; }
+dialog .err { color: var(--err-ink); background: var(--err-bg); margin: 0 16px; border-radius: 5px; padding: 0; font-size: 12.5px; }
+dialog .err:not(:empty) { padding: 6px 9px; margin-bottom: 8px; }
+dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
+dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: center; }
+dialog textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+.row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.vars { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.vars button { padding: 1px 7px; font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
+.eqlist .it, .ownlist .it { display: flex; gap: 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.eqlist .it .nm, .ownlist .it .nm { flex: 1; min-width: 0; }
+.eqlist .it button, .ownlist .it button { padding: 1px 8px; }
+code { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+/* UI-08: Übersicht, Kopfmenü „⋯“, Tab-Menü „Mehr“, Aufklapper als Abschnittstitel */
+header .lov-only { display: none; }
+body.lov-board header .lov-only { display: block; flex: 1; }
+.hmore { position: relative; }
+.hmore > summary { list-style: none; cursor: pointer; border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; background: var(--panel); color: var(--ink); font-size: 14px; margin: 0; }
+.hmore > summary::-webkit-details-marker { display: none; }
+.hmore > summary:hover, .hmore[open] > summary { border-color: var(--accent); }
+.hmore .hmenu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; display: flex; flex-direction: column; gap: 3px; min-width: 210px; }
+.hmore .hmenu button { text-align: left; border-color: transparent; }
+.hmore .hmenu button:hover { border-color: var(--accent); }
+.tabmenu { display: flex; flex-direction: column; gap: 2px; min-width: 240px; }
+.tabmenu button { text-align: left; border: 1px solid transparent; background: transparent; padding: 5px 8px; border-radius: 6px; }
+.tabmenu button:hover, .tabmenu button:focus-visible { border-color: var(--accent); }
+.tabmenu small { display: block; color: var(--muted); font-size: 11.5px; font-weight: 400; }
+#mask details.lab-fold > summary { margin-top: 10px; }
+.panel details.lab-fold.ph > summary { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0; }
+.panel details.lab-fold.ph > summary .small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.panel details.lab-fold.ph[open] > summary { margin-bottom: 8px; }
+#warnList:empty + details.lab-fold.ph { margin-top: -4px; }
+#outRoot, #exportMsg { overflow-wrap: anywhere; }   /* lange Ordnerpfade ohne Leerzeichen sprengten schmale Fenster */
+@media (max-width: 900px) {
+  main { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; }   /* UI-08: 1fr wuchs mit breiten Tabellen über 375 px hinaus */
+  .row3, .row4 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="brand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v16h18"/><path d="M6 18l3.5-9c1.5-3 5-3.6 7.5-2l2 3.5"/></svg><span data-i18n="zv.title">FLPS Auswertung</span></h1>
+  <span id="crumbs"></span>
+  <button class="primary" id="openBtn" data-lov-detail data-i18n="zv.open">Datei öffnen …</button>
+  <input type="file" id="fileIn" accept=".flps" multiple hidden>
+  <span class="small" id="envName" hidden></span>
+  <div class="chips" id="chips" data-lov-detail></div>
+  <span class="hsp lov-only"></span>
+  <!-- UI-08: Umgebungen und Projektindex im Menü „⋯“; die Übersicht zeigt beides ohnehin -->
+  <details class="hmore" id="hMore" data-lov-detail>
+    <summary data-i18n-title="zv.more_t" title="Umgebungen verwalten, Projektindex, Kennwerte in den Index">⋯</summary>
+    <div class="hmenu">
+      <button id="dsBtn" hidden data-i18n="zv.ds_btn" data-i18n-title="zv.ds_btn_t" title="Kraft und Verlängerung oder Spannung und Dehnung aus einem Datensatz als ganzen Zugversuch auswerten">Aus Datensatz …</button>
+      <button id="envBtn" data-i18n="zv.envs" data-i18n-title="zv.envs_t" title="Umgebungen: Messungen und Einstellungen bleiben nach einem Neustart erhalten">Umgebungen verwalten …</button>
+      <button id="indexBtn" data-i18n="zv.index" data-i18n-title="zv.index_t" title="Kuratierte Werte des Projekts, aus jedem Modul lesbar">Projektindex …</button>
+      <button id="indexAdd" data-i18n="zv.index_add" data-i18n-title="zv.index_add_t" title="Fmax und Rm der gewählten Messung als gemessene Werte in den Projektindex">Kennwerte → Index …</button>
+    </div>
+  </details>
+  <span id="langSw"></span>
+  <button id="themeBtn" data-i18n-title="zv.theme" title="Hell / Dunkel">◐</button>
+</header>
+<div id="drop">.flps Dateien hier ablegen</div>
+
+<main>
+  <aside class="panel" id="mask">
+    <h2>Probengeometrie</h2>
+    <div class="seg" id="modeSeg" role="group" aria-label="Abmessungen">
+      <button type="button" data-mode="norm">Normprobe</button>
+      <button type="button" data-mode="manuell">Manuell</button>
+    </div>
+    <div id="normBox">
+      <label for="shape">Normprobe</label>
+      <select id="shape"></select>
+      <div class="small" id="shapeNote"></div>
+    </div>
+    <div id="manualBox" hidden>
+      <label>Querschnitt</label>
+      <div class="radio" id="sectionRadio">
+        <label><input type="radio" name="section" value="rechteckig" checked> rechteckig</label>
+        <label><input type="radio" name="section" value="rund"> rund</label>
+        <label><input type="radio" name="section" value="rohr"> Rohr</label>
+      </div>
+    </div>
+    <div class="row2" id="rectFields">
+      <div><label for="width_mm">Stegbreite b [mm]</label><input id="width_mm" data-k="width_mm" type="text" inputmode="decimal"></div>
+      <div><label for="thickness_mm">Dicke [mm]</label><input id="thickness_mm" data-k="thickness_mm" type="text" inputmode="decimal"></div>
+    </div>
+    <div id="roundFields" hidden>
+      <label for="diameter_mm">Durchmesser d [mm]</label><input id="diameter_mm" data-k="diameter_mm" type="text" inputmode="decimal">
+    </div>
+    <div class="row2" id="tubeFields" hidden>
+      <div><label for="outer_d_mm">Aussen-Ø D [mm]</label><input id="outer_d_mm" data-k="outer_d_mm" type="text" inputmode="decimal"></div>
+      <div><label for="wall_mm">Wanddicke t [mm]</label><input id="wall_mm" data-k="wall_mm" type="text" inputmode="decimal"></div>
+    </div>
+    <div class="small" id="hHint"></div>
+    <div class="sketch" id="sketch"></div>
+    <div class="a0box">
+      <label for="a0" style="margin-top:0">Querschnittsfläche A₀ [mm²]</label>
+      <input id="a0" type="text" inputmode="decimal" placeholder="fehlt">
+      <div class="src"><span id="a0src">fehlt: Auswertung nur in Kraft</span><button id="a0reset" hidden>aus Geometrie</button></div>
+    </div>
+    <label for="l0_mm">Messlänge L₀ [mm]</label><input id="l0_mm" data-k="l0_mm" type="text" inputmode="decimal">
+
+    <h2>Prüfbedingungen</h2>
+    <label for="speed_mm_min">Vorschubgeschwindigkeit v [mm/min]</label>
+    <input id="speed_mm_min" data-k="speed_mm_min" type="text" inputmode="decimal" placeholder="leer: keine Dehnung, kein Modul">
+    <label for="displacement_source">Weg gemessen</label>
+    <select id="displacement_source" data-k="displacement_source">
+      <option value="">nicht angegeben</option>
+      <option value="probe">an der Probe</option>
+      <option value="traverse">aus dem Traversenweg</option>
+    </select>
+
+    <h2 data-i18n="zv.h_mat">Werkstoff</h2>
+    <div class="row2">
+      <div><label for="material">Bezeichnung (Freitext)</label><input id="material" data-k="material" type="text" placeholder="sonst Referenz"></div>
+      <div><label for="batch">Charge</label><input id="batch" data-k="batch" type="text"></div>
+    </div>
+    <!-- UI-08: Referenzwerkstoff, eigene Werkstoffe und Vergleichsgruppe auf Abruf; der Titel nennt die gewählte Referenz -->
+    <details class="lab-fold" data-fold="ref"><summary><span data-i18n="zv.f_ref">Referenz und Vergleich</span> <span class="small" id="refSum"></span></summary>
+    <label for="material_ref">Referenzwerkstoff (Sollwerte aus der Datenbank)</label>
+    <select id="material_ref"></select>
+    <div class="refinfo" id="refInfo"></div>
+    <div class="btnrow">
+      <button type="button" id="ownNewBtn" title="Werkstoff mit eigenen Kennwerten (z. B. aus einem Paper oder Datenblatt) und Quelle anlegen">Eigener Werkstoff …</button>
+      <button type="button" id="ownManageBtn" title="Eigene Werkstoffe bearbeiten, löschen, importieren und exportieren">Verwalten …</button>
+    </div>
+    <label for="compare_group">Vergleichsgruppe der Rangliste</label>
+    <select id="compare_group"></select>
+    <label for="extraSel">Zusätzlich im Werkstofffeld zeigen</label>
+    <select id="extraSel"></select>
+    <div class="xlist" id="extraList"></div>
+    </details>
+    <details class="lab-fold" data-fold="meta"><summary><span data-i18n="zv.f_meta">Prüfer und Bemerkung</span> <span class="small" id="metaSum"></span></summary>
+    <label for="operator">Prüfer</label><input id="operator" data-k="operator" type="text">
+    <label for="remark">Bemerkung</label><input id="remark" data-k="remark" type="text">
+    </details>
+
+    <h2 data-i18n="zv.h_par">Auswerteparameter</h2>
+    <label>Schwelle des Fliessbeginns (Festlegung, keine Norm)</label>
+    <div class="slider">
+      <input type="range" id="yieldSlider" min="0" max="3" step="1" value="2">
+      <div class="ticks"><span>0,5 %</span><span>1 %</span><span>2 %</span><span>5 %</span></div>
+      <div class="val" id="yieldVal">–</div>
+    </div>
+    <details class="lab-fold" data-fold="params"><summary data-i18n="zv.f_par">Fenster, Toleranz, Bruch- und Halteschwellen</summary>
+    <div class="row2">
+      <div><label for="slope_window_s">Fenster Steigung [s]</label><input id="slope_window_s" data-k="slope_window_s" type="text" inputmode="decimal"></div>
+      <div><label for="tol" id="tolLabel">Toleranz Fitfenster [N]</label><input id="tol" type="text" inputmode="decimal"></div>
+    </div>
+    <div class="row2">
+      <div><label for="break_upper">Bruch oben [% von Fmax]</label><input id="break_upper" data-k="break_upper" data-scale="100" type="text" inputmode="decimal"></div>
+      <div><label for="break_lower">Bruch unten [% von Fmax]</label><input id="break_lower" data-k="break_lower" data-scale="100" type="text" inputmode="decimal"></div>
+    </div>
+    <label for="hold_threshold">Haltezeitschwelle [% von Fmax]</label>
+    <input id="hold_threshold" data-k="hold_threshold" data-scale="100" type="text" inputmode="decimal">
+    </details>
+
+    <h2 data-i18n="zv.h_out">Ausgaben</h2>
+    <div class="flex">
+      <button class="primary" id="exportBtn" disabled>Ausgaben schreiben</button>
+      <button id="exportAllBtn" disabled>alle Messungen</button>
+    </div>
+    <div class="small" style="margin-top:4px">Je Messung: CSV, Excel, 4 Bilder, Datenblatt, Bildanhang und grafischer Bericht (_Bericht.pdf).</div>
+    <div class="flex" style="margin-top:6px">
+      <button id="cmpReportBtn" disabled title="Alle geladenen Messungen in einem grafischen Vergleichsbericht">Vergleichsbericht</button>
+      <button id="copyBtn" disabled title="Geometrie, Werkstoff und Prüfbedingungen der gewählten Messung auf alle übrigen übertragen">Eingaben auf alle übertragen</button>
+    </div>
+    <div class="flex" style="margin-top:6px" id="labRow" hidden>
+      <button class="primary" id="labBtn" disabled title="Abbildungen, Tabellen, Kennwerte, Messdaten und Quellen in einen Folio Lab Bericht übernehmen">Zum Bericht …</button>
+    </div>
+    <div class="msg" id="exportMsg"></div>
+    <div class="small" id="outRoot"></div>
+  </aside>
+
+  <section class="right">
+    <div class="panel">
+      <div class="tabs" id="tabs">
+        <button data-tab="verlauf" class="on" data-i18n="zv.tab_verlauf">Verlauf</button>
+        <button data-tab="linear" data-i18n="zv.tab_linear">Linearer Abschnitt</button>
+        <button data-tab="feld" data-i18n="zv.tab_feld">Werkstofffeld</button>
+        <button type="button" id="tabMore" class="more" aria-haspopup="menu" data-i18n="zv.tab_more">Mehr ▾</button>
+        <span class="sp"></span>
+        <span class="small" id="xaxisSel">x-Achse:
+          <label style="display:inline"><input type="radio" name="xaxis" value="t" checked> Zeit</label>
+          <label style="display:inline"><input type="radio" name="xaxis" value="eps" id="xEps"> Dehnung</label>
+        </span>
+      </div>
+      <div class="chartwrap" id="chartwrap">
+        <div id="empty"><div class="big">Keine Messung geladen</div>.flps Datei hierher ziehen oder über „Datei öffnen …“ wählen. Mehrere Dateien werden übereinander dargestellt.</div>
+        <svg class="plot" id="plot" viewBox="0 0 900 460" hidden></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="notes" id="chartNotes"></div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="zv.h_kv">Kennwerte</h2>
+      <div class="tablewrap"><table id="kvTable"></table></div>
+      <details><summary>Linearer Abschnitt und Fliessbeginn je Schwelle</summary><div class="tablewrap"><table id="fitTable"></table></div></details>
+    </div>
+
+    <div class="panel" id="eqPanel">
+      <details class="lab-fold ph" data-fold="eq"><summary><span data-i18n="zv.f_eq">Eigene Gleichungen</span> <span class="small" id="eqSum"></span></summary>
+      <div class="tablewrap" id="eqRes"></div>
+      <details><summary>Gleichungen und Variablen</summary>
+        <div class="eqlist" id="eqList"></div>
+        <div class="small" style="margin-top:8px">Variablen der gewählten Messung (Klick kopiert den Namen):</div>
+        <div class="vars" id="eqVars"></div>
+      </details>
+      <div class="btnrow">
+        <button type="button" id="eqNewBtn">Neue Gleichung …</button>
+        <button type="button" id="eqImpBtn">Importieren …</button>
+        <button type="button" id="eqExpBtn">Exportieren</button>
+      </div>
+      </details>
+    </div>
+
+    <div class="panel" id="cmpPanel">
+      <details class="lab-fold ph" data-fold="cmp"><summary><span id="cmpTitle">Werkstoffvergleich</span> <span class="small" id="cmpSum"></span></summary>
+      <div id="cmpBody"></div>
+      </details>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="zv.h_notes">Hinweise</h2>
+      <div class="notes" id="warnList"></div>
+      <details class="lab-fold ph" data-fold="dev"><summary><span data-i18n="zv.f_dev">Gerät und Datei</span> <span class="small" id="devSum"></span></summary>
+      <div class="devgrid" id="devGrid"></div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg"><form method="dialog"><h3 id="dlgTitle"></h3><div class="body" id="dlgBody"></div><div class="err" id="dlgErr"></div><div class="foot" id="dlgFoot"></div></form></dialog>
+<input type="file" id="jsonIn" accept=".json,application/json" hidden>
+
+<!-- Folio Lab SDK: nur vorhanden, wenn die App über den Folio Lab Hub läuft -->
+<script src="/lab/sdk.js"></script>
+<!-- Gemeinsames Quellenformular (vom Modulserver ausgeliefert, relativ: läuft eigenständig und im Hub) -->
+<script src="labref.js"></script>
+<script src="labenv.js"></script>
+<script src="labindex.js"></script>
+<script src="labui.js"></script>
+<script src="labboard.js"></script>
+<script src="laboverview.js"></script>
+<script src="labimport.js"></script>
+<script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
+   Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
+(function (g) {
+  const msg = "Der laufende Modulserver ist älter als diese Seite. Bitte das Modul bzw. den Hub neu starten; bis dahin fehlen Umgebungen und Projektindex.";
+  if (!g.LabEnv) g.LabEnv = { stub: true, create: (o) => ({ ready: false, info: null, open: async () => o.toast(msg, true), save() {}, flush: () => Promise.resolve(), check() {}, dialog: () => o.toast(msg, true) }) };
+  const no = (a, t) => { t(msg, true); return Promise.resolve(null); };
+  if (!g.LabIndex) g.LabIndex = { stub: true, add: no, addMany: no, browse: no, history: no, exportDeps: no };
+})(window);</script>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+// Farben der Messungen bewusst abseits der Phasenfarben
+const FILE_COLORS = ["#9334e6", "#007b83", "#b06000", "#3949ab", "#c2185b", "#2e7d32"];
+// zusätzlich eingeblendete Werkstoffe (wie im Bericht, flps/export/charts.py EXTRA_COLORS)
+const EXTRA_COLORS = ["#188038", "#e37400", "#a142f4", "#12b5cb", "#c5221f", "#795548", "#f538a0", "#5f6368"];
+const PHASES = ["Setzen", "elastisch", "plastisch", "Abfall (Einschnürung nicht belegt)", "Bruch"];
+let META = null;
+const ENVELOPES = {}, ENVS_DONE = {};   // Hüllkurven je Werkstoffgruppe (nicht mit window.ENVS, den Umgebungen, verwechseln)
+const S = { files: [], sel: -1, tab: "verlauf", xaxis: "t", eqs: [], eqOn: null };
+
+// ---------- Zahlen ----------
+function f(v, nd = 1, unit = "") {
+  if (v === null || v === undefined || !isFinite(v)) return "–";
+  const s = Number(v).toFixed(nd).replace(".", ",").replace("-", "−");
+  return unit ? s + " " + unit : s;
+}
+function num(s) {
+  if (s === null || s === undefined) return null;
+  s = String(s).trim().replace(",", ".");
+  if (s === "") return null;
+  const v = parseFloat(s);
+  return isFinite(v) ? v : null;
+}
+function cssv(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+// ---------- UI-08: Texte DE/EN (Kopf, Tabs, Aufklapper, Übersicht; Inhalte der Tabellen bleiben vorerst deutsch) ----------
+const ZV_T = {
+  de: {
+    "zv.title": "FLPS Auswertung", "zv.open": "Datei öffnen …", "zv.more_t": "Umgebungen verwalten, Projektindex, Kennwerte in den Index",
+    "zv.envs": "Umgebungen verwalten …", "zv.envs_t": "Umgebungen: Messungen und Einstellungen bleiben nach einem Neustart erhalten",
+    "zv.index": "Projektindex …", "zv.index_t": "Kuratierte Werte des Projekts, aus jedem Modul lesbar",
+    "zv.index_add": "Kennwerte → Index …", "zv.index_add_t": "Fmax und Rm der gewählten Messung als gemessene Werte in den Projektindex",
+    "zv.theme": "Hell / Dunkel",
+    "zv.h_mat": "Werkstoff", "zv.h_par": "Auswerteparameter", "zv.h_out": "Ausgaben", "zv.h_kv": "Kennwerte", "zv.h_notes": "Hinweise",
+    "zv.f_ref": "Referenz und Vergleich", "zv.f_meta": "Prüfer und Bemerkung", "zv.f_par": "Fenster, Toleranz, Bruch- und Halteschwellen",
+    "zv.f_eq": "Eigene Gleichungen", "zv.f_cmp": "Werkstoffvergleich", "zv.f_dev": "Gerät und Datei",
+    "zv.tab_verlauf": "Verlauf", "zv.tab_linear": "Linearer Abschnitt", "zv.tab_feld": "Werkstofffeld", "zv.tab_more": "Mehr ▾",
+    "zv.tab_h_verlauf": "Kraft bzw. Spannung über Zeit oder Dehnung", "zv.tab_h_linear": "Fit des linearen Abschnitts und Fliessbeginn",
+    "zv.tab_h_feld": "Messung im Feld der Referenzwerkstoffe",
+    "zv.none": "keine", "zv.n_extra": "+{n} eingeblendet", "zv.n_eq": "{n} aktiv", "zv.n_eq1": "1 aktiv", "zv.top": "Rang 1:",
+    "zv.n_meas": "{n} Messungen", "zv.n_meas1": "1 Messung", "zv.ref": "Referenz",
+    "zv.ds_btn": "Aus Datensatz …", "zv.ds_btn_t": "Kraft und Verlängerung oder Spannung und Dehnung aus einem Datensatz als ganzen Zugversuch auswerten",
+    "zv.imp_test": "Als Zugversuch auswerten", "zv.imp_test_t": "Kraft + Verlängerung oder Spannung + Dehnung, ausgewertet wie eine .flps-Datei",
+    "zv.imp_noload": "keine Kraft- oder Spannungsspalte (N, kN, MPa …)", "zv.imp_noload_l": "„{t}“ hat keine Spalte mit Kraft oder Spannung.",
+    "zv.imp_h": "Zugversuch aus Datensatz", "zv.imp_ok": "Auswerten", "zv.imp_cancel": "Abbrechen", "zv.imp_rows": "Zeilen",
+    "zv.imp_load": "Kraft oder Spannung", "zv.imp_ext": "Verlängerung oder Dehnung", "zv.imp_time": "Zeit (optional)", "zv.imp_none": "– keine –",
+    "zv.imp_src": "Weg gemessen an", "zv.imp_src_u": "nicht dokumentiert", "zv.imp_src_p": "der Probe (Extensometer)", "zv.imp_src_t": "der Traverse",
+    "zv.imp_comp": "Druckversuch (sonst Zug)",
+    "zv.imp_h_a0s": "A₀ ist Pflicht: die Kraft wird F = σ·A₀ (Rm, Rp und E hängen nicht davon ab).",
+    "zv.imp_h_a0f": "Mit A₀ wird die Spannung berechnet, ohne bleibt es eine Kraftauswertung.",
+    "zv.imp_h_l0s": "L₀ ist Pflicht: die Verlängerung wird ΔL = ε·L₀.", "zv.imp_h_l0l": "Mit L₀ wird die Dehnung berechnet.",
+    "zv.imp_h_v": "Die Zeitachse entsteht aus dem Weg und v (ohne Angabe 1 mm/min).",
+    "zv.imp_h_vt": "Die Zeitachse entsteht aus dem Weg und v; ohne v wird es aus der Zeitspalte gemittelt.",
+    "zv.imp_h_t": "Ohne Weg wird über der Zeitspalte ausgewertet; die Dehnung braucht dann v und L₀.",
+    "zv.q_force": "Kraft", "zv.q_stress": "Spannung", "zv.q_length": "Weg", "zv.q_strain": "Dehnung", "zv.q_time": "Zeit",
+    "zv.imp_done": "„{t}“ aus dem Datensatz ausgewertet ({n} Punkte).", "zv.imp_newer": "„{t}“: neuere Version v{v} des Datensatzes verfügbar (festgehalten).",
+    "zv.imp_upd": "{n} Messung(en) aus Datensätzen auf die neueste Version gebracht.",
+  },
+  en: {
+    "zv.title": "FLPS evaluation", "zv.open": "Open file …", "zv.more_t": "Manage environments, project index, values to the index",
+    "zv.envs": "Manage environments …", "zv.envs_t": "Environments: measurements and settings survive a restart",
+    "zv.index": "Project index …", "zv.index_t": "Curated values of the project, readable from every module",
+    "zv.index_add": "Values → index …", "zv.index_add_t": "Fmax and Rm of the selected measurement as measured values in the project index",
+    "zv.theme": "Light / dark",
+    "zv.h_mat": "Material", "zv.h_par": "Evaluation parameters", "zv.h_out": "Outputs", "zv.h_kv": "Key values", "zv.h_notes": "Notes",
+    "zv.f_ref": "Reference and comparison", "zv.f_meta": "Operator and remark", "zv.f_par": "Window, tolerance, break and hold thresholds",
+    "zv.f_eq": "Own equations", "zv.f_cmp": "Material comparison", "zv.f_dev": "Device and file",
+    "zv.tab_verlauf": "Curve", "zv.tab_linear": "Linear section", "zv.tab_feld": "Material field", "zv.tab_more": "More ▾",
+    "zv.tab_h_verlauf": "Force or stress over time or strain", "zv.tab_h_linear": "Fit of the linear section and onset of yielding",
+    "zv.tab_h_feld": "Measurement in the field of the reference materials",
+    "zv.none": "none", "zv.n_extra": "+{n} shown", "zv.n_eq": "{n} active", "zv.n_eq1": "1 active", "zv.top": "Rank 1:",
+    "zv.n_meas": "{n} measurements", "zv.n_meas1": "1 measurement", "zv.ref": "Reference",
+    "zv.ds_btn": "From dataset …", "zv.ds_btn_t": "Evaluate force and elongation or stress and strain from a dataset as a full tensile test",
+    "zv.imp_test": "Evaluate as tensile test", "zv.imp_test_t": "force + elongation or stress + strain, evaluated like a .flps file",
+    "zv.imp_noload": "no force or stress column (N, kN, MPa …)", "zv.imp_noload_l": "“{t}” has no force or stress column.",
+    "zv.imp_h": "Tensile test from a dataset", "zv.imp_ok": "Evaluate", "zv.imp_cancel": "Cancel", "zv.imp_rows": "rows",
+    "zv.imp_load": "Force or stress", "zv.imp_ext": "Elongation or strain", "zv.imp_time": "Time (optional)", "zv.imp_none": "– none –",
+    "zv.imp_src": "Displacement measured on", "zv.imp_src_u": "not documented", "zv.imp_src_p": "the specimen (extensometer)", "zv.imp_src_t": "the crosshead",
+    "zv.imp_comp": "Compression test (otherwise tension)",
+    "zv.imp_h_a0s": "A₀ is required: force becomes F = σ·A₀ (Rm, Rp and E do not depend on it).",
+    "zv.imp_h_a0f": "With A₀ stress is calculated; without it the evaluation stays in force.",
+    "zv.imp_h_l0s": "L₀ is required: elongation becomes ΔL = ε·L₀.", "zv.imp_h_l0l": "With L₀ strain is calculated.",
+    "zv.imp_h_v": "The time axis comes from the displacement and v (1 mm/min if not given).",
+    "zv.imp_h_vt": "The time axis comes from the displacement and v; without v it is averaged from the time column.",
+    "zv.imp_h_t": "Without displacement the evaluation runs over the time column; strain then needs v and L₀.",
+    "zv.q_force": "force", "zv.q_stress": "stress", "zv.q_length": "displacement", "zv.q_strain": "strain", "zv.q_time": "time",
+    "zv.imp_done": "“{t}” evaluated from the dataset ({n} points).", "zv.imp_newer": "“{t}”: newer version v{v} of the dataset available (kept).",
+    "zv.imp_upd": "{n} measurement(s) from datasets brought to the latest version.",
+  },
+};
+if (window.LabUI) LabUI.strings(ZV_T);
+const tr = (k, v) => window.LabUI ? LabUI.t(k, v) : (ZV_T.de[k] || k).replace(/\{(\w+)\}/g, (m, x) => (v && v[x] !== undefined ? v[x] : m));
+const trn = (k, n) => tr(n === 1 ? k + "1" : k, { n });
+let OV = null;
+
+// ---------- Server ----------
+async function api(path, body, raw) {
+  const opt = { method: body === undefined ? "GET" : "POST" };
+  if (body !== undefined) {
+    opt.body = raw ? body : JSON.stringify(body);
+    opt.headers = { "Content-Type": raw ? "application/octet-stream" : "application/json" };
+  }
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({ error: "Antwort unlesbar" }));
+  j._status = r.status;
+  return j;
+}
+
+// ---------- Dateien ----------
+async function addFiles(list) {
+  for (const file of list) {
+    if (!/\.flps$/i.test(file.name)) { flash(`${file.name}: keine .flps Datei`); continue; }
+    const buf = await file.arrayBuffer();
+    const j = await api("api/load?name=" + encodeURIComponent(file.name), buf, true);
+    if (j.error) { flash(j.error); continue; }
+    const cfg = JSON.parse(JSON.stringify(META.defaults));
+    const color = FILE_COLORS[S.files.length % FILE_COLORS.length];
+    S.files.push({ id: j.id, name: file.name.replace(/\.flps$/i, ""), cfg, res: null, color });
+    S.sel = S.files.length - 1;
+    await analyse(S.files[S.sel]);
+  }
+  renderAll();
+}
+function flash(t) { $("#exportMsg").textContent = t; }
+
+// I-03: ganzer Zugversuch aus einem Datensatz (Kraft + Verlängerung oder Spannung + Dehnung), über das Import-Fenster
+const ZV_IMP = { actions: [{ id: "test", label: () => tr("zv.imp_test"), hint: () => tr("zv.imp_test_t") }],
+  check: (d) => ((d.columns || []).some(c => /(^|[^A-Za-z])(m|c|k|M)?N$|Pa$/.test(c.unit || "")) ? "" : tr("zv.imp_noload")),
+  run: (p) => zvDsDialog(p) };
+async function zvDsDialog(p) {
+  const ver = p.mode === "pin" ? p.version : undefined;
+  const j = await api("api/dataset/columns", { id: p.id, mode: p.mode, version: ver });
+  if (j.error) return flash(j.error);
+  const Q = (q) => q ? tr("zv.q_" + q) : "";
+  const lab = (c) => `${esc(c.name)}${c.unit ? " [" + esc(c.unit) + "]" : ""}${c.q ? " · " + esc(Q(c.q)) : ""}`;
+  const opts = (qs, sel, none) => (none ? `<option value="">${esc(none)}</option>` : "")
+    + j.columns.filter(c => qs.includes(c.q)).map(c => `<option value="${esc(c.key)}"${c.key === sel ? " selected" : ""}>${lab(c)}</option>`).join("");
+  const g = j.geometry || {}, gs = j.guess || {};
+  const num = (v) => (v == null ? "" : String(+(+v).toPrecision(6)).replace(".", ","));
+  if (!j.columns.some(c => c.q === "force" || c.q === "stress")) return flash(tr("zv.imp_noload_l", { t: j.title }));
+  const html = `<p class="small"><b>${esc(j.title)}</b> · v${j.version} · ${j.rows} ${esc(tr("zv.imp_rows"))}</p>
+    <div class="row2"><div><label>${esc(tr("zv.imp_load"))}</label><select id="zdLoad">${opts(["force", "stress"], gs.load)}</select></div>
+      <div><label>${esc(tr("zv.imp_ext"))}</label><select id="zdExt">${opts(["length", "strain"], gs.ext, tr("zv.imp_none"))}</select></div></div>
+    <div class="row2"><div><label>${esc(tr("zv.imp_time"))}</label><select id="zdT">${opts(["time"], gs.t, tr("zv.imp_none"))}</select></div>
+      <div><label>${esc(tr("zv.imp_src"))}</label><select id="zdSrc"><option value="">${esc(tr("zv.imp_src_u"))}</option><option value="probe">${esc(tr("zv.imp_src_p"))}</option><option value="traverse">${esc(tr("zv.imp_src_t"))}</option></select></div></div>
+    <div class="row3"><div><label>A₀ [mm²]</label><input id="zdA0" inputmode="decimal" value="${num(g.a0_mm2)}"></div>
+      <div><label>L₀ [mm]</label><input id="zdL0" inputmode="decimal" value="${num(g.l0_mm)}"></div>
+      <div><label>v [mm/min]</label><input id="zdV" inputmode="decimal" value="${num(g.speed_mm_min)}"></div></div>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:8px"><input type="checkbox" id="zdC" style="width:auto"> ${esc(tr("zv.imp_comp"))}</label>
+    <p class="small" id="zdHint"></p>`;
+  const r = await dialog(tr("zv.imp_h"), html, { ok: tr("zv.imp_ok"), cancel: tr("zv.imp_cancel"), wide: true,
+    onOpen: (b) => {
+      const kind = (id) => { const k = b.querySelector(id).value; const c = j.columns.find(x => x.key === k); return c ? c.q : null; };
+      const upd = () => {
+        const lq = kind("#zdLoad"), eq = kind("#zdExt"), tq = kind("#zdT"), h = [];
+        h.push(lq === "stress" ? tr("zv.imp_h_a0s") : tr("zv.imp_h_a0f"));
+        if (eq === "strain") h.push(tr("zv.imp_h_l0s")); else if (eq === "length") h.push(tr("zv.imp_h_l0l"));
+        h.push(eq ? (tq ? tr("zv.imp_h_vt") : tr("zv.imp_h_v")) : tr("zv.imp_h_t"));
+        b.querySelector("#zdHint").textContent = h.join(" ");
+      };
+      b.addEventListener("change", upd); upd();
+    },
+    check: async (b) => {
+      const v = (id) => b.querySelector(id).value.trim();
+      const res = await api("api/dataset/test", { id: p.id, mode: p.mode, version: ver,
+        roles: { load: v("#zdLoad"), ext: v("#zdExt"), t: v("#zdT") },
+        geometry: { a0_mm2: v("#zdA0"), l0_mm: v("#zdL0"), speed_mm_min: v("#zdV"), displacement_source: v("#zdSrc"), compression: b.querySelector("#zdC").checked } });
+      return res.error ? { error: res.error } : res;
+    } });
+  if (!r) return;
+  const cfg = JSON.parse(JSON.stringify(META.defaults));
+  for (const [k, x] of Object.entries(r.config || {})) if (x !== null && x !== undefined) cfg[k] = x;
+  S.files.push({ id: r.id, name: r.name, cfg, res: null, color: FILE_COLORS[S.files.length % FILE_COLORS.length], ds: r.dataset });
+  S.sel = S.files.length - 1;
+  await analyse(S.files[S.sel]); renderAll();
+  flash(tr("zv.imp_done", { t: r.name, n: r.points }));
+}
+// Live: Messungen aus Datensätzen folgen der neuesten Version (beim Öffnen der Umgebung); gepinnte melden nur
+async function zvDsFollow() {
+  if (!S.files.some(o => o.ds)) return;
+  const j = await api("api/dataset/latest", {});
+  if (j.error || !j.files) return;
+  let n = 0;
+  for (const o of S.files) {
+    const x = j.files[o.id]; if (!x || !x.latest || x.latest === x.version) continue;
+    if ((o.ds && o.ds.mode) === "pin") { flash(tr("zv.imp_newer", { t: o.name, v: x.latest })); continue; }
+    const r = await api("api/dataset/refresh", { file: o.id });
+    if (r.error) { flash(r.error); continue; }
+    if (r.changed) { o.ds = { ...(o.ds || {}), version: r.version, latest: r.latest }; await analyse(o); n++; }
+  }
+  if (n) { renderAll(); flash(tr("zv.imp_upd", { n })); }
+}
+
+let timer = null, seq = 0;
+function scheduleAnalyse() {
+  clearTimeout(timer);
+  timer = setTimeout(async () => { const fobj = S.files[S.sel]; if (fobj) { await analyse(fobj); renderAll(false); } }, 120);
+}
+async function analyse(fobj) {
+  const my = ++seq;
+  fobj.cfg.equations = activeEqs();   // vollständige Einträge: der Bericht rechnet sie später genauso nach
+  fobj.cfg.ext_values = S.ext && S.ext.length ? S.ext : null;        // Werte anderer Umgebungen (Verbindung)
+  const j = await api("api/analyse", { id: fobj.id, config: fobj.cfg });
+  if (j.error) { flash(j.error); return; }
+  if (fobj === S.files[S.sel] && my !== seq) return; // veraltete Antwort
+  fobj.res = j;
+}
+
+// ---------- Maske ----------
+function a0Local(c) {
+  if (c.a0_mm2 && c.a0_mm2 > 0) return [c.a0_mm2, "direkt eingegeben"];
+  if (c.section === "rund") return c.diameter_mm > 0 ? [Math.PI * c.diameter_mm ** 2 / 4, "π d² / 4"] : [null, "fehlt"];
+  if (c.section === "rohr") {
+    const D = c.outer_d_mm, t = c.wall_mm;
+    return (D > 0 && t > 0 && t <= D / 2) ? [Math.PI / 4 * (D ** 2 - (D - 2 * t) ** 2), "π/4 (D² − (D − 2t)²)"] : [null, "fehlt"];
+  }
+  return (c.width_mm > 0 && c.thickness_mm > 0) ? [c.width_mm * c.thickness_mm, "b × Dicke"] : [null, "fehlt"];
+}
+function fillMask() {
+  const fobj = S.files[S.sel];
+  const dis = !fobj;
+  document.querySelectorAll("#mask input, #mask select").forEach(el => { if (!["exportBtn"].includes(el.id)) el.disabled = dis; });
+  $("#exportBtn").disabled = dis; $("#exportAllBtn").disabled = S.files.length < 2; $("#copyBtn").disabled = S.files.length < 2;
+  $("#cmpReportBtn").disabled = S.files.length < 2;
+  $("#labBtn").disabled = dis;
+  document.querySelectorAll("#modeSeg button").forEach(b => b.disabled = dis);
+  if (!fobj) return;
+  const c = fobj.cfg, norm = c.specimen_mode !== "manuell";
+  document.querySelectorAll("#modeSeg button").forEach(b => b.classList.toggle("on", b.dataset.mode === (norm ? "norm" : "manuell")));
+  $("#normBox").hidden = !norm; $("#manualBox").hidden = norm;
+  $("#shape").value = (norm && META.shapes[c.shape] && c.shape !== META.manual_shape) ? c.shape : "";
+  const sh = norm ? (META.shapes[c.shape] || {}) : {};
+  const forTxt = sh.werkstoffe && sh.werkstoffe.length ? "für " + sh.werkstoffe.join(", ") : "";
+  $("#shapeNote").textContent = [sh.norm, forTxt, sh.note].filter(Boolean).join(" · ");
+  document.querySelectorAll("input[name=section]").forEach(r => r.checked = r.value === c.section);
+  $("#rectFields").hidden = c.section !== "rechteckig";
+  $("#roundFields").hidden = c.section !== "rund";
+  $("#tubeFields").hidden = c.section !== "rohr";
+  let hint = "";
+  if (norm && c.section === "rechteckig" && (sh.h || sh.h_min || sh.h_max)) {
+    const parts = [];
+    if (sh.h) parts.push(`empfohlen ${f(sh.h, sh.h < 1 ? 2 : 1, "mm")}`);
+    const fh = v => f(v, v < 1 ? 2 : 1);
+    if (sh.h_min && sh.h_max) parts.push(`zulässig ${fh(sh.h_min)} bis ${fh(sh.h_max)} mm`);
+    else if (sh.h_min) parts.push(`mindestens ${fh(sh.h_min)} mm`);
+    else if (sh.h_max) parts.push(`unter ${fh(sh.h_max)} mm`);
+    hint = "Dicke laut Norm: " + parts.join(", ") + ". Gemessene Dicke eintragen.";
+  } else if (norm && sh.b !== undefined && sh.b !== null && c.section === "rechteckig") {
+    hint = "Dicke messen und eintragen.";
+  }
+  $("#hHint").textContent = hint;
+  $("#material_ref").value = c.material_ref || "";
+  $("#compare_group").value = c.compare_group || "";
+  renderRefInfo(c.material_ref);
+  renderExtras();
+  document.querySelectorAll("[data-k]").forEach(el => {
+    if (document.activeElement === el) return;
+    let v = c[el.dataset.k];
+    if (el.dataset.scale && v !== null && v !== undefined) v = +(v * el.dataset.scale).toFixed(4);
+    el.value = (v === null || v === undefined) ? "" : (typeof v === "number" ? String(v).replace(".", ",") : v);
+  });
+  const [a0, src] = a0Local(c);
+  if (document.activeElement !== $("#a0")) $("#a0").value = a0 ? String(+a0.toFixed(5)).replace(".", ",") : "";
+  $("#a0src").textContent = a0 ? src : "fehlt: Auswertung nur in Kraft";
+  $("#a0reset").hidden = !(c.a0_mm2 > 0);
+  const stress = !!a0;
+  $("#tolLabel").textContent = stress ? "Toleranz Fitfenster [MPa]" : "Toleranz Fitfenster [N]";
+  if (document.activeElement !== $("#tol")) $("#tol").value = String(stress ? c.tol_stress_mpa : c.tol_force_n).replace(".", ",");
+  const lbl = stress ? "Rm" : "Fmax";
+  ["break_upper", "break_lower", "hold_threshold"].forEach(id => {
+    const l = document.querySelector(`label[for=${id}]`); l.textContent = l.textContent.replace(/Fmax|Rm/, lbl);
+  });
+  const di = META.detents.indexOf(c.yield_threshold);
+  $("#yieldSlider").value = di >= 0 ? di : 2;
+  updateYieldVal();
+}
+function updateYieldVal() {
+  const fobj = S.files[S.sel]; if (!fobj || !fobj.res) { $("#yieldVal").textContent = "–"; return; }
+  const r = fobj.res, y = r.kv.yield, thr = fobj.cfg.yield_threshold;
+  const ref = r.mode === "Spannung" ? "Rm" : "Fmax";
+  if (!y) { $("#yieldVal").innerHTML = `${f(thr * 100, 1)} % von ${ref}: <b>kein Fliessbeginn</b>`; return; }
+  const main = r.mode === "Spannung" ? `<b>${f(y.y, 0, "MPa")}</b> (${f(y.F, 1, "N")})` : `<b>${f(y.F, 1, "N")}</b>`;
+  $("#yieldVal").innerHTML = `${f(thr * 100, 1)} % von ${ref} → ${main} bei ${f(y.t, 1, "s")}`;
+}
+function alloyByName(n) { return META.alloys.find(a => a.name === n) || null; }
+function srcLink(a) {
+  const doi = a.cite && a.cite.doi;
+  if (doi) return ` · <a href="https://doi.org/${esc(doi)}" target="_blank" rel="noopener noreferrer">DOI</a>`;
+  return /^https?:\/\//.test(a.url || "") ? ` · <a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">Link</a>` : "";
+}
+function renderRefInfo(name) {
+  const a = alloyByName(name), el = $("#refInfo");
+  if (!a) { el.textContent = "Keiner gewählt: Rangliste ohne Referenz, Vergleichsgruppe Aluminium."; return; }
+  const span = (a.rm_min !== null && a.rm_max !== null) ? ` (${f(a.rm_min, 0)}–${f(a.rm_max, 0)})` : "";
+  el.innerHTML = `<b>${esc(a.name)}</b>${a.own ? '<span class="ownbadge">eigen</span>' : ""}${a.curve ? '<span class="ownbadge">Kurve aus Quelle</span>' : ""} · ${esc(a.category)}<br>Rm <b>${f(a.rm, 0, "MPa")}</b>${span} · ${a.rp ? "Rp " + f(a.rp, 0, "MPa") : "kein Rp"} · A ${f(a.a_pct, 0, "%")} · E ${f(a.e_gpa, a.e_gpa < 10 ? 2 : 0, "GPa")}` +
+    (a.basis ? `<br>Basis: ${esc(a.basis)}` : "") +
+    (a.source ? `<br><span class="small">Quelle: ${esc(a.source)}${a.year && !a.cite ? " (" + esc(a.year) + ")" : ""}${srcLink(a)}</span>` : "");
+}
+function fillAlloyOptions() {
+  const cats = new Map();
+  for (const a of META.alloys) {
+    if (!cats.has(a.category)) cats.set(a.category, []);
+    cats.get(a.category).push([a.name, `${a.name}  —  Rm ${f(a.rm, 0)} MPa${a.own ? "  (eigen)" : ""}`]);
+  }
+  optGroups($("#material_ref"), cats, "keiner");
+  optGroups($("#extraSel"), cats, "Werkstoff hinzufügen …");
+  const gs = $("#compare_group"); gs.innerHTML = "";
+  [["", "automatisch (Kategorie der Referenz)"], ...META.groups.map(g => [g, g])].forEach(([v, t]) => {
+    const o = document.createElement("option"); o.value = v; o.textContent = t; gs.appendChild(o);
+  });
+}
+function renderExtras() {
+  const fobj = S.files[S.sel], el = $("#extraList");
+  const list = (fobj && fobj.cfg.extra_refs) || [];
+  el.innerHTML = list.map((n, i) => `<span class="chip"${alloyByName(n) ? "" : ' title="nicht (mehr) in der Datenbank"'}>${esc(n)}${alloyByName(n) ? "" : " ⚠"}<button class="x" data-i="${i}" title="entfernen">×</button></span>`).join("");
+  el.querySelectorAll("[data-i]").forEach(b => b.addEventListener("click", () => {
+    fobj.cfg.extra_refs.splice(+b.dataset.i, 1);
+    if (!fobj.cfg.extra_refs.length) fobj.cfg.extra_refs = null;
+    renderExtras(); scheduleAnalyse();
+  }));
+}
+function optGroups(sel, groups, emptyLabel) {
+  sel.innerHTML = "";
+  if (emptyLabel !== null) { const o = document.createElement("option"); o.value = ""; o.textContent = emptyLabel; sel.appendChild(o); }
+  for (const [g, items] of groups) {
+    const og = document.createElement("optgroup"); og.label = g;
+    for (const [v, t] of items) { const o = document.createElement("option"); o.value = v; o.textContent = t; og.appendChild(o); }
+    sel.appendChild(og);
+  }
+}
+function bindMask() {
+  const sel = $("#shape");
+  const byGroup = new Map();
+  for (const [k, sh] of Object.entries(META.shapes)) {
+    if (k === META.manual_shape || sh.gruppe === "Manuell") continue;
+    const g = sh.gruppe || "weitere";
+    if (!byGroup.has(g)) byGroup.set(g, []);
+    const dims = sh.section === "rund" ? `d ${f(sh.d, sh.d < 10 ? 1 : 0)}` : (sh.b !== null ? `b ${f(sh.b, sh.b < 10 ? 1 : 0)}` : "");
+    byGroup.get(g).push([k, k + (dims || sh.L0 ? `  (${[dims, sh.L0 ? "L₀ " + f(sh.L0, 0) : ""].filter(Boolean).join(", ")} mm)` : "")]);
+  }
+  optGroups(sel, byGroup, "Normprobe wählen …");
+  sel.addEventListener("change", () => {
+    const c = S.files[S.sel].cfg, sh = META.shapes[sel.value];
+    if (!sh) return;
+    c.shape = sel.value; c.section = sh.section || "rechteckig"; c.specimen_mode = "norm";
+    if (c.section === "rund") { if (sh.d !== null) c.diameter_mm = sh.d; }
+    else if (sh.b !== null) c.width_mm = sh.b;
+    if (sh.L0 !== null) c.l0_mm = sh.L0;
+    fillMask(); scheduleAnalyse();
+  });
+  document.querySelectorAll("#modeSeg button").forEach(b => b.addEventListener("click", () => {
+    const c = S.files[S.sel].cfg;
+    c.specimen_mode = b.dataset.mode;
+    if (c.specimen_mode === "manuell") c.shape = META.manual_shape;
+    fillMask(); scheduleAnalyse();
+  }));
+  // Werkstoffe nach Kategorie (eingebaute und eigene)
+  fillAlloyOptions();
+  $("#material_ref").addEventListener("change", () => {
+    const c = S.files[S.sel].cfg; c.material_ref = $("#material_ref").value || null;
+    renderRefInfo(c.material_ref); scheduleAnalyse();
+  });
+  const gs = $("#compare_group");
+  gs.addEventListener("change", () => { S.files[S.sel].cfg.compare_group = gs.value || null; scheduleAnalyse(); });
+  $("#extraSel").addEventListener("change", () => {
+    const c = S.files[S.sel].cfg, v = $("#extraSel").value;
+    $("#extraSel").value = "";
+    if (!v) return;
+    c.extra_refs = [...new Set([...(c.extra_refs || []), v])].slice(0, 20);
+    renderExtras(); scheduleAnalyse();
+  });
+  $("#ownNewBtn").addEventListener("click", () => ownDialog(null));
+  $("#ownManageBtn").addEventListener("click", ownManage);
+  document.querySelectorAll("input[name=section]").forEach(r => r.addEventListener("change", () => {
+    S.files[S.sel].cfg.section = r.value; fillMask(); scheduleAnalyse();
+  }));
+  document.querySelectorAll("[data-k]").forEach(el => {
+    const ev = el.tagName === "SELECT" ? "change" : "input";
+    el.addEventListener(ev, () => {
+      const c = S.files[S.sel].cfg, k = el.dataset.k;
+      const isText = ["material", "batch", "operator", "remark", "displacement_source"].includes(k);
+      let v = isText ? el.value : num(el.value);
+      if (k === "displacement_source" && v === "") v = null;
+      if (!isText && v !== null && el.dataset.scale) v = v / el.dataset.scale;
+      if (!isText && v === null && ["slope_window_s", "break_upper", "break_lower", "hold_threshold"].includes(k)) return; // Pflichtparameter
+      c[k] = v;
+      const [a0, src] = a0Local(c);
+      if (["width_mm", "thickness_mm", "diameter_mm", "outer_d_mm", "wall_mm"].includes(k)) {
+        $("#a0").value = a0 ? String(+a0.toFixed(5)).replace(".", ",") : "";
+        $("#a0src").textContent = a0 ? src : "fehlt: Auswertung nur in Kraft";
+      }
+      scheduleAnalyse();
+    });
+  });
+  $("#a0").addEventListener("input", () => {
+    const c = S.files[S.sel].cfg; const v = num($("#a0").value);
+    c.a0_mm2 = v; $("#a0reset").hidden = !(v > 0);
+    $("#a0src").textContent = v > 0 ? "direkt eingegeben" : "fehlt: Auswertung nur in Kraft";
+    scheduleAnalyse();
+  });
+  $("#a0reset").addEventListener("click", () => { S.files[S.sel].cfg.a0_mm2 = null; fillMask(); scheduleAnalyse(); });
+  $("#tol").addEventListener("input", () => {
+    const c = S.files[S.sel].cfg; const v = num($("#tol").value); if (v === null || v <= 0) return;
+    if (a0Local(c)[0]) c.tol_stress_mpa = v; else c.tol_force_n = v;
+    scheduleAnalyse();
+  });
+  $("#yieldSlider").addEventListener("input", () => {
+    S.files[S.sel].cfg.yield_threshold = META.detents[+$("#yieldSlider").value];
+    // sofortige Anzeige aus der Tabelle der Rastpunkte, dann Neuberechnung
+    const r = S.files[S.sel].res;
+    if (r) {
+      const row = r.yield_table.find(x => x.schwelle === S.files[S.sel].cfg.yield_threshold);
+      if (row && row.idx !== null) { r.kv.yield = { ...r.kv.yield, y: row.y, F: row.F, t: row.t, idx: row.idx }; }
+      updateYieldVal(); drawChart();
+    }
+    scheduleAnalyse();
+  });
+}
+
+// ---------- Plot ----------
+function niceStep(range, n) {
+  const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+function ticks(a, b, n) {
+  const st = niceStep(b - a || 1, n), out = [];
+  for (let v = Math.ceil(a / st) * st; v <= b + st * 1e-9; v += st) out.push(+v.toFixed(10));
+  return { list: out, nd: Math.max(0, -Math.floor(Math.log10(st) + 1e-9)) };
+}
+function plot(svg, o) {
+  const W = 900, H = o.height || 460, m = { l: 62, r: 16, t: 14, b: 46 };
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const X = v => m.l + (v - o.xmin) / (o.xmax - o.xmin) * pw;
+  const Y = v => m.t + ph - (v - o.ymin) / (o.ymax - o.ymin) * ph;
+  let s = `<defs><clipPath id="clp"><rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+  const tx = ticks(o.xmin, o.xmax, 9), ty = ticks(o.ymin, o.ymax, 7);
+  s += `<g class="grid">` + tx.list.map(v => `<line x1="${X(v)}" x2="${X(v)}" y1="${m.t}" y2="${m.t + ph}"/>`).join("") +
+       ty.list.map(v => `<line x1="${m.l}" x2="${m.l + pw}" y1="${Y(v)}" y2="${Y(v)}"/>`).join("") + `</g>`;
+  s += `<g class="axis"><line x1="${m.l}" x2="${m.l + pw}" y1="${m.t + ph}" y2="${m.t + ph}"/><line x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${m.t + ph}"/></g>`;
+  s += tx.list.map(v => `<text x="${X(v)}" y="${m.t + ph + 16}" text-anchor="middle">${f(v, tx.nd)}</text>`).join("");
+  s += ty.list.map(v => `<text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end">${f(v, ty.nd)}</text>`).join("");
+  s += `<text x="${m.l + pw / 2}" y="${H - 8}" text-anchor="middle">${esc(o.xlabel)}</text>`;
+  s += `<text transform="translate(16 ${m.t + ph / 2}) rotate(-90)" text-anchor="middle">${esc(o.ylabel)}</text>`;
+  s += `<g clip-path="url(#clp)">`;
+  for (const sp of o.vspans || []) s += `<rect x="${X(sp.x0)}" y="${m.t}" width="${X(sp.x1) - X(sp.x0)}" height="${ph}" fill="${sp.color}" opacity="${sp.opacity ?? .12}"/>`;
+  for (const se of o.series) {
+    if (se.kind === "band") {
+      let top = "", bot = [];
+      for (let i = 0; i < se.x.length; i++) if (se.y[i] !== null && se.y2[i] !== null) { top += (top ? "L" : "M") + X(se.x[i]).toFixed(1) + "," + Y(se.y[i]).toFixed(1); bot.push("L" + X(se.x[i]).toFixed(1) + "," + Y(se.y2[i]).toFixed(1)); }
+      s += `<path d="${top}${bot.reverse().join("")}Z" fill="${se.color}" stroke="none"/>`;
+      continue;
+    }
+    if (se.kind === "dots") {
+      s += se.x.map((x, i) => se.y[i] === null ? "" : `<circle cx="${X(x).toFixed(1)}" cy="${Y(se.y[i]).toFixed(1)}" r="${se.r || 2}" fill="${se.color}"/>`).join("");
+      continue;
+    }
+    let d = "", pen = false;
+    for (let i = 0; i < se.x.length; i++) {
+      const y = se.y[i];
+      if (y === null || y === undefined || !isFinite(y) || se.x[i] === null) { pen = false; continue; }
+      d += (pen ? "L" : "M") + X(se.x[i]).toFixed(1) + "," + Y(y).toFixed(1); pen = true;
+    }
+    s += `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="${se.width || 2}" ${se.dash ? `stroke-dasharray="${se.dash}"` : ""} opacity="${se.opacity ?? 1}" stroke-linejoin="round"/>`;
+  }
+  for (const h of o.hlines || []) s += `<line x1="${m.l}" x2="${m.l + pw}" y1="${Y(h.y)}" y2="${Y(h.y)}" stroke="${h.color}" stroke-dasharray="${h.dash || "6 4"}" stroke-width="1.5"/>`;
+  s += `</g>`;
+  for (const mk of o.markers || []) {
+    s += `<circle cx="${X(mk.x)}" cy="${Y(mk.y)}" r="${mk.r || 6}" fill="${mk.color}" stroke="var(--panel)" stroke-width="1.5"/>`;
+    if (mk.text) {
+      const lines = mk.text.split("\n"), anchor = mk.anchor || "start";
+      const dx = anchor === "end" ? -10 : 10, dy = mk.dy ?? -12;
+      s += `<text x="${X(mk.x) + dx}" y="${Y(mk.y) + dy}" text-anchor="${anchor}" style="fill:${mk.color};font-size:12px">` +
+        lines.map((l, i) => `<tspan x="${X(mk.x) + dx}" dy="${i ? 14 : 0}">${esc(l)}</tspan>`).join("") + `</text>`;
+    }
+  }
+  // Legende
+  const items = (o.legend || []);
+  if (items.length) {
+    const lw = o.legendWidth || 250, lh = 18 * items.length + 10;
+    const lx = o.legendPos === "tl" ? m.l + 10 : m.l + pw - lw - 10, ly = o.legendPos === "tl" ? m.t + 8 : m.t + ph - lh - 8;
+    s += `<rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="5" fill="var(--panel)" opacity=".88" stroke="var(--line)"/>`;
+    items.forEach((it, i) => {
+      const yy = ly + 16 + 18 * i;
+      s += it.kind === "dot" ? `<circle cx="${lx + 18}" cy="${yy - 4}" r="5" fill="${it.color}"/>`
+        : it.kind === "box" ? `<rect x="${lx + 8}" y="${yy - 10}" width="20" height="11" fill="${it.color}"/>`
+        : `<line x1="${lx + 8}" x2="${lx + 28}" y1="${yy - 4}" y2="${yy - 4}" stroke="${it.color}" stroke-width="3" ${it.dash ? `stroke-dasharray="${it.dash}"` : ""}/>`;
+      s += `<text x="${lx + 36}" y="${yy}" style="font-size:12px">${esc(it.label)}</text>`;
+    });
+  }
+  svg.innerHTML = s;
+  svg._map = { X, Y, m, pw, ph, o };
+}
+
+function seriesXY(r, xaxis) {
+  const s = r.series, xs = [], ys = [], ph = [];
+  for (let i = 0; i < s.t.length; i++) {
+    let x = s.t[i];
+    // Fusspunktkorrektur: die Setzphase faellt heraus, die Kurve laeuft vom Ursprung entlang der Geraden
+    if (xaxis === "eps") { if (s.strain === null) return null; x = s.strain[i] * 100; if (i < r.kv.fit.lo || x < 0) continue; }
+    xs.push(x); ys.push(s.y[i]); ph.push(s.phase[i]);
+  }
+  if (xaxis === "eps") { xs.unshift(0); ys.unshift(0); ph.unshift(1); }
+  return { xs, ys, ph };
+}
+function xOf(r, idx, xaxis) { return xaxis === "eps" ? r.series.strain[idx] * 100 : r.series.t[idx]; }
+
+function drawVerlauf(svg) {
+  const cur = S.files[S.sel], r = cur.res, xaxis = (S.xaxis === "eps" && r.series.strain) ? "eps" : "t";
+  const stress = r.mode === "Spannung", u = r.unit, nd = stress ? 0 : 1;
+  const series = [], legend = [], phaseLegend = [];
+  let xmax = 0, ymax = 0;
+  // andere Messungen
+  for (const o of S.files) {
+    if (o === cur || !o.res) continue;
+    if (o.res.mode !== r.mode) continue;
+    const d = seriesXY(o.res, xaxis); if (!d) continue;
+    series.push({ x: d.xs, y: d.ys, color: o.color, width: 1.6, opacity: .85 });
+    legend.push({ label: o.name, color: o.color });
+    xmax = Math.max(xmax, ...d.xs); ymax = Math.max(ymax, ...d.ys);
+  }
+  const d = seriesXY(r, xaxis);
+  xmax = Math.max(xmax, ...d.xs); ymax = Math.max(ymax, ...d.ys);
+  for (let code = 0; code < 4; code++) {
+    const idx = []; d.ph.forEach((p, i) => { if (p === code) idx.push(i); });
+    if (!idx.length) continue;
+    const lo = idx[0], hi = Math.min(idx[idx.length - 1] + 1, d.xs.length - 1);
+    series.push({ x: d.xs.slice(lo, hi + 1), y: d.ys.slice(lo, hi + 1), color: cssv("--ph" + code), width: 2.4 });
+    phaseLegend.push({ label: PHASES[code], color: cssv("--ph" + code) });
+  }
+  legend.unshift(...phaseLegend);
+  const marks = [], kv = r.kv;
+  if (kv.yield) marks.push({ x: xOf(r, kv.yield.idx, xaxis), y: kv.yield.y, color: cssv("--m-yield"), text: `${f(kv.yield.y, nd, u)}\n${xaxis === "t" ? f(kv.yield.t, 1, "s") : f(xOf(r, kv.yield.idx, xaxis), 2, "%")}`, label: `Fliessbeginn (${f(cur.cfg.yield_threshold * 100, 1)} %): ${f(kv.yield.y, nd, u)}` });
+  marks.push({ x: xOf(r, kv.max.idx, xaxis), y: kv.max.y, color: cssv("--m-max"), anchor: "end", text: `${f(kv.max.y, nd, u)}\n${xaxis === "t" ? f(kv.max.t, 1, "s") : f(xOf(r, kv.max.idx, xaxis), 2, "%")}`, label: `Maximum: ${f(kv.max.y, nd, u)}` });
+  if (kv.break) marks.push({ x: xOf(r, kv.break.idx, xaxis), y: kv.break.y, color: cssv("--m-break"), anchor: "end", dy: 26, text: `${f(kv.break.y, nd, u)}\n${xaxis === "t" ? f(kv.break.t, 1, "s") : f(xOf(r, kv.break.idx, xaxis), 2, "%")}`, label: `Bruch: ${f(kv.break.y, nd, u)}` });
+  marks.forEach(mk => legend.push({ label: mk.label, color: mk.color, kind: "dot" }));
+  const epsLbl = cur.cfg.displacement_source === "probe" ? "Dehnung ε [%]" : "Dehnung ε [%] (scheinbar)";
+  plot(svg, {
+    xmin: 0, xmax: xmax * 1.03, ymin: 0, ymax: ymax * 1.15, series, markers: marks, legend, legendWidth: 290,
+    xlabel: xaxis === "t" ? "Zeit t [s]" : epsLbl, ylabel: stress ? "Spannung σ [MPa]" : "Kraft |F| [N]",
+  });
+  svg._hover = { xs: d.xs, ys: d.ys, fx: v => xaxis === "t" ? f(v, 2, "s") : f(v, 3, "%"), fy: v => f(v, stress ? 1 : 1, u) };
+}
+
+function drawLinear(svg) {
+  const cur = S.files[S.sel], r = cur.res, s = r.series, kv = r.kv, u = r.unit;
+  const end = Math.min(s.t.length - 1, (kv.yield ? kv.yield.idx : kv.fit.hi) + 60);
+  const t = s.t.slice(0, end + 1), y = s.y.slice(0, end + 1);
+  const ymax = Math.max(...y) * 1.12;
+  const lineX = [r.t0, t[t.length - 1]], lineY = lineX.map(x => kv.fit.k * x + kv.fit.q);
+  const sym = r.mode === "Spannung" ? "σ" : "F";
+  const marks = kv.yield ? [{ x: kv.yield.t, y: kv.yield.y, color: cssv("--m-yield"), text: `${f(kv.yield.y, r.mode === "Spannung" ? 0 : 1, u)}` }] : [];
+  plot(svg, {
+    height: 460, xmin: 0, xmax: t[t.length - 1] * 1.02, ymin: 0, ymax,
+    vspans: [{ x0: kv.fit.t_von, x1: kv.fit.t_bis, color: cssv("--ph1"), opacity: .1 }],
+    series: [
+      { kind: "dots", x: t, y, color: cssv("--muted"), r: 1.8 },
+      { kind: "dots", x: t.slice(kv.fit.lo, kv.fit.hi + 1), y: y.slice(kv.fit.lo, kv.fit.hi + 1), color: cssv("--ph1"), r: 2.4 },
+      { x: lineX, y: lineY, color: cssv("--m-max"), width: 1.6 },
+    ],
+    markers: marks,
+    legend: [
+      { label: "Messpunkte", color: cssv("--muted"), kind: "dot" },
+      { label: `Fitfenster ${f(kv.fit.t_von, 1)}–${f(kv.fit.t_bis, 1, "s")}, n = ${kv.fit.n}`, color: cssv("--ph1"), kind: "dot" },
+      { label: `${sym} = ${f(kv.fit.k, 3)} t − ${f(-kv.fit.q, 2)}, R² = ${f(kv.fit.r2, 5)}`, color: cssv("--m-max") },
+      { label: `t₀ = ${f(r.t0, 2, "s")}, grösste Abweichung ${f(kv.fit.max_dev, 2, u)}`, color: "transparent" },
+    ].concat(kv.yield ? [{ label: `Fliessbeginn ${f(cur.cfg.yield_threshold * 100, 1)} %: ${f(kv.yield.y, 1, u)}`, color: cssv("--m-yield"), kind: "dot" }] : []),
+    legendPos: "tl", legendWidth: 330, xlabel: "Zeit t [s]", ylabel: r.mode === "Spannung" ? "Spannung σ [MPa]" : "Kraft |F| [N]",
+  });
+  svg._hover = { xs: t, ys: y, fx: v => f(v, 2, "s"), fy: v => f(v, 2, u) };
+}
+
+async function getEnv(group) {
+  if (!ENVELOPES[group]) ENVELOPES[group] = api("api/envelope?group=" + encodeURIComponent(group));
+  return ENVELOPES[group];
+}
+function drawFeld(svg) {
+  const cur = S.files[S.sel], r = cur.res;
+  if (r.mode !== "Spannung" || !r.series.strain) { svg.innerHTML = ""; return false; }
+  const ENV = ENVS_DONE[r.group];
+  if (!ENV) { getEnv(r.group).then(e => { ENVS_DONE[r.group] = e; if (S.tab === "feld") drawChart(); }); svg.innerHTML = ""; return true; }
+  const refName = r.reference ? r.reference.name : null;
+  const series = [{ kind: "band", x: ENV.eps, y: ENV.upper, y2: ENV.lower, color: cssv("--band") }];
+  ENV.curves.forEach(c => { if (c.name !== refName) series.push({ x: ENV.eps, y: c.y, color: cssv("--muted"), width: .8, opacity: .55 }); });
+  series.push({ x: ENV.eps, y: ENV.upper, color: cssv("--ph1"), width: 1.6 });
+  series.push({ x: ENV.eps, y: ENV.lower, color: cssv("--ph1"), width: 1.6, dash: "6 4" });
+  const allCurves = ENV.curves.length && ENV.curves.every(c => c.curve);
+  const legend = [{ label: `Feld ${r.group} (${allCurves ? "Kurven aus Quellen" : "idealisiert"})`, color: cssv("--band"), kind: "box" },
+                  { label: "obere Grenze", color: cssv("--ph1") }, { label: "untere Grenze", color: cssv("--ph1"), dash: "6 4" }];
+  let ymax = Math.max(...ENV.upper.filter(v => v !== null)), xmax = Math.max(...ENV.eps);
+  const refCurve = refName ? ENV.curves.find(c => c.name === refName) : null;
+  const extra = r.field_extra || [];
+  if (refCurve) {
+    series.push({ x: ENV.eps, y: refCurve.y, color: "#9334e6", width: 2.4, dash: "8 4" });
+    legend.push({ label: `Referenz ${refName}${refCurve.curve ? " (Kurve aus Quelle)" : ""}`, color: "#9334e6", dash: "8 4" });
+  }
+  extra.forEach((c, j) => {
+    const ref = c.kind === "ref", col = ref ? "#9334e6" : EXTRA_COLORS[j % EXTRA_COLORS.length];
+    series.push({ x: c.x, y: c.y, color: col, width: ref ? 2.4 : 1.8, dash: ref ? "8 4" : null });
+    legend.push({ label: (ref ? `Referenz ${c.name}` : `${c.nr} ${c.name}`) + (c.curve ? " (Kurve aus Quelle)" : " (idealisiert)"), color: col, dash: ref ? "8 4" : null });
+    const ys = c.y.filter(v => v !== null);
+    if (ys.length) ymax = Math.max(ymax, ...ys);
+    xmax = Math.max(xmax, ...c.x);
+  });
+  for (const o of S.files) {
+    if (!o.res || o.res.mode !== "Spannung" || !o.res.series.strain) continue;
+    const d = seriesXY(o.res, "eps");
+    const n = o.res.kv.break ? o.res.kv.break.idx : o.res.series.t.length;
+    series.push({ x: d.xs, y: d.ys, color: o === cur ? cssv("--m-max") : o.color, width: o === cur ? 2.6 : 1.8 });
+    legend.push({ label: o.name, color: o === cur ? cssv("--m-max") : o.color });
+    xmax = Math.max(xmax, ...d.xs);
+  }
+  plot(svg, { xmin: 0, xmax: xmax * 1.03, ymin: 0, ymax: ymax * 1.08, series, legend, legendWidth: 300,
+    xlabel: cur.cfg.displacement_source === "probe" ? "Dehnung ε [%]" : "Dehnung ε [%] (scheinbar)", ylabel: "Spannung σ [MPa]" });
+  svg._hover = null;
+  return true;
+}
+
+function drawChart() {
+  const svg = $("#plot"), cur = S.files[S.sel];
+  $("#empty").hidden = !!cur; svg.hidden = !cur;
+  const notes = $("#chartNotes"); notes.innerHTML = "";
+  if (!cur || !cur.res) return;
+  const r = cur.res;
+  $("#xEps").disabled = !r.series.strain;
+  if (!r.series.strain && S.xaxis === "eps") S.xaxis = "t";
+  document.querySelectorAll("input[name=xaxis]").forEach(x => x.checked = x.value === S.xaxis);
+  $("#xaxisSel").style.visibility = S.tab === "verlauf" ? "visible" : "hidden";
+  if (S.tab === "verlauf") drawVerlauf(svg);
+  else if (S.tab === "linear") drawLinear(svg);
+  else if (!drawFeld(svg)) {
+    svg.hidden = true; $("#empty").hidden = false;
+    $("#empty").innerHTML = `<div class="big">Werkstofffeld nicht verfügbar</div>${r.mode !== "Spannung" ? "A₀ fehlt: ohne Querschnitt keine Spannung." : "Vorschubgeschwindigkeit oder L₀ fehlt: keine Dehnungsachse."}`;
+    return;
+  }
+  // Pflichthinweise neben der Phaseneinteilung
+  const codes = S.tab === "verlauf" ? ["7.3", "7.4", "7.5"] : S.tab === "linear" ? ["7.4", "4.4"] : ["7.2"];
+  if (S.tab === "feld") {
+    const ENV = ENVS_DONE[r.group] || { curves: [] };
+    const own = [...ENV.curves, ...(r.field_extra || [])].filter(c => c.curve).map(c => c.name);
+    notes.innerHTML = `<div class="w info"><b>5.2</b>Werkstoffkurven sind idealisiert aus Rp, Rm, A und E, keine Messwerte${own.length ? `; aus der jeweiligen Quelle übernommen sind die Kurven von ${esc(own.join(", "))}` : ""}. Vergleichsgruppe: ${esc(r.group)}${(r.extras || []).length ? `; zusätzlich gezeigt (farbig, nicht Teil des Felds): ${esc(r.extras.join(", "))}` : ""}.</div>`;
+  }
+  for (const w of r.warnings.filter(w => codes.includes(w.code))) notes.innerHTML += `<div class="w ${w.level}"><b>${w.code}</b>${esc(w.text)}</div>`;
+}
+
+// Hover-Anzeige
+(function () {
+  const svg = () => $("#plot");
+  document.addEventListener("mousemove", (ev) => {
+    const el = svg(), tip = $("#tip");
+    if (!el || el.hidden || !el._hover || !el._map || !el.contains(ev.target)) { tip.style.display = "none"; return; }
+    const pt = el.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(el.getScreenCTM().inverse());
+    const { m, pw, o } = el._map;
+    const xv = o.xmin + (p.x - m.l) / pw * (o.xmax - o.xmin);
+    const h = el._hover; let bi = 0, bd = Infinity;
+    for (let i = 0; i < h.xs.length; i++) { const dd = Math.abs(h.xs[i] - xv); if (dd < bd) { bd = dd; bi = i; } }
+    const rect = el.getBoundingClientRect(), wrap = $("#chartwrap").getBoundingClientRect();
+    tip.style.display = "block";
+    tip.textContent = `${h.fx(h.xs[bi])}  ·  ${h.fy(h.ys[bi])}`;
+    tip.style.left = Math.min(ev.clientX - wrap.left + 12, wrap.width - 160) + "px";
+    tip.style.top = (ev.clientY - wrap.top - 30) + "px";
+  });
+})();
+
+// ---------- Tabellen ----------
+function renderKV() {
+  const t = $("#kvTable");
+  if (!S.files.length) { t.innerHTML = `<tr><td class="small">Noch keine Messung.</td></tr>`; $("#fitTable").innerHTML = ""; return; }
+  let h = `<tr><th>Messung</th><th>Modus</th><th class="n">A₀ [mm²]</th><th class="n">Fliessbeginn</th><th class="n">Fmax / Rm</th>
+    <th class="n">vor Bruch</th><th class="n">Abfall</th><th class="n">Haltezeit [s]</th><th class="n">Rm / Streckgr.</th><th class="n">E scheinbar</th></tr>`;
+  S.files.forEach((o, i) => {
+    const r = o.res; if (!r) return;
+    const kv = r.kv, st = r.mode === "Spannung";
+    const both = (F, y) => st ? `${f(y, 0, "MPa")}<br><span class="small">${f(F, 1, "N")}</span>` : f(F, 1, "N");
+    const e = r.e_schein_gpa !== null ? `${f(r.e_schein_gpa, 1, "GPa")}${shrI("E", i)} <span class="badge warn" title="Weg aus der Traverse: enthält die Nachgiebigkeit von Einspannung und Rahmen (7.2)">scheinbar</span>` : `<span class="small">entfällt</span>`;
+    h += `<tr class="clk ${i === S.sel ? "sel" : ""}" data-i="${i}">
+      <td><span class="chip" style="padding:2px 8px;cursor:inherit"><span class="dot" style="background:${o.color}"></span>${esc(o.name)}</span></td>
+      <td>${r.mode}</td><td class="n">${r.a0 ? f(r.a0, 4) : "fehlt"}</td>
+      <td class="n">${kv.yield ? both(kv.yield.F, kv.yield.y) + `<br><span class="small">Schwelle ${f(kv.yield.schwelle * 100, 1)} %</span>` : "–"}</td>
+      <td class="n key">${both(kv.max.F, kv.max.y)}${shrI(st && r.a0 ? "Rm" : "Fmax", i)}</td>
+      <td class="n">${kv.break ? both(kv.break.F, kv.break.y) : "kein Bruch"}</td>
+      <td class="n">${kv.drop ? `${f(kv.drop.abs_F, 1, "N")}<br><span class="small">${f(kv.drop.pct, 1, "%")} in ${f(kv.drop.dauer, 1, "s")}</span>` : "–"}</td>
+      <td class="n">${f(kv.hold.dauer, 1)}</td><td class="n">${f(kv.ratio, 2)}</td><td class="n">${e}</td></tr>`;
+  });
+  t.innerHTML = h;
+  t.querySelectorAll("tr.clk").forEach(tr => tr.addEventListener("click", () => select(+tr.dataset.i)));
+  const cur = S.files[S.sel]; if (!cur || !cur.res) return;
+  const r = cur.res, k = r.kv, u = r.unit, fit = k.fit;
+  let g = `<tr><th>Grösse</th><th class="n">Wert</th></tr>
+    <tr><td>Fitfenster</td><td class="n">${f(fit.t_von, 1)} – ${f(fit.t_bis, 1, "s")}, ${fit.n} Messpunkte (Index ${fit.lo}–${fit.hi})</td></tr>
+    <tr><td>Ausgleichsgerade</td><td class="n">${r.mode === "Spannung" ? "σ" : "F"} = ${f(fit.k, 3)} t − ${f(-fit.q, 2)} (${u})</td></tr>
+    <tr><td>Steigung</td><td class="n">${f(fit.k_N_s, 3, "N/s")}${r.mode === "Spannung" ? " = " + f(fit.k, 2, "MPa/s") : ""}</td></tr>
+    <tr><td>R²</td><td class="n">${f(fit.r2, 5)}</td></tr>
+    <tr><td>Grösste Abweichung / Toleranz</td><td class="n">${f(fit.max_dev, 2, u)} / ${f(fit.tol, 2, u)}</td></tr>
+    <tr><td>Fusspunkt t₀</td><td class="n">${f(r.t0, 2, "s")}</td></tr>
+    <tr><td>Abtastrate</td><td class="n">${f(k.rate_hz, 1, "Hz")} (Fenster der Steigung ${r.window_points} Punkte)</td></tr>
+    <tr><td>Plateau-Mittel 80–100 % der Zeit bis Maximum</td><td class="n">${f(k.plateau.mittel, 1, u)}</td></tr>
+    <tr><td>Bruchdauer</td><td class="n">${esc(k.break_duration_text)}</td></tr>`;
+  for (const y of r.yield_table) g += `<tr><td>Fliessbeginn bei ${f(y.schwelle * 100, 1)} %</td><td class="n">${y.F === null ? "–" : f(y.F, 1, "N") + (r.mode === "Spannung" ? " / " + f(y.y, 0, "MPa") : "") + " bei " + f(y.t, 1, "s")}</td></tr>`;
+  g += `<tr><td>Phasen</td><td class="n">${k.phases.map(p => `${p.phase} ${p.von}–${p.bis}`).join(" · ")}</td></tr>`;
+  $("#fitTable").innerHTML = g;
+}
+
+function refCard(r) {
+  const ref = r.reference;
+  if (!ref) return "";
+  const st = r.mode === "Spannung", cells = [];
+  const bar = (m, v) => {
+    if (!m || !v) return "";
+    const pct = m / v * 100, scale = Math.max(pct, 100) * 1.1;
+    return `<div class="bar"><i style="width:${(pct / scale * 100).toFixed(1)}%;background:${pct >= 80 && pct <= 120 ? "var(--m-yield)" : "var(--ph2)"}"></i><span class="ref" style="left:${(100 / scale * 100).toFixed(1)}%"></span></div>`;
+  };
+  if (st) {
+    cells.push(["Rm gemessen / Soll", `${f(r.kv.Rm, 0)} / ${f(ref.Rm, 0)} MPa`, ref.d_rm_pct !== undefined ? `${f(ref.d_rm_pct, 1, "%")} · ${esc(ref.rm_class || "")}` : "", bar(r.kv.Rm, ref.Rm)]);
+    if (ref.Rp && r.kv.yield) cells.push(["Fliessbeginn / Rp", `${f(r.kv.yield.y, 0)} / ${f(ref.Rp, 0)} MPa`, ref.d_rp_pct !== undefined ? `${f(ref.d_rp_pct, 1, "%")} · Schwelle ist keine Rp0,2` : "", bar(r.kv.yield.y, ref.Rp)]);
+  } else if (ref.A_needed_mm2) {
+    cells.push(["Ohne A₀: nötige Fläche", f(ref.A_needed_mm2, 4, "mm²"), `Fmax bei Rm ${f(ref.Rm, 0)} MPa, Rund-Ø ${f(ref.d_equiv_mm, 2, "mm")}`, ""]);
+  }
+  if (r.e_schein_gpa !== null && r.e_schein_gpa !== undefined) cells.push(["E scheinbar / Soll", `${f(r.e_schein_gpa, 1)} / ${f(ref.E, ref.E < 10 ? 2 : 0)} GPa`, "Nachgiebigkeit des Aufbaus enthalten (7.2)", bar(r.e_schein_gpa, ref.E)]);
+  cells.push(["Bruchdehnung A (Soll)", f(ref.A, 0, "%"), ref.basis ? esc(ref.basis) : "", ""]);
+  return `<div class="small" style="margin-bottom:4px">Referenzwerkstoff <b style="color:#9334e6">${esc(ref.name)}</b> (${esc(ref.category)}) · Sollwerte, nicht gemessen</div>
+    <div class="refcard">${cells.map(([l, v, s, b]) => `<div class="c"><div class="l">${l}</div><div class="v">${v}</div>${b}<div class="s">${s}</div></div>`).join("")}</div>`;
+}
+function renderCmp() {
+  const cur = S.files[S.sel], body = $("#cmpBody");
+  $("#cmpSum").textContent = "";
+  if (!cur || !cur.res) { body.innerHTML = `<div class="small">Noch keine Messung.</div>`; $("#cmpTitle").textContent = tr("zv.f_cmp"); return; }
+  const r = cur.res;
+  $("#cmpTitle").textContent = `${tr("zv.f_cmp")} · ${r.group}`;
+  const top = r.comparison && r.comparison.rows.find(x => x.rank === 1);
+  $("#cmpSum").textContent = [r.reference ? `${tr("zv.ref")} ${r.reference.name}` : "", top ? `${tr("zv.top")} ${top.name}` : ""].filter(Boolean).join(" · ");
+  if (r.mode !== "Spannung" || !r.comparison) {
+    const w = r.warnings.find(w => w.code === "7.1");
+    body.innerHTML = refCard(r) + `<div class="w warn"><b>7.1</b>${esc(w ? w.text : "A₀ fehlt.")}</div>`; return;
+  }
+  const c = r.comparison, multi = new Set(c.rows.map(x => x.category)).size > 1, refName = r.reference ? r.reference.name : null;
+  let h = refCard(r) + `<div class="w info" style="margin-bottom:8px"><b>Kandidaten</b>${esc(c.hinweis)} Gemessen: Rm ${f(r.kv.Rm, 0, "MPa")}${c.measured_ratio ? `, Verhältnis Rm/Streckgrenze ${f(c.measured_ratio, 2)}` : ""}, Fmax ${f(r.kv.max.F, 1, "N")}.</div>
+  <div class="tablewrap"><table><tr><th class="n">Rang</th><th>Werkstoff</th>${multi ? "<th>Kategorie</th>" : ""}<th class="n">Rm [MPa]</th><th>Einordnung nach Rm</th><th class="n">Rp0,2 [MPa]</th>
+  <th class="n">Rm/Rp</th><th class="n">ΔRm</th><th class="n">ΔVerh.</th><th>Status</th><th class="n">A₀ nötig [mm²]</th><th class="n">d gleichw. [mm]</th></tr>`;
+  for (const row of c.rows) {
+    const cls = row.status === "Kandidat" ? "status-k" : row.status.startsWith("zurück") ? "status-z" : "status-x";
+    const isRef = row.name === refName;
+    h += `<tr${isRef ? ' style="box-shadow: inset 3px 0 0 #9334e6"' : ""}><td class="n">${row.rank}<span class="small"> (Rm: ${row.rank_rm})</span></td><td title="${esc(row.source)}">${esc(row.name)}${isRef ? ' <span class="badge" style="color:#9334e6">Referenz</span>' : ""}</td>
+      ${multi ? `<td class="small">${esc(row.category)}</td>` : ""}<td class="n">${f(row.Rm, 0)}</td><td>${esc(row.rm_class)} <span class="small">(${esc(row.rm_basis)})</span></td><td class="n">${f(row.Rp, 0)}</td>
+      <td class="n">${f(row.ratio, 2)}</td><td class="n">${f(-row.d_rm_pct, 1, "%")}</td><td class="n">${row.d_ratio_pct === null ? "–" : f(row.d_ratio_pct, 0, "%")}</td>
+      <td class="${cls}">${esc(row.status)}</td><td class="n">${f(row.A_needed_mm2, 4)}</td><td class="n">${f(row.d_equiv_mm, 2)}</td></tr>`;
+  }
+  h += `</table></div><div class="small" style="margin-top:6px">Rang aus Abstand in Rm und im Verfestigungsverhältnis; in Klammern der Rang nach Rm allein. Rückrechnung: Fläche, bei der die gemessene Fmax genau dem Rm der Legierung entspräche, und Durchmesser der gleichwertigen Rundprobe. Quellen je Zeile im Tooltip des Namens.</div>`;
+  body.innerHTML = h;
+}
+
+function renderDev() {
+  const cur = S.files[S.sel];
+  if (!cur || !cur.res) { $("#devGrid").innerHTML = ""; $("#warnList").innerHTML = ""; return; }
+  const r = cur.res, d = r.device, k = r.kv;
+  const unc = ok => ok ? "" : ` <span class="badge warn">unbestätigt</span>`;
+  const rows = [
+    ["Datei", esc(cur.name) + ".flps"], ["Gerät", `${esc(d.model)}, SN ${esc(d.serial)}`],
+    ["Zeitraum", `${d.start} bis ${d.end.slice(-8)}`],
+    ["Kommentar / Bediener / Abteilung / Bedingung", [d.comment || "leer", d.operator_name || "leer", d.operator_dept || "leer", d.condition || "leer"].map(esc).join(" / ")],
+    ["Krafteinheit", `${esc(d.force_unit)} (Code ${d.force_unit_code})${unc(d.force_unit_confirmed)}`],
+    ["Wegeinheit", `${esc(d.displacement_unit)} (Code ${d.displacement_unit_code})${unc(d.displacement_unit_confirmed)}${d.displacement_all_zero ? " · Weg durchgehend 0" : ""}`],
+    ["Messpunkte", `${k.n_total} gesamt, ${k.n_active} aktiv, <b>${k.n_cut} Leerwerte nach dem Bruch abgeschnitten</b>`],
+    ["Abtastrate", `${f(k.rate_hz, 1, "Hz")} (gerechnet)`], ["Versuchsart", `${k.test_type}versuch (Vorzeichen der Maximalkraft)`],
+  ];
+  $("#devGrid").innerHTML = rows.map(([a, b]) => `<div>${a}</div><div>${b}</div>`).join("");
+  $("#warnList").innerHTML = r.warnings.map(w => `<div class="w ${w.level}"><b>${w.code}</b>${esc(w.text)}</div>`).join("");
+}
+
+function renderChips() {
+  const c = $("#chips"); c.innerHTML = "";
+  S.files.forEach((o, i) => {
+    const el = document.createElement("span");
+    el.className = "chip" + (i === S.sel ? " sel" : "");
+    el.innerHTML = `<span class="dot" style="background:${o.color}"></span>${esc(o.name)}<button class="x" title="entfernen">×</button>`;
+    el.addEventListener("click", (ev) => { if (ev.target.classList.contains("x")) return; select(i); });
+    el.querySelector(".x").addEventListener("click", async () => {
+      await api("api/remove", { id: o.id }); S.files.splice(i, 1);
+      S.sel = Math.min(S.sel, S.files.length - 1); renderAll();
+    });
+    c.appendChild(el);
+  });
+}
+function select(i) { S.sel = i; renderAll(); }
+function renderAll(mask = true) {
+  if (window.ENVS) ENVS.save();
+  if (OV && OV.changed) OV.changed();                                 // ausgehende Verbindungen nachführen
+  renderChips(); if (mask) fillMask(); else updateYieldVal();
+  if (!mask) { // Anzeige der Quelle von A0 nachziehen
+    const fobj = S.files[S.sel]; if (fobj && fobj.res) { $("#a0src").textContent = fobj.res.a0 ? fobj.res.a0_source : "fehlt: Auswertung nur in Kraft"; }
+  }
+  drawChart(); renderKV(); renderEq(); renderCmp(); renderDev();
+  const fobj = S.files[S.sel];
+  $("#sketch").innerHTML = fobj && fobj.res && fobj.res.sketch_svg ? fobj.res.sketch_svg : "";
+  renderTabs(); updateFoldSums();
+}
+// UI-08: Werkstofffeld auf Abruf (unter „Mehr“, bleibt sichtbar, solange offen); Titel der Aufklapper nennen den Stand
+const TABS = ["verlauf", "linear", "feld"];
+const TAB_MAIN = window.LabUI ? ["verlauf", "linear"] : TABS;
+const tabShown = (t) => TAB_MAIN.includes(t) || t === S.tab;
+function renderTabs() {
+  document.querySelectorAll("#tabs button[data-tab]").forEach(b => { b.hidden = !tabShown(b.dataset.tab); b.classList.toggle("on", b.dataset.tab === S.tab); });
+  $("#tabMore").hidden = TABS.every(tabShown);
+}
+function switchTab(t) {
+  S.tab = t; renderTabs();
+  $("#empty").innerHTML = `<div class="big">Keine Messung geladen</div>.flps Datei hierher ziehen oder über „Datei öffnen …“ wählen.`;
+  drawChart();
+}
+function openTabMenu() {
+  const rest = TABS.filter(t => !tabShown(t));
+  const p = LabUI.popover($("#tabMore"), `<div class="tabmenu" role="menu">${rest.map(t =>
+    `<button type="button" role="menuitem" data-go="${t}"><b>${esc(tr("zv.tab_" + t))}</b><small>${esc(tr("zv.tab_h_" + t))}</small></button>`).join("")}</div>`);
+  p.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) { LabUI.closePop(); switchTab(b.dataset.go); } });
+  p.querySelector("button")?.focus();
+}
+function updateFoldSums() {
+  const fobj = S.files[S.sel], c = fobj ? fobj.cfg : null;
+  const opt = $("#material_ref").selectedOptions[0], nx = c && Array.isArray(c.extra_refs) ? c.extra_refs.length : 0;
+  $("#refSum").textContent = c ? [c.material_ref && opt ? opt.textContent : tr("zv.none"), nx ? tr("zv.n_extra", { n: nx }) : ""].filter(Boolean).join(" · ") : "";
+  $("#metaSum").textContent = c && c.operator ? c.operator : "";
+  $("#eqSum").textContent = S.eqs.length ? trn("zv.n_eq", activeEqs().length) : "";
+  $("#devSum").textContent = fobj && fobj.res && fobj.res.device ? fobj.res.device.model : "";
+}
+function envSummary() {          // Kasten der Umgebung in der Übersicht
+  const tags = [trn("zv.n_meas", S.files.length)];
+  for (const o of S.files.slice(0, 5)) {
+    const k = o.res && o.res.kv, bits = [];
+    if (k && Number.isFinite(k.Rm)) bits.push(`Rm ${f(k.Rm, 0, "MPa")}`);
+    else if (k && k.max && Number.isFinite(k.max.F)) bits.push(`Fmax ${f(k.max.F, 0, "N")}`);
+    if (o.res && o.res.reference) bits.push(o.res.reference.name);
+    if (bits.length) tags.push(`${o.name.slice(0, 18)}: ${bits.join(", ")}`.slice(0, 60));
+  }
+  let values = [];                                                    // Wertekatalog für Verbindungen zu anderen Umgebungen
+  try { values = LabOverview.summaryValues(valCatalogue()); } catch (e) { values = []; }
+  // UI-18: Spannungs- bzw. Kraftverlauf (bis 4 Messungen gleicher Art) als kleine Grafik im Kasten der Übersicht
+  let plots = [];
+  try {
+    const en = /^en/i.test(document.documentElement.lang || "");
+    const done = S.files.filter(o => o.res && o.res.series && o.res.kv), mode = done.length ? done[0].res.mode : null;
+    const same = done.filter(o => o.res.mode === mode).slice(0, 4);
+    const eps = same.length && same.every(o => o.res.series.strain) && (S.xaxis === "eps" || same.every(o => o.cfg && o.cfg.displacement_source === "probe"));
+    const series = same.map(o => { const d = seriesXY(o.res, eps ? "eps" : "t"); return d ? { name: o.name, x: d.xs, y: d.ys } : null; }).filter(Boolean);
+    if (series.length) plots = [{ title: mode === "Spannung" ? (en ? "Stress curve" : "Spannungsverlauf") : (en ? "Force curve" : "Kraftverlauf"),
+      xlab: eps ? (en ? "Strain ε [%]" : "Dehnung ε [%]") : (en ? "Time t [s]" : "Zeit t [s]"),
+      ylab: mode === "Spannung" ? (en ? "Stress σ [MPa]" : "Spannung σ [MPa]") : (en ? "Force |F| [N]" : "Kraft |F| [N]"), series }];
+  } catch (e) { plots = []; }
+  return { title: S.files.map(o => o.name).join(" · ").slice(0, 200), tags: tags.slice(0, 8), values, plots };
+}
+// ⇄: Kennwerte und Gleichungsergebnisse an andere Umgebungen; übernommene Werte als Variablen (S.ext)
+function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.files.map(o => ({ name: o.name, vars: o.res && o.res.variables, eqs: o.res && o.res.equations }))) : []; }
+function shrI(name, i) { return OV && OV.shareButton && i >= 0 ? OV.shareButton(String(name).slice(0, 21) + (i > 0 ? "_" + (i + 1) : "")) : ""; }
+async function applyExt(rows) {
+  const r = LabOverview.extValues(S.ext, rows);
+  if (!r.changed && !S.extDirty) return;                              // extDirty: Umgebung eben geöffnet, Auswertung noch ohne
+  S.ext = r.list; S.extDirty = false;
+  await refreshAllEq();
+}
+
+// ---------- Export ----------
+async function exportOne(fobj, overwrite = false) {
+  const j = await api("api/export", { id: fobj.id, config: fobj.cfg, overwrite });
+  if (j._status === 409) {
+    if (confirm(`Der Ordner\n${j.folder}\nexistiert bereits. Vorhandene Ausgaben überschreiben?`)) return exportOne(fobj, true);
+    return { skipped: true, folder: j.folder };
+  }
+  return j;
+}
+async function doExport(all) {
+  const list = all ? S.files : [S.files[S.sel]];
+  const msg = $("#exportMsg"); msg.textContent = "schreibe …";
+  const out = [];
+  for (const o of list) {
+    const j = await exportOne(o);
+    if (j.error) out.push(`<div class="w error"><b>${esc(o.name)}</b>${esc(j.error)}</div>`);
+    else if (j.skipped) out.push(`<div class="small">${esc(o.name)}: übersprungen, nichts überschrieben.</div>`);
+    else out.push(`<div class="small">${esc(o.name)}: ${j.files.length} Dateien geschrieben. <a href="#" data-f="${esc(j.folder)}">Ordner öffnen</a></div>`);
+  }
+  msg.innerHTML = out.join("");
+  bindOpenLinks(msg);
+}
+function bindOpenLinks(el) {
+  el.querySelectorAll("a[data-f]").forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); api("api/open", { folder: a.dataset.f }); }));
+}
+async function doCompareReport(overwrite = false) {
+  const msg = $("#exportMsg"); msg.textContent = "schreibe Vergleichsbericht …";
+  const j = await api("api/compare_report", { items: S.files.map(o => ({ id: o.id, config: o.cfg })), overwrite });
+  if (j._status === 409) {
+    if (confirm(`Die Datei\n${j.file}\nexistiert bereits. Überschreiben?`)) return doCompareReport(true);
+    msg.innerHTML = `<div class="small">Vergleichsbericht übersprungen, nichts überschrieben.</div>`; return;
+  }
+  if (j.error) { msg.innerHTML = `<div class="w error"><b>Vergleich</b>${esc(j.error)}</div>`; return; }
+  msg.innerHTML = `<div class="small">Vergleichsbericht geschrieben: ${esc(j.file.split(/[\\/]/).pop())}. <a href="#" data-f="${esc(j.folder)}">Ordner öffnen</a></div>`;
+  bindOpenLinks(msg);
+}
+
+// ---------- Folio Lab: Ergebnisse in einen Bericht übernehmen ----------
+function sendToReport() {
+  const cur = S.files[S.sel];
+  if (!cur || !window.Lab) return;
+  const scopes = [{ id: "sel", label: `Gewählte Messung (${cur.name})` }];
+  if (S.files.length > 1) scopes.push({ id: "all", label: `Alle ${S.files.length} Messungen als Vergleich` });
+  window.Lab.sendToReport({
+    module: "zugversuch",
+    title: "Zugversuch " + cur.name.replace(/\.flps$/i, ""),
+    scopes,
+    include: [
+      { id: "figures", label: "Abbildungen (PDF + Vorschau)" },
+      { id: "tables", label: "Tabellen (booktabs)" },
+      { id: "values", label: "Kennwerte als \\labval" },
+      { id: "data", label: "Messdaten (CSV, für pgfplots)" },
+      { id: "citations", label: "Quellen (Norm, Werkstoff, Messdatei)" },
+      { id: "text", label: "Textbausteine (Methodik, Ergebnisse)" },
+    ],
+    build: ({ scope, lang, include, title }) => {
+      const list = scope === "all" ? S.files : [cur];
+      return api("api/bundle", { items: list.map(o => ({ id: o.id, config: o.cfg })), lang, include, title });
+    },
+  });
+}
+
+// ---------- Dialoge ----------
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("folio.zug." + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("folio.zug." + k, JSON.stringify(v)); } catch (e) { /* ohne Speicher */ } },
+};
+function download(name, text, type = "application/json") {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function pickJson(cb) {
+  const inp = $("#jsonIn");
+  inp.onchange = async () => {
+    const file = inp.files[0]; inp.value = "";
+    if (!file) return;
+    try { cb(JSON.parse(await file.text())); } catch (e) { flash(`${file.name}: kein gültiges JSON (${e.message})`); }
+  };
+  inp.click();
+}
+// Dialog, der beim Bestätigen prüft und bei Fehlern mit allen Eingaben offen bleibt
+function dialog(title, html, { ok = "Speichern", cancel = "Abbrechen", check = null, onOpen = null, wide = false, left = "" } = {}) {
+  const d = $("#dlg"), body = $("#dlgBody");
+  d.classList.toggle("wide", wide);
+  $("#dlgTitle").textContent = title; body.innerHTML = html; $("#dlgErr").textContent = "";
+  $("#dlgFoot").innerHTML = (left ? `<div class="left">${left}</div>` : "") +
+    `<button type="button" id="dlgCancel">${esc(cancel)}</button>` + (ok ? `<button type="button" class="primary" id="dlgOk">${esc(ok)}</button>` : "");
+  if (window.LabRef && body.querySelector("[data-labref]")) LabRef.wire(body);
+  if (onOpen) onOpen(body);
+  return new Promise((resolve) => {
+    let result = null;
+    const form = d.querySelector("form");
+    form.onsubmit = (ev) => { ev.preventDefault(); const b = $("#dlgOk"); if (b) b.click(); };
+    $("#dlgCancel").onclick = () => d.close("cancel");
+    const okb = $("#dlgOk");
+    if (okb) okb.onclick = async () => {
+      $("#dlgErr").textContent = ""; okb.disabled = true;
+      try {
+        const r = check ? await check(body) : true;
+        if (r && r.error) { $("#dlgErr").textContent = r.error; return; }
+        result = r; d.close("ok");
+      } catch (e) { $("#dlgErr").textContent = String(e.message || e); }
+      finally { okb.disabled = false; }
+    };
+    const done = () => { d.removeEventListener("close", done); resolve(d.returnValue === "ok" ? result : null); };
+    d.returnValue = ""; d.addEventListener("close", done); d.showModal();
+    const first = body.querySelector("input,select,textarea"); if (first) first.focus();
+  });
+}
+const hasSrc = (c) => !!(c && (c.title || c.doi || c.url || c.authors));
+
+// ---------- Eigene Werkstoffe ----------
+async function afterOwnChange(meta) {
+  META = meta;
+  for (const k of Object.keys(ENVELOPES)) { delete ENVELOPES[k]; delete ENVS_DONE[k]; }
+  fillAlloyOptions();
+  for (const o of S.files) await analyse(o);
+  renderAll();
+}
+async function ownDialog(item) {
+  const e = item || { category: META.own_category };
+  const cats = [...new Set([META.own_category, ...META.categories])];
+  const v = (x) => (x === null || x === undefined) ? "" : String(x).replace(".", ",");
+  const curveTxt = (e.curve || []).map(p => `${v(p[0])};${v(p[1])}`).join("\n");
+  const html = `<div class="row2"><div><label>Name (eindeutig)</label><input id="owName" value="${esc(e.name || "")}" placeholder="z. B. AlMg3 H22, Charge 2025"></div>
+      <div><label>Kategorie (Vergleichsgruppe)</label><input id="owCat" list="owCats" value="${esc(e.category || META.own_category)}"><datalist id="owCats">${cats.map(c => `<option value="${esc(c)}">`).join("")}</datalist></div></div>
+    <div class="row4"><div><label>Rp0,2 [MPa]</label><input id="owRp" value="${v(e.rp)}" placeholder="leer: keine"></div>
+      <div><label>Rm [MPa]</label><input id="owRm" value="${v(e.rm)}"></div>
+      <div><label>Bruchdehnung A [%]</label><input id="owA" value="${v(e.a_pct)}"></div>
+      <div><label>E-Modul [GPa]</label><input id="owE" value="${v(e.e_gpa)}"></div></div>
+    <div class="row3"><div><label>Rm min [MPa]</label><input id="owLo" value="${v(e.rm_min)}" placeholder="optional"></div>
+      <div><label>Rm max [MPa]</label><input id="owHi" value="${v(e.rm_max)}" placeholder="optional"></div>
+      <div><label>Basis der Werte</label><input id="owBasis" value="${esc(e.basis || "")}" placeholder="z. B. Mindestwerte, Mittel aus 5 Proben"></div></div>
+    <details${curveTxt ? " open" : ""}><summary>Eigene Kurve (optional): Dehnung in %, Spannung in MPa</summary>
+      <textarea id="owCurve" rows="6" placeholder="0;0&#10;0,2;45&#10;5;120&#10;…">${esc(curveTxt)}</textarea>
+      <div class="btnrow"><button type="button" id="owCurveFile">Aus CSV/TXT laden …</button><span class="small">Zwei Spalten, Trenner ; oder Tab, Dezimalkomma erlaubt. Mit Kurve sind Rm, A und E optional und werden aus der Kurve genommen; die Kurve ersetzt die idealisierte.</span></div>
+      <input type="file" id="owCurveIn" accept=".csv,.txt,.tsv,.dat" hidden></details>
+    <h4 style="margin:12px 0 4px">Quelle der Kennwerte (Pflicht)</h4>${LabRef.form(e.cite || { type: "article" })}
+    ${S.files[S.sel] && !item ? `<label style="display:flex;gap:6px;align-items:center;color:var(--ink);font-size:13px;margin-top:10px"><input type="checkbox" id="owUse" checked style="width:auto"> als Referenzwerkstoff der gewählten Messung verwenden</label>` : ""}`;
+  const res = await dialog(item ? "Eigenen Werkstoff bearbeiten" : "Eigener Werkstoff", html, {
+    wide: true,
+    onOpen: (b) => {
+      b.querySelector("#owCurveFile").addEventListener("click", () => b.querySelector("#owCurveIn").click());
+      b.querySelector("#owCurveIn").addEventListener("change", async (ev) => {
+        const file = ev.target.files[0]; if (!file) return;
+        b.querySelector("#owCurve").value = await file.text();
+      });
+    },
+    check: async (b) => {
+      const cite = LabRef.read(b);
+      if (!hasSrc(cite)) return { error: "Quelle fehlt: Titel, DOI oder URL angeben (z. B. Paper, Datenblatt, Norm)." };
+      const errs = LabRef.errors(cite); if (errs.length) return { error: "Quelle: " + errs.join(" · ") };
+      const g = (id) => b.querySelector(id).value.trim();
+      const it = { id: e.id, name: g("#owName"), category: g("#owCat"), rp: g("#owRp"), rm: g("#owRm"), a_pct: g("#owA"),
+                   e_gpa: g("#owE"), rm_min: g("#owLo"), rm_max: g("#owHi"), basis: g("#owBasis"), curve: g("#owCurve") || null, cite };
+      const j = await api("api/own/save", { item: it });
+      if (j.error) return { error: j.error };
+      j.use = !!(b.querySelector("#owUse") && b.querySelector("#owUse").checked);
+      return j;
+    },
+  });
+  if (!res) return;
+  const fobj = S.files[S.sel];
+  if (fobj && res.use) fobj.cfg.material_ref = res.item.name;
+  if (fobj && item && item.name !== res.item.name) {   // umbenannt: Verweise der Messungen nachziehen
+    for (const o of S.files) {
+      if (o.cfg.material_ref === item.name) o.cfg.material_ref = res.item.name;
+      if (o.cfg.extra_refs) o.cfg.extra_refs = o.cfg.extra_refs.map(n => n === item.name ? res.item.name : n);
+    }
+  }
+  flash(`Eigener Werkstoff „${res.item.name}“ gespeichert.`);
+  await afterOwnChange(res.meta);
+}
+function ownListHtml() {
+  const own = META.own || [];
+  const errs = (META.own_errors || []).map(e => `<div class="w warn">${esc(e)}</div>`).join("");
+  return errs + (own.length ? own.map(x => {
+    const src = hasSrc(x.cite) && window.LabRef ? LabRef.short(x.cite) : (x.source || "");
+    return `<div class="it"><span class="nm"><b>${esc(x.name)}</b> <span class="small">${esc(x.category || "")} · Rm ${x.rm ? f(x.rm, 0, "MPa") : "aus Kurve"}${x.curve ? " · Kurve" : ""}${src ? " · " + esc(src) : ""}</span></span><button type="button" data-ed="${esc(x.id)}">✎</button><button type="button" data-rm="${esc(x.id)}" title="löschen">×</button></div>`;
+  }).join("") : `<div class="small" style="padding:8px 0">Noch keine eigenen Werkstoffe. Sie liegen als lesbare Datei eigene_werkstoffe.json im Ausgabeordner und lassen sich exportieren und weitergeben.</div>`);
+}
+async function ownManage() {
+  const wire = (b) => {
+    b.querySelectorAll("[data-ed]").forEach(x => x.addEventListener("click", () => {
+      const it = (META.own || []).find(o => o.id === x.dataset.ed);
+      $("#dlg").close("cancel"); setTimeout(() => ownDialog(it), 0);
+    }));
+    b.querySelectorAll("[data-rm]").forEach(x => x.addEventListener("click", async () => {
+      const it = (META.own || []).find(o => o.id === x.dataset.rm);
+      if (!it || !confirm(`„${it.name}“ löschen? Bereits erstellte Berichte behalten ihre Werte und Quelle.`)) return;
+      const j = await api("api/own/delete", { id: it.id });
+      if (j.error) { $("#dlgErr").textContent = j.error; return; }
+      META = j.meta; b.querySelector("#ownList").innerHTML = ownListHtml(); wire(b);
+      await afterOwnChange(j.meta);
+    }));
+  };
+  await dialog("Eigene Werkstoffe", `<div class="ownlist" id="ownList">${ownListHtml()}</div>`, {
+    ok: null, cancel: "Schliessen", wide: true,
+    left: `<button type="button" id="ownNew2">Neu …</button><button type="button" id="ownImp">Importieren …</button><button type="button" id="ownExp">Exportieren</button>`,
+    onOpen: (b) => {
+      wire(b);
+      $("#ownNew2").onclick = () => { $("#dlg").close("cancel"); setTimeout(() => ownDialog(null), 0); };
+      $("#ownExp").onclick = async () => { const j = await api("api/own/export", {}); if (!j.error) download(j.filename, j.text); };
+      $("#ownImp").onclick = () => pickJson(async (data) => {
+        const j = await api("api/own/import", { data });
+        if (j.error) { $("#dlgErr").textContent = j.error; return; }
+        $("#dlgErr").textContent = j.skipped.length ? `${j.added} übernommen, übersprungen: ${j.skipped.join("; ")}` : "";
+        META = j.meta; b.querySelector("#ownList").innerHTML = ownListHtml(); wire(b);
+        await afterOwnChange(j.meta);
+      });
+    },
+  });
+}
+
+// ---------- Eigene Gleichungen ----------
+function activeEqs() {
+  return S.eqs.filter(e => (S.eqOn || []).includes(e.id)).map(e => ({ sym: e.sym, label: e.label, expr: e.expr, unit: e.unit, digits: e.digits, source: e.source }));
+}
+async function refreshAllEq() { for (const o of S.files) await analyse(o); renderAll(false); }
+function renderEq() {
+  const fobj = S.files[S.sel], r = fobj && fobj.res;
+  $("#eqList").innerHTML = S.eqs.map(e => `<div class="it"><input type="checkbox" style="width:auto" data-on="${esc(e.id)}"${S.eqOn.includes(e.id) ? " checked" : ""}><span class="nm"><code>${esc(e.sym)} = ${esc(e.expr)}</code> ${esc(e.label || "")}${e.unit ? " [" + esc(e.unit) + "]" : ""}${hasSrc(e.source) && window.LabRef ? ` <span class="small">(${esc(LabRef.short(e.source))})</span>` : ""}</span><button type="button" data-ed="${esc(e.id)}">✎</button><button type="button" data-rm="${esc(e.id)}" title="löschen">×</button></div>`).join("")
+    || `<div class="small" style="padding:6px 0">Noch keine eigenen Gleichungen. Beispiel: <code>Rrel = Rm/Rm_ref*100</code> (Zugfestigkeit in % der Referenz).</div>`;
+  $("#eqList").querySelectorAll("[data-on]").forEach(c => c.addEventListener("change", async () => {
+    S.eqOn = [...$("#eqList").querySelectorAll("[data-on]")].filter(x => x.checked).map(x => x.dataset.on); store.set("eqOn", S.eqOn); await refreshAllEq();
+  }));
+  $("#eqList").querySelectorAll("[data-ed]").forEach(b => b.addEventListener("click", () => eqDialog(S.eqs.find(e => e.id === b.dataset.ed))));
+  $("#eqList").querySelectorAll("[data-rm]").forEach(b => b.addEventListener("click", async () => {
+    if (!confirm("Gleichung löschen?")) return;
+    const j = await api("api/equations/delete", { id: b.dataset.rm }); if (j.error) return flash(j.error);
+    S.eqs = j.items; await refreshAllEq();
+  }));
+  const res = (r && r.equations) || [];
+  $("#eqRes").innerHTML = res.length ? `<table><tr><th>Name</th><th>Bedeutung</th><th class="n">Wert</th><th>Einheit</th></tr>${res.map(x => `<tr><td><code>${esc(x.sym)}</code></td><td>${esc(x.label || "")}</td><td class="n">${x.error ? `<span style="color:var(--err-ink)">${esc(x.error)}</span>` : `<b>${esc(x.text)}</b>${shrI(x.sym, S.sel)}`}</td><td>${esc(x.unit || "")}</td></tr>`).join("")}</table>`
+    : `<div class="small">${S.eqs.length ? "Keine Gleichung aktiv." : "Eigene Formeln über die Kennwerte der Messung, z. B. Verhältnis zur Referenz oder Arbeit je Volumen; sie gehen mit Quelle in den Bericht."}</div>`;
+  $("#eqVars").innerHTML = ((r && r.variables) || []).map(x => `<button type="button" title="${esc(x.label)}: ${f(x.value, 4)} ${esc(x.unit || "")}" data-v="${esc(x.name)}"${x.ext ? ' style="border-style:dashed"' : ""}>${x.ext ? "← " : ""}${esc(x.name)}</button>`).join("") || `<span class="small">Erst eine Messung laden.</span>`;
+  $("#eqVars").querySelectorAll("[data-v]").forEach(b => b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(b.dataset.v); flash(`„${b.dataset.v}“ kopiert.`); } catch (e) { /* ohne Zwischenablage */ }
+  }));
+}
+async function eqDialog(e) {
+  const fobj = S.files[S.sel], vars = (fobj && fobj.res && fobj.res.variables) || [];
+  e = e || { sym: "", label: "", expr: "", unit: "", digits: 4 };
+  const html = `<div class="row3"><div><label>Name</label><input id="eqSym" value="${esc(e.sym)}" placeholder="z. B. Rrel"></div><div><label>Einheit</label><input id="eqUnit" value="${esc(e.unit || "")}" placeholder="%, MPa, J …"></div><div><label>Stellen</label><input type="number" id="eqDig" min="1" max="10" value="${e.digits ?? 4}"></div></div>
+    <label>Bedeutung</label><input id="eqLab" value="${esc(e.label || "")}" placeholder="z. B. Zugfestigkeit in % der Referenz">
+    <label>Formel</label><input id="eqExpr" value="${esc(e.expr)}" placeholder="z. B. Rm/Rm_ref*100" style="font-family:ui-monospace,Consolas,monospace">
+    <div class="vars">${vars.map(x => `<button type="button" data-ins="${esc(x.name)}" title="${esc(x.label)} = ${f(x.value, 4)} ${esc(x.unit || "")}">${esc(x.name)}</button>`).join("")}${["sqrt(", "ln(", "exp(", "pi"].map(t => `<button type="button" data-ins="${t}">${t}</button>`).join("")}</div>
+    <div class="small" style="margin-top:4px">Variablen in den Einheiten der Anzeige (Kraft N, Spannung MPa, E GPa, A₀ mm², Längen mm, Dehnung %). Spätere Gleichungen dürfen frühere verwenden.</div>
+    <details${hasSrc(e.source) ? " open" : ""}><summary>Quelle der Gleichung (empfohlen)</summary>${LabRef.form(e.source || { type: "book" })}</details>`;
+  const res = await dialog(e.id ? "Gleichung bearbeiten" : "Neue Gleichung", html, {
+    wide: true,
+    onOpen: (b) => b.querySelectorAll("[data-ins]").forEach(x => x.addEventListener("click", () => {
+      const i = b.querySelector("#eqExpr"), p = i.selectionStart ?? i.value.length;
+      i.value = i.value.slice(0, p) + x.dataset.ins + i.value.slice(i.selectionEnd ?? p); i.focus();
+    })),
+    check: async (b) => {
+      const src = LabRef.read(b);
+      if (hasSrc(src)) { const er = LabRef.errors(src); if (er.length) return { error: "Quelle: " + er.join(" · ") }; }
+      const g = (id) => b.querySelector(id).value.trim();
+      const item = { id: e.id, sym: g("#eqSym"), unit: g("#eqUnit"), digits: +g("#eqDig") || 4, label: g("#eqLab"), expr: g("#eqExpr"), source: hasSrc(src) ? src : null };
+      const j = await api("api/equations/save", { item });
+      return j.error ? { error: j.error } : j;
+    },
+  });
+  if (!res) return;
+  S.eqs = res.items;
+  if (!S.eqOn.includes(res.item.id)) { S.eqOn.push(res.item.id); store.set("eqOn", S.eqOn); }
+  await refreshAllEq();
+}
+
+// ---------- Start ----------
+async function init() {
+  if (window.Lab) { $("#labRow").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
+  META = await api("api/meta");
+  $("#outRoot").textContent = "Ausgabeordner: " + META.out_root;
+  S.eqs = META.equations || [];
+  S.eqOn = store.get("eqOn", null);
+  if (!Array.isArray(S.eqOn)) S.eqOn = S.eqs.map(e => e.id);
+  if ((META.own_errors || []).length) flash("Eigene Werkstoffe: " + META.own_errors.join("; "));
+  bindMask();
+  $("#eqNewBtn").addEventListener("click", () => eqDialog(null));
+  $("#eqExpBtn").addEventListener("click", async () => { const j = await api("api/equations/export", {}); if (!j.error) download(j.filename, j.text); });
+  $("#eqImpBtn").addEventListener("click", () => pickJson(async (data) => {
+    const j = await api("api/equations/import", { data }); if (j.error) return flash(j.error);
+    S.eqs = j.items; S.eqOn = [...new Set([...S.eqOn, ...j.items.map(e => e.id)])]; store.set("eqOn", S.eqOn);
+    flash(`${j.added} Gleichungen importiert.`); await refreshAllEq();
+  }));
+  $("#openBtn").addEventListener("click", () => $("#fileIn").click());
+  $("#fileIn").addEventListener("change", (e) => { addFiles([...e.target.files]); e.target.value = ""; });
+  let depth = 0;
+  window.addEventListener("dragenter", (e) => { e.preventDefault(); depth++; $("#drop").style.display = "flex"; });
+  window.addEventListener("dragleave", (e) => { depth--; if (depth <= 0) { depth = 0; $("#drop").style.display = "none"; } });
+  window.addEventListener("dragover", (e) => e.preventDefault());
+  window.addEventListener("drop", (e) => { e.preventDefault(); depth = 0; $("#drop").style.display = "none"; addFiles([...e.dataTransfer.files]); });
+  document.querySelectorAll("#tabs button[data-tab]").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+  $("#tabMore").addEventListener("click", openTabMenu);
+  // UI-08: Kopfmenü „⋯“ schliesst nach der Wahl und bei Klick daneben
+  const hm = $("#hMore");
+  hm.addEventListener("click", (e) => { if (e.target.closest(".hmenu button")) hm.open = false; });
+  document.addEventListener("mousedown", (e) => { if (hm.open && !hm.contains(e.target)) hm.open = false; });
+  hm.addEventListener("keydown", (e) => { if (e.key === "Escape" && hm.open) { hm.open = false; hm.querySelector("summary").focus(); } });
+  document.querySelectorAll("input[name=xaxis]").forEach(x => x.addEventListener("change", () => { S.xaxis = x.value; drawChart(); }));
+  $("#exportBtn").addEventListener("click", () => doExport(false));
+  $("#exportAllBtn").addEventListener("click", () => doExport(true));
+  $("#cmpReportBtn").addEventListener("click", () => doCompareReport(false));
+  $("#copyBtn").addEventListener("click", async () => {
+    const src = S.files[S.sel].cfg;
+    const keys = ["specimen_mode", "shape", "section", "width_mm", "thickness_mm", "diameter_mm", "outer_d_mm", "wall_mm", "a0_mm2", "l0_mm", "speed_mm_min", "displacement_source", "material", "material_ref", "compare_group", "extra_refs", "batch", "operator", "slope_window_s", "tol_stress_mpa", "tol_force_n", "yield_threshold", "break_upper", "break_lower", "hold_threshold"];
+    for (const o of S.files) { if (o.cfg === src) continue; keys.forEach(k => o.cfg[k] = Array.isArray(src[k]) ? [...src[k]] : src[k]); await analyse(o); }
+    renderAll();
+  });
+  $("#themeBtn").addEventListener("click", () => {
+    const root = document.documentElement, dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("flps-theme", root.dataset.theme); } catch (e) {}
+    drawChart();
+  });
+  try { const t = localStorage.getItem("flps-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  renderAll();
+  // A2: Messungen und Einstellungen der Umgebung wiederherstellen
+  window.ENVS = LabEnv.create({
+    api, toast: (m) => flash(m), label: $("#envName"),
+    keep: ["name", "cfg", "color", "ds"],
+    list: () => S.files, sel: () => S.sel,
+    reset: () => { S.files = []; S.sel = -1; S.ext = []; },
+    add: async (d, saved) => {
+      const o = { id: d.id, name: d.name.replace(/\.flps$/i, ""), cfg: JSON.parse(JSON.stringify(META.defaults)), res: null,
+        color: FILE_COLORS[S.files.length % FILE_COLORS.length], ...saved };
+      S.files.push(o); await analyse(o);
+    },
+    summary: envSummary,
+    extra: () => ({ ext: S.ext || [] }),
+    done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.sel = sel; renderAll(); if (OV) setTimeout(() => OV.sync(), 0); zvDsFollow(); },
+  });
+  $("#envBtn").addEventListener("click", () => ENVS.dialog());
+  // A7: Projektindex – durchsuchen und Kennwerte der gewählten Messung eintragen (gemessen, mit Datei als Herkunft)
+  const fl = (m, err) => flash(m, err);
+  $("#indexBtn").addEventListener("click", () => LabIndex.browse(api, fl));
+  $("#indexAdd").addEventListener("click", () => {
+    const cur = S.files[S.sel];
+    if (!cur || !cur.res) return flash("Zuerst eine Messung laden und auswählen.", true);
+    const k = cur.res.kv, e = [], prov = { item: cur.id, item_name: cur.name };
+    if (k.max && Number.isFinite(k.max.F)) e.push({ key: `${cur.name}: Fmax`, label: "Höchstkraft Fmax", type: "measured", quantity: { value: +k.max.F.toPrecision(6), unit: "N" }, provenance: prov });
+    if (Number.isFinite(k.Rm)) e.push({ key: `${cur.name}: Rm`, label: "Zugfestigkeit Rm", type: "measured", quantity: { value: +k.Rm.toPrecision(5), unit: "MPa" }, provenance: prov });
+    if (!e.length) return flash("Diese Messung hat noch keine Kennwerte.", true);
+    LabIndex.addMany(api, fl, e, "Kennwerte in den Projektindex");
+  });
+  await ENVS.open();
+  if (window.LabUI) {
+    LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("zugversuch");
+    LabUI.onLang(() => { renderTabs(); updateFoldSums(); renderCmp(); });
+  }
+  // UI-08 (Q27): Startansicht Übersicht – Umgebungen und Projektindex
+  if (window.LabOverview) {
+    OV = LabOverview.create({
+      api, toast: (m, err) => flash(m, err), module: "zugversuch", envs: () => window.ENVS,
+      detail: [$("main")], crumbs: $("#crumbs"),
+      values: { catalogue: valCatalogue, apply: applyExt, version: (META && META.version) || "" },
+      imports: ZV_IMP,                                                         // I-03: Datensatz → ganzer Zugversuch
+      onView: (v) => { if (v === "detail") setTimeout(drawChart, 0); },
+    });
+    if (OV && OV.ok) { $("#dsBtn").hidden = false; $("#dsBtn").addEventListener("click", () => { $("#hMore").open = false; OV.importDataset(); }); }
+    if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }
+  }
+}
+init();
+</script>
+</body>
+</html>

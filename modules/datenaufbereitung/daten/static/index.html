@@ -1,0 +1,2483 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datenaufbereitung</title>
+<style>
+:root {
+  --bg: #f3f6f6; --panel: #ffffff; --ink: #1b2424; --muted: #5d6b6b; --line: #d6dfdf; --soft: #eaf0f0;
+  --accent: #0f766e; --accent-ink: #ffffff; --accent-soft: rgba(15,118,110,.11);
+  --err-bg: #fde7e7; --err-ink: #a50e0e; --ok-bg: #e7f5ea; --ok-ink: #12602a;
+  --cell: #ffffff; --grid: #e2e8e8; --hdr: #eef3f3; --hdr-ink: #4d5b5b; --num: #1b2424; --txt: #1b2424;
+  --date: #1f4f9e; --errc: #b42318; --form: #9a5b00; --merge: #f5f8f8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111717; --panel: #182020; --ink: #e5eded; --muted: #9aabab; --line: #2f3b3b; --soft: #1f2929;
+    --accent: #5eead4; --accent-ink: #0b1414; --accent-soft: rgba(94,234,212,.14);
+    --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #173323; --ok-ink: #a8dab5;
+    --cell: #141b1b; --grid: #263232; --hdr: #1c2626; --hdr-ink: #a8b8b8; --num: #e5eded; --txt: #e5eded;
+    --date: #a8c4f5; --errc: #f6aea9; --form: #f3d27a; --merge: #182121;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111717; --panel: #182020; --ink: #e5eded; --muted: #9aabab; --line: #2f3b3b; --soft: #1f2929;
+  --accent: #5eead4; --accent-ink: #0b1414; --accent-soft: rgba(94,234,212,.14);
+  --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #173323; --ok-ink: #a8dab5;
+  --cell: #141b1b; --grid: #263232; --hdr: #1c2626; --hdr-ink: #a8b8b8; --num: #e5eded; --txt: #e5eded;
+  --date: #a8c4f5; --errc: #f6aea9; --form: #f3d27a; --merge: #182121;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; height: 100vh; overflow: hidden; }
+body.lov-board { grid-template-rows: auto minmax(0, 1fr) auto; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+input[type=text], textarea, select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; }
+label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+.small { font-size: 12px; color: var(--muted); }
+
+header { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line); min-width: 0; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; white-space: nowrap; }
+.brand svg { color: var(--accent); }
+header .lov-only { display: none; }
+body.lov-board header .lov-only { display: block; flex: 1; }
+.chips { display: flex; gap: 6px; flex: 1; overflow-x: auto; min-width: 0; padding: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); cursor: pointer; white-space: nowrap; max-width: 240px; }
+.chip span { overflow: hidden; text-overflow: ellipsis; }
+.chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.chip .x { border: 0; background: transparent; padding: 0 5px; color: var(--muted); }
+
+#menubar { display: flex; gap: 2px; padding: 2px 8px; background: var(--panel); border-bottom: 1px solid var(--line); position: relative; z-index: 20; align-items: center; }
+#menubar > .m { position: relative; }
+#menubar > .m > button { border: 0; background: transparent; padding: 4px 10px; border-radius: 5px; }
+#menubar > .m > button.open, #menubar > .m > button:hover { background: var(--accent-soft); }
+.dd { position: absolute; top: 100%; left: 0; min-width: 250px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; }
+.dd button { display: flex; width: 100%; justify-content: space-between; gap: 18px; border: 0; background: transparent; text-align: left; padding: 5px 10px; border-radius: 5px; }
+.dd button:hover:not(:disabled) { background: var(--accent-soft); }
+.dd button .k { color: var(--muted); font-size: 12px; }
+.dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+
+main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 0; }
+main.noside { grid-template-columns: minmax(0, 1fr); }
+main.noside aside { display: none; }
+.sheetcol { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#fbar { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--panel); border-bottom: 1px solid var(--line); }
+#refBox { width: 120px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+#cellText { flex: 1; min-width: 0; font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); min-height: 24px; }
+#gbox { position: relative; flex: 1; min-height: 0; background: var(--cell); }
+#gc { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#gscroll { position: absolute; inset: 0; overflow: auto; outline: none; }
+#gscroll:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+#gspace { width: 1px; height: 1px; }
+#empty { position: absolute; right: 18px; bottom: 18px; z-index: 3; max-width: 360px; }
+#empty .box { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--panel); box-shadow: 0 6px 24px rgba(0,0,0,.12); font-size: 12.5px; }
+#empty .box b { font-size: 14px; display: block; margin-bottom: 4px; }
+#empty button { margin: 8px 4px 0 0; }
+#empty .x { position: absolute; top: 4px; right: 6px; border: 0; background: none; color: var(--muted); font-size: 16px; margin: 0; }
+#cellEd { position: absolute; z-index: 4; border: 2px solid var(--accent); border-radius: 0; padding: 0 4px; font: 12px system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--cell); color: var(--ink); outline: none; box-sizing: border-box; }
+#seq { position: absolute; top: 34px; right: 14px; z-index: 5; width: 300px; max-width: calc(100% - 70px); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.16); padding: 10px 12px; font-size: 12.5px; }
+#seq .seqh { display: flex; align-items: center; gap: 6px; cursor: move; }
+#seq .seqh b { flex: 1; font-size: 13.5px; }
+#seq .x { border: 0; background: none; color: var(--muted); font-size: 18px; padding: 0 4px; }
+#seq .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0 4px; }
+#seq label { display: block; color: var(--muted); font-size: 11.5px; }
+#seq label input { width: 100%; box-sizing: border-box; }
+#seq #seqIn { width: 100%; box-sizing: border-box; font-size: 18px; padding: 6px 8px; margin: 4px 0; font-variant-numeric: tabular-nums; }
+#seq #seqPrev { display: flex; flex-wrap: wrap; gap: 3px 4px; margin: 0 0 4px; max-height: 96px; overflow: auto; }
+#seq #seqPrev:empty { display: none; }
+#seq #seqPrev span { border: 1px solid var(--line); border-radius: 9px; padding: 0 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#seq #seqPrev span i { color: var(--muted); font-style: normal; font-size: 10.5px; margin-right: 3px; }
+#seq #seqPrev span.t { border-style: dashed; color: var(--muted); }
+#seq #seqPrev b { font-weight: 600; color: var(--muted); width: 100%; font-size: 11px; }
+#seq ol { list-style: none; margin: 4px 0; padding: 0; max-height: 170px; overflow: auto; }
+#seq li { display: flex; gap: 8px; align-items: center; padding: 1px 0; font-variant-numeric: tabular-nums; }
+#seq li .r { color: var(--muted); min-width: 42px; }
+#seq li .v { flex: 1; text-align: right; }
+#seq li.bad .v { color: var(--err-ink); }
+#seq .hint { color: var(--muted); font-size: 11.5px; }
+#gbox.drop { outline: 2px dashed var(--accent); outline-offset: -6px; }
+#sheetTabs { display: flex; gap: 2px; padding: 0 6px; background: var(--soft); border-top: 1px solid var(--line); overflow-x: auto; min-height: 30px; align-items: stretch; }
+#sheetTabs button { border: 0; border-radius: 0 0 6px 6px; background: transparent; padding: 4px 12px; color: var(--muted); white-space: nowrap; }
+#sheetTabs button.sel { background: var(--cell); color: var(--ink); font-weight: 600; box-shadow: 0 2px 0 var(--accent) inset; }
+#sheetTabs button small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+
+aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
+.pane { padding: 10px 12px 16px; overflow-y: auto; flex: 1; min-height: 0; }
+.pane h3 { margin: 0 0 6px; font-size: 13px; }
+.pane details.lab-fold > summary { margin: 14px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 6px 0 0; font-size: 12.5px; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.note { padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); font-size: 12px; margin: 6px 0; }
+.note.warn { background: #fff3d6; color: #7a5200; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .note.warn { background: #43360f; color: #f3d27a; } }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+.row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+hr.sep { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
+.note.err { background: var(--err-bg); color: var(--err-ink); }
+.note.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.prev { overflow: auto; max-height: 320px; border: 1px solid var(--line); border-radius: 6px; margin-top: 6px; }
+.prev table { border-collapse: collapse; font-size: 11.5px; min-width: 100%; }
+.prev th, .prev td { padding: 2px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; text-align: left; vertical-align: top; }
+.prev th { position: sticky; top: 0; background: var(--hdr); font-weight: 600; }
+.prev th .u { font-weight: 400; color: var(--muted); }
+.prev td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.prev .bad, .prev td.bad { color: var(--errc); }
+.role { display: inline-block; font-size: 10.5px; font-weight: 500; padding: 0 6px; border-radius: 9px; border: 1px solid var(--line); margin-top: 2px; }
+.role.r-x { background: rgba(37,99,235,.12); } .role.r-y { background: rgba(15,118,110,.14); } .role.r-uncertainty { background: rgba(217,119,6,.16); }
+.role.r-group, .role.r-condition { background: rgba(219,39,119,.12); } .role.r-ignore { opacity: .6; text-decoration: line-through; }
+ol.steps { margin: 4px 0 0; padding-left: 20px; font-size: 12px; }
+ol.steps li { padding: 2px 0; }
+ol.steps li span { margin-right: 4px; }
+ol.steps .x, .x { border: 0; background: transparent; padding: 0 5px; color: var(--muted); }
+.mkmenu { display: flex; flex-direction: column; gap: 1px; min-width: 230px; }
+.mkmenu button { text-align: left; border: 1px solid transparent; background: transparent; padding: 4px 8px; border-radius: 6px; }
+.mkmenu button:hover:not(:disabled), .mkmenu button:focus-visible { border-color: var(--accent); }
+.mkmenu .mkh { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 6px 0 2px 8px; }
+.mkmenu .mkroles { display: flex; flex-wrap: wrap; gap: 3px; padding: 0 4px; }
+.mkmenu .mkroles button { border-color: var(--line); padding: 2px 8px; }
+footer { display: flex; align-items: center; gap: 12px; padding: 4px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); min-height: 26px; }
+footer #stSel { flex: 1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#toasts { position: fixed; right: 14px; bottom: 40px; display: flex; flex-direction: column; gap: 6px; z-index: 90; }
+.toast { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.18); max-width: 420px; }
+.toast.err { border-left-color: var(--err-ink); }
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 16px; max-width: 640px; width: 94vw; }
+dialog::backdrop { background: rgba(0,0,0,.3); }
+dialog textarea { width: 100%; height: 220px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+dialog.wide { max-width: 860px; max-height: 90vh; overflow: auto; }
+ul.dslist { list-style: none; margin: 4px 0; padding: 0; font-size: 12.5px; }
+ul.dslist li { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
+ul.dslist li > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+ul.dslist .acts { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+ul.dslist .bad { color: var(--err-ink); }
+.dvsec { margin: 14px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+table.dvt { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+table.dvt th { text-align: left; font-weight: 500; color: var(--muted); font-size: 11.5px; padding: 2px 4px; }
+table.dvt td { padding: 2px 4px; vertical-align: middle; }
+table.dvt input, table.dvt select { box-sizing: border-box; max-width: 100%; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* DP-06..10: flag badges, check chips, cleaning steps */
+.fb { display: inline-block; font-size: 10px; font-weight: 500; padding: 0 5px; border-radius: 8px; margin: 1px 2px 0 0; background: rgba(217,119,6,.16); white-space: nowrap; cursor: help; }
+.fb.f-below_lod, .fb.f-above_range { background: rgba(37,99,235,.14); } .fb.f-missing { background: var(--soft); } .fb.f-note { background: rgba(15,118,110,.14); }
+.fb.f-parse_error { background: var(--err-bg); color: var(--err-ink); }
+.prev td.mk { background: rgba(217,119,6,.10); } .prev td.mk.f-below_lod, .prev td.mk.f-above_range { background: rgba(37,99,235,.09); }
+.prev tr.ex td { color: var(--muted); text-decoration: line-through; } .prev tr.fl td:first-child { box-shadow: inset 3px 0 0 #d97706; }
+.prev td.rn { color: var(--muted); text-align: right; }
+.sym { font-style: italic; font-weight: 400; color: var(--muted); }
+.cks { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.ck { font-size: 11.5px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--soft); overflow-wrap: anywhere; max-width: 100%; }
+.ck.l-ok { background: var(--ok-bg); color: var(--ok-ink); border-color: transparent; } .ck.l-warn { background: #fff3d6; color: #7a5200; border-color: transparent; }
+.ck.l-bad { background: var(--err-bg); color: var(--err-ink); border-color: transparent; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ck.l-warn { background: #43360f; color: #f3d27a; } }
+:root[data-theme="dark"] .ck.l-warn, :root[data-theme="dark"] .note.warn { background: #43360f; color: #f3d27a; }
+.cl { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px; margin: 4px 0; font-size: 12.5px; }
+.cl > b { min-width: 1.6em; color: var(--muted); font-weight: 500; }
+.cl label { display: inline-flex; align-items: center; gap: 3px; margin: 0; font-size: 12px; }
+.cl input[type=text] { width: 70px; }
+.cl select { max-width: 220px; }
+.cl input.w { width: 160px; } .cl input.s { width: 46px; }
+.cl .mv { margin-left: auto; display: inline-flex; gap: 2px; }
+.cl .mv button { padding: 0 6px; }
+table.stp { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 6px; }
+table.stp td, table.stp th { padding: 2px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.stp th { font-weight: 500; color: var(--muted); font-size: 11.5px; }
+table.stp td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+ul.fll { list-style: none; padding: 0; margin: 4px 0; font-size: 12px; max-height: 180px; overflow: auto; }
+ul.fll li { display: flex; gap: 6px; align-items: baseline; padding: 2px 0; border-bottom: 1px solid var(--line); }
+ul.fll li span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.linkbtn { border: 0; background: none; color: var(--accent); padding: 0 2px; text-decoration: underline; }
+@media (max-width: 760px) { main { grid-template-columns: minmax(0, 1fr); } aside { display: none; } header { flex-wrap: wrap; } header .chips { order: 9; flex-basis: 100%; } }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg><span data-i18n="dp.title">Datenaufbereitung</span></span>
+  <span id="crumbs"></span>
+  <div class="chips" id="chips" data-lov-detail></div>
+  <span class="hsp lov-only"></span>
+  <span id="langSw"></span>
+</header>
+
+<nav id="menubar" aria-label="Menü"></nav>
+
+<main id="main">
+  <section class="sheetcol">
+    <div id="fbar" data-lov-detail>
+      <input type="text" id="refBox" aria-label="Zellbezug" data-i18n-label="dp.ref" title="Zellbezug oder Bereich eingeben, z. B. B3:D200, dann Enter">
+      <div id="cellText" aria-live="polite"></div>
+    </div>
+    <div id="gbox">
+      <canvas id="gc" aria-hidden="true"></canvas>
+      <div id="gscroll" tabindex="0" role="grid" aria-label="Tabellenblatt" data-i18n-label="dp.grid"><div id="gspace"></div></div>
+      <div id="empty" hidden>
+        <div class="box">
+          <button class="x" id="emptyX" aria-label="Schliessen" data-i18n-label="mt.close">×</button>
+          <b data-i18n="dp.empty_h">Werte eintippen oder Datei laden</b>
+          <div class="small" data-i18n="dp.empty_t">Diese leere Tabelle ist eine Messtabelle (Einzelmessergebnisse): in die Zellen tippen oder auf einen Spalten- bzw. Zeilenkopf klicken und die Werte nacheinander eingeben. Oder Excel, ODS, CSV/TXT, JSON oder Parquet hierher ziehen.</div>
+          <button id="btnOpen" data-i18n="dp.open">Datei laden …</button>
+          <button id="btnPaste" data-i18n="dp.paste">Zellen einfügen …</button>
+        </div>
+      </div>
+      <div id="seq" hidden role="dialog" aria-labelledby="seqTitle">
+        <div class="seqh" id="seqHead"><b id="seqTitle"></b><button class="x" id="seqClose" aria-label="Schliessen" data-i18n-label="mt.close">×</button></div>
+        <div class="two">
+          <label><span data-i18n="mt.name">Name (Kopfzelle)</span><input type="text" id="seqName" maxlength="80"></label>
+          <label id="seqUnitL"><span data-i18n="mt.unit">Einheit</span><input type="text" id="seqUnit" maxlength="30" placeholder="z. B. N" list="unitAll" autocomplete="off" spellcheck="false"></label>
+        </div>
+        <div class="small" id="seqNext"></div>
+        <input type="text" id="seqIn" autocomplete="off" spellcheck="false" aria-describedby="seqHint">
+        <div id="seqPrev" aria-live="polite"></div>
+        <ol id="seqList"></ol>
+        <div class="hint" id="seqHint" data-i18n="mt.seqhint">Alle Werte in eine Zeile tippen, getrennt durch Leerzeichen, „;“ oder „, “ · Enter: alle übernehmen · Esc: schliessen</div>
+      </div>
+    </div>
+    <nav id="sheetTabs" aria-label="Blätter" data-lov-detail></nav>
+  </section>
+  <aside id="side" data-lov-detail>
+    <div class="pane" id="pane"></div>
+  </aside>
+</main>
+
+<footer>
+  <span id="stSel" aria-live="polite"></span>
+  <span id="envName" hidden></span>
+  <span id="busy" hidden data-i18n="dp.busy">liest …</span>
+</footer>
+
+<div id="toasts"></div>
+<input type="file" id="file" multiple hidden>
+<dialog id="pasteDlg">
+  <form method="dialog">
+    <b data-i18n="dp.paste_h">Zellen einfügen</b>
+    <div class="small" data-i18n="dp.paste_t">Aus Excel, LibreOffice oder einer Textdatei kopierte Zellen. Tabulator, Semikolon, Komma und Leerzeichen werden erkannt.</div>
+    <label for="pasteName" data-i18n="dp.name">Name</label>
+    <input type="text" id="pasteName" maxlength="80" style="width:100%">
+    <label for="pasteText" data-i18n="dp.cells">Zellen</label>
+    <textarea id="pasteText" spellcheck="false"></textarea>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:10px">
+      <button value="cancel" data-i18n="dp.cancel">Abbrechen</button><button value="ok" class="primary" data-i18n="dp.take">Übernehmen</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="askDlg">
+  <form method="dialog">
+    <b id="askHead"></b>
+    <div id="askFields"></div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:10px">
+      <button value="cancel" formnovalidate data-i18n="dp.cancel">Abbrechen</button><button value="ok" class="primary" data-i18n="dp.take">Übernehmen</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/lab/sdk.js"></script>
+<script src="labenv.js"></script>
+<script src="labindex.js"></script>
+<script src="labui.js"></script>
+<script src="labboard.js"></script>
+<script src="laboverview.js"></script>
+<script>
+/* Rückfall: ein älterer Modulserver liefert die gemeinsamen Dateien nicht */
+(function (g) {
+  const msg = "Modulserver neu starten (ältere Version läuft)";
+  if (!g.LabEnv) g.LabEnv = { stub: true, create: (o) => ({ ready: false, info: null, open: async () => o.toast(msg, true), save() {}, flush: () => Promise.resolve(), check() {}, dialog: () => o.toast(msg, true) }) };
+  const no = () => g.toast && g.toast(msg, true);
+  if (!g.LabIndex) g.LabIndex = { stub: true, add: no, addMany: no, browse: no, history: no, exportDeps: no };
+})(window);
+</script>
+<script>
+"use strict";
+// ================================================================== Texte (DE/EN)
+const DP_T = {
+  de: {
+    "dp.title": "Datenaufbereitung", "dp.ref": "Zellbezug", "dp.grid": "Tabellenblatt", "dp.empty_h": "Werte eintippen oder Datei laden",
+    "dp.empty_t": "Diese leere Tabelle ist eine Messtabelle (Einzelmessergebnisse): in die Zellen tippen oder auf einen Spalten- bzw. Zeilenkopf klicken und die Werte nacheinander eingeben. Oder Excel, ODS, CSV/TXT, JSON oder Parquet hierher ziehen.",
+    "mt.new": "Neue Messtabelle …", "mt.default": "Einzelmessergebnisse", "mt.sheet1": "Messung 1", "mt.close": "Schliessen", "mt.name": "Name (Kopfzelle)", "mt.unit": "Einheit",
+    "mt.seqhint": "Alle Werte in eine Zeile tippen, getrennt durch Leerzeichen, „;“ oder „, “ (12,5 bleibt eine Zahl; 1,2,3 sind drei), eine Einheit gleich dahinter (12,5 N) · Enter: alle übernehmen · ↑ oder Rücktaste im leeren Feld: zurück zum letzten Wert · Esc: schliessen",
+    "mt.prev": "{n} Werte – Enter trägt alle ein:", "mt.prev1": "1 Wert – Enter trägt ihn ein:", "mt.prev_t": "Text",
+    "mt.col": "Spalte {c} nacheinander ausfüllen", "mt.row": "Zeile {r} nacheinander ausfüllen", "mt.next": "Nächste Zelle: {ref}", "mt.newname": "Name der Messtabelle",
+    "mt.addsheet": "Blatt hinzufügen", "mt.rensheet": "Blatt umbenennen …", "mt.rmsheet": "Blatt entfernen", "mt.rmsheet_q": "Blatt „{n}“ mit allen Werten entfernen?", "mt.sheetname": "Name des Blatts",
+    "mt.undo": "Rückgängig", "mt.redo": "Wiederholen", "mt.nothing": "Nichts rückgängig zu machen", "mt.readonly": "Diese Tabelle ist eine geladene Datei und bleibt unverändert. Für Eingaben „Neue Messtabelle“ anlegen.",
+    "mt.cleared": "{n} Zellen geleert", "mt.pasted": "{n} Zellen eingefügt", "mt.copied": "{n} Zellen kopiert", "mt.copybig": "Bereich zu gross zum Kopieren oder noch nicht geladen",
+    "mt.intro_h": "Einzelmessergebnisse", "mt.intro": "Werte direkt in die Zellen tippen (Enter: nach unten, Tab: nach rechts) oder auf einen Spalten- oder Zeilenkopf klicken und die Werte nacheinander eingeben. Die erste Zeile ist der Name der Spalte; die Einheit kommt ins Eingabefenster oder per Rechtsklick → Einheit.",
+    "ds.h": "Datensatz", "ds.openm": "Datensatz öffnen …", "ds.title": "Titel", "ds.version": "Version", "ds.new_h": "Als Datensatz speichern",
+    "ds.intro": "Die gelesene Tabelle als Datensatz speichern: Rechner, Elementrechner, TGA und FTIR können ihn dann übernehmen. Nach jeder Änderung entsteht automatisch eine neue Version.",
+    "ds.create": "Als Datensatz speichern …", "ds.needread": "Zuerst die Tabelle lesen (Bereich und Kopfzeile zuweisen), dann lässt sie sich als Datensatz speichern.",
+    "ds.saved": "Datensatz „{t}“ gespeichert (v{v})", "ds.childerr": "Abgeleiteter Datensatz: {m}", "ds.auto": "Nach Änderungen automatisch neue Version",
+    "ds.savenow": "Jetzt speichern", "ds.derive": "⇆ Einheiten umrechnen …", "dv.all": "Ganzer Datensatz: alle Spalten in", "dv.all_go": "eintragen", "ds.unlink": "lösen", "ds.unlink_t": "Diese Tabelle nicht mehr mit dem Datensatz verbinden (der Datensatz bleibt)",
+    "ds.unlink_q": "Tabelle vom Datensatz lösen? Der Datensatz und seine Versionen bleiben erhalten.", "ds.kids": "Daraus abgeleitet:",
+    "ds.live": "folgt", "ds.pin": "fest", "ds.open": "Öffnen", "ds.edit": "Ändern …", "ds.refresh": "auf v{v} bringen", "ds.from_s": "aus Datensatz",
+    "ds.from": "Aus Datensatz „{t}“ v{v} – nur lesen.", "ds.ch": "Datensätze", "ds.ch1": "Datensatz", "ds.linked": "Verbunden aus der Sammlung „{e}“.", "ds.conns": "Verbindungen …",
+    "ds.linked_t": "{n} verbundene(r) Datensatz/Datensätze geöffnet oder nachgeführt", "ds.openlatest": "v{v} öffnen", "ds.derived": "abgeleitet", "ds.browse_h": "Datensätze im Projekt",
+    "ds.browse_t": "Aus allen Umgebungen dieses Moduls und von anderen Modulen. Öffnen zeigt die Werte als Tabelle; Umrechnen macht einen neuen Datensatz.",
+    "ds.own": "Aus der Datenaufbereitung", "ds.incoming": "Von anderen Modulen", "ds.none": "Noch keine Datensätze in diesem Projekt.", "ds.gone": "Datensatz nicht mehr vorhanden",
+    "dv.h": "Umrechnen → neuer Datensatz", "dv.h_edit": "Abgeleiteten Datensatz ändern", "dv.t": "Aus „{t}“ (v{v}). Alle Spalten bleiben; umgerechnete Spalten ersetzen ihre Quelle, ausser „Original behalten“ ist gewählt.",
+    "dv.suffix": "(umgerechnet)", "dv.conv": "Einheiten umrechnen", "dv.col": "Spalte", "dv.key": "Name in Formeln", "dv.unitnow": "Einheit", "dv.unitnew": "neu",
+    "dv.same": "gleich", "dv.keep": "Original behalten", "dv.forms": "Neue Spalten aus Formeln", "dv.forms_t": "Spalten in Formeln: {k}. Beispiel: σ = F / A0 in MPa. Gerechnet wird mit Einheiten; das Ergebnis muss zur Einheit passen.",
+    "dv.expr": "Formel", "dv.place": "Spalte", "dv.newcol": "neue Spalte", "dv.replaces": "ersetzt {c}", "dv.addf": "+ Formel", "dv.consts": "Konstanten",
+    "dv.consts_t": "Werte mit Einheit, z. B. A0 = 12,57 mm². Eintippen oder aus einer Zelle der offenen Tabelle holen.", "dv.fromcell": "aus Zelle …", "dv.addc": "+ Konstante",
+    "dv.mode": "Wenn sich die Quelle ändert", "dv.live": "folgen: neu rechnen, sobald die Quelle eine neue Version hat", "dv.pin": "fest: bei dieser Version bleiben (später von Hand aktualisieren)",
+    "dv.create": "Datensatz erstellen", "dv.update": "Neue Version speichern", "dv.empty": "Eine Einheit oder eine Formel angeben.",
+    "dv.cell_q": "Zelle mit dem Wert ({s})", "dv.cell_bad": "Zellbezug nicht lesbar", "dv.cell_nonum": "In {r} steht keine Zahl", "dv.cell_none": "Keine Tabelle offen",
+    "mt.unitset": "Einheit {u} für Spalte {c}", "mt.mismatch": "„{text}“: Einheit {unit} passt nicht zur Spalte ({col}) – den Wert ohne Einheit eingeben oder die Einheit der Spalte ändern.", "mt.unitbad": "Einheit „{u}“: {m}", "mt.unitdlg": "Einheit für die gewählten Spalten", "mt.unitf": "Einheit (z. B. N, mm, s, MPa; leer: keine)", "mt.namedlg": "Name für die gewählten Spalten", "mt.namef": "Name",
+    "mk.unit": "Einheit zuweisen …", "mk.name": "Name …",
+    "dp.open": "Datei laden …", "dp.paste": "Zellen einfügen …", "dp.busy": "liest …", "dp.paste_h": "Zellen einfügen",
+    "dp.paste_t": "Aus Excel, LibreOffice oder einer Textdatei kopierte Zellen. Tabulator, Semikolon, Komma und Leerzeichen werden erkannt.",
+    "dp.name": "Name", "dp.cells": "Zellen", "dp.cancel": "Abbrechen", "dp.take": "Übernehmen",
+    "m.file": "Datei", "m.view": "Ansicht", "m.envs": "Umgebungen …", "m.index": "Projektindex …", "m.remove": "Datei schliessen",
+    "m.rename": "Umbenennen …", "m.side": "Seitenleiste", "m.goto": "Gehe zu …", "m.all": "Alles markieren",
+    "s.sel": "Auswahl", "s.none": "Keine Auswahl.", "s.cells": "Zellen", "s.numbers": "Zahlen", "s.text": "Text",
+    "s.textnum": "davon Zahl als Text", "s.empty": "leer", "s.errors": "Fehlerwerte", "s.formulas": "Formeln ohne Wert",
+    "s.sum": "Summe", "s.mean": "Mittelwert", "s.min": "Minimum", "s.max": "Maximum", "s.sheet": "Blatt",
+    "s.size": "Grösse", "s.file": "Datei", "s.notes": "Hinweise beim Lesen", "s.format": "Erkanntes Format",
+    "s.sep": "Trennzeichen", "s.dec": "Dezimalzeichen", "s.header": "Kopfzeile", "s.units": "Einheitenzeile",
+    "s.block": "Datenblock", "s.merged": "Verbundene Bereiche", "s.legend": "Zelltypen",
+    "t.num": "Zahl", "t.text": "Text", "t.date": "Datum/Zeit", "t.err": "Fehlerwert", "t.form": "Formel ohne Wert", "t.bool": "Wahr/Falsch",
+    "st.cells": "{n} Zellen", "st.loaded": "{n} Datei(en) geladen", "st.rows": "{r} Zeilen × {c} Spalten",
+    "q.remove": "Datei aus der Umgebung entfernen?", "q.rename": "Neuer Name:", "e.goto": "Bezug nicht erkannt (z. B. B3 oder B3:D200)",
+    "mk.title": "Markieren", "mk.intro": "Die Tabelle wird zu einer langen Tabelle mit Namen, Einheiten und Rollen. Mit „Erste Vermutung“ beginnen und korrigieren – oder einen Bereich wählen und mit Rechtsklick zuordnen.",
+    "mk.guess": "Erste Vermutung", "mk.assign": "Auswahl zuordnen …", "mk.reset": "Zurücksetzen", "mk.reset_q": "Alle Markierungen dieses Blatts entfernen?",
+    "mk.sum": "{r} Zeilen · {c} Spalten · {b} Block/Blöcke", "mk.more_rows": "{n} weitere Zeilen", "mk.recipe": "Rezept ({n} Schritte)", "mk.rm": "Schritt entfernen",
+    "mk.check": "Als Datensatz prüfen", "mk.check_b": "Prüfen", "mk.ok": "Datensatz gültig: {r} Zeilen, {c} Spalten", "mk.flags": "{n} Zellen als „keine Zahl“ markiert (im Schritt Bereinigen auflösen)",
+    "mk.area": "Bereich", "mk.block": "Datenblock (die Zahlen)", "mk.header": "Kopfzeile(n) – Namen", "mk.units": "Einheitenzeile", "mk.skip": "Zeilen überspringen / wieder aufnehmen",
+    "mk.roles": "Rolle der Spalten", "mk.more": "Weiteres", "mk.meta": "Metadatenzelle → Bedingung …", "mk.metacol": "Metadatenzelle → feste Spalte …", "mk.unmeta": "Metadatenzelle entfernen",
+    "mk.repeat": "Auswahl ist der nächste Block (wiederholt sich)", "mk.replabel": "Aktive Zelle ist die Blockbeschriftung", "mk.norepeat": "Keine Wiederholung",
+    "mk.wide": "Breit → lang (gewählte Spalten) …", "mk.nowide": "Breit → lang aus", "mk.transpose": "Zeilen und Spalten tauschen", "mk.untranspose": "Nicht mehr tauschen",
+    "mk.needsel": "Bitte zuerst Zellen auswählen.", "mk.needblock": "Bitte zuerst einen Datenblock markieren.", "mk.outside": "Die Auswahl liegt nicht im Datenblock.",
+    "mk.uleft": "Eine Unsicherheit gehört zur Spalte links daneben – die erste Spalte hat keine.", "mk.repeatbad": "Den nächsten Block genau rechts oder unterhalb des ersten wählen (gleiche Zeile bzw. Spalte).",
+    "mk.needrepeat": "Zuerst die Wiederholung festlegen.", "mk.wide2": "Mindestens zwei Spalten im Datenblock wählen.", "mk.widename": "Name der Wertespalte (z. B. c):",
+    "mk.widecond": "Name der Bedingung aus den Spaltenköpfen (z. B. T):", "mk.metaname": "Name der Angabe (z. B. T):", "mk.metacond": "Metadatenzelle als Bedingung", "mk.metacol": "Metadatenzelle als konstante Spalte", "mk.widehead": "Breit → lang", "mk.metaunit": "Einheit (leer: aus der Zelle):",
+    "mk.noguess": "Kein Zahlenblock gefunden – bitte von Hand markieren.",
+    "mk.k_data": "Daten", "mk.k_header": "Kopf", "mk.k_units": "Einheiten", "mk.k_meta": "Metadaten", "mk.k_label": "Blockname", "mk.k_skip": "übersprungen", "mk.k_ignore": "ignoriert",
+    "r.x": "x", "r.y": "y", "r.uncertainty": "Unsicherheit", "r.group": "Gruppe", "r.label": "Beschriftung", "r.condition": "Bedingung", "r.ignore": "ignorieren", "r.none": "–",
+    // DP-06: Symbol, Grössenart, Datum/Zeit; Markierungen beim Lesen
+    "mk.colprop": "Symbol und Grösse …", "cp.h": "Symbol und Grösse: {c}", "cp.sym": "Formelzeichen (z. B. σ, T, c)", "cp.kind": "Grössenart", "cp.kind0": "aus der Einheit",
+    "cp.time": "Datum/Uhrzeit", "cp.elapsed": "Zeit seit dem ersten Wert (Start als Bedingung)", "cp.raw": "Rohwert lassen (Excel-Tageszahl)", "cp.tunit": "Einheit der Zeit", "cp.auto": "automatisch",
+    "fl.outlier": "Ausreisser", "fl.below_lod": "< NWG", "fl.above_range": "> Messbereich", "fl.missing": "fehlt", "fl.duplicate": "doppelt", "fl.excluded": "ausgeschlossen",
+    "fl.interpolated": "interpoliert", "fl.parse_error": "Lesefehler", "fl.note": "umgerechnet",
+    "mk.flagt": "{n} Zellen: {c} – Beispiele: {e}", "mk.since": "seit {s}",
+    // DP-07/08: Bereinigen
+    "ds.derive": "⇆ Umrechnen und bereinigen …", "dv.h": "Umrechnen und bereinigen → neuer Datensatz",
+    "cl.h": "Bereinigen", "cl.t": "Schritte laufen nach Umrechnungen und Formeln, von oben nach unten. Markieren löscht keine Zeilen; erst „Ausschliessen“ mit Grund nimmt Zeilen aus der Auswertung.",
+    "cl.add": "+ Schritt …", "cl.up": "nach oben", "cl.down": "nach unten",
+    "cl.trim": "Zeilenbereich behalten", "cl.filter": "Zeilen filtern", "cl.sort": "Sortieren", "cl.drop_empty": "Leere Zeilen entfernen", "cl.duplicates": "Doppelte markieren",
+    "cl.replicates": "Wiederholungen mitteln (Mittelwert, s, n, SE)", "cl.smooth": "Glätten (Savitzky–Golay)", "cl.join": "Mit anderem Datensatz verbinden (interpolieren)",
+    "cl.outliers": "Ausreisser markieren", "cl.exclude": "Ausschliessen (mit Grund)",
+    "cl.from": "von Zeile", "cl.to": "bis", "cl.col": "Spalte", "cl.value": "Wert", "cl.and": "und", "cl.desc": "absteigend", "cl.allnum": "alle Zahlenspalten", "cl.allcols": "alle Spalten",
+    "cl.by": "gleiche Werte in", "cl.window": "Fenster", "cl.order": "Grad", "cl.keep": "Original behalten", "cl.partner": "Datensatz", "cl.x": "x hier", "cl.x2": "x dort",
+    "cl.take": "übernehmen", "cl.prefix": "Vorsilbe", "cl.pin": "bei dieser Version bleiben", "cl.method": "Verfahren", "cl.group": "je", "cl.nogroup": "alle zusammen",
+    "cl.alpha": "α", "cl.k": "k", "cl.sided": "Seite", "cl.two": "zweiseitig", "cl.max": "nur Maximum", "cl.min": "nur Minimum", "cl.xcol": "über",
+    "cl.rows": "Zeilen (z. B. 3, 7, 12–15)", "cl.codes": "alle Markierungen", "cl.reason": "Grund (Pflicht)", "cl.reason_ph": "z. B. Blase im Probekörper",
+    "cl.m_grubbs": "Grubbs (normalverteilt, n ≥ 3)", "cl.m_dixon": "Dixon-Q (kleine Serien, n 3–10)", "cl.m_iqr": "Tukey/IQR (verteilungsfrei)", "cl.m_hampel": "Hampel/MAD (robust, auch gleitend)",
+    "cl.m_residual": "Fit-Residuum (Abweichung von einer Kurve)", "cl.notext": "(Text)", "cl.badrows": "Zeilenangabe „{s}“ nicht lesbar",
+    "cl.steps": "Protokoll", "cl.step": "Schritt", "cl.rowsba": "Zeilen", "cl.flagsba": "Markierungen", "cl.exba": "ausgeschl.",
+    "cl.checks": "Prüfung", "cl.marks": "Markierungen", "cl.excl": "ausschliessen", "cl.excl_q": "Grund für den Ausschluss von Zeile {r}", "cl.row": "Zeile",
+    "cl.more": "… {n} weitere",
+    // DP-08..10: Datensatz-Bereich
+    "ds.check": "Prüfung", "ds.check_b": "Prüfen", "ds.steps_n": "{n} Schritte im Protokoll", "ds.export": "Exportieren", "ds.export_t": "Mit Einheiten; XLSX enthält ein Blatt „Protokoll“ (Dateien, Rezept, Schritte, Markierungen).",
+    "ds.exported": "{f} gespeichert ({b})", "ds.report": "An Bericht senden …", "ds.report_na": "Berichte gibt es nur, wenn das Modul aus Folio Lab geöffnet ist.",
+    "rp.figures": "Abbildung (Vorschau mit Markierungen)", "rp.tables": "Tabellen (Spalten, erste Zeilen, Markierungen)", "rp.values": "Kennwerte als \\labval (Zeilen, verwendet, ausgeschlossen, Version)",
+    "rp.data": "Daten als CSV (für pgfplots)", "rp.citations": "Quellen der Verfahren (Grubbs, Dixon, …)", "rp.text": "Methodik-Text (Herkunft, Schritte, Ausschlüsse)", "rp.scope": "Datensatz „{t}“ v{v}",
+    // DP-09: Vorlagen und Stapel
+    "tp.save": "Als Vorlage speichern …", "tp.name": "Name der Vorlage", "tp.saved": "Vorlage „{n}“ gespeichert", "tp.menu": "Vorlagen und Stapel …", "tp.h": "Vorlagen und Stapel",
+    "tp.t": "Eine Vorlage merkt sich die Markierungen eines Blatts (Kopf, Einheiten, Rollen, Metadaten). Vor dem Anwenden prüft sie, ob Kopf und Einheiten an derselben Stelle stehen; die Zahl der Zeilen darf sich ändern.",
+    "tp.none": "Noch keine Vorlagen. Ein Blatt markieren und dann im Bereich „Markieren“ „Als Vorlage speichern …“ wählen.", "tp.apply": "Auf dieses Blatt", "tp.del": "Löschen", "tp.del_q": "Vorlage „{n}“ löschen?",
+    "tp.steps": "{n} Schritte", "tp.from": "aus {f}", "tp.batch": "Stapel: Vorlage auf mehrere Dateien", "tp.tpl": "Vorlage", "tp.files": "Dateien (jeweils das gewählte Blatt)",
+    "tp.each": "je Datei ein Datensatz", "tp.comb": "ein gemeinsamer Datensatz (Spalte „Datei“, unterschiedliche Bedingungen als Spalten)", "tp.ctitle": "Titel", "tp.run": "Ausführen",
+    "tp.applied": "Vorlage „{n}“ angewendet", "tp.mismatch": "Vorlage passt nicht zu diesem Blatt:", "tp.ok": "{n}: {r} Zeilen", "tp.okds": "{n}: {r} Zeilen → „{t}“ v{v}", "tp.combined": "Gemeinsamer Datensatz „{t}“ v{v}: {r} Zeilen",
+    "tp.nofiles": "Keine geladenen Dateien zum Anwenden", "tp.needtpl": "Zuerst eine Vorlage speichern", "tp.expected": "erwartet „{e}“, gefunden „{f}“",
+  },
+  en: {
+    "dp.title": "Data Purification", "dp.ref": "Cell reference", "dp.grid": "Sheet", "dp.empty_h": "Type values or load a file",
+    "dp.empty_t": "This empty table is a measurement sheet (single measurement results): type into the cells, or click a column or row header and enter the values one after another. Or drop Excel, ODS, CSV/TXT, JSON or Parquet here.",
+    "mt.new": "New measurement sheet …", "mt.default": "Single measurement results", "mt.sheet1": "Measurement 1", "mt.close": "Close", "mt.name": "Name (header cell)", "mt.unit": "Unit",
+    "mt.seqhint": "Type all values on one line, separated by spaces, \";\" or \", \" (12,5 stays one number; 1,2,3 are three), a unit right after a value (12.5 N) · Enter: take them all · ↑ or Backspace in the empty field: back to the last value · Esc: close",
+    "mt.prev": "{n} values – Enter writes them all:", "mt.prev1": "1 value – Enter writes it:", "mt.prev_t": "text",
+    "mt.col": "Fill column {c} one value after another", "mt.row": "Fill row {r} one value after another", "mt.next": "Next cell: {ref}", "mt.newname": "Name of the measurement sheet",
+    "mt.addsheet": "Add sheet", "mt.rensheet": "Rename sheet …", "mt.rmsheet": "Remove sheet", "mt.rmsheet_q": "Remove sheet “{n}” with all its values?", "mt.sheetname": "Name of the sheet",
+    "mt.undo": "Undo", "mt.redo": "Redo", "mt.nothing": "Nothing to undo", "mt.readonly": "This table is a loaded file and stays unchanged. Create a “New measurement sheet” to type values.",
+    "mt.cleared": "{n} cells cleared", "mt.pasted": "{n} cells pasted", "mt.copied": "{n} cells copied", "mt.copybig": "Range too large to copy or not loaded yet",
+    "mt.intro_h": "Single measurement results", "mt.intro": "Type values straight into the cells (Enter: down, Tab: right) or click a column or row header and enter the values one after another. The first row is the column name; set the unit in the entry window or with right-click → Unit.",
+    "ds.h": "Dataset", "ds.openm": "Open dataset …", "ds.title": "Title", "ds.version": "Version", "ds.new_h": "Save as dataset",
+    "ds.intro": "Save the read table as a dataset: Rechner, Elementrechner, TGA and FTIR can then take it over. Every change gives a new version automatically.",
+    "ds.create": "Save as dataset …", "ds.needread": "Read the table first (assign the range and header), then it can be saved as a dataset.",
+    "ds.saved": "Dataset “{t}” saved (v{v})", "ds.childerr": "Derived dataset: {m}", "ds.auto": "New version automatically after changes",
+    "ds.savenow": "Save now", "ds.derive": "⇆ Convert units …", "dv.all": "Whole dataset: every column in", "dv.all_go": "fill in", "ds.unlink": "unlink", "ds.unlink_t": "Stop linking this table to the dataset (the dataset stays)",
+    "ds.unlink_q": "Unlink the table from the dataset? The dataset and its versions stay.", "ds.kids": "Derived from it:",
+    "ds.live": "follows", "ds.pin": "pinned", "ds.open": "Open", "ds.edit": "Change …", "ds.refresh": "bring to v{v}", "ds.from_s": "from dataset",
+    "ds.from": "From dataset “{t}” v{v} – read only.", "ds.ch": "datasets", "ds.ch1": "dataset", "ds.linked": "Connected from the collection “{e}”.", "ds.conns": "Connections …",
+    "ds.linked_t": "{n} connected dataset(s) opened or brought up to date", "ds.openlatest": "open v{v}", "ds.derived": "derived", "ds.browse_h": "Datasets in the project",
+    "ds.browse_t": "From all environments of this module and from other modules. Open shows the values as a table; Convert makes a new dataset.",
+    "ds.own": "From Datenaufbereitung", "ds.incoming": "From other modules", "ds.none": "No datasets in this project yet.", "ds.gone": "Dataset no longer exists",
+    "dv.h": "Convert → new dataset", "dv.h_edit": "Change derived dataset", "dv.t": "From “{t}” (v{v}). All columns stay; converted columns replace their source unless “keep original” is ticked.",
+    "dv.suffix": "(converted)", "dv.conv": "Convert units", "dv.col": "Column", "dv.key": "Name in formulas", "dv.unitnow": "Unit", "dv.unitnew": "new",
+    "dv.same": "same", "dv.keep": "keep original", "dv.forms": "New columns from formulas", "dv.forms_t": "Columns in formulas: {k}. Example: σ = F / A0 in MPa. Units are part of the calculation; the result must fit its unit.",
+    "dv.expr": "Formula", "dv.place": "Column", "dv.newcol": "new column", "dv.replaces": "replaces {c}", "dv.addf": "+ formula", "dv.consts": "Constants",
+    "dv.consts_t": "Values with unit, e.g. A0 = 12.57 mm². Type them or take them from a cell of the open table.", "dv.fromcell": "from cell …", "dv.addc": "+ constant",
+    "dv.mode": "When the source changes", "dv.live": "follow: compute again as soon as the source has a new version", "dv.pin": "pinned: stay at this version (update by hand later)",
+    "dv.create": "Create dataset", "dv.update": "Save new version", "dv.empty": "Give a unit or a formula.",
+    "dv.cell_q": "Cell with the value ({s})", "dv.cell_bad": "Cell reference not readable", "dv.cell_nonum": "{r} holds no number", "dv.cell_none": "No table open",
+    "mt.unitset": "Unit {u} for column {c}", "mt.mismatch": "“{text}”: unit {unit} does not match the column ({col}) – enter the value without unit or change the unit of the column.", "mt.unitbad": "Unit “{u}”: {m}", "mt.unitdlg": "Unit for the selected columns", "mt.unitf": "Unit (e.g. N, mm, s, MPa; empty: none)", "mt.namedlg": "Name for the selected columns", "mt.namef": "Name",
+    "mk.unit": "Assign unit …", "mk.name": "Name …",
+    "dp.open": "Load file …", "dp.paste": "Paste cells …", "dp.busy": "reading …", "dp.paste_h": "Paste cells",
+    "dp.paste_t": "Cells copied from Excel, LibreOffice or a text file. Tab, semicolon, comma and space are recognised.",
+    "dp.name": "Name", "dp.cells": "Cells", "dp.cancel": "Cancel", "dp.take": "Add",
+    "m.file": "File", "m.view": "View", "m.envs": "Environments …", "m.index": "Project index …", "m.remove": "Close file",
+    "m.rename": "Rename …", "m.side": "Side panel", "m.goto": "Go to …", "m.all": "Select all",
+    "s.sel": "Selection", "s.none": "Nothing selected.", "s.cells": "Cells", "s.numbers": "Numbers", "s.text": "Text",
+    "s.textnum": "of which numbers as text", "s.empty": "empty", "s.errors": "Error values", "s.formulas": "Formulas without value",
+    "s.sum": "Sum", "s.mean": "Mean", "s.min": "Minimum", "s.max": "Maximum", "s.sheet": "Sheet",
+    "s.size": "Size", "s.file": "File", "s.notes": "Notes from reading", "s.format": "Detected format",
+    "s.sep": "Delimiter", "s.dec": "Decimal sign", "s.header": "Header row", "s.units": "Units row",
+    "s.block": "Data block", "s.merged": "Merged ranges", "s.legend": "Cell types",
+    "t.num": "Number", "t.text": "Text", "t.date": "Date/time", "t.err": "Error value", "t.form": "Formula without value", "t.bool": "True/false",
+    "st.cells": "{n} cells", "st.loaded": "{n} file(s) loaded", "st.rows": "{r} rows × {c} columns",
+    "q.remove": "Remove the file from the environment?", "q.rename": "New name:", "e.goto": "Reference not recognised (e.g. B3 or B3:D200)",
+    "mk.title": "Mark", "mk.intro": "The sheet becomes a long table with names, units and roles. Start with “First guess” and correct it – or select a range and assign it with a right-click.",
+    "mk.guess": "First guess", "mk.assign": "Assign selection …", "mk.reset": "Reset", "mk.reset_q": "Remove all marks of this sheet?",
+    "mk.sum": "{r} rows · {c} columns · {b} block(s)", "mk.more_rows": "{n} more rows", "mk.recipe": "Recipe ({n} steps)", "mk.rm": "Remove step",
+    "mk.check": "Check as dataset", "mk.check_b": "Check", "mk.ok": "Valid dataset: {r} rows, {c} columns", "mk.flags": "{n} cells flagged as “not a number” (resolve in the cleaning step)",
+    "mk.area": "Range", "mk.block": "Data block (the numbers)", "mk.header": "Header row(s) – names", "mk.units": "Units row", "mk.skip": "Skip rows / take back",
+    "mk.roles": "Column role", "mk.more": "More", "mk.meta": "Metadata cell → condition …", "mk.metacol": "Metadata cell → constant column …", "mk.unmeta": "Remove metadata cell",
+    "mk.repeat": "Selection is the next block (repeats)", "mk.replabel": "Active cell is the block label", "mk.norepeat": "No repetition",
+    "mk.wide": "Wide → long (selected columns) …", "mk.nowide": "Wide → long off", "mk.transpose": "Swap rows and columns", "mk.untranspose": "Stop swapping",
+    "mk.needsel": "Please select cells first.", "mk.needblock": "Please mark a data block first.", "mk.outside": "The selection is not in the data block.",
+    "mk.uleft": "An uncertainty belongs to the column on its left – the first column has none.", "mk.repeatbad": "Pick the next block exactly to the right of or below the first (same row or column).",
+    "mk.needrepeat": "Set the repetition first.", "mk.wide2": "Select at least two columns in the data block.", "mk.widename": "Name of the value column (e.g. c):",
+    "mk.widecond": "Name of the condition from the column headers (e.g. T):", "mk.metaname": "Name of the value (e.g. T):", "mk.metacond": "Metadata cell as condition", "mk.metacol": "Metadata cell as constant column", "mk.widehead": "Wide → long", "mk.metaunit": "Unit (empty: from the cell):",
+    "mk.noguess": "No numeric block found – please mark it by hand.",
+    "mk.k_data": "Data", "mk.k_header": "Header", "mk.k_units": "Units", "mk.k_meta": "Metadata", "mk.k_label": "Block name", "mk.k_skip": "skipped", "mk.k_ignore": "ignored",
+    "r.x": "x", "r.y": "y", "r.uncertainty": "Uncertainty", "r.group": "Group", "r.label": "Label", "r.condition": "Condition", "r.ignore": "ignore", "r.none": "–",
+    "mk.colprop": "Symbol and quantity …", "cp.h": "Symbol and quantity: {c}", "cp.sym": "Symbol (e.g. σ, T, c)", "cp.kind": "Quantity kind", "cp.kind0": "from the unit",
+    "cp.time": "Date/time", "cp.elapsed": "Time since the first value (start as a condition)", "cp.raw": "Keep the raw value (Excel day number)", "cp.tunit": "Time unit", "cp.auto": "automatic",
+    "fl.outlier": "outlier", "fl.below_lod": "< LOD", "fl.above_range": "> range", "fl.missing": "missing", "fl.duplicate": "duplicate", "fl.excluded": "excluded",
+    "fl.interpolated": "interpolated", "fl.parse_error": "read error", "fl.note": "converted",
+    "mk.flagt": "{n} cells: {c} – examples: {e}", "mk.since": "since {s}",
+    "ds.derive": "⇆ Convert and clean …", "dv.h": "Convert and clean → new dataset",
+    "cl.h": "Clean", "cl.t": "Steps run after conversions and formulas, top to bottom. Flagging never deletes rows; only “Exclude” with a reason takes rows out of the evaluation.",
+    "cl.add": "+ step …", "cl.up": "up", "cl.down": "down",
+    "cl.trim": "Keep a row range", "cl.filter": "Filter rows", "cl.sort": "Sort", "cl.drop_empty": "Drop empty rows", "cl.duplicates": "Flag duplicates",
+    "cl.replicates": "Average replicates (mean, s, n, SE)", "cl.smooth": "Smooth (Savitzky–Golay)", "cl.join": "Join another dataset (interpolate)",
+    "cl.outliers": "Flag outliers", "cl.exclude": "Exclude (with reason)",
+    "cl.from": "from row", "cl.to": "to", "cl.col": "Column", "cl.value": "Value", "cl.and": "and", "cl.desc": "descending", "cl.allnum": "all number columns", "cl.allcols": "all columns",
+    "cl.by": "equal values in", "cl.window": "window", "cl.order": "order", "cl.keep": "keep original", "cl.partner": "Dataset", "cl.x": "x here", "cl.x2": "x there",
+    "cl.take": "take", "cl.prefix": "prefix", "cl.pin": "stay at this version", "cl.method": "Method", "cl.group": "per", "cl.nogroup": "all together",
+    "cl.alpha": "α", "cl.k": "k", "cl.sided": "side", "cl.two": "two-sided", "cl.max": "maximum only", "cl.min": "minimum only", "cl.xcol": "over",
+    "cl.rows": "Rows (e.g. 3, 7, 12–15)", "cl.codes": "all flags", "cl.reason": "Reason (required)", "cl.reason_ph": "e.g. bubble in the specimen",
+    "cl.m_grubbs": "Grubbs (normal data, n ≥ 3)", "cl.m_dixon": "Dixon Q (small series, n 3–10)", "cl.m_iqr": "Tukey/IQR (distribution-free)", "cl.m_hampel": "Hampel/MAD (robust, also moving)",
+    "cl.m_residual": "Fit residual (deviation from a curve)", "cl.notext": "(text)", "cl.badrows": "Rows “{s}” not readable",
+    "cl.steps": "Log", "cl.step": "Step", "cl.rowsba": "Rows", "cl.flagsba": "Flags", "cl.exba": "excl.",
+    "cl.checks": "Checks", "cl.marks": "Flags", "cl.excl": "exclude", "cl.excl_q": "Reason for excluding row {r}", "cl.row": "Row",
+    "cl.more": "… {n} more",
+    "ds.check": "Checks", "ds.check_b": "Check", "ds.steps_n": "{n} steps in the log", "ds.export": "Export", "ds.export_t": "With units; XLSX has a “Protokoll” sheet (files, recipe, steps, flags).",
+    "ds.exported": "{f} saved ({b})", "ds.report": "Send to report …", "ds.report_na": "Reports are available when the module is opened from Folio Lab.",
+    "rp.figures": "Figure (preview with flags)", "rp.tables": "Tables (columns, first rows, flags)", "rp.values": "Values as \\labval (rows, used, excluded, version)",
+    "rp.data": "Data as CSV (for pgfplots)", "rp.citations": "Sources of the methods (Grubbs, Dixon, …)", "rp.text": "Methods text (origin, steps, exclusions)", "rp.scope": "Dataset “{t}” v{v}",
+    "tp.save": "Save as template …", "tp.name": "Template name", "tp.saved": "Template “{n}” saved", "tp.menu": "Templates and batch …", "tp.h": "Templates and batch",
+    "tp.t": "A template remembers the marks of a sheet (header, units, roles, metadata). Before applying it checks that header and units are in the same place; the number of rows may change.",
+    "tp.none": "No templates yet. Mark a sheet, then choose “Save as template …” in the Mark section.", "tp.apply": "Apply to this sheet", "tp.del": "Delete", "tp.del_q": "Delete template “{n}”?",
+    "tp.steps": "{n} steps", "tp.from": "from {f}", "tp.batch": "Batch: one template on several files", "tp.tpl": "Template", "tp.files": "Files (the selected sheet of each)",
+    "tp.each": "one dataset per file", "tp.comb": "one combined dataset (column “Datei”, differing conditions become columns)", "tp.ctitle": "Title", "tp.run": "Run",
+    "tp.applied": "Template “{n}” applied", "tp.mismatch": "The template does not fit this sheet:", "tp.ok": "{n}: {r} rows", "tp.okds": "{n}: {r} rows → “{t}” v{v}", "tp.combined": "Combined dataset “{t}” v{v}: {r} rows",
+    "tp.nofiles": "No loaded files to apply it to", "tp.needtpl": "Save a template first", "tp.expected": "expected “{e}”, found “{f}”",
+  },
+};
+if (window.LabUI) LabUI.strings(DP_T);
+const tr = (k, v) => (window.LabUI ? LabUI.t(k, v) : (DP_T.de[k] || k).replace(/\{(\w+)\}/g, (m, x) => (v && v[x] !== undefined ? v[x] : m)));
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const nf = (x, d = 6) => (x === undefined || x === null ? "–" : Number(x).toLocaleString(window.LabUI && LabUI.lang() === "en" ? "en" : "de-CH", { maximumSignificantDigits: d }));
+
+// ================================================================== Zustand
+const S = { files: [], sel: -1, busy: 0, side: true };
+let META = null, OV = null;
+const T_EMPTY = 0, T_NUM = 1, T_TEXT = 2, T_BOOL = 3, T_DATE = 4, T_ERR = 5, T_FORM = 6;
+
+async function api(path, body, raw) {
+  const opt = { method: body === undefined ? "GET" : "POST" };
+  if (body !== undefined) {
+    opt.body = raw ? body : JSON.stringify(body);
+    opt.headers = { "Content-Type": raw ? "application/octet-stream" : "application/json" };
+  }
+  try {
+    const r = await fetch(path, opt);
+    const j = await r.json().catch(() => ({ error: "Antwort unlesbar" }));
+    j._status = r.status;
+    return j;
+  } catch (e) {
+    return { error: "Keine Verbindung zum Modul (" + e.message + ")", _status: 0 };
+  }
+}
+function busy(d) { S.busy += d; $("#busy").hidden = S.busy <= 0; }
+async function withBusy(fn) { busy(1); try { return await fn(); } finally { busy(-1); } }
+function toast(msg, err = false) {
+  const t = document.createElement("div");
+  t.className = "toast" + (err ? " err" : "");
+  t.textContent = msg;
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), err ? 9000 : 5000);
+}
+window.toast = toast;
+// DP-M1: an empty environment shows an empty measurement sheet; the first value typed creates it on the server
+let PHF = null;
+function placeholder() {
+  return PHF || (PHF = { id: null, placeholder: true, manual: true, name: "", file: "", bytes: 0, sha256: "",
+    sheets: [{ name: tr("mt.sheet1"), rows: 100, cols: 26, merged: [], notes: [], meta: { manual: true, used: [0, 0] }, types: {} }],
+    sheet: 0, selByS: {}, colW: {}, recipes: {}, prev: {}, undo: [], redo: [] });
+}
+const cur = () => S.files[S.sel] || (!S.files.length && META && !META.error ? placeholder() : null);
+const curSheet = () => { const f = cur(); return f ? f.sheets[f.sheet || 0] : null; };
+
+// ================================================================== Zellbezüge
+function colName(c) { let s = ""; c += 1; while (c) { const r = (c - 1) % 26; s = String.fromCharCode(65 + r) + s; c = Math.floor((c - 1) / 26); } return s; }
+const ref = (r, c) => colName(c) + (r + 1);
+function rangeRef(g) { const a = ref(Math.min(g.r0, g.r1), Math.min(g.c0, g.c1)), b = ref(Math.max(g.r0, g.r1), Math.max(g.c0, g.c1)); return a === b ? a : a + ":" + b; }
+function parseRef(s) {
+  const m = /^\s*\$?([A-Za-z]{1,3})\$?(\d{1,7})\s*$/.exec(s);
+  if (!m) return null;
+  let c = 0;
+  for (const ch of m[1].toUpperCase()) c = c * 26 + ch.charCodeAt(0) - 64;
+  return { r: +m[2] - 1, c: c - 1 };
+}
+function parseRange(s) {
+  const p = String(s).split(":");
+  const a = parseRef(p[0]), b = p[1] ? parseRef(p[1]) : a;
+  return a && b ? { r0: a.r, c0: a.c, r1: b.r, c1: b.c } : null;
+}
+const norm = (g) => ({ r0: Math.min(g.r0, g.r1), r1: Math.max(g.r0, g.r1), c0: Math.min(g.c0, g.c1), c1: Math.max(g.c0, g.c1) });
+
+// ================================================================== Raster (Canvas, virtuelles Rollen)
+const RH = 22, HH = 24, DEFW = 96, MINW = 28, MAXPX = 12e6, BR = 200, BC = 40, CACHE = 400;
+const G = { colW: [], colX: [0], rowW: 52, cache: new Map(), pending: new Set(), raf: 0, drag: null, resize: null, scroll: null };
+const gc = $("#gc"), gs = $("#gscroll"), ctx = gc.getContext("2d");
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let COL = {};
+function readColors() {
+  COL = {};
+  for (const k of ["cell", "grid", "hdr", "hdr-ink", "num", "txt", "date", "errc", "form", "merge", "accent", "accent-soft", "muted", "ink"]) COL[k] = css("--" + k);
+}
+function sel() { const f = cur(); return f ? f.selByS[f.sheet || 0] : null; }
+
+function layout() {
+  const sh = curSheet(), f = cur();
+  $("#empty").hidden = !(f && f.placeholder) || S.hintOff;
+  if (!sh) { $("#gspace").style.width = "1px"; $("#gspace").style.height = "1px"; draw(); return; }
+  const key = f.sheet || 0;
+  f.colW[key] = f.colW[key] || [];
+  G.colW = f.colW[key];
+  G.colX = new Array(sh.cols + 1);
+  G.colX[0] = 0;
+  for (let c = 0; c < sh.cols; c++) G.colX[c + 1] = G.colX[c] + (G.colW[c] || DEFW);
+  ctx.font = "12px system-ui, sans-serif";
+  G.rowW = Math.max(44, Math.ceil(ctx.measureText(String(sh.rows)).width) + 18);
+  const H = Math.min(sh.rows * RH, MAXPX);
+  $("#gspace").style.width = (G.rowW + G.colX[sh.cols] + 40) + "px";
+  $("#gspace").style.height = (HH + H + RH) + "px";
+  draw();
+}
+const totalH = () => (curSheet() ? curSheet().rows * RH : 0);
+const scaled = () => totalH() > MAXPX;
+function viewH() { return gs.clientHeight - HH; }
+function yOff() {
+  if (!scaled()) return gs.scrollTop;
+  const S2 = Math.max(1, gs.scrollHeight - gs.clientHeight);
+  return gs.scrollTop / S2 * Math.max(0, totalH() - viewH() + RH);
+}
+function setYOff(y) {
+  if (!scaled()) { gs.scrollTop = y; return; }
+  const S2 = Math.max(1, gs.scrollHeight - gs.clientHeight);
+  gs.scrollTop = y / Math.max(1, totalH() - viewH() + RH) * S2;
+}
+function colAtX(x) {   // x in content coordinates (without row header)
+  const X = G.colX;
+  let lo = 0, hi = X.length - 2;
+  if (hi < 0) return 0;
+  if (x >= X[hi + 1]) return hi;
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (X[m] <= x) lo = m; else hi = m - 1; }
+  return Math.max(0, lo);
+}
+function hit(ev) {
+  const b = gs.getBoundingClientRect(), x = ev.clientX - b.left, y = ev.clientY - b.top, sh = curSheet();
+  const out = { x, y, inHdr: y < HH, inRowHdr: x < G.rowW };
+  out.r = Math.max(0, Math.min(sh.rows - 1, Math.floor((y - HH + yOff()) / RH)));
+  out.c = Math.max(0, Math.min(sh.cols - 1, colAtX(x - G.rowW + gs.scrollLeft)));
+  // Spaltenrand zum Ziehen
+  if (out.inHdr && !out.inRowHdr) {
+    const cx = x - G.rowW + gs.scrollLeft;
+    const c = colAtX(cx), right = G.colX[c + 1];
+    if (Math.abs(cx - right) <= 4) out.border = c;
+    else if (c > 0 && Math.abs(cx - G.colX[c]) <= 4) out.border = c - 1;
+  }
+  return out;
+}
+
+const NOBLOCK = { r0: 0, c0: 0, t: [], v: [] };
+function block(f, k, br, bc) {
+  if (!f.id) return NOBLOCK;                                   // empty measurement sheet not created yet
+  const key = `${f.id}|${k}|${br}|${bc}`;
+  const b = G.cache.get(key);
+  if (b) { G.cache.delete(key); G.cache.set(key, b); return b; }
+  if (!G.pending.has(key)) {
+    G.pending.add(key);
+    api("api/cells", { id: f.id, sheet: k, r0: br * BR, r1: (br + 1) * BR, c0: bc * BC, c1: (bc + 1) * BC }).then((j) => {
+      G.pending.delete(key);
+      if (j.error) return;
+      G.cache.set(key, j);
+      while (G.cache.size > CACHE) G.cache.delete(G.cache.keys().next().value);
+      draw();
+    });
+  }
+  return null;
+}
+function cell(f, k, r, c) {
+  const b = block(f, k, Math.floor(r / BR), Math.floor(c / BC));
+  if (!b) return undefined;
+  const i = r - b.r0, j = c - b.c0;
+  if (i < 0 || j < 0 || i >= b.t.length || j >= (b.t[i] || []).length) return null;
+  return b.t[i][j] ? [b.t[i][j], b.v[i][j]] : null;
+}
+
+// Zahl, die nicht in die Spalte passt: weniger Stellen, sonst ### (nie links abgeschnitten – das sähe wie eine andere Zahl aus)
+function fitNum(s, w) {
+  if (ctx.measureText(s).width <= w) return s;
+  const x = parseFloat(s);
+  if (!isFinite(x)) return "###";
+  for (let p = 10; p >= 2; p--) {
+    const a = Math.abs(x);
+    const t = a !== 0 && (a < 1e-4 || a >= 1e10) ? x.toExponential(p - 1).replace(/\.?0+e/, "e") : String(Number(x.toPrecision(p)));
+    if (ctx.measureText(t).width <= w) return t;
+  }
+  return "###";
+}
+function draw() { if (!G.raf) G.raf = requestAnimationFrame(paint); }
+function paint() {
+  G.raf = 0;
+  const dpr = window.devicePixelRatio || 1, W = gs.clientWidth, H = gs.clientHeight;
+  if (gc.width !== Math.round(W * dpr) || gc.height !== Math.round(H * dpr)) { gc.width = Math.round(W * dpr); gc.height = Math.round(H * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = COL.cell; ctx.fillRect(0, 0, W, H);
+  const f = cur(), sh = curSheet();
+  if (!sh) return;
+  const k = f.sheet || 0, yo = yOff(), xo = gs.scrollLeft;
+  const r0 = Math.max(0, Math.floor(yo / RH)), r1 = Math.min(sh.rows, Math.ceil((yo + H - HH) / RH) + 1);
+  const c0 = colAtX(xo), c1 = Math.min(sh.cols, colAtX(xo + W - G.rowW) + 2);
+  const X = (c) => G.rowW + G.colX[c] - xo, Y = (r) => HH + r * RH - yo;
+  const sg = sel(), ranges = sg ? sg.ranges.map(norm) : [];
+  const inSel = (r, c) => ranges.some((g) => r >= g.r0 && r <= g.r1 && c >= g.c0 && c <= g.c1);
+  ctx.font = "12px system-ui, -apple-system, 'Segoe UI', sans-serif";
+  ctx.textBaseline = "middle";
+  // Zellen
+  for (let r = r0; r < r1; r++) {
+    const y = Y(r);
+    for (let c = c0; c < c1; c++) {
+      const x = X(c), w = G.colX[c + 1] - G.colX[c];
+      const v = cell(f, k, r, c);
+      if (inSel(r, c)) { ctx.fillStyle = COL["accent-soft"]; ctx.fillRect(x, y, w, RH); }
+      if (v === undefined) { ctx.fillStyle = COL.grid; ctx.fillRect(x + 6, y + 9, Math.min(24, w - 12), 4); continue; }
+      if (!v) continue;
+      const [t, s] = v;
+      ctx.fillStyle = t === T_NUM || t === T_BOOL ? COL.num : t === T_DATE ? COL.date : t === T_ERR ? COL.errc : t === T_FORM ? COL.form : COL.txt;
+      ctx.font = t === T_FORM ? "italic 12px system-ui, sans-serif" : "12px system-ui, -apple-system, 'Segoe UI', sans-serif";
+      let txt = String(s ?? "").replace(/\n/g, " ⏎ ");
+      if (t === T_NUM) txt = fitNum(txt, w - 8);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(x + 3, y, w - 6, RH); ctx.clip();
+      if (t === T_NUM) { ctx.textAlign = "right"; ctx.fillText(txt, x + w - 4, y + RH / 2 + 1); }
+      else if (t === T_BOOL) { ctx.textAlign = "center"; ctx.fillText(txt, x + w / 2, y + RH / 2 + 1); }
+      else { ctx.textAlign = "left"; ctx.fillText(txt, x + 4, y + RH / 2 + 1); }
+      ctx.restore();
+    }
+  }
+  // Markierungen (DP-05): Datenblock, Kopf, Einheiten, Metadaten, Beschriftung, übersprungen, ignoriert
+  const pv = f.prev[k];
+  if (pv && pv.marks) {
+    for (const m of pv.marks) {
+      const g = m._g || (m._g = parseRange(m.range));
+      if (!g || g.r1 < r0 || g.r0 >= r1 || g.c1 < c0 || g.c0 >= c1) continue;
+      const x = X(g.c0), y = Y(Math.max(g.r0, r0 - 1)), w = G.colX[Math.min(g.c1 + 1, sh.cols)] - G.colX[g.c0];
+      const h = (Math.min(g.r1, r1) - Math.max(g.r0, r0 - 1) + 1) * RH;
+      ctx.fillStyle = MARK[m.kind] || "transparent";
+      ctx.fillRect(x, y, w, h);
+      if (m.kind === "data") { ctx.strokeStyle = MARKLINE; ctx.lineWidth = 1.5; ctx.strokeRect(X(g.c0) + 1, Y(g.r0) + 1, w - 2, (g.r1 - g.r0 + 1) * RH - 2); }
+    }
+  }
+  // Gitter
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let r = r0; r <= r1; r++) { const y = Math.round(Y(r)) + .5; ctx.moveTo(G.rowW, y); ctx.lineTo(W, y); }
+  for (let c = c0; c <= c1 && c <= sh.cols; c++) { const x = Math.round(X(c)) + .5; ctx.moveTo(x, HH); ctx.lineTo(x, H); }
+  ctx.stroke();
+  // verbundene Bereiche: ein Feld, Text der linken oberen Zelle
+  for (const m of sh.merged || []) {
+    const [mr0, mc0, mr1, mc1] = m;
+    if (mr1 < r0 || mr0 >= r1 || mc1 < c0 || mc0 >= c1) continue;
+    const x = X(mc0), y = Y(mr0), w = G.colX[Math.min(mc1 + 1, sh.cols)] - G.colX[mc0], h = (mr1 - mr0 + 1) * RH;
+    ctx.fillStyle = inSel(mr0, mc0) ? COL["accent-soft"] : COL.merge; ctx.fillRect(x + 1, y + 1, w - 1, h - 1);
+    ctx.strokeStyle = COL.grid; ctx.strokeRect(x + .5, y + .5, w, h);
+    const v = cell(f, k, mr0, mc0);
+    if (v) { ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y, w - 6, h); ctx.clip(); ctx.fillStyle = COL.txt; ctx.textAlign = "left"; ctx.fillText(String(v[1]), x + 4, y + h / 2 + 1); ctx.restore(); }
+  }
+  // Auswahlrahmen
+  if (sg) {
+    ranges.forEach((g, i) => {
+      const x = X(g.c0), y = Y(g.r0), w = G.colX[Math.min(g.c1 + 1, sh.cols)] - G.colX[g.c0], h = (g.r1 - g.r0 + 1) * RH;
+      ctx.strokeStyle = COL.accent; ctx.lineWidth = i === ranges.length - 1 ? 2 : 1;
+      ctx.strokeRect(x + 1, y + 1, w - 1, Math.min(h - 1, 4e6));
+    });
+    const a = sg.active, x = X(a.c), y = Y(a.r), w = G.colX[a.c + 1] - G.colX[a.c];
+    ctx.strokeStyle = COL.accent; ctx.lineWidth = 2.5; ctx.strokeRect(x + 1.5, y + 1.5, w - 2, RH - 2);
+  }
+  // Köpfe
+  ctx.lineWidth = 1;
+  ctx.fillStyle = COL.hdr; ctx.fillRect(0, 0, W, HH); ctx.fillRect(0, 0, G.rowW, H);
+  ctx.font = "11.5px system-ui, sans-serif"; ctx.textAlign = "center";
+  const selCols = (c) => ranges.some((g) => c >= g.c0 && c <= g.c1), selRows = (r) => ranges.some((g) => r >= g.r0 && r <= g.r1);
+  const uc = unitsByCol();
+  for (let c = c0; c < c1; c++) {
+    const x = X(c), w = G.colX[c + 1] - G.colX[c];
+    if (x + w < G.rowW) continue;
+    if (selCols(c)) { ctx.fillStyle = COL["accent-soft"]; ctx.fillRect(x, 0, w, HH); }
+    ctx.fillStyle = selCols(c) ? COL.accent : COL["hdr-ink"];
+    if (uc[c]) {                                                // DP-M3: unit of the column in its header
+      ctx.save(); ctx.beginPath(); ctx.rect(x + 2, 0, w - 4, HH); ctx.clip();
+      const a = colName(c) + "  ", wa = ctx.measureText(a).width, wu = ctx.measureText(uc[c]).width, x0 = x + (w - wa - wu) / 2;
+      ctx.textAlign = "left"; ctx.fillText(a, x0, HH / 2 + 1);
+      ctx.fillStyle = COL.accent; ctx.font = "600 11.5px system-ui, sans-serif"; ctx.fillText(uc[c], x0 + wa, HH / 2 + 1);
+      ctx.restore(); ctx.font = "11.5px system-ui, sans-serif"; ctx.textAlign = "center";
+    } else ctx.fillText(colName(c), x + w / 2, HH / 2 + 1);
+  }
+  for (let r = r0; r < r1; r++) {
+    const y = Y(r);
+    if (y + RH < HH) continue;
+    if (selRows(r)) { ctx.fillStyle = COL["accent-soft"]; ctx.fillRect(0, y, G.rowW, RH); }
+    ctx.fillStyle = selRows(r) ? COL.accent : COL["hdr-ink"];
+    ctx.fillText(String(r + 1), G.rowW / 2, y + RH / 2 + 1);
+  }
+  ctx.strokeStyle = COL.grid; ctx.beginPath();
+  ctx.moveTo(0, HH - .5); ctx.lineTo(W, HH - .5); ctx.moveTo(G.rowW - .5, 0); ctx.lineTo(G.rowW - .5, H);
+  for (let c = c0; c <= c1 && c <= sh.cols; c++) { const x = Math.round(X(c)) + .5; if (x > G.rowW) { ctx.moveTo(x, 0); ctx.lineTo(x, HH); } }
+  ctx.stroke();
+  ctx.fillStyle = COL.hdr; ctx.fillRect(0, 0, G.rowW - 1, HH - 1);
+}
+
+// ------------------------------------------------------------------ Auswahl
+function setSel(g, active, add = false) {
+  const f = cur(), sh = curSheet();
+  if (!f || !sh) return;
+  const cl = (x, n) => Math.max(0, Math.min(n - 1, x));
+  g = { r0: cl(g.r0, sh.rows), r1: cl(g.r1, sh.rows), c0: cl(g.c0, sh.cols), c1: cl(g.c1, sh.cols) };
+  const k = f.sheet || 0, s0 = f.selByS[k];
+  const ranges = add && s0 ? [...s0.ranges, g] : [g];
+  f.selByS[k] = { ranges: ranges.slice(-30), active: active || { r: g.r0, c: g.c0 }, anchor: (add || !s0) ? { r: g.r0, c: g.c0 } : s0.anchor };
+  if (!add) f.selByS[k].anchor = { r: g.r0, c: g.c0 };
+  selChanged();
+}
+function extendTo(r, c) {
+  const s = sel();
+  if (!s) return setSel({ r0: r, c0: c, r1: r, c1: c }, { r, c });
+  const a = s.anchor, last = { r0: a.r, c0: a.c, r1: r, c1: c };
+  s.ranges[s.ranges.length - 1] = last;
+  s.active = { r: a.r, c: a.c };                       // wie in Excel: die aktive Zelle bleibt am Anker
+  selChanged();
+}
+let statT = 0;
+function selChanged() {
+  const s = sel();
+  draw();
+  if (!s) { $("#refBox").value = ""; $("#cellText").textContent = ""; $("#stSel").textContent = ""; renderSide(); return; }
+  const last = s.ranges[s.ranges.length - 1];
+  $("#refBox").value = s.ranges.length > 1 ? s.ranges.map(rangeRef).join(", ") : rangeRef(last);
+  const f = cur(), v = cell(f, f.sheet || 0, s.active.r, s.active.c);
+  $("#cellText").textContent = v ? `${ref(s.active.r, s.active.c)}: ${v[1]}` : ref(s.active.r, s.active.c);
+  clearTimeout(statT);
+  if (!f.id) { S.stats = null; $("#stSel").textContent = ""; renderSide(); return; }
+  statT = setTimeout(async () => {
+    const j = await api("api/stats", { id: f.id, sheet: f.sheet || 0, ranges: s.ranges.map(norm) });
+    if (j.error || sel() !== s) return;
+    S.stats = j;
+    const parts = [tr("st.cells", { n: nf(j.cells, 9) })];
+    if (j.numbers) parts.push(`${tr("s.numbers")} ${nf(j.numbers, 9)}`, `${tr("s.sum")} ${nf(j.sum)}`, `${tr("s.mean")} ${nf(j.mean)}`);
+    if (j.text) parts.push(`${tr("s.text")} ${nf(j.text, 9)}`);
+    $("#stSel").textContent = parts.join(" · ");
+    renderSide();
+  }, 120);
+  if (ENVS_READY()) window.ENVS.save();
+}
+function scrollIntoView(r, c) {
+  const sh = curSheet();
+  if (!sh) return;
+  const yo = yOff(), vh = viewH();
+  if (r * RH < yo) setYOff(r * RH);
+  else if ((r + 1) * RH > yo + vh) setYOff((r + 1) * RH - vh);
+  const xo = gs.scrollLeft, vw = gs.clientWidth - G.rowW;
+  if (G.colX[c] < xo) gs.scrollLeft = G.colX[c];
+  else if (G.colX[c + 1] > xo + vw) gs.scrollLeft = G.colX[c + 1] - vw;
+}
+
+gs.addEventListener("scroll", draw);
+gs.addEventListener("mousedown", (ev) => {
+  if (!curSheet() || ev.button !== 0) return;
+  const h = hit(ev), sh = curSheet();
+  gs.focus({ preventScroll: true });
+  if (h.border !== undefined) { G.resize = { c: h.border, x0: ev.clientX, w0: G.colX[h.border + 1] - G.colX[h.border] }; ev.preventDefault(); return; }
+  const add = ev.ctrlKey || ev.metaKey;
+  if (h.inHdr && h.inRowHdr) { setSel({ r0: 0, c0: 0, r1: sh.rows - 1, c1: sh.cols - 1 }, { r: 0, c: 0 }); return; }
+  if (h.inHdr) {
+    if (ev.shiftKey && sel()) { const s = sel(); s.ranges[s.ranges.length - 1] = { r0: 0, r1: sh.rows - 1, c0: s.anchor.c, c1: h.c }; selChanged(); }
+    else setSel({ r0: 0, r1: sh.rows - 1, c0: h.c, c1: h.c }, { r: yOff() / RH | 0, c: h.c }, add);
+    G.drag = { mode: "col", at: h.c, plain: !ev.shiftKey && !add };
+  } else if (h.inRowHdr) {
+    if (ev.shiftKey && sel()) { const s = sel(); s.ranges[s.ranges.length - 1] = { r0: s.anchor.r, r1: h.r, c0: 0, c1: sh.cols - 1 }; selChanged(); }
+    else setSel({ r0: h.r, r1: h.r, c0: 0, c1: sh.cols - 1 }, { r: h.r, c: 0 }, add);
+    G.drag = { mode: "row", at: h.r, plain: !ev.shiftKey && !add };
+  } else if (ev.shiftKey && sel()) { extendTo(h.r, h.c); G.drag = { mode: "cell" }; }
+  else { setSel({ r0: h.r, c0: h.c, r1: h.r, c1: h.c }, { r: h.r, c: h.c }, add); G.drag = { mode: "cell" }; }
+  ev.preventDefault();
+});
+window.addEventListener("mousemove", (ev) => {
+  if (G.resize) {
+    const w = Math.max(MINW, G.resize.w0 + ev.clientX - G.resize.x0);
+    G.colW[G.resize.c] = w; layout(); return;
+  }
+  if (!G.drag) {
+    if (ev.target === gs && curSheet()) gs.style.cursor = hit(ev).border !== undefined ? "col-resize" : "cell";
+    return;
+  }
+  const h = hit(ev), s = sel(), sh = curSheet();
+  if (!s) return;
+  const last = s.ranges[s.ranges.length - 1];
+  if (G.drag.mode === "col") { last.c1 = h.c; }
+  else if (G.drag.mode === "row") { last.r1 = h.r; }
+  else { last.r1 = h.r; last.c1 = h.c; }
+  // am Rand weiterrollen
+  const b = gs.getBoundingClientRect();
+  clearInterval(G.scroll);
+  const dy = ev.clientY > b.bottom - 10 ? RH : ev.clientY < b.top + HH ? -RH : 0;
+  const dx = ev.clientX > b.right - 10 ? 40 : ev.clientX < b.left + G.rowW ? -40 : 0;
+  if (dx || dy) G.scroll = setInterval(() => { setYOff(yOff() + dy * 2); gs.scrollLeft += dx; }, 40);
+  draw();
+});
+window.addEventListener("mouseup", () => {
+  clearInterval(G.scroll);
+  if (G.resize) { G.resize = null; if (ENVS_READY()) window.ENVS.save(); return; }
+  if (G.drag) {
+    const d = G.drag, s = sel();
+    G.drag = null; selChanged();
+    // DP-M2: a plain click on a column or row header of a measurement sheet opens the sequential entry
+    const g = s && norm(s.ranges[s.ranges.length - 1]);
+    if (d.plain && g && cur() && cur().manual) {
+      if (d.mode === "col" && g.c0 === g.c1 && g.c0 === d.at) openSeq("down", d.at);
+      else if (d.mode === "row" && g.r0 === g.r1 && g.r0 === d.at) openSeq("right", d.at);
+    }
+  }
+});
+gs.addEventListener("dblclick", (ev) => {
+  const h = hit(ev);
+  if (h.border === undefined) {
+    if (!h.inHdr && !h.inRowHdr && cur() && cur().manual) startEdit(null, false);   // DP-M1: edit the cell
+    return;
+  }
+  G.colW[h.border] = undefined; layout();                       // Doppelklick auf den Rand: Standardbreite
+});
+gs.addEventListener("keydown", (ev) => {
+  const sh = curSheet();
+  if (!sh) return;
+  let s = sel();
+  if (!s) { setSel({ r0: 0, c0: 0, r1: 0, c1: 0 }, { r: 0, c: 0 }); s = sel(); }
+  const ctrl = ev.ctrlKey || ev.metaKey, page = Math.max(1, Math.floor(viewH() / RH) - 1);
+  if (editKey(ev, ctrl)) return;                                // DP-M1: typing, F2, Delete, undo/redo
+  let { r, c } = ev.shiftKey ? { r: s.ranges[s.ranges.length - 1].r1, c: s.ranges[s.ranges.length - 1].c1 } : s.active;
+  switch (ev.key) {
+    case "ArrowDown": r = ctrl ? sh.rows - 1 : r + 1; break;
+    case "ArrowUp": r = ctrl ? 0 : r - 1; break;
+    case "ArrowRight": c = ctrl ? sh.cols - 1 : c + 1; break;
+    case "ArrowLeft": c = ctrl ? 0 : c - 1; break;
+    case "PageDown": r += page; break;
+    case "PageUp": r -= page; break;
+    case "Home": c = 0; if (ctrl) r = 0; break;
+    case "End": c = sh.cols - 1; if (ctrl) r = sh.rows - 1; break;
+    case "Enter": r += ev.shiftKey ? -1 : 1; ev.preventDefault(); setSel({ r0: Math.max(0, r), c0: c, r1: Math.max(0, r), c1: c }); scrollIntoView(Math.max(0, r), c); return;
+    case "Tab": c += ev.shiftKey ? -1 : 1; ev.preventDefault(); setSel({ r0: r, c0: Math.max(0, c), r1: r, c1: Math.max(0, c) }); scrollIntoView(r, Math.max(0, c)); return;
+    case "a": case "A": if (ctrl) { ev.preventDefault(); setSel({ r0: 0, c0: 0, r1: sh.rows - 1, c1: sh.cols - 1 }, { r: 0, c: 0 }); } return;
+    default: return;
+  }
+  ev.preventDefault();
+  r = Math.max(0, Math.min(sh.rows - 1, r)); c = Math.max(0, Math.min(sh.cols - 1, c));
+  if (ev.shiftKey) extendTo(r, c);
+  else setSel({ r0: r, c0: c, r1: r, c1: c }, { r, c });
+  scrollIntoView(r, c);
+});
+$("#refBox").addEventListener("keydown", (ev) => {
+  if (ev.key !== "Enter") return;
+  const parts = ev.target.value.split(/[,;]\s*/).map(parseRange);
+  if (!parts.length || parts.some((g) => !g)) return toast(tr("e.goto"), true);
+  parts.forEach((g, i) => setSel(g, { r: Math.min(g.r0, g.r1), c: Math.min(g.c0, g.c1) }, i > 0));
+  const g = norm(parts[0]);
+  scrollIntoView(g.r0, g.c0);
+  gs.focus();
+});
+new ResizeObserver(() => draw()).observe(gs);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
+
+// ================================================================== Dateien
+function fileObj(d, saved = {}) {
+  return { id: d.id, name: saved.name || d.name, file: d.file, bytes: d.bytes, sha256: d.sha256, sheets: d.sheets,
+           sheet: Math.min(saved.sheet || 0, d.sheets.length - 1), selByS: {}, colW: saved.colW || {},
+           recipes: saved.recipes || {}, prev: {}, manual: !!d.manual, rev: d.rev || 0, undo: [], redo: [],
+           datasets: saved.datasets || {}, dataset: d.dataset || null };
+}
+function addFile(d, saved) { S.files.push(fileObj(d, saved)); }
+async function loadFiles(list) {
+  for (const file of list) {
+    const buf = await file.arrayBuffer();
+    const j = await withBusy(() => api("api/load?name=" + encodeURIComponent(file.name), buf, true));
+    if (j.error) { toast(`${file.name}: ${j.error}`, true); continue; }
+    for (const d of j.files) addFile(d);
+    S.sel = S.files.length - 1;
+  }
+  afterChange();
+  if (S.files.length) toast(tr("st.loaded", { n: list.length }));
+}
+async function pasteText(text, name) {
+  const j = await withBusy(() => api("api/paste", { text, name }));
+  if (j.error) return toast(j.error, true);
+  for (const d of j.files) addFile(d);
+  S.sel = S.files.length - 1;
+  afterChange();
+}
+function pasteDialog(text = "") {
+  const d = $("#pasteDlg");
+  $("#pasteText").value = text;
+  $("#pasteName").value = (window.LabUI && LabUI.lang() === "en" ? "Pasted " : "Eingefügt ") + (S.files.length + 1);
+  d.showModal();
+  d.onclose = () => { if (d.returnValue === "ok" && $("#pasteText").value.trim()) pasteText($("#pasteText").value, $("#pasteName").value.trim()); };
+}
+async function removeFile(i) {
+  const f = S.files[i];
+  if (!f || !confirm(tr("q.remove"))) return;
+  await api("api/remove", { id: f.id });
+  S.files.splice(i, 1);
+  S.sel = Math.min(S.sel, S.files.length - 1);
+  afterChange();
+}
+async function renameFile() {
+  const f = cur();
+  if (!f) return;
+  const n = prompt(tr("q.rename"), f.name);
+  if (!n || !n.trim()) return;
+  const j = await api("api/rename", { id: f.id, name: n.trim() });
+  if (j.error) return toast(j.error, true);
+  f.name = j.name;
+  afterChange();
+}
+function selectFile(i) { S.sel = i; afterChange(); }
+function selectSheet(k) { const f = cur(); if (!f) return; f.sheet = k; gs.scrollTop = 0; gs.scrollLeft = 0; afterChange(); }
+function afterChange() {
+  renderChips(); renderTabs(); layout(); selChanged(); renderSide(); buildMenus();
+  const f = cur();
+  if (f && (f.recipes[f.sheet || 0] || []).length && f.prev[f.sheet || 0] === undefined) reextract(true);
+  if (ENVS_READY()) window.ENVS.save();
+}
+const ENVS_READY = () => window.ENVS && window.ENVS.ready;
+
+function renderChips() {
+  $("#chips").innerHTML = S.files.map((f, i) => `<span class="chip ${i === S.sel ? "sel" : ""}" data-i="${i}" title="${esc(f.file)}"><span>${esc(f.name)}</span><button class="x" data-x="${i}" aria-label="${esc(tr("m.remove"))}">×</button></span>`).join("");
+}
+$("#chips").addEventListener("click", (e) => {
+  const x = e.target.closest("[data-x]");
+  if (x) { e.stopPropagation(); removeFile(+x.dataset.x); return; }
+  const c = e.target.closest("[data-i]");
+  if (c) selectFile(+c.dataset.i);
+});
+function renderTabs() {
+  const f = cur();
+  const size = (s) => (f.manual ? (s.meta && s.meta.used ? s.meta.used : [0, 0]) : [s.rows, s.cols]);
+  $("#sheetTabs").innerHTML = f ? f.sheets.map((s, k) => `<button class="${k === (f.sheet || 0) ? "sel" : ""}" data-k="${k}" title="${esc(tr("st.rows", { r: nf(size(s)[0], 9), c: size(s)[1] }))}">${esc(s.name)}<small>${nf(size(s)[0], 9)} × ${size(s)[1]}</small>${s.notes.length ? " ⚠" : ""}</button>`).join("")
+    + (f.manual ? `<button data-add="1" title="${esc(tr("mt.addsheet"))}" aria-label="${esc(tr("mt.addsheet"))}">+</button>` : "") : "";
+}
+$("#sheetTabs").addEventListener("click", (e) => {
+  if (e.target.closest("[data-add]")) return sheetOp("add");
+  const b = e.target.closest("[data-k]"); if (b) selectSheet(+b.dataset.k);
+});
+$("#sheetTabs").addEventListener("dblclick", (e) => { const b = e.target.closest("[data-k]"); if (b && cur() && cur().manual) sheetOp("rename"); });
+
+// ================================================================== Messtabellen: Eingabe (DP-M1, DP-M3)
+function unitsByCol() {
+  const out = {};
+  if (isT()) return out;
+  for (const s of steps()) {
+    if (s.op !== "unit") continue;
+    const g = parseRange(s.range);
+    if (!g) continue;
+    for (let c = Math.min(g.c0, g.c1); c <= Math.max(g.c0, g.c1) && c < Math.min(g.c0, g.c1) + 500; c++) { if (s.unit) out[c] = s.unit; else delete out[c]; }
+  }
+  return out;
+}
+let creating = null;
+async function ensureReal() {
+  const ph = PHF;
+  if (!ph) return cur();
+  if (creating) return creating;
+  creating = (async () => {
+    const j = await withBusy(() => api("api/manual/new", { name: tr("mt.default"), sheet: tr("mt.sheet1") }));
+    if (j.error) { toast(j.error, true); return null; }
+    const f = fileObj(j.files[0], { colW: ph.colW, recipes: ph.recipes });
+    f.selByS = ph.selByS;
+    S.files.push(f); S.sel = S.files.length - 1; PHF = null;
+    renderChips(); renderTabs(); buildMenus(); layout();
+    if (ENVS_READY()) window.ENVS.save();
+    return f;
+  })();
+  try { return await creating; } finally { creating = null; }
+}
+const looksNum = (v) => /^\s*[-+−]?(\d[\d.,' ]*|[.,]\d+)([eE][-+−]?\d+)?\s*$/.test(v);
+function patchCell(f, k, r, c, t, v) {
+  const b = G.cache.get(`${f.id}|${k}|${Math.floor(r / BR)}|${Math.floor(c / BC)}`);
+  if (!b) return;
+  const i = r - b.r0, j = c - b.c0;
+  while (b.t.length <= i) { b.t.push([]); b.v.push([]); }
+  while (b.t[i].length <= j) { b.t[i].push(0); b.v[i].push(null); }
+  b.t[i][j] = t; b.v[i][j] = t ? v : null;
+}
+function dropCache(f, k) { for (const key of [...G.cache.keys()]) if (key.startsWith(`${f.id}|${k}|`)) G.cache.delete(key); }
+// writes go one after another per file (fast typing keeps its order)
+function writeCells(f, k, writes, opt = {}) {
+  const run = async () => {
+    if (f.placeholder) { f = await ensureReal(); if (!f) return null; }
+    for (const w of writes) { const v = String(w.v ?? "").trim(); patchCell(f, k, w.r, w.c, v ? (looksNum(v) ? T_NUM : T_TEXT) : 0, v || null); }
+    draw();
+    const j = await api("api/manual/write", { id: f.id, sheet: k, writes });
+    if (j.error) { toast(j.error, true); dropCache(f, k); draw(); return null; }
+    for (const x of j.cells) patchCell(f, k, x.r, x.c, x.t, x.v);
+    f.sha256 = j.sha256; f.rev = j.rev;
+    const old = f.sheets[k] || {};
+    f.sheets[k] = j.sheet;
+    if (old.rows !== j.sheet.rows || old.cols !== j.sheet.cols) layout();
+    if (opt.record !== false) {
+      f.undo.push({ k, before: j.before, after: writes.map((w) => ({ r: w.r, c: w.c, v: String(w.v ?? "") })) });
+      if (f.undo.length > 300) f.undo.shift();
+      f.redo = [];
+    }
+    renderTabs();
+    manualChanged(f, k);
+    draw();
+    if (f === cur() && sel()) selChanged();
+    return j;
+  };
+  const p = (f.q || Promise.resolve()).then(run, run);
+  f.q = p;
+  return p;
+}
+
+// ------------------------------------------------------------------ Zelle bearbeiten
+const ED = { el: null };
+function startEdit(initial, typed) {
+  const f = cur(), s = sel(), sh = curSheet();
+  if (!f || !sh || !s) return false;
+  if (!f.manual) { toast(tr("mt.readonly")); return false; }
+  stopEdit(true);
+  const k = f.sheet || 0, { r, c } = s.active;
+  scrollIntoView(r, c);
+  const v = cell(f, k, r, c), orig = v ? String(v[1] ?? "") : "";
+  const el = document.createElement("input");
+  el.id = "cellEd"; el.type = "text"; el.spellcheck = false; el.autocomplete = "off";
+  el.setAttribute("aria-label", ref(r, c));
+  el.style.left = (G.rowW + G.colX[c] - gs.scrollLeft) + "px";
+  el.style.top = (HH + r * RH - yOff()) + "px";
+  el.style.width = Math.max(G.colX[c + 1] - G.colX[c] + 1, 90) + "px";
+  el.style.height = (RH + 1) + "px";
+  el.value = initial !== null && initial !== undefined ? initial : orig;
+  $("#gbox").appendChild(el);
+  Object.assign(ED, { el, f, k, r, c, typed, orig });
+  el.focus();
+  if (typed) el.setSelectionRange(el.value.length, el.value.length); else el.select();
+  el.addEventListener("keydown", edKey);
+  el.addEventListener("blur", () => { if (ED.el === el) stopEdit(true); });
+  return true;
+}
+function stopEdit(commit, move) {
+  const el = ED.el;
+  if (!el) return;
+  ED.el = null;
+  const { f, k, r, c, orig } = ED, v = el.value;
+  el.remove();
+  if (commit && v !== orig) writeCells(f, k, [{ r, c, v }]);
+  if (move) {
+    const sh = curSheet(), nr = Math.max(0, Math.min(sh.rows - 1, r + (move.dr || 0))), nc = Math.max(0, Math.min(sh.cols - 1, c + (move.dc || 0)));
+    setSel({ r0: nr, c0: nc, r1: nr, c1: nc }, { r: nr, c: nc });
+    scrollIntoView(nr, nc);
+  }
+  gs.focus({ preventScroll: true });
+}
+function edKey(ev) {
+  ev.stopPropagation();
+  const mv = { ArrowDown: { dr: 1 }, ArrowUp: { dr: -1 }, ArrowLeft: { dc: -1 }, ArrowRight: { dc: 1 } }[ev.key];
+  if (ev.key === "Enter") { ev.preventDefault(); stopEdit(true, { dr: ev.shiftKey ? -1 : 1 }); }
+  else if (ev.key === "Tab") { ev.preventDefault(); stopEdit(true, { dc: ev.shiftKey ? -1 : 1 }); }
+  else if (ev.key === "Escape") { ev.preventDefault(); stopEdit(false); }
+  else if (ED.typed && mv) { ev.preventDefault(); stopEdit(true, mv); }
+}
+gs.addEventListener("scroll", () => { if (ED.el) stopEdit(true); });
+function editKey(ev, ctrl) {
+  const f = cur();
+  if (!f || !f.manual) return false;
+  const key = ev.key.toLowerCase();
+  if (ctrl && key === "z" && !ev.shiftKey) { ev.preventDefault(); undo(); return true; }
+  if (ctrl && (key === "y" || (key === "z" && ev.shiftKey))) { ev.preventDefault(); redo(); return true; }
+  if (ctrl || ev.altKey) return false;
+  if (ev.key === "F2") { ev.preventDefault(); startEdit(null, false); return true; }
+  if (ev.key === "Delete" || ev.key === "Backspace") { ev.preventDefault(); clearSel(); return true; }
+  if (ev.key.length === 1) { ev.preventDefault(); startEdit(ev.key, true); return true; }
+  return false;
+}
+function usedBox(f, k) { const m = (f.sheets[k] || {}).meta || {}; return m.used || [0, 0]; }
+function clearSel() {
+  const f = cur(), s = sel();
+  if (!f || !s || !f.id) return;
+  const k = f.sheet || 0, [ur, uc] = usedBox(f, k), writes = [];
+  for (const g0 of s.ranges.map(norm)) {
+    for (let r = g0.r0; r <= Math.min(g0.r1, ur - 1); r++) for (let c = g0.c0; c <= Math.min(g0.c1, uc - 1); c++) {
+      const v = cell(f, k, r, c);
+      if (v === null) continue;                                 // known empty
+      writes.push({ r, c, v: "" });
+      if (writes.length > 20000) return toast(tr("mt.copybig"), true);
+    }
+  }
+  if (writes.length) writeCells(f, k, writes).then((j) => { if (j && writes.length > 1) toast(tr("mt.cleared", { n: writes.length })); });
+}
+async function undo() {
+  const f = cur();
+  if (!f || !f.manual) return;
+  const rec = f.undo.pop();
+  if (!rec) return toast(tr("mt.nothing"));
+  if ((f.sheet || 0) !== rec.k) selectSheet(rec.k);
+  const j = await writeCells(f, rec.k, rec.before, { record: false });
+  if (j) { f.redo.push(rec); const a = rec.before[0]; setSel({ r0: a.r, c0: a.c, r1: a.r, c1: a.c }); scrollIntoView(a.r, a.c); }
+}
+async function redo() {
+  const f = cur();
+  if (!f || !f.manual) return;
+  const rec = f.redo.pop();
+  if (!rec) return;
+  if ((f.sheet || 0) !== rec.k) selectSheet(rec.k);
+  const j = await writeCells(f, rec.k, rec.after, { record: false });
+  if (j) { f.undo.push(rec); const a = rec.after[0]; setSel({ r0: a.r, c0: a.c, r1: a.r, c1: a.c }); scrollIntoView(a.r, a.c); }
+}
+function pasteCells(text) {
+  const f = cur(), s = sel();
+  if (!f || !f.manual) return false;
+  const a = s ? s.active : { r: 0, c: 0 }, k = f.sheet || 0;
+  const lines = text.replace(/\r/g, "").split("\n");
+  if (lines.length > 1 && lines[lines.length - 1] === "") lines.pop();
+  const sep = lines.some((l) => l.includes("\t")) ? "\t" : lines.some((l) => l.includes(";")) ? ";" : null;
+  const writes = [];
+  lines.forEach((l, i) => (sep ? l.split(sep) : [l]).forEach((v, j) => writes.push({ r: a.r + i, c: a.c + j, v })));
+  if (writes.length > 20000) { toast(tr("mt.copybig"), true); return true; }
+  const w = Math.max(...lines.map((l) => (sep ? l.split(sep).length : 1)));
+  writeCells(f, k, writes).then((j) => {
+    if (!j) return;
+    setSel({ r0: a.r, c0: a.c, r1: a.r + lines.length - 1, c1: a.c + w - 1 }, a);
+    toast(tr("mt.pasted", { n: writes.length }));
+  });
+  return true;
+}
+document.addEventListener("copy", (e) => {
+  const f = cur(), s = sel();
+  if (!f || !s || document.activeElement !== gs) return;
+  const g = norm(s.ranges[s.ranges.length - 1]), k = f.sheet || 0;
+  let r1 = g.r1, c1 = g.c1;
+  if (f.manual) { const [ur, uc] = usedBox(f, k); r1 = Math.min(r1, Math.max(ur - 1, g.r0)); c1 = Math.min(c1, Math.max(uc - 1, g.c0)); }
+  if ((r1 - g.r0 + 1) * (c1 - g.c0 + 1) > 50000) { e.preventDefault(); return toast(tr("mt.copybig"), true); }
+  const rows = [];
+  for (let r = g.r0; r <= r1; r++) {
+    const row = [];
+    for (let c = g.c0; c <= c1; c++) {
+      const v = cell(f, k, r, c);
+      if (v === undefined) { e.preventDefault(); return toast(tr("mt.copybig"), true); }
+      row.push(v ? String(v[1] ?? "") : "");
+    }
+    rows.push(row.join("\t"));
+  }
+  e.clipboardData.setData("text/plain", rows.join("\n"));
+  e.preventDefault();
+  toast(tr("mt.copied", { n: (r1 - g.r0 + 1) * (c1 - g.c0 + 1) }));
+});
+async function newManual() {
+  const v = await ask(tr("mt.newname"), [{ label: tr("dp.name"), value: tr("mt.default"), req: true }]);
+  if (!v) return;
+  const j = await withBusy(() => api("api/manual/new", { name: v[0].trim(), sheet: tr("mt.sheet1") }));
+  if (j.error) return toast(j.error, true);
+  for (const d of j.files) addFile(d);
+  S.sel = S.files.length - 1;
+  afterChange();
+  setSel({ r0: 0, c0: 0, r1: 0, c1: 0 }, { r: 0, c: 0 });
+  gs.focus();
+}
+async function sheetOp(op) {
+  let f = cur();
+  if (!f || !f.manual) return;
+  if (f.placeholder) { f = await ensureReal(); if (!f) return; }
+  const k = f.sheet || 0, req = { id: f.id, op, sheet: k };
+  if (op === "add") req.name = tr("mt.sheet1").replace(/\d+$/, String(f.sheets.length + 1));
+  if (op === "rename") {
+    const v = await ask(tr("mt.sheetname"), [{ label: tr("dp.name"), value: f.sheets[k].name, req: true }]);
+    if (!v) return;
+    req.name = v[0];
+  }
+  if (op === "remove" && !confirm(tr("mt.rmsheet_q", { n: f.sheets[k].name }))) return;
+  const j = await api("api/manual/sheet", req);
+  if (j.error) return toast(j.error, true);
+  if (op === "remove") { const r = f.recipes; f.recipes = {}; Object.keys(r).forEach((x) => { if (+x < k) f.recipes[x] = r[x]; else if (+x > k) f.recipes[+x - 1] = r[x]; }); f.prev = {}; f.undo = []; f.redo = []; }
+  for (let i = 0; i < j.sheets.length; i++) dropCache(f, i);
+  f.sheets = j.sheets;
+  f.sheet = j.sheet;
+  afterChange();
+}
+// DP-M3: a measurement sheet is read automatically (first row = names); own assignments (units, names, roles) stay on top
+const autoT = {};
+function manualChanged(f, k) {
+  clearTimeout(autoT[f.id + "|" + k]);
+  autoT[f.id + "|" + k] = setTimeout(() => autoGuess(f, k), 450);
+}
+async function autoGuess(f, k) {
+  const j = await api("api/recipe/guess", { id: f.id, sheet: k });
+  if (j.error) return;
+  const user = (f.recipes[k] || []).filter((s) => !s.auto);
+  f.recipes[k] = [...j.steps.map((s) => ({ ...s, auto: true })), ...user];
+  if (f === cur() && (f.sheet || 0) === k) await reextract(true); else f.prev[k] = undefined;
+  if (ENVS_READY()) window.ENVS.save();
+  if (window.dsAfterChange) window.dsAfterChange(f, k);
+}
+// unit suggestions as in the Rechner: all units of the quantity kinds (labcalc), or those of the same kind as `unit`
+function unitLists() {
+  if (!META || !META.kinds || $("#unitAll")) return;
+  const en = window.LabUI && LabUI.lang() === "en", seen = new Map();
+  for (const k of META.kinds) for (const u of k.units) if (!seen.has(u)) seen.set(u, en ? k.en : k.de);
+  const dl = document.createElement("datalist");
+  dl.id = "unitAll";
+  dl.innerHTML = [...seen].map(([u, k]) => `<option value="${esc(u)}" label="${esc(k)}">`).join("");
+  document.body.appendChild(dl);
+}
+function unitsLike(unit) {
+  const u = String(unit || "").trim();
+  const ks = (META && META.kinds || []).filter((k) => k.units.includes(u));
+  return ks.length ? [...new Set(ks.flatMap((k) => k.units))] : [];
+}
+function unitDatalist(id, unit) {
+  const us = unitsLike(unit);
+  return us.length ? `<datalist id="${esc(id)}">${us.map((u) => `<option value="${esc(u)}">`).join("")}</datalist>` : "";
+}
+async function unitDialog(cols, def = "") {
+  const v = await ask(tr("mt.unitdlg"), [{ label: tr("mt.unitf"), value: def, list: "unitAll" }]);
+  if (!v) return null;
+  const u = v[0].trim();
+  if (!u) return "";
+  const j = await api("api/unit", { unit: u });
+  if (j.error || !j.ok) { toast(tr("mt.unitbad", { u, m: j.msg || j.error }), true); return null; }
+  return j.unit;
+}
+
+// ------------------------------------------------------------------ Werte nacheinander eingeben (DP-M2)
+const SQ = { on: false };
+const seqCell = (pos) => (SQ.dir === "down" ? { r: pos, c: SQ.idx } : { r: SQ.idx, c: pos });
+async function openSeq(dir, idx) {
+  stopEdit(true);
+  const f = cur();
+  if (!f || !f.manual) return;
+  const k = f.sheet || 0;
+  let next = 1, header = "", hnum = false;
+  if (f.id) {
+    const j = await api("api/manual/probe", { id: f.id, sheet: k, dir, idx });
+    if (!j.error) { next = j.next; header = j.header || ""; hnum = !!j.header_num; }
+  }
+  Object.assign(SQ, { on: true, k, dir, idx, pos: next, end: next, log: [], hnum });
+  $("#seqTitle").textContent = dir === "down" ? tr("mt.col", { c: colName(idx) }) : tr("mt.row", { r: idx + 1 });
+  $("#seqName").value = header;
+  $("#seqName").disabled = hnum;
+  $("#seqUnitL").hidden = dir !== "down";
+  $("#seqUnit").value = dir === "down" ? (unitsByCol()[idx] || "") : "";
+  $("#seqUnit").placeholder = LabUI && LabUI.lang() === "en" ? "e.g. N" : "z. B. N";
+  $("#seq").hidden = false;
+  $("#seqIn").value = "";
+  seqRender();
+  $("#seqIn").focus();
+}
+function closeSeq() { SQ.on = false; $("#seq").hidden = true; gs.focus({ preventScroll: true }); }
+function seqRender(err) {
+  const c = seqCell(SQ.pos);
+  $("#seqNext").innerHTML = err ? `<span class="note err" style="display:block">${esc(err)}</span>` : esc(tr("mt.next", { ref: ref(c.r, c.c) }));
+  $("#seqList").innerHTML = SQ.log.slice(-40).map((e, i, a) => `<li><span class="r">${esc(e.ref)}</span><span class="v">${esc(e.text)}</span><button class="x" data-sq="${SQ.log.length - a.length + i}" aria-label="${esc(tr("mk.rm"))}">×</button></li>`).join("");
+  const ol = $("#seqList"); ol.scrollTop = ol.scrollHeight;
+  setSel({ r0: c.r, c0: c.c, r1: c.r, c1: c.c }, c);
+  scrollIntoView(c.r, c.c);
+  seqPreview();
+}
+// Several values in one line: spaces, tabs, line breaks, ";" and ", " separate; "12,5" stays one decimal number, a
+// token with two or more commas is a list (1,2,3); a unit right after a number belongs to it (12,5 N) and so does a
+// power of ten (1,2 · 10^3). Text that is neither (n. d.) stays a value of its own.
+const SEQ_NUM = /^[-+−]?(?:\d[\d'.]*(?:,\d+)?|[.,]\d+)(?:[eE][-+−]?\d+)?$/;
+const SEQ_UNIT = /^(?:[A-Za-zµμΩÅ°%‰]|\/)[A-Za-zµμΩÅ°%‰0-9²³¹⁻·\/^*]{0,15}$/;
+const SEQ_POW = /^10\^?[-+−]?\d+$/;
+function seqSplit(text) {
+  const toks = [];
+  for (const seg of String(text || "").split(/\r?\n|\t|;/)) {
+    for (let t of seg.trim().split(/\s+/)) {
+      t = t.replace(/^,+(?!\d)|,+$/g, "");                       // "12," and a lone "," only separate
+      if (!t) continue;
+      const parts = (t.match(/,/g) || []).length >= 2 ? t.split(",") : [t];
+      for (const p of parts) if (p) toks.push(p);
+    }
+    toks.push(null);                                               // end of a segment: no unit across ";" or a line
+  }
+  const out = [];
+  let last = null;                                                 // {text, num, unit}
+  for (let i = 0; i < toks.length; i++) {
+    const t = toks[i];
+    if (t === null) { last = null; continue; }
+    if (last && last.num && !last.unit && /^[·×x*]$/.test(t) && toks[i + 1] && SEQ_POW.test(toks[i + 1])) {
+      last.text += " " + t + " " + toks[i + 1]; i++; continue;
+    }
+    if (last && last.num && !last.unit && !SEQ_NUM.test(t) && SEQ_UNIT.test(t)) { last.text += " " + t; last.unit = t; continue; }
+    last = { text: t, num: SEQ_NUM.test(t) || /^[-+−]?[\d.,]+[A-Za-zµμΩ°%‰]/.test(t), unit: "" };
+    out.push(last);
+  }
+  return out.map((x) => x.text);
+}
+function seqPreview() {
+  const el = $("#seqPrev"), vals = SQ.on ? seqSplit($("#seqIn").value) : [];
+  if (!vals.length) { el.innerHTML = ""; return; }
+  el.innerHTML = `<b>${esc(vals.length === 1 ? tr("mt.prev1") : tr("mt.prev", { n: vals.length }))}</b>` + vals.slice(0, 200).map((v, i) => {
+    const c = seqCell(SQ.pos + i), num = SEQ_NUM.test(v.split(" ")[0]);
+    return `<span${num ? "" : ` class="t" title="${esc(tr("mt.prev_t"))}"`}><i>${esc(ref(c.r, c.c))}</i>${esc(v)}</span>`;
+  }).join("") + (vals.length > 200 ? "<span>…</span>" : "");
+}
+// Enter empties the field at once; the values are written one batch after another (typing on never mixes them)
+function seqSubmit(texts) {
+  texts = texts.map((t) => t.trim()).filter((t) => t !== "");
+  if (!texts.length) return;
+  $("#seqIn").value = "";
+  $("#seqPrev").innerHTML = "";
+  SQ.q = (SQ.q || Promise.resolve()).then(() => seqWrite(texts)).catch((e) => seqRender(String(e)));
+}
+async function seqWrite(texts) {
+  if (!SQ.on) return;
+  const unit = SQ.dir === "down" ? $("#seqUnit").value.trim() : "";
+  const j = await api("api/manual/parse", { texts, unit });
+  if (j.error) return seqRender(j.error);
+  const ok = j.items.filter((x) => !x.error), writes = [];
+  ok.forEach((x, i) => { const c = seqCell(SQ.pos + i); writes.push({ r: c.r, c: c.c, v: x.cell }); });
+  if (writes.length) {
+    const res = await writeCells(cur(), SQ.k, writes);
+    if (!res) return;
+    writes.forEach((w, i) => SQ.log.push({ ref: ref(w.r, w.c), text: ok[i].cell + (ok[i].unit ? " " + ok[i].unit : ""), r: w.r, c: w.c }));
+    const correcting = SQ.pos < SQ.end;
+    SQ.pos += writes.length;
+    SQ.end = Math.max(SQ.end, SQ.pos);
+    if (correcting) SQ.pos = SQ.end;
+    if (j.unit && SQ.dir === "down" && j.unit !== (unitsByCol()[SQ.idx] || "")) {
+      $("#seqUnit").value = j.unit;
+      setColUnit(SQ.idx, j.unit);
+    }
+  }
+  const bad = j.items.find((x) => x.error);
+  if (bad) { SQ.q = Promise.resolve(); $("#seqIn").value = texts.slice(j.items.indexOf(bad)).join("; "); }
+  seqRender(bad ? (bad.mismatch ? tr("mt.mismatch", bad.mismatch) : bad.error) : null);
+  if (document.activeElement !== $("#seqName") && document.activeElement !== $("#seqUnit")) $("#seqIn").focus();
+}
+function setColUnit(c, unit) {
+  addStep({ op: "unit", range: `${colName(c)}1`, unit });
+  toast(tr("mt.unitset", { u: unit || "–", c: colName(c) }));
+  draw();
+}
+$("#seqIn").addEventListener("keydown", (ev) => {
+  const inp = ev.target;
+  if (ev.key === "Enter") { ev.preventDefault(); seqSubmit(seqSplit(inp.value)); }
+  else if (ev.key === "Escape") { ev.preventDefault(); closeSeq(); }
+  else if ((ev.key === "ArrowUp" || (ev.key === "Backspace" && !inp.value)) && SQ.pos > 1 - (SQ.hnum ? 1 : 0)) {
+    if (ev.key === "Backspace" && inp.value) return;
+    ev.preventDefault();
+    SQ.pos -= 1;
+    const c = seqCell(SQ.pos), f = cur(), v = f ? cell(f, SQ.k, c.r, c.c) : null;
+    inp.value = v ? String(v[1] ?? "") : "";
+    inp.select();
+    seqRender();
+  } else if (ev.key === "ArrowDown" && SQ.pos < SQ.end) {
+    ev.preventDefault();
+    SQ.pos += 1;
+    const c = seqCell(SQ.pos), f = cur(), v = f ? cell(f, SQ.k, c.r, c.c) : null;
+    inp.value = SQ.pos < SQ.end && v ? String(v[1] ?? "") : "";
+    seqRender();
+  }
+});
+$("#seqIn").addEventListener("paste", (ev) => {
+  const t = ev.clipboardData && ev.clipboardData.getData("text/plain");
+  if (t && /[\n\t;]/.test(t.trim())) { ev.preventDefault(); seqSubmit(seqSplit(t)); }
+});
+$("#seqIn").addEventListener("input", seqPreview);
+$("#seqList").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-sq]");
+  if (!b) return;
+  const e = SQ.log[+b.dataset.sq];
+  if (!e) return;
+  writeCells(cur(), SQ.k, [{ r: e.r, c: e.c, v: "" }]);
+  e.text = "–";
+  seqRender();
+});
+$("#seqClose").addEventListener("click", closeSeq);
+$("#seqName").addEventListener("change", (ev) => {
+  if (SQ.hnum) return;
+  const c = SQ.dir === "down" ? { r: 0, c: SQ.idx } : { r: SQ.idx, c: 0 };
+  writeCells(cur(), SQ.k, [{ r: c.r, c: c.c, v: ev.target.value.trim() }]);
+});
+$("#seqUnit").addEventListener("change", async (ev) => {
+  const u = ev.target.value.trim();
+  if (!u) return setColUnit(SQ.idx, "");
+  const j = await api("api/unit", { unit: u });
+  if (j.error || !j.ok) return seqRender(tr("mt.unitbad", { u, m: j.msg || j.error }));
+  ev.target.value = j.unit;
+  setColUnit(SQ.idx, j.unit);
+  seqRender();
+});
+(() => {                                                          // move the window by its title
+  const head = $("#seqHead"), box = $("#seq");
+  head.addEventListener("mousedown", (e) => {
+    if (e.target.closest("button")) return;
+    const b0 = box.getBoundingClientRect(), p = box.offsetParent.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    const mv = (ev) => { box.style.left = Math.max(0, b0.left - p.left + ev.clientX - x0) + "px"; box.style.top = Math.max(0, b0.top - p.top + ev.clientY - y0) + "px"; box.style.right = "auto"; };
+    const up = () => { window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up);
+    e.preventDefault();
+  });
+})();
+
+// ================================================================== Markieren (DP-05)
+const MARK = { data: "rgba(15,118,110,.08)", header: "rgba(37,99,235,.14)", units: "rgba(147,51,234,.13)", meta: "rgba(217,119,6,.25)",
+  label: "rgba(219,39,119,.16)", skip: "rgba(100,116,139,.25)", ignore: "rgba(100,116,139,.16)" };
+const MARKLINE = "rgba(15,118,110,.75)";
+const ROLES = ["x", "y", "uncertainty", "group", "label", "ignore"];
+const steps = () => { const f = cur(); if (!f) return []; const k = f.sheet || 0; return (f.recipes[k] = f.recipes[k] || []); };
+const prev = () => { const f = cur(); return f ? f.prev[f.sheet || 0] : null; };
+let exT = 0;
+async function reextract(now) {
+  const f = cur();
+  if (!f) return;
+  const k = f.sheet || 0, st = f.recipes[k] || [];
+  clearTimeout(exT);
+  const run = async () => {
+    if (!st.length) { f.prev[k] = null; draw(); renderSide(); return; }
+    const j = await api("api/recipe/extract", { id: f.id, sheet: k, steps: st, n: 15 });
+    f.prev[k] = j;
+    draw(); renderSide();
+  };
+  if (now) await run(); else exT = setTimeout(run, 120);
+}
+const SINGLE = { block: 1, header: 1, units: 1, transpose: 1 };
+function addStep(s) {
+  const st = steps();
+  for (let i = st.length - 1; i >= 0; i--) {
+    const o = st[i];
+    if ((SINGLE[s.op] && o.op === s.op) || (s.op === "role" && o.op === "role" && o.series === s.series)
+        || ((s.op === "meta" || s.op === "meta_remove") && o.op === "meta" && o.cell === s.cell)
+        || ((s.op === "repeat" || s.op === "repeat_off") && o.op === "repeat") || ((s.op === "wide" || s.op === "wide_off") && o.op === "wide")
+        || ((s.op === "unit" || s.op === "name") && o.op === s.op && o.range === s.range)
+        || (s.op === "colprop" && o.op === "colprop" && o.series === s.series)) st.splice(i, 1);
+  }
+  if (!/_off$|_remove$/.test(s.op)) st.push(s);
+  reextract();
+  if (ENVS_READY()) window.ENVS.save();
+  dsTouch();
+}
+async function guessRecipe() {
+  const f = cur();
+  if (!f || !f.id) return;
+  if (f.manual) return autoGuess(f, f.sheet || 0);
+  const j = await withBusy(() => api("api/recipe/guess", { id: f.id, sheet: f.sheet || 0 }));
+  if (j.error) return toast(j.error, true);
+  if (!j.steps.length) return toast(tr("mk.noguess"), true);
+  f.recipes[f.sheet || 0] = j.steps;
+  await reextract(true);
+  if (ENVS_READY()) window.ENVS.save();
+}
+function resetRecipe() { const f = cur(); if (!f) return; f.recipes[f.sheet || 0] = []; reextract(true); if (ENVS_READY()) window.ENVS.save(); }
+function removeStep(i) { steps().splice(i, 1); reextract(); if (ENVS_READY()) window.ENVS.save(); dsTouch(); }
+const dsTouch = () => { const f = cur(); if (f && window.dsAfterChange) window.dsAfterChange(f, f.sheet || 0); };
+
+// Auswahl → Zeilen/Spalten im Sinn des Rezepts (bei „getauscht“ sind Zeilen Spalten)
+const isT = () => !!(prev() && prev().layout && prev().layout.transpose) || steps().some((s) => s.op === "transpose" && s.on !== false);
+function blockOf() {
+  const L = prev() && prev().layout;
+  if (L && L.block) return norm(parseRange(L.block));
+  const b = steps().slice().reverse().find((s) => s.op === "block");
+  return b ? norm(parseRange(b.range)) : null;
+}
+const span = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+function selLines(g) { return isT() ? span(g.c0, g.c1) : span(g.r0, g.r1); }
+function selSeries(g, b) {
+  const s = isT() ? span(g.r0, g.r1).map((r) => r - b.r0) : span(g.c0, g.c1).map((c) => c - b.c0);
+  const w = isT() ? b.r1 - b.r0 + 1 : b.c1 - b.c0 + 1;
+  return s.filter((j) => j >= 0 && j < w);
+}
+function markAct(act, arg) {
+  const s = sel(), sh = curSheet();
+  if (!s || !sh) return toast(tr("mk.needsel"), true);
+  const g = norm(s.ranges[s.ranges.length - 1]), b = blockOf();
+  const needB = () => { if (!b) { toast(tr("mk.needblock"), true); return true; } return false; };
+  if (act === "block") return addStep({ op: "block", range: rangeRef(g) });
+  if (act === "unit" || act === "name") {                       // DP-M3: unit or name for the columns of the selection
+    const f = cur(), ur = f && f.manual ? usedBox(f, f.sheet || 0)[0] : sh.rows;
+    const rg = (x) => rangeRef({ r0: x.r0, c0: x.c0, r1: Math.max(x.r0, Math.min(x.r1, ur - 1)), c1: x.c1 });
+    if (act === "unit") return unitDialog(g, unitsByCol()[g.c0] || "").then((u) => { if (u !== null) { s.ranges.map(norm).forEach((x) => addStep({ op: "unit", range: rg(x), unit: u })); draw(); } });
+    return ask(tr("mt.namedlg"), [{ label: tr("mt.namef"), value: "", req: true }]).then((v) => { if (v) s.ranges.map(norm).forEach((x) => addStep({ op: "name", range: rg(x), name: v[0].trim() })); });
+  }
+  if (act === "header") return addStep({ op: "header", lines: [...new Set(s.ranges.map(norm).flatMap(selLines))].slice(0, 6) });
+  if (act === "units") return addStep({ op: "units", line: selLines(g)[0] });
+  if (act === "nounits") return addStep({ op: "units", line: null });
+  if (act === "skip") return addStep({ op: "skip", lines: selLines(g).slice(0, 2000) });
+  if (act === "role") {
+    if (needB()) return;
+    const ser = [...new Set(s.ranges.map(norm).flatMap((x) => selSeries(x, b)))];
+    if (!ser.length) return toast(tr("mk.outside"), true);
+    for (const j of ser) {
+      const st = { op: "role", series: j, role: arg };
+      if (arg === "uncertainty") { if (j === 0) { toast(tr("mk.uleft"), true); continue; } st.of = j - 1; }
+      addStep(st);
+    }
+    return;
+  }
+  if (act === "meta") {
+    const a = s.active, left = a.c > 0 ? cell(cur(), cur().sheet || 0, a.r, a.c - 1) : null;
+    const def = left && left[0] === T_TEXT ? String(left[1]).replace(/[:=\s]+$/, "") : "";
+    return ask(tr(arg === "column" ? "mk.metacol" : "mk.metacond"), [{ label: tr("mk.metaname"), value: def }, { label: tr("mk.metaunit"), value: "" }]).then((v) => {
+      if (!v) return;
+      const [name, unit] = v;
+      addStep({ op: "meta", cell: ref(a.r, a.c), ...(name.trim() ? { name: name.trim() } : {}), ...(unit.trim() ? { unit: unit.trim() } : {}), as: arg === "column" ? "column" : "condition" });
+    });
+  }
+  if (act === "unmeta") return addStep({ op: "meta_remove", cell: ref(s.active.r, s.active.c) });
+  if (act === "repeat") {
+    if (needB()) return;
+    const dr = g.r0 - b.r0, dc = g.c0 - b.c0;
+    if ((dr && dc) || (!dr && !dc)) return toast(tr("mk.repeatbad"), true);
+    const old = steps().find((x) => x.op === "repeat");
+    return addStep({ op: "repeat", dir: dc ? "right" : "down", step: Math.abs(dc || dr), count: 0, ...(old && old.label ? { label: old.label } : {}) });
+  }
+  if (act === "replabel") {
+    const old = steps().find((x) => x.op === "repeat");
+    if (!old) return toast(tr("mk.needrepeat"), true);
+    return addStep({ ...old, label: ref(s.active.r, s.active.c) });
+  }
+  if (act === "norepeat") return addStep({ op: "repeat_off" });
+  if (act === "wide") {
+    if (needB()) return;
+    const ser = [...new Set(s.ranges.map(norm).flatMap((x) => selSeries(x, b)))];
+    if (ser.length < 2) return toast(tr("mk.wide2"), true);
+    return ask(tr("mk.widehead"), [{ label: tr("mk.widename"), value: "c", req: true }, { label: tr("mk.widecond"), value: "T", req: true }]).then((v) => {
+      if (v) addStep({ op: "wide", series: ser, name: v[0].trim(), cond: v[1].trim() });
+    });
+  }
+  if (act === "nowide") return addStep({ op: "wide_off" });
+  if (act === "transpose") return addStep({ op: "transpose", on: !isT() });
+  if (act === "colprop") {
+    if (needB()) return;
+    const ser = [...new Set(s.ranges.map(norm).flatMap((x) => selSeries(x, b)))];
+    if (!ser.length) return toast(tr("mk.outside"), true);
+    return colpropDialog(ser);
+  }
+}
+// DP-06: symbol, quantity kind and date/time handling of the selected columns (one step per column)
+function colpropDialog(ser) {
+  const pv = prev(), cols = (pv && pv.columns) || [];
+  const c = cols.find((x) => x.j === ser[0]) || {};
+  const old = steps().find((x) => x.op === "colprop" && x.series === ser[0]) || {};
+  const en = window.LabUI && LabUI.lang() === "en";
+  const isDate = !!(c.date || c.elapsed || old.time);
+  const kinds = (META && META.kinds) || [];
+  const cur0 = old.kind !== undefined ? old.kind : (c.kind || "");
+  const names = ser.map((j) => (cols.find((x) => x.j === j) || {}).name).filter(Boolean).join(", ") || "–";
+  const tu = old.time_unit || "";
+  const d = dlg("cpDlg", `<b>${esc(tr("cp.h", { c: names }))}</b>
+    <label for="cpSym">${esc(tr("cp.sym"))}</label><input type="text" id="cpSym" maxlength="40" style="width:100%" value="${esc(old.symbol !== undefined ? old.symbol : c.symbol || "")}" spellcheck="false">
+    <label for="cpKind">${esc(tr("cp.kind"))}</label><select id="cpKind" style="width:100%"><option value="">${esc(tr("cp.kind0"))}</option>${kinds.map((k) => `<option value="${esc(k.key)}" ${k.key === cur0 ? "selected" : ""}>${esc(en ? k.en : k.de)} (${esc(k.si || k.units[0] || "")})</option>`).join("")}</select>
+    ${isDate ? `<div class="dvsec">${esc(tr("cp.time"))}</div>
+      <label class="small"><input type="radio" name="cpTime" value="elapsed" ${old.time !== "raw" ? "checked" : ""}> ${esc(tr("cp.elapsed"))}</label>
+      <label class="small"><input type="radio" name="cpTime" value="raw" ${old.time === "raw" ? "checked" : ""}> ${esc(tr("cp.raw"))}</label>
+      <label for="cpTU">${esc(tr("cp.tunit"))}</label><select id="cpTU">${["", "s", "min", "h", "d"].map((u) => `<option value="${u}" ${u === tu ? "selected" : ""}>${esc(u || tr("cp.auto"))}</option>`).join("")}</select>` : ""}
+    <div class="row" style="justify-content:flex-end"><button data-x>${esc(tr("dp.cancel"))}</button><button class="primary" data-go>${esc(tr("dp.take"))}</button></div>`);
+  d.querySelector("[data-x]").onclick = () => d.close();
+  d.querySelector("[data-go]").onclick = () => {
+    const sym = d.querySelector("#cpSym").value.trim(), kind = d.querySelector("#cpKind").value;
+    const tm = d.querySelector("input[name=cpTime]:checked");
+    d.close();
+    ser.forEach((j, i) => {
+      const o = steps().find((x) => x.op === "colprop" && x.series === j) || {};
+      const st = { ...o, op: "colprop", series: j, kind };
+      if (i === 0 || ser.length === 1) st.symbol = sym;           // a symbol belongs to one column
+      if (tm) { st.time = tm.value; st.time_unit = d.querySelector("#cpTU").value; }
+      addStep(st);
+    });
+  };
+  const sy = d.querySelector("#cpSym"); sy.focus(); sy.select();
+}
+// small form dialog instead of window.prompt: resolves to the field values, or null when cancelled
+function ask(head, fields) {
+  const d = $("#askDlg"), box = $("#askFields");
+  $("#askHead").textContent = head;
+  box.innerHTML = fields.map((f, i) => `<label for="ask${i}">${esc(f.label)}</label><input type="text" id="ask${i}" maxlength="80" style="width:100%" value="${esc(f.value || "")}"${f.req ? " required" : ""}${f.list ? ` list="${esc(f.list)}" autocomplete="off" spellcheck="false"` : ""}>`).join("");
+  d.returnValue = "";
+  d.showModal();
+  const first = $("#ask0");
+  if (first) { first.focus(); first.select(); }
+  return new Promise((res) => d.addEventListener("close", () => res(d.returnValue === "ok" ? fields.map((_, i) => $(`#ask${i}`).value) : null), { once: true }));
+}
+function markMenu(anchor) {
+  if (!window.LabUI) return;
+  const has = !!sel(), b = blockOf(), rep = steps().some((x) => x.op === "repeat"), wide = steps().some((x) => x.op === "wide");
+  const btn = (act, label, off, arg) => `<button type="button" data-mk="${act}" ${arg ? `data-arg="${arg}"` : ""} ${off ? "disabled" : ""}>${esc(label)}</button>`;
+  const html = `<div class="mkmenu" role="menu">
+    <div class="mkh">${esc(tr("mk.area"))}</div>
+    ${btn("unit", tr("mk.unit"), !has)}${btn("name", tr("mk.name"), !has)}
+    ${btn("block", tr("mk.block"), !has)}${btn("header", tr("mk.header"), !has)}${btn("units", tr("mk.units"), !has)}${btn("skip", tr("mk.skip"), !has || !b)}
+    <div class="mkh">${esc(tr("mk.roles"))}</div>
+    <div class="mkroles">${ROLES.map((r) => btn("role", tr("r." + r), !has || !b, r)).join("")}</div>
+    ${btn("colprop", tr("mk.colprop"), !has || !b)}
+    <div class="mkh">${esc(tr("mk.more"))}</div>
+    ${btn("meta", tr("mk.meta"), !has)}${btn("meta", tr("mk.metacol"), !has, "column")}${btn("unmeta", tr("mk.unmeta"), !has)}
+    ${btn("repeat", tr("mk.repeat"), !has || !b)}${rep ? btn("replabel", tr("mk.replabel"), !has) + btn("norepeat", tr("mk.norepeat")) : ""}
+    ${btn("wide", tr("mk.wide"), !has || !b)}${wide ? btn("nowide", tr("mk.nowide")) : ""}
+    ${btn("transpose", isT() ? tr("mk.untranspose") : tr("mk.transpose"))}
+  </div>`;
+  const p = LabUI.popover(anchor, html);
+  p.addEventListener("click", (e) => { const x = e.target.closest("[data-mk]"); if (x && !x.disabled) { LabUI.closePop(); markAct(x.dataset.mk, x.dataset.arg); } });
+}
+gs.addEventListener("contextmenu", (ev) => {
+  if (!curSheet()) return;
+  ev.preventDefault();
+  const h = hit(ev), s = sel();
+  const inside = s && s.ranges.map(norm).some((g) => h.r >= g.r0 && h.r <= g.r1 && h.c >= g.c0 && h.c <= g.c1);
+  if (!inside && !h.inHdr && !h.inRowHdr) setSel({ r0: h.r, c0: h.c, r1: h.r, c1: h.c }, { r: h.r, c: h.c });
+  const a = document.createElement("span");
+  a.style.cssText = `position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`;
+  document.body.appendChild(a);
+  markMenu(a);
+  setTimeout(() => a.remove(), 0);
+});
+function markHtml() {
+  const st = steps(), pv = prev(), f = cur();
+  let h = `<h3>${esc(tr(f && f.manual ? "mt.intro_h" : "mk.title"))}</h3>`;
+  if (f && f.manual && !st.length) return h + `<p class="small">${esc(tr("mt.intro"))}</p><hr class="sep">`;
+  if (!st.length) {
+    return h + `<p class="small">${esc(tr("mk.intro"))}</p><div class="row"><button class="primary" data-mkb="guess">${esc(tr("mk.guess"))}</button>
+      <button data-mkb="menu">${esc(tr("mk.assign"))}</button></div><hr class="sep">`;
+  }
+  if (pv && pv.error) h += `<div class="note err">${esc(pv.error)}</div>`;
+  else if (pv && pv.columns) {
+    const rc = (r) => `<span class="role r-${esc(r || "none")}">${esc(tr("r." + (r || "none")))}</span>`;
+    h += `<div class="small">${esc(tr("mk.sum", { r: nf(pv.rows, 9), c: pv.columns.length, b: pv.blocks }))}</div>`;
+    const fb = (c) => Object.entries(c.flags || {}).map(([code, e]) => `<span class="fb f-${esc(code)}" title="${esc(tr("mk.flagt", { n: e.n, c: tr("fl." + code), e: (e.examples || []).join(" · ") }))}">${e.n} ${esc(tr("fl." + code))}</span>`).join("");
+    h += `<div class="prev"><table><thead><tr>${pv.columns.map((c) => `<th title="${esc(c.cells)}">${esc(c.name)}${c.symbol ? ` <span class="sym">${esc(c.symbol)}</span>` : ""}${c.unit ? ` <span class="u">[${esc(c.unit)}]</span>` : ""}<br>${rc(c.role)}${c.unit_msg ? ` <span class="bad" title="${esc(c.unit_msg)}">⚠</span>` : ""}${c.raw ? ` <span class="bad" title="${esc(c.raw_examples.join(" · "))}">${c.raw}×?</span>` : ""}${fb(c) ? "<br>" + fb(c) : ""}${c.elapsed ? `<br><span class="small" style="font-weight:400">${esc(tr("mk.since", { s: c.elapsed }))}</span>` : ""}</th>`).join("")}</tr></thead>
+      <tbody>${pv.head.map((r, ri) => `<tr>${r.map((v, i) => { const c = pv.columns[i], mk = c.mk_head && c.mk_head[ri]; return `<td class="${c.dtype === "number" && typeof v === "number" ? "n" : typeof v === "string" && c.dtype === "number" ? "bad" : ""}${mk ? ` mk f-${esc(mk)}" title="${esc(tr("fl." + mk))}` : ""}">${v === null ? (mk ? `<span class="small">${esc(tr("fl." + mk))}</span>` : "") : esc(typeof v === "number" ? nf(v, 8) : v)}</td>`; }).join("")}</tr>`).join("")}
+      ${pv.rows > pv.head.length ? `<tr><td colspan="${pv.columns.length}" class="small">… ${esc(tr("mk.more_rows", { n: nf(pv.rows - pv.head.length, 9) }))}</td></tr>` : ""}</tbody></table></div>`;
+    const cond = Object.entries(pv.conditions || {});
+    if (cond.length) h += `<dl class="kv">${cond.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(typeof v.value === "number" ? nf(v.value, 8) : v.value)} ${esc(v.unit || "")} <span class="small">(${esc(v.from)})</span></dd>`).join("")}</dl>`;
+    h += (pv.notes || []).map((n) => `<div class="note warn">${esc(n)}</div>`).join("");
+  }
+  h += `<div class="row"><button class="primary" data-mkb="menu">${esc(tr("mk.assign"))}</button><button data-mkb="guess">${esc(tr("mk.guess"))}</button><button data-mkb="reset">${esc(tr("mk.reset"))}</button></div>`;
+  h += `<div class="legend">${Object.keys(MARK).map((k) => `<span><i style="background:${MARK[k]};outline:1px solid ${MARKLINE}"></i>${esc(tr("mk.k_" + k))}</span>`).join("")}</div>`;
+  const desc = (pv && pv.describe) || st.map((s) => s.op);
+  h += `<details class="lab-fold" data-fold="recipe"><summary>${esc(tr("mk.recipe", { n: st.length }))}</summary><ol class="steps">${desc.map((d, i) => `<li><span>${esc(d)}${st[i] && st[i].auto ? ` <small class="small">· auto</small>` : ""}</span><button class="x" data-rm="${i}" aria-label="${esc(tr("mk.rm"))}">×</button></li>`).join("")}</ol></details>`;
+  h += `<details class="lab-fold" data-fold="check"><summary>${esc(tr("mk.check"))}</summary><button data-mkb="check">${esc(tr("mk.check_b"))}</button><div id="mkCheck" class="small"></div></details>`;
+  if (pv && pv.columns && !pv.error && f && !f.dataset) h += `<div class="row"><button data-mkb="tpl">${esc(tr("tp.save"))}</button><button class="linkbtn" data-mkb="tpls">${esc(tr("tp.menu"))}</button></div>`;
+  h += `<hr class="sep">`;
+  return h;
+}
+function bindMark() {
+  $("#pane").querySelectorAll("[data-mkb]").forEach((b) => b.addEventListener("click", () => {
+    const a = b.dataset.mkb;
+    if (a === "guess") guessRecipe();
+    else if (a === "reset") { if (confirm(tr("mk.reset_q"))) resetRecipe(); }
+    else if (a === "menu") markMenu(b);
+    else if (a === "check") checkDataset();
+    else if (a === "tpl") tplSave();
+    else if (a === "tpls") tplDialog();
+  }));
+  $("#pane").querySelectorAll("[data-rm]").forEach((b) => b.addEventListener("click", () => removeStep(+b.dataset.rm)));
+}
+async function checkDataset() {
+  const f = cur();
+  if (!f) return;
+  const j = await withBusy(() => api("api/recipe/dataset", { id: f.id, sheet: f.sheet || 0, steps: steps(), title: f.name }));
+  const box = $("#mkCheck");
+  if (!box) return;
+  if (j.error) { box.innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
+  const hd = j.header;
+  box.innerHTML = `<div class="note ok">${esc(tr("mk.ok", { r: nf(hd.rows, 9), c: hd.columns.length }))}</div>` +
+    `<dl class="kv">${hd.columns.map((c) => `<dt>${esc(c.name)}</dt><dd>${esc(c.dtype === "number" ? `${c.unit || "1"} · ${c.kind}` : tr("t.text"))}</dd>`).join("")}</dl>` +
+    (hd.flags.length ? `<div class="small">${esc(tr("mk.flags", { n: hd.flags.length }))}</div>` : "");
+}
+
+// ================================================================== Datensätze (DP-M4) und Umrechnen (DP-M5)
+const DSL = { list: [], at: 0, loading: null };
+async function dsList(force) {
+  if (!force && DSL.at && Date.now() - DSL.at < 8000) return DSL.list;
+  if (!DSL.loading) DSL.loading = api("api/ds/list", {}).then((j) => { DSL.loading = null; if (!j.error) { DSL.list = j.datasets || []; DSL.at = Date.now(); } return DSL.list; });
+  return DSL.loading;
+}
+const dsById = (id) => DSL.list.find((x) => x.id === id);
+const dsCols = (d) => (d.columns || []).map((c) => c.name + (c.unit ? ` [${c.unit}]` : "")).join(", ");
+const dsQ = {};
+function dsSave(f, k, quiet) {
+  const d = f.datasets[k];
+  if (!d) return Promise.resolve();
+  const key = f.id + ":" + k;
+  dsQ[key] = (dsQ[key] || Promise.resolve()).then(async () => {
+    const j = await api("api/ds/publish", { id: f.id, sheet: k, steps: f.recipes[k] || [], title: d.title, share: d.share || undefined });
+    if (j.error) { d.status = { err: j.error }; if (!quiet) toast(j.error, true); }
+    else {
+      const first = !d.share;
+      Object.assign(d, { share: j.share, version: j.version, status: { ok: true, unchanged: j.unchanged, at: Date.now() } });
+      if (j.thumb && window.LabBoard) d.thumb = LabBoard.packPlots([j.thumb], 120)[0] || null;   // UI-18: Bild für die Übersicht
+      if (!j.unchanged || first) { DSL.at = 0; if (!quiet || first) toast(tr("ds.saved", { t: d.title, v: j.version })); }
+      (j.children || []).filter((c) => c.error).forEach((c) => toast(tr("ds.childerr", { m: c.error }), true));
+    }
+    if (ENVS_READY()) window.ENVS.save();
+    if (f === cur()) { await dsList(); renderSide(); }
+  });
+  return dsQ[key];
+}
+// a change of the sheet or of its reading recipe → new version after a short pause (only when something changed)
+const dsT = {};
+window.dsAfterChange = (f, k) => {
+  const d = f && f.datasets && f.datasets[k];
+  if (!d || !d.share || d.auto === false) return;
+  const key = f.id + ":" + k;
+  clearTimeout(dsT[key]);
+  dsT[key] = setTimeout(() => dsSave(f, k, true), 4000);
+};
+async function dsCreate() {
+  const f = cur();
+  if (!f) return;
+  const k = f.sheet || 0, many = f.sheets.length > 1;
+  const v = await ask(tr("ds.new_h"), [{ label: tr("ds.title"), value: many ? `${f.name} – ${f.sheets[k].name}` : f.name, req: true }]);
+  if (!v) return;
+  f.datasets[k] = { title: v[0].trim() || f.name, auto: true };
+  await withBusy(() => dsSave(f, k, false));
+  if (f.datasets[k] && !f.datasets[k].share) delete f.datasets[k];
+  renderSide();
+}
+function dsHtml() {
+  const f = cur();
+  if (!f || f.placeholder) return "";
+  const k = f.sheet || 0, d = f.datasets[k], pv = prev(), can = pv && pv.columns && !pv.error;
+  if (!DSL.at) dsList().then(() => { if (cur() === f && DSL.at) renderSide(); });
+  const sum = d && d.share ? ` · v${d.version}${d.status && d.status.err ? " ⚠" : ""}` : f.dataset ? ` · ${esc(tr("ds.from_s"))}` : "";
+  let h = `<details class="lab-fold" data-fold="ds"${f.dataset ? " open" : ""}><summary>${esc(tr("ds.h"))}${sum}</summary>`;
+  if (f.dataset) {
+    const src = dsById(f.dataset.share);
+    h += `<div class="small">${esc(tr("ds.from", { t: src ? src.title : f.dataset.share, v: f.dataset.version }))}</div>`;
+    if (f.dataset.link) h += `<div class="small">${esc(tr("ds.linked", { e: envNameOf(f.dataset.link) }))} <button class="linkbtn" data-ds="conns">${esc(tr("ds.conns"))}</button></div>`;
+    h += `<div class="row"><button data-ds="derive" data-id="${esc(f.dataset.share)}">${esc(tr("ds.derive"))}</button>${src && src.latest > f.dataset.version ? `<button data-ds="open" data-id="${esc(f.dataset.share)}">${esc(tr("ds.openlatest", { v: src.latest }))}</button>` : ""}</div>`;
+  }
+  if (d && d.share) {
+    const me = dsById(d.share);
+    h += `<dl class="kv"><dt>${esc(tr("ds.title"))}</dt><dd>${esc(d.title)}${OV && OV.shareButton ? " " + OV.shareButton(d.share, "env.datasets") : ""}</dd><dt>${esc(tr("ds.version"))}</dt><dd>v${d.version}${me ? ` · ${nf(me.rows, 9)} × ${me.columns.length}` : ""}</dd></dl>`;
+    if (d.status && d.status.err) h += `<div class="note err">${esc(d.status.err)}</div>`;
+    h += `<label class="small" style="display:block;margin-top:6px"><input type="checkbox" data-ds="auto" ${d.auto !== false ? "checked" : ""}> ${esc(tr("ds.auto"))}</label>`;
+    h += `<div class="row"><button data-ds="save">${esc(tr("ds.savenow"))}</button><button class="primary" data-ds="derive" data-id="${esc(d.share)}">${esc(tr("ds.derive"))}</button><button data-ds="unlink" class="x" title="${esc(tr("ds.unlink_t"))}">${esc(tr("ds.unlink"))}</button></div>`;
+    const kids = DSL.list.filter((x) => x.derive && x.derive.parent === d.share);
+    if (kids.length) h += `<div class="small" style="margin-top:6px">${esc(tr("ds.kids"))}</div>` + dsRows(kids);
+  } else if (!f.dataset) {
+    h += can ? `<p class="small">${esc(tr("ds.intro"))}</p><div class="row"><button class="primary" data-ds="create">${esc(tr("ds.create"))}</button></div>`
+             : `<p class="small">${esc(tr("ds.needread"))}</p>`;
+  }
+  if (f.dataset) {
+    const kids = DSL.list.filter((x) => x.derive && x.derive.parent === f.dataset.share);
+    if (kids.length) h += `<div class="small" style="margin-top:6px">${esc(tr("ds.kids"))}</div>` + dsRows(kids);
+  }
+  if (d && d.share) h += dsTools(d.share, d.version);
+  else if (f.dataset) h += dsTools(f.dataset.share, f.dataset.version);
+  return h + `</details>`;
+}
+// DP-08/10: check chips, step log, export and "send to report" for one dataset version
+const DSC = {}, DSC_ON = {};
+const chipsHtml = (cks) => `<div class="cks">${(cks || []).map((c) => `<span class="ck l-${esc(c.level)}">${esc(c.text)}</span>`).join("")}</div>`;
+function stepTable(steps) {
+  if (!steps || !steps.length) return "";
+  return `<table class="stp"><thead><tr><th>${esc(tr("cl.step"))}</th><th>${esc(tr("cl.rowsba"))}</th><th>${esc(tr("cl.flagsba"))}</th><th>${esc(tr("cl.exba"))}</th></tr></thead><tbody>${steps.map((s) =>
+    `<tr><td>${esc(s.text || s.op)}</td><td class="n">${s.rows_before === s.rows_after ? nf(s.rows_after, 9) : `${nf(s.rows_before, 9)} → ${nf(s.rows_after, 9)}`}</td>
+      <td class="n">${s.flags_before === s.flags_after ? nf(s.flags_after, 9) : `${nf(s.flags_before, 9)} → ${nf(s.flags_after, 9)}`}</td><td class="n">${s.excluded_before === s.excluded_after ? nf(s.excluded_after || 0, 9) : `${nf(s.excluded_before, 9)} → ${nf(s.excluded_after, 9)}`}</td></tr>`).join("")}</tbody></table>`;
+}
+function dsTools(id, ver) {
+  const key = id + "@" + ver, t = DSC[key];
+  if (!t && !DSC_ON[key]) {
+    DSC_ON[key] = api("api/ds/checks", { share: id, version: ver }).then((j) => {
+      DSC[key] = j.error ? { checks: [{ level: "bad", text: j.error }], steps: [] } : j;
+      renderSide();
+    });
+  }
+  const warn = t && t.checks.some((c) => c.level === "warn" || c.level === "bad");
+  let h = `<details class="lab-fold" data-fold="dschk"><summary>${esc(tr("ds.check"))}${t ? (warn ? " ⚠" : " ✓") : ""}</summary>`;
+  h += t ? chipsHtml(t.checks) + (t.steps && t.steps.length ? `<div class="small">${esc(tr("ds.steps_n", { n: t.steps.length }))}</div>` + stepTable(t.steps) : "") : `<div class="small">…</div>`;
+  h += `</details><details class="lab-fold" data-fold="dsexp"><summary>${esc(tr("ds.export"))}</summary><div class="small">${esc(tr("ds.export_t"))}</div>
+    <div class="row">${["csv", "xlsx", "json", "parquet"].map((x) => `<button data-ds="export" data-id="${esc(id)}" data-fmt="${x}" data-ver="${ver}">${x.toUpperCase()}</button>`).join("")}</div></details>`;
+  if (window.Lab) h += `<div class="row"><button data-ds="report" data-id="${esc(id)}" data-ver="${ver}">${esc(tr("ds.report"))}</button></div>`;
+  return h;
+}
+async function dsExport(id, ver, fmt) {
+  const j = await withBusy(() => api("api/ds/export", { share: id, version: ver, format: fmt }));
+  if (j.error) return toast(j.error, true);
+  const bin = atob(j.data), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u8], { type: j.mime }));
+  const a = document.createElement("a");
+  a.href = url; a.download = j.filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast(tr("ds.exported", { f: j.filename, b: j.bytes > 2048 ? nf(j.bytes / 1024, 3) + " kB" : j.bytes + " B" }));
+}
+function dsReport(id, ver) {
+  if (!window.Lab) return toast(tr("ds.report_na"), true);
+  const d = dsById(id), title = d ? d.title : id;
+  window.Lab.sendToReport({
+    module: "datenaufbereitung", title,
+    scopes: [{ id: "ds", label: tr("rp.scope", { t: title, v: ver }) }],
+    include: ["figures", "tables", "values", "data", "citations", "text"].map((k) => ({ id: k, label: tr("rp." + k) })),
+    build: ({ lang, include, title: t }) => api("api/bundle", { share: id, version: ver, lang, include, title: t }).then((j) => { delete j._status; return j; }),
+  });
+}
+function dsRows(list) {
+  return `<ul class="dslist">${list.map((x) => {
+    const dv = x.derive, old = dv && dv.mode === "pin" && x.parent_latest > dv.version;
+    return `<li><div><b>${esc(x.title)}</b> <span class="small">v${x.latest}${dv ? " · " + esc(tr(dv.mode === "live" ? "ds.live" : "ds.pin")) : ""}${x.rows !== undefined ? ` · ${nf(x.rows, 9)} × ${x.columns.length}` : ""}</span>
+      <div class="small">${esc(dsCols(x))}</div>${x.error ? `<div class="small bad">${esc(x.error)}</div>` : ""}</div>
+      <div class="acts"><button data-ds="open" data-id="${esc(x.id)}">${esc(tr("ds.open"))}</button>${dv && x.own ? `<button data-ds="edit" data-id="${esc(x.id)}">${esc(tr("ds.edit"))}</button>` : ""}${old ? `<button data-ds="refresh" data-id="${esc(x.id)}">${esc(tr("ds.refresh", { v: x.parent_latest }))}</button>` : ""}</div></li>`;
+  }).join("")}</ul>`;
+}
+function bindDs(root = $("#pane")) {
+  root.querySelectorAll("[data-ds]").forEach((b) => b.addEventListener(b.type === "checkbox" ? "change" : "click", () => dsAct(b.dataset.ds, b.dataset.id, b)));
+}
+async function dsAct(a, id, el) {
+  const f = cur(), k = f ? f.sheet || 0 : 0;
+  if (a === "create") return dsCreate();
+  if (a === "save") return withBusy(() => dsSave(f, k, false));
+  if (a === "auto") { f.datasets[k].auto = el.checked; if (ENVS_READY()) window.ENVS.save(); if (el.checked) dsSave(f, k, true); return; }
+  if (a === "unlink") { if (!confirm(tr("ds.unlink_q"))) return; delete f.datasets[k]; if (ENVS_READY()) window.ENVS.save(); return renderSide(); }
+  if (a === "open") return dsOpen(id);
+  if (a === "derive") return dsDerive(id);
+  if (a === "conns") return OV && OV.connMenu ? OV.connMenu(el) : null;
+  if (a === "export") return dsExport(id, +el.dataset.ver, el.dataset.fmt);
+  if (a === "report") return dsReport(id, +el.dataset.ver);
+  if (a === "edit") return dsDerive(dsById(id).derive.parent, dsById(id));
+  if (a === "refresh") {
+    const j = await withBusy(() => api("api/ds/refresh", { share: id }));
+    if (j.error) return toast(j.error, true);
+    DSL.at = 0; await dsList(); renderSide(); toast(tr("ds.saved", { t: dsById(id).title, v: j.version }));
+  }
+}
+async function dsOpen(id, version) {
+  const j = await withBusy(() => api("api/ds/open", { share: id, version }));
+  if (j.error) return toast(j.error, true);
+  closeDlg("dsDlg");
+  j.files.forEach((d) => addFile(d));
+  S.sel = S.files.length - 1;
+  afterChange();
+  guessRecipe();
+}
+function dlg(id, html) {
+  let d = $("#" + id);
+  if (!d) { d = document.createElement("dialog"); d.id = id; document.body.appendChild(d); }
+  d.innerHTML = html;
+  if (!d.open) d.showModal();
+  return d;
+}
+function closeDlg(id) { const d = $("#" + id); if (d && d.open) d.close(); }
+async function dsBrowse() {
+  const list = await withBusy(() => dsList(true));
+  const own = list.filter((x) => x.own), inc = list.filter((x) => !x.own);
+  const sec = (head, xs) => xs.length ? `<div class="small" style="margin-top:8px"><b>${esc(head)}</b></div><ul class="dslist">${xs.map((x) => {
+    const p = x.producer || {};
+    return `<li><div><b>${esc(x.title)}</b> <span class="small">v${x.latest} · ${nf(x.rows || 0, 9)} × ${x.columns.length}${x.derive ? " · " + esc(tr("ds.derived")) : ""}</span>
+      <div class="small">${esc(dsCols(x))}</div><div class="small">${esc([p.module !== "datenaufbereitung" ? p.module : "", p.env_name, p.item_name].filter(Boolean).join(" · "))}</div></div>
+      <div class="acts"><button data-ds="open" data-id="${esc(x.id)}">${esc(tr("ds.open"))}</button><button data-ds="derive" data-id="${esc(x.id)}">${esc(tr("ds.derive"))}</button></div></li>`;
+  }).join("")}</ul>` : "";
+  const d = dlg("dsDlg", `<b>${esc(tr("ds.browse_h"))}</b><div class="small">${esc(tr("ds.browse_t"))}</div>
+    ${list.length ? sec(tr("ds.own"), own) + sec(tr("ds.incoming"), inc) : `<p class="small">${esc(tr("ds.none"))}</p>`}
+    <div class="row" style="justify-content:flex-end"><button data-x>${esc(tr("mt.close"))}</button></div>`);
+  d.querySelector("[data-x]").onclick = () => d.close();
+  bindDs(d);
+}
+
+// Connections between collections (overview wires, "⇄ Verbindungen"): a dataset made in collection A opens in B as a
+// read-only table – live (follows every new version of A's dataset) or as a snapshot (key "id@version")
+const dsEnvOf = (d) => (d.producer && d.producer.env) || (d.origin && d.origin.env) || "";
+const DS_CH = {
+  kind: "env.datasets", label: (n) => tr(n === 1 ? "ds.ch1" : "ds.ch"),
+  baseKey: (k) => String(k).split("@")[0],
+  keyLabel: (k) => { const [id, v] = String(k).split("@"), d = dsById(id); return (d ? d.title : id) + (v ? ` v${v}` : ""); },
+  offers: async (envId) => (await dsList(true)).filter((d) => d.own && dsEnvOf(d) === envId)
+    .map((d) => ({ key: d.id, label: d.title, text: `v${d.latest} · ${nf(d.rows || 0, 9)} × ${(d.columns || []).length} · ${dsCols(d)}`.slice(0, 120) })),
+  link: async (envId, keys, mode) => {
+    if (mode !== "copy") return { keys };
+    await dsList(true);
+    return { keys: keys.map((k) => { const d = dsById(k); return d ? `${k}@${d.latest}` : k; }) };
+  },
+  apply: dsApplyLinks,
+};
+async function dsApplyLinks(links) {
+  const want = [];
+  for (const l of links) for (const k of l.keys || []) { const [id, v] = String(k).split("@"); want.push({ id, version: v ? +v : null, from: l.from.slice(4) }); }
+  if (!want.length) return false;
+  await dsList(true);
+  let added = 0, replaced = 0;
+  for (const w of want) {
+    const d = dsById(w.id);
+    if (!d) continue;
+    const ver = w.version || d.latest;
+    const f = S.files.find((x) => x.dataset && x.dataset.share === w.id);
+    if (f && f.dataset.version === ver) continue;
+    const j = await api("api/ds/open", { share: w.id, version: ver, link: w.from, item: f ? f.id : undefined });
+    if (j.error) { toast(j.error, true); continue; }
+    const dd = j.files[0];
+    if (j.replaced && f) {
+      for (let k = 0; k < f.sheets.length; k++) dropCache(f, k);
+      Object.assign(f, { name: dd.name, file: dd.file, bytes: dd.bytes, sha256: dd.sha256, sheets: dd.sheets, dataset: dd.dataset, prev: {}, sheet: 0 });
+      replaced++;
+    } else { addFile(dd); added++; }
+  }
+  if (added) S.sel = S.files.length - 1;
+  if (added || replaced) {
+    afterChange();
+    if (added) guessRecipe();
+    toast(tr("ds.linked_t", { n: added + replaced }));
+  }
+  return added + replaced > 0;
+}
+const envNameOf = (id) => { const e = ((window.ENVS && window.ENVS.info && window.ENVS.info.envs) || []).find((x) => x.id === id); return e ? e.name : id; };
+
+// DP-M5: unit conversions and formula columns → a new dataset (live or pinned to the parent version)
+async function dsDerive(parentId, edit) {
+  await dsList(true);
+  const p = dsById(parentId);
+  if (!p) return toast(tr("ds.gone"), true);
+  closeDlg("dsDlg");
+  const ops = (edit && edit.derive.ops) || [];
+  const conv = {}, forms = [], consts = [], cleans = [];
+  ops.forEach((o) => {
+    if (o.op === "convert") conv[o.col] = o;
+    if (o.op === "formula") { forms.push(o); (o.consts || []).forEach((c) => { if (!consts.some((x) => x.sym === c.sym)) consts.push(c); }); }
+    if (CL_KINDS.includes(o.op)) cleans.push(o);
+  });
+  CL.cols = p.columns.slice();
+  CL.parent = parentId;
+  if (!edit && !forms.length) forms.push({ name: "", expr: "", unit: "", replaces: "", keep: false });
+  if (!consts.length) consts.push({ sym: "", value: "", unit: "" });
+  const nums = p.columns.filter((c) => c.dtype !== "text");
+  const allU = [...new Set(nums.map((c) => c.unit).filter(Boolean))];
+  const colOpts = (sel) => `<option value="">${esc(tr("dv.newcol"))}</option>` + nums.map((c) => `<option value="${esc(c.key)}" ${sel === c.key ? "selected" : ""}>${esc(tr("dv.replaces", { c: c.name }))}</option>`).join("");
+  const fRow = (o) => `<tr class="fr"><td><input data-f="name" value="${esc(o.name || "")}" placeholder="σ" style="width:70px"></td><td><input data-f="expr" value="${esc(o.expr || "")}" placeholder="F / A0" style="width:100%" spellcheck="false"></td>
+    <td><input data-f="unit" value="${esc(o.unit || "")}" placeholder="MPa" style="width:64px" list="unitAll" autocomplete="off" spellcheck="false"></td><td><select data-f="replaces">${colOpts(o.replaces)}</select></td>
+    <td><label class="small"><input type="checkbox" data-f="keep" ${o.keep ? "checked" : ""}> ${esc(tr("dv.keep"))}</label></td><td><button class="x" data-rmrow>×</button></td></tr>`;
+  const cRow = (c) => `<tr class="cr"><td><input data-c="sym" value="${esc(c.sym || "")}" placeholder="A0" style="width:60px"></td><td><input data-c="value" value="${esc(c.value ?? "")}" placeholder="12,57" style="width:90px"></td>
+    <td><input data-c="unit" value="${esc(c.unit || "")}" placeholder="mm²" style="width:70px" list="unitAll" autocomplete="off" spellcheck="false"></td><td><button data-cell>${esc(tr("dv.fromcell"))}</button></td><td><button class="x" data-rmrow>×</button></td></tr>`;
+  const d = dlg("dvDlg", `<b>${esc(tr(edit ? "dv.h_edit" : "dv.h"))}</b>
+    <div class="small">${esc(tr("dv.t", { t: p.title, v: p.latest }))}</div>
+    <label class="small" for="dvTitle">${esc(tr("ds.title"))}</label><input id="dvTitle" style="width:100%" value="${esc(edit ? edit.title : p.title + " " + tr("dv.suffix"))}">
+    <div class="dvsec">${esc(tr("dv.conv"))}</div>
+    ${allU.length ? `<div class="row small" id="dvAll">${esc(tr("dv.all"))} <select data-all-from>${allU.map((u) => `<option value="${esc(u)}">${esc(u)}</option>`).join("")}</select> → <input data-all-to style="width:80px" list="dvAllL" autocomplete="off" spellcheck="false" placeholder="µm"><span id="dvAllD"></span><button data-all>${esc(tr("dv.all_go"))}</button></div>` : ""}
+    <table class="dvt"><thead><tr><th>${esc(tr("dv.col"))}</th><th>${esc(tr("dv.key"))}</th><th>${esc(tr("dv.unitnow"))}</th><th>${esc(tr("dv.unitnew"))}</th><th></th></tr></thead><tbody>
+    ${nums.map((c, i) => `<tr class="vr" data-col="${esc(c.key)}" data-unit="${esc(c.unit || "")}"><td>${esc(c.name)}</td><td><code>${esc(c.key)}</code></td><td>${esc(c.unit || "1")}</td><td><input data-v="unit" value="${esc((conv[c.key] || {}).unit || "")}" placeholder="${esc(tr("dv.same"))}" style="width:80px" list="${unitsLike(c.unit).length ? "dvU" + i : "unitAll"}" autocomplete="off" spellcheck="false">${unitDatalist("dvU" + i, c.unit)}</td>
+      <td><label class="small"><input type="checkbox" data-v="keep" ${(conv[c.key] || {}).keep ? "checked" : ""}> ${esc(tr("dv.keep"))}</label></td></tr>`).join("")}</tbody></table>
+    <div class="dvsec">${esc(tr("dv.forms"))}</div>
+    <div class="small">${esc(tr("dv.forms_t", { k: nums.map((c) => c.key).join(", ") }))}</div>
+    <table class="dvt"><thead><tr><th>${esc(tr("dp.name"))}</th><th>${esc(tr("dv.expr"))}</th><th>${esc(tr("mt.unit"))}</th><th>${esc(tr("dv.place"))}</th><th></th><th></th></tr></thead><tbody id="dvF">${forms.map(fRow).join("")}</tbody></table>
+    <button data-addf>${esc(tr("dv.addf"))}</button>
+    <div class="dvsec">${esc(tr("dv.consts"))}</div>
+    <div class="small">${esc(tr("dv.consts_t"))}</div>
+    <table class="dvt"><tbody id="dvC">${consts.map(cRow).join("")}</tbody></table>
+    <button data-addc>${esc(tr("dv.addc"))}</button>
+    <details id="dvClean" ${cleans.length ? "open" : ""}><summary class="dvsec" style="cursor:pointer">${esc(tr("cl.h"))} <span class="small" style="text-transform:none;letter-spacing:0;font-weight:400">· ${esc(CL_KINDS.slice(0, 4).map((k) => tr("cl." + k).split(" (")[0]).join(", "))} …</span></summary>
+      <div class="small">${esc(tr("cl.t"))}</div>
+      <div id="dvS">${cleans.map((o) => clRow(o)).join("")}</div>
+      <select data-addstep><option value="">${esc(tr("cl.add"))}</option>${CL_KINDS.map((k) => `<option value="${k}">${esc(tr("cl." + k))}</option>`).join("")}</select>
+    </details>
+    <div class="dvsec">${esc(tr("dv.mode"))}</div>
+    <label class="small"><input type="radio" name="dvMode" value="live" ${!edit || edit.derive.mode === "live" ? "checked" : ""}> ${esc(tr("dv.live"))}</label><br>
+    <label class="small"><input type="radio" name="dvMode" value="pin" ${edit && edit.derive.mode === "pin" ? "checked" : ""}> ${esc(tr("dv.pin"))}</label>
+    <div id="dvPrev" class="small" style="margin-top:8px"></div>
+    <div class="row" style="justify-content:flex-end"><button data-x>${esc(tr("dp.cancel"))}</button><button class="primary" data-go>${esc(tr(edit ? "dv.update" : "dv.create"))}</button></div>`);
+  d.classList.add("wide");
+  const collect = () => {
+    const cs = [...d.querySelectorAll("#dvC tr")].map((r) => ({ sym: r.querySelector("[data-c=sym]").value.trim(), value: r.querySelector("[data-c=value]").value.trim(), unit: r.querySelector("[data-c=unit]").value.trim(), ...(r.dataset.from ? { from: r.dataset.from } : {}) })).filter((c) => c.sym || c.value);
+    const out = [];
+    d.querySelectorAll("tr.vr").forEach((r) => { const u = r.querySelector("[data-v=unit]").value.trim(); if (u) out.push({ op: "convert", col: r.dataset.col, unit: u, keep: r.querySelector("[data-v=keep]").checked }); });
+    d.querySelectorAll("#dvF tr").forEach((r) => {
+      const g = (n) => r.querySelector(`[data-f=${n}]`);
+      if (!g("expr").value.trim() && !g("name").value.trim()) return;
+      out.push({ op: "formula", name: g("name").value.trim(), expr: g("expr").value.trim(), unit: g("unit").value.trim(), replaces: g("replaces").value || null, keep: g("keep").checked, consts: cs });
+    });
+    d.querySelectorAll("#dvS .cl").forEach((r) => out.push(clCollect(r)));
+    return out;
+  };
+  let pt = null, seq = 0;
+  const preview = () => {
+    clearTimeout(pt);
+    pt = setTimeout(async () => {
+      const my = ++seq, box = d.querySelector("#dvPrev");
+      let ops;
+      try { ops = collect(); } catch (e) { box.innerHTML = `<div class="note err">${esc(e.message)}</div>`; return; }
+      if (!ops.length) { box.innerHTML = esc(tr("dv.empty")); return; }
+      const j = await api("api/ds/preview", { share: parentId, ops, title: d.querySelector("#dvTitle").value });
+      if (my !== seq) return;
+      if (j.error) { box.innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
+      const cols = j.header.columns, v = j.page.values, flags = j.header.flags || [];
+      cols.forEach((c) => { if (!CL.cols.some((x) => x.key === c.key)) CL.cols.push(c); });   // new columns for later steps
+      const ex = new Set(flags.filter((f) => f.excluded).map((f) => f.row)), fl = new Set(flags.map((f) => f.row));
+      box.innerHTML = `<div class="prev"><table><thead><tr><th class="rn">#</th>${cols.map((c) => `<th>${esc(c.name)}${c.unit ? ` <span class="u">[${esc(c.unit)}]</span>` : ""}</th>`).join("")}</tr></thead><tbody>${
+        Array.from({ length: Math.min(j.page.r1, 8) }, (_, r) => `<tr class="${ex.has(r) ? "ex" : fl.has(r) ? "fl" : ""}"><td class="rn">${r + 1}</td>${cols.map((c) => { const x = v[c.key][r]; return `<td class="${typeof x === "number" ? "n" : ""}">${x === null ? "" : esc(typeof x === "number" ? nf(x, 6) : x)}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div>
+        <div class="small">${esc(tr("mk.sum", { r: nf(j.header.rows, 9), c: cols.length, b: 1 }))}</div>
+        ${(j.checks || []).length ? `<div class="dvsec">${esc(tr("cl.checks"))}</div>${chipsHtml(j.checks)}` : ""}
+        ${(j.steps || []).length ? `<div class="dvsec">${esc(tr("cl.steps"))}</div>${stepTable(j.steps)}` : ""}
+        ${flags.length ? `<div class="dvsec">${esc(tr("cl.marks"))} (${nf(flags.length, 9)})</div><ul class="fll">${flags.slice(0, 40).map((f) => {
+          const c = cols.find((x) => x.key === f.col), val = f.col && v[f.col] && f.row < j.page.r1 ? v[f.col][f.row] : undefined;
+          return `<li><span>${esc(tr("cl.row"))} ${f.row + 1}${c ? ` · ${esc(c.name)}` : ""} · <span class="fb f-${esc(f.code)}">${esc(tr("fl." + f.code))}</span>${f.excluded ? ` <span class="fb f-missing">${esc(tr("fl.excluded"))}</span>` : ""} <span class="small">${esc([f.reason, f.rule].filter(Boolean).join(" · "))}</span></span>${!f.excluded && f.code !== "excluded" ? `<button class="linkbtn" data-exrow="${f.row}">${esc(tr("cl.excl"))}</button>` : ""}</li>`;
+        }).join("")}${flags.length > 40 ? `<li class="small">${esc(tr("cl.more", { n: flags.length - 40 }))}</li>` : ""}</ul>` : ""}`;
+      box.querySelectorAll("[data-exrow]").forEach((b) => { b.onclick = () => excludeRow(+b.dataset.exrow); });
+    }, 350);
+  };
+  // "exclude" next to a flag: the row joins an exclude step with the same reason, or a new one
+  const excludeRow = async (r) => {
+    const last = [...d.querySelectorAll('#dvS .cl[data-k="exclude"]')].pop();
+    const v = await ask(tr("cl.excl_q", { r: r + 1 }), [{ label: tr("cl.reason"), value: last ? last.querySelector('[data-p="reason"]').value : "", req: true }]);
+    if (!v || !v[0].trim()) return;
+    const same = [...d.querySelectorAll('#dvS .cl[data-k="exclude"]')].find((x) => x.querySelector('[data-p="reason"]').value.trim() === v[0].trim());
+    if (same) { const inp = same.querySelector('[data-p="rows"]'); inp.value = rowsText([...parseRows(inp.value), r]); }
+    else d.querySelector("#dvS").insertAdjacentHTML("beforeend", clRow({ op: "exclude", rows: [r], reason: v[0].trim() }));
+    d.querySelector("#dvClean").open = true;
+    wire(); preview();
+  };
+  const wire = () => {
+    d.querySelectorAll("input, select").forEach((x) => { if (x.matches("[data-addstep]")) return; x.oninput = preview; x.onchange = preview; });
+    d.querySelectorAll("[data-rmrow]").forEach((b) => { b.onclick = () => { b.closest("tr").remove(); preview(); }; });
+    d.querySelectorAll("[data-cell]").forEach((b) => { b.onclick = () => dvFromCell(b.closest("tr"), preview); });
+    d.querySelectorAll("#dvS .cl").forEach((row) => {
+      row.querySelectorAll("[data-shape]").forEach((x) => { x.onchange = () => { let o; try { o = clCollect(row, true); } catch (e) { o = { op: row.dataset.k }; } row.outerHTML = clRow(o); wire(); preview(); }; });
+      row.querySelector("[data-rmstep]").onclick = () => { row.remove(); preview(); };
+      row.querySelector("[data-up]").onclick = () => { if (row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); renumber(); preview(); };
+      row.querySelector("[data-down]").onclick = () => { if (row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); renumber(); preview(); };
+    });
+    renumber();
+  };
+  const renumber = () => d.querySelectorAll("#dvS .cl > b").forEach((b, i) => { b.textContent = i + 1 + "."; });
+  d.querySelector("[data-addstep]").onchange = (e) => {
+    const k = e.target.value;
+    e.target.value = "";
+    if (!k) return;
+    d.querySelector("#dvS").insertAdjacentHTML("beforeend", clRow({ op: k }));
+    wire(); preview();
+    const last = d.querySelector("#dvS .cl:last-child input, #dvS .cl:last-child select:not([data-shape])");
+    if (last) last.focus();
+  };
+  const allFrom = d.querySelector("[data-all-from]");
+  if (allFrom) {                                                   // the whole dataset: every column in unit X → Y
+    const dl = () => { d.querySelector("#dvAllD").innerHTML = unitDatalist("dvAllL", allFrom.value); };
+    allFrom.addEventListener("change", dl); dl();                 // wire() sets onchange = preview on every select
+    d.querySelector("[data-all]").onclick = () => {
+      const to = d.querySelector("[data-all-to]").value.trim();
+      if (!to) return d.querySelector("[data-all-to]").focus();
+      d.querySelectorAll(`tr.vr`).forEach((r) => { if (r.dataset.unit === allFrom.value) r.querySelector("[data-v=unit]").value = to; });
+      preview();
+    };
+  }
+  d.querySelector("[data-addf]").onclick = () => { d.querySelector("#dvF").insertAdjacentHTML("beforeend", fRow({})); wire(); };
+  d.querySelector("[data-addc]").onclick = () => { d.querySelector("#dvC").insertAdjacentHTML("beforeend", cRow({})); wire(); };
+  d.querySelector("[data-x]").onclick = () => d.close();
+  d.querySelector("[data-go]").onclick = async () => {
+    let ops;
+    try { ops = collect(); } catch (e) { d.querySelector("#dvPrev").innerHTML = `<div class="note err">${esc(e.message)}</div>`; return; }
+    if (!ops.length) return toast(tr("dv.empty"), true);
+    const mode = d.querySelector("input[name=dvMode]:checked").value;
+    const j = await withBusy(() => api("api/ds/derive", { share: parentId, ops, mode, title: d.querySelector("#dvTitle").value.trim(), target: edit ? edit.id : undefined }));
+    if (j.error) { d.querySelector("#dvPrev").innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
+    d.close();
+    DSL.at = 0; await dsList(); renderSide();
+    toast(tr("ds.saved", { t: d.querySelector("#dvTitle").value.trim(), v: j.version }));
+  };
+  wire();
+  preview();
+}
+// constant from a cell of the open sheet ("12,57 mm²" or value and unit in neighbouring cells)
+async function dvFromCell(row, done) {
+  const f = cur(), s = sel();
+  const def = s ? rangeRef({ r0: s.active.r, c0: s.active.c, r1: s.active.r, c1: s.active.c }) : "";
+  if (!f || !f.id) return toast(tr("dv.cell_none"), true);
+  const v = await ask(tr("dv.cell_q", { s: `${f.name} · ${f.sheets[f.sheet || 0].name}` }), [{ label: tr("dp.ref"), value: def, req: true }]);
+  const ref = v && v[0].trim();
+  if (!ref) return;
+  const g = parseRange(ref.trim());
+  if (!g) return toast(tr("dv.cell_bad"), true);
+  const w = await api("api/cells", { id: f.id, sheet: f.sheet || 0, r0: g.r0, r1: g.r0 + 1, c0: g.c0, c1: g.c0 + 2 });
+  const vals = (w.v && w.v[0]) || [];
+  const j = await api("api/manual/parse", { texts: [String(vals[0] ?? "")], unit: "" });
+  const it = (j.items || [])[0];
+  if (!it || it.value === null || it.value === undefined) return toast(tr("dv.cell_nonum", { r: ref }), true);
+  row.querySelector("[data-c=value]").value = it.cell;
+  row.querySelector("[data-c=unit]").value = it.unit || (typeof vals[1] === "string" && vals[1].length < 12 && !/^[\d\s.,+\-−]/.test(vals[1]) ? vals[1] : "");
+  const sym = row.querySelector("[data-c=sym]");
+  if (!sym.value) {
+    const left = g.c0 > 0 ? await api("api/cells", { id: f.id, sheet: f.sheet || 0, r0: g.r0, r1: g.r0 + 1, c0: g.c0 - 1, c1: g.c0 }) : null;
+    const name = left && left.v && left.v[0] && left.v[0][0];
+    if (typeof name === "string" && /^[A-Za-z_]\w{0,15}\s*[:=]?$/.test(name.trim())) sym.value = name.trim().replace(/\s*[:=]$/, "");
+  }
+  row.dataset.from = `${f.name} ${f.sheets[f.sheet || 0].name}!${ref.trim().toUpperCase()}`;
+  done();
+}
+
+// DP-07/08: cleaning steps of the derive dialog – one row per step; fields depend on the kind (and method)
+const CL_KINDS = ["outliers", "exclude", "replicates", "filter", "trim", "sort", "drop_empty", "duplicates", "smooth", "join"];
+const CL = { cols: [], parent: "" };
+const CL_CMP = [["<", "<"], ["<=", "≤"], [">", ">"], [">=", "≥"], ["==", "="], ["!=", "≠"], ["between", "zwischen|between"], ["notnan", "hat Wert|has value"], ["contains", "enthält|contains"], ["notempty", "nicht leer|not empty"]];
+const CL_CODES = ["outlier", "duplicate", "below_lod", "above_range", "missing", "parse_error"];
+const lng = (s) => { const p = s.split("|"); return window.LabUI && LabUI.lang() === "en" && p[1] ? p[1] : p[0]; };
+function parseRows(s) {
+  const out = [];
+  for (const part of String(s || "").split(/[,;\s]+/).filter(Boolean)) {
+    const m = part.match(/^(\d+)(?:[-–](\d+))?$/);
+    if (!m) throw new Error(tr("cl.badrows", { s: part }));
+    const a = +m[1], b = m[2] ? +m[2] : a;
+    if (a < 1 || b < a || b - a > 100000) throw new Error(tr("cl.badrows", { s: part }));
+    for (let r = a; r <= b; r++) out.push(r - 1);
+  }
+  return [...new Set(out)].sort((x, y) => x - y);
+}
+function rowsText(rows) {
+  const r = [...new Set(rows)].sort((x, y) => x - y), out = [];
+  for (let i = 0; i < r.length; i++) {
+    let j = i;
+    while (j + 1 < r.length && r[j + 1] === r[j] + 1) j++;
+    out.push(j > i + 1 ? `${r[i] + 1}–${r[j] + 1}` : j === i + 1 ? `${r[i] + 1}, ${r[j] + 1}` : `${r[i] + 1}`);
+    i = j;
+  }
+  return out.join(", ");
+}
+function clRow(o) {
+  const k = o.op, cols = CL.cols, nums = cols.filter((c) => c.dtype !== "text");
+  const csel = (p, v, list, none, shape) => `<select data-p="${p}"${shape ? " data-shape" : ""}>${none !== undefined ? `<option value="">${esc(none)}</option>` : ""}${list.map((c) => `<option value="${esc(c.key)}" ${c.key === v ? "selected" : ""}>${esc(c.name)}${c.unit ? ` [${esc(c.unit)}]` : ""}${c.dtype === "text" ? " " + esc(tr("cl.notext")) : ""}</option>`).join("")}</select>`;
+  const inp = (p, v, cls = "s", ph = "") => `<input type="text" data-p="${p}" class="${cls}" value="${esc(v ?? "")}" placeholder="${esc(ph)}" spellcheck="false">`;
+  const chk = (p, on, label) => `<label><input type="checkbox" data-p="${p}" ${on ? "checked" : ""}> ${esc(label)}</label>`;
+  const lab = (t, inner) => `<label>${esc(t)} ${inner}</label>`;
+  const opts = (p, v, list, shape) => `<select data-p="${p}"${shape ? " data-shape" : ""}>${list.map(([x, l]) => `<option value="${esc(x)}" ${String(x) === String(v) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+  const one = (a) => (Array.isArray(a) ? a[0] : a) || "";
+  let f = "";
+  if (k === "trim") f = lab(tr("cl.from"), inp("first", o.first ?? 1)) + lab(tr("cl.to"), inp("last", o.last ?? "", "s", "∞"));
+  else if (k === "filter") {
+    const cmp = o.cmp || ">=";
+    f = csel("col", o.col || (nums[0] || cols[0] || {}).key, cols) + opts("cmp", cmp, CL_CMP.map(([x, l]) => [x, lng(l)]), true)
+      + (cmp === "notnan" || cmp === "notempty" ? "" : inp("value", o.value, "", tr("cl.value")) + (cmp === "between" ? lab(tr("cl.and"), inp("value2", o.value2, "")) : ""));
+  } else if (k === "sort") f = csel("col", o.col, cols) + chk("desc", o.desc, tr("cl.desc"));
+  else if (k === "drop_empty") f = csel("cols", one(o.cols), cols, tr("cl.allnum"));
+  else if (k === "duplicates") f = csel("cols", one(o.cols), cols, tr("cl.allcols"));
+  else if (k === "replicates") f = lab(tr("cl.by"), csel("by", one(o.by), cols));
+  else if (k === "smooth") f = csel("col", o.col, nums) + lab(tr("cl.window"), inp("window", o.window ?? 11)) + lab(tr("cl.order"), inp("order", o.order ?? 2)) + chk("keep", o.keep !== false, tr("cl.keep"));
+  else if (k === "join") {
+    const others = DSL.list.filter((x) => x.id !== CL.parent && (x.columns || []).some((c) => c.dtype !== "text"));
+    const sid = o.share && others.some((x) => x.id === o.share) ? o.share : (others[0] || {}).id || "";
+    const q = dsById(sid), pc = q ? (q.columns || []).filter((c) => c.dtype !== "text") : [];
+    const x2 = o.x2 || (pc.find((c) => c.role === "x") || pc[0] || {}).key;
+    f = lab(tr("cl.partner"), `<select data-p="share" data-shape>${others.map((x) => `<option value="${esc(x.id)}" ${x.id === sid ? "selected" : ""}>${esc(x.title)} (v${x.latest})</option>`).join("")}</select>`)
+      + lab(tr("cl.x"), csel("x", o.x || (nums.find((c) => c.role === "x") || nums[0] || {}).key, nums)) + lab(tr("cl.x2"), csel("x2", x2, pc))
+      + `<span>${esc(tr("cl.take"))}: ${pc.filter((c) => c.key !== x2).map((c) => `<label><input type="checkbox" data-pc="${esc(c.key)}" ${!o.cols || o.cols.includes(c.key) ? "checked" : ""}> ${esc(c.name)}</label>`).join(" ")}</span>`
+      + lab(tr("cl.prefix"), inp("prefix", o.prefix ?? "", "s")) + chk("pin", o.mode === "pin", tr("cl.pin"));
+  } else if (k === "outliers") {
+    const m = o.method || "grubbs", groups = cols.filter((c) => c.role === "group" || c.role === "label" || c.role === "condition" || c.dtype === "text");
+    f = opts("method", m, ["grubbs", "dixon", "iqr", "hampel", "residual"].map((x) => [x, tr("cl.m_" + x)]), true) + csel("col", o.col || (nums.find((c) => c.role === "y") || nums[0] || {}).key, nums)
+      + (m === "residual" ? lab(tr("cl.xcol"), csel("x", o.x || (nums.find((c) => c.role === "x") || nums[0] || {}).key, nums)) + lab(tr("cl.order"), inp("degree", o.degree ?? 1)) : "")
+      + lab(tr("cl.group"), csel("by", o.by || "", groups.length ? groups : cols, tr("cl.nogroup")))
+      + (m === "grubbs" || m === "dixon" ? lab(tr("cl.alpha"), opts("alpha", o.alpha ?? 0.05, [[0.1, "0,10"], [0.05, "0,05"], [0.01, "0,01"]])) : "")
+      + (m === "grubbs" ? opts("sided", o.sided || "two", [["two", tr("cl.two")], ["max", tr("cl.max")], ["min", tr("cl.min")]]) : "")
+      + (m === "iqr" || m === "hampel" || m === "residual" ? lab(tr("cl.k"), inp("k", o.k ?? (m === "iqr" ? 1.5 : 3))) : "")
+      + (m === "hampel" ? lab(tr("cl.window") + " ±", inp("window", o.window ?? 0)) : "");
+  } else if (k === "exclude") {
+    f = lab(tr("cl.rows"), inp("rows", o.rows && o.rows.length ? rowsText(o.rows) : "", "w")) + `<span>${esc(tr("cl.codes"))}: ${CL_CODES.map((c) => `<label><input type="checkbox" data-pk="${c}" ${(o.codes || []).includes(c) ? "checked" : ""}> ${esc(tr("fl." + c))}</label>`).join(" ")}</span>`
+      + lab(tr("cl.reason"), inp("reason", o.reason, "w", tr("cl.reason_ph")));
+  }
+  return `<div class="cl" data-k="${esc(k)}"><b></b><span class="small" style="font-weight:600;color:var(--ink)">${esc(tr("cl." + k).split(" (")[0])}</span>${f}
+    <span class="mv"><button data-up title="${esc(tr("cl.up"))}" aria-label="${esc(tr("cl.up"))}">↑</button><button data-down title="${esc(tr("cl.down"))}" aria-label="${esc(tr("cl.down"))}">↓</button><button class="x" data-rmstep aria-label="${esc(tr("mk.rm"))}">×</button></span></div>`;
+}
+// row → op; `loose` (re-render on a shape change) skips the checks that need a complete row
+function clCollect(row, loose) {
+  const k = row.dataset.k, g = (p) => row.querySelector(`[data-p="${p}"]`);
+  const v = (p) => { const x = g(p); return !x ? undefined : x.type === "checkbox" ? x.checked : x.value.trim(); };
+  const num = (p, d) => { const x = v(p); if (x === undefined || x === "") return d; const n = parseFloat(String(x).replace(",", ".").replace("−", "-")); return isFinite(n) ? n : d; };
+  const o = { op: k };
+  if (k === "trim") { o.first = Math.max(1, Math.round(num("first", 1))); const l = num("last", null); if (l !== null) o.last = Math.round(l); }
+  else if (k === "filter") { o.col = v("col"); o.cmp = v("cmp"); if (v("value") !== undefined) o.value = v("value"); if (v("value2") !== undefined) o.value2 = v("value2"); }
+  else if (k === "sort") { o.col = v("col"); o.desc = v("desc"); }
+  else if (k === "drop_empty" || k === "duplicates") o.cols = v("cols") ? [v("cols")] : [];
+  else if (k === "replicates") o.by = v("by") ? [v("by")] : [];
+  else if (k === "smooth") { o.col = v("col"); o.window = Math.round(num("window", 11)); o.order = Math.round(num("order", 2)); o.keep = v("keep"); }
+  else if (k === "join") {
+    o.share = v("share"); o.x = v("x"); o.x2 = v("x2"); o.prefix = v("prefix") || "";
+    o.cols = [...row.querySelectorAll("[data-pc]")].filter((x) => x.checked).map((x) => x.dataset.pc);
+    o.mode = v("pin") ? "pin" : "live";
+    if (o.mode === "pin") { const q = dsById(o.share); if (q) o.version = q.latest; }
+  } else if (k === "outliers") {
+    o.method = v("method"); o.col = v("col");
+    if (v("by")) o.by = v("by");
+    if (g("alpha")) o.alpha = num("alpha", 0.05);
+    if (g("sided")) o.sided = v("sided");
+    if (g("k")) o.k = num("k", o.method === "iqr" ? 1.5 : 3);
+    if (g("window")) o.window = Math.max(0, Math.round(num("window", 0)));
+    if (g("x")) o.x = v("x");
+    if (g("degree")) o.degree = Math.round(num("degree", 1));
+  } else if (k === "exclude") {
+    o.rows = loose ? (() => { try { return parseRows(v("rows")); } catch (e) { return []; } })() : parseRows(v("rows"));
+    o.codes = [...row.querySelectorAll("[data-pk]")].filter((x) => x.checked).map((x) => x.dataset.pk);
+    o.reason = v("reason");
+  }
+  return o;
+}
+
+// ================================================================== DP-09: Vorlagen und Stapel
+async function tplSave() {
+  const f = cur();
+  if (!f || !f.id) return;
+  const v = await ask(tr("tp.save"), [{ label: tr("tp.name"), value: f.name, req: true }]);
+  if (!v || !v[0].trim()) return;
+  const j = await withBusy(() => api("api/tpl/save", { id: f.id, sheet: f.sheet || 0, steps: steps(), name: v[0].trim() }));
+  if (j.error) return toast(j.error, true);
+  toast(tr("tp.saved", { n: j.template.name }));
+}
+const tplProblems = (ps) => `<ul class="fll">${(ps || []).slice(0, 12).map((p) => `<li><span><b>${esc(p.cell || "")}</b> ${esc(p.what || "")} – ${esc(tr("tp.expected", { e: p.expected ?? "", f: p.found ?? "" }))}</span></li>`).join("")}</ul>`;
+async function tplDialog() {
+  const j = await withBusy(() => api("api/tpl/list", {}));
+  if (j.error) return toast(j.error, true);
+  const T = j.templates || [], f = cur();
+  const files = S.files.filter((x) => x.id && !x.placeholder && !x.dataset);
+  const canApply = f && f.id && !f.placeholder && !f.dataset;
+  const d = dlg("tpDlg", `<b>${esc(tr("tp.h"))}</b><div class="small">${esc(tr("tp.t"))}</div>
+    ${T.length ? `<ul class="dslist">${T.map((t) => `<li><div><b>${esc(t.name)}</b> <span class="small">${esc(tr("tp.steps", { n: t.steps }))} · ${esc(tr("tp.from", { f: [(t.source || {}).file, (t.source || {}).sheet].filter(Boolean).join(" · ") }))}</span></div>
+      <div class="acts"><button data-tapply="${esc(t.id)}" ${canApply ? "" : "disabled"}>${esc(tr("tp.apply"))}</button><button class="x" data-tdel="${esc(t.id)}" data-n="${esc(t.name)}">${esc(tr("tp.del"))}</button></div></li>`).join("")}</ul>` : `<p class="small">${esc(tr("tp.none"))}</p>`}
+    <div id="tpMsg"></div>
+    ${T.length && files.length ? `<div class="dvsec">${esc(tr("tp.batch"))}</div>
+      <label for="tpT">${esc(tr("tp.tpl"))}</label><select id="tpT" style="width:100%">${T.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")}</select>
+      <label>${esc(tr("tp.files"))}</label><div id="tpF" style="max-height:150px;overflow:auto">${files.map((x) => `<label class="small" style="margin:2px 0"><input type="checkbox" value="${esc(x.id)}" data-sheet="${x.sheet || 0}" checked> ${esc(x.name)} · ${esc((x.sheets[x.sheet || 0] || {}).name || "")}</label>`).join("")}</div>
+      <label class="small"><input type="radio" name="tpM" value="each" checked> ${esc(tr("tp.each"))}</label>
+      <label class="small"><input type="radio" name="tpM" value="combined"> ${esc(tr("tp.comb"))}</label>
+      <label for="tpTitle">${esc(tr("tp.ctitle"))}</label><input type="text" id="tpTitle" maxlength="160" style="width:100%" disabled>
+      <div class="row"><button class="primary" data-trun>${esc(tr("tp.run"))}</button></div><div id="tpRes"></div>` : ""}
+    <div class="row" style="justify-content:flex-end"><button data-x>${esc(tr("mt.close"))}</button></div>`);
+  d.classList.add("wide");
+  d.querySelector("[data-x]").onclick = () => d.close();
+  const msg = (h) => { d.querySelector("#tpMsg").innerHTML = h; };
+  d.querySelectorAll("[data-tdel]").forEach((b) => { b.onclick = async () => {
+    if (!confirm(tr("tp.del_q", { n: b.dataset.n }))) return;
+    const r = await api("api/tpl/delete", { template: b.dataset.tdel });
+    if (r.error) return toast(r.error, true);
+    tplDialog();
+  }; });
+  d.querySelectorAll("[data-tapply]").forEach((b) => { b.onclick = async () => {
+    const g = cur(), k = g.sheet || 0;
+    const r = await withBusy(() => api("api/tpl/apply", { template: b.dataset.tapply, id: g.id, sheet: k }));
+    if (r.error || (r.problems && r.problems.length)) return msg(`<div class="note err">${esc(tr("tp.mismatch"))} ${esc(r.error || "")}${tplProblems(r.problems)}</div>`);
+    g.recipes[k] = r.steps;
+    await reextract(true);
+    if (ENVS_READY()) window.ENVS.save();
+    dsTouch();
+    d.close();
+    toast(tr("tp.applied", { n: (T.find((t) => t.id === b.dataset.tapply) || {}).name || "" }));
+  }; });
+  const run = d.querySelector("[data-trun]");
+  if (!run) return;
+  const ttl = d.querySelector("#tpTitle"), tsel = d.querySelector("#tpT");
+  const syncT = () => { const comb = d.querySelector("input[name=tpM]:checked").value === "combined"; ttl.disabled = !comb; if (comb && !ttl.value) ttl.value = (T.find((t) => t.id === tsel.value) || {}).name || ""; };
+  d.querySelectorAll("input[name=tpM]").forEach((x) => { x.onchange = syncT; });
+  run.onclick = async () => {
+    const items = [...d.querySelectorAll("#tpF input:checked")].map((x) => ({ id: x.value, sheet: +x.dataset.sheet }));
+    if (!items.length) return toast(tr("tp.nofiles"), true);
+    const mode = d.querySelector("input[name=tpM]:checked").value;
+    const r = await withBusy(() => api("api/tpl/batch", { template: tsel.value, items, mode, title: mode === "combined" ? ttl.value.trim() : undefined }));
+    const box = d.querySelector("#tpRes");
+    if (r.error) { box.innerHTML = `<div class="note err">${esc(r.error)}</div>`; return; }
+    let h = `<ul class="fll">${(r.results || []).map((x) => x.ok
+      ? `<li><span>✓ ${esc(x.share ? tr("tp.okds", { n: x.name, r: nf(x.rows, 9), t: x.title, v: x.version }) : tr("tp.ok", { n: x.name, r: nf(x.rows, 9) }))}</span></li>`
+      : `<li><span class="bad">✗ ${esc(x.name)}: ${esc(x.error || "")}${x.problems && x.problems.length ? tplProblems(x.problems) : ""}</span></li>`).join("")}</ul>`;
+    if (r.combined) h += `<div class="note ok">${esc(tr("tp.combined", { t: r.combined.title, v: r.combined.version, r: nf(r.combined.rows, 9) }))}</div>` + (r.combined.notes || []).map((n) => `<div class="note warn">${esc(n)}</div>`).join("");
+    box.innerHTML = h;
+    for (const x of r.results || []) {                              // files without marks take the template's
+      const g = S.files.find((y) => y.id === x.id);
+      if (x.ok && g && !(g.recipes[x.sheet] || []).length) { g.recipes[x.sheet] = x.steps; g.prev[x.sheet] = undefined; }
+    }
+    if (ENVS_READY()) window.ENVS.save();
+    DSL.at = 0; await dsList();
+    const c = cur();
+    if (c && (c.recipes[c.sheet || 0] || []).length && c.prev[c.sheet || 0] === undefined) await reextract(true); else renderSide();
+  };
+}
+
+// ================================================================== Seitenleiste
+function renderSide() {
+  const f = cur(), sh = curSheet(), s = sel(), st = S.stats;
+  if (!f || !sh) { $("#pane").innerHTML = `<p class="small">${esc(tr("dp.empty_t"))}</p>`; return; }
+  if (f.placeholder) { $("#pane").innerHTML = `<h3>${esc(tr("mt.intro_h"))}</h3><p class="small">${esc(tr("mt.intro"))}</p>`; return; }
+  const kv = (rows) => `<dl class="kv">${rows.filter((x) => x[1] !== undefined && x[1] !== null && x[1] !== "").map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`;
+  let h = `<h3>${esc(tr("s.sel"))}${s ? " · " + esc(s.ranges.length > 1 ? s.ranges.length + " Bereiche" : rangeRef(s.ranges[0])) : ""}</h3>`;
+  if (!s) h += `<p class="small">${esc(tr("s.none"))}</p>`;
+  else if (st) h += kv([[tr("s.cells"), nf(st.cells, 9)], [tr("s.numbers"), nf(st.numbers, 9)], [tr("s.text"), st.text ? nf(st.text, 9) : ""],
+    [tr("s.textnum"), st.text_numbers ? nf(st.text_numbers, 9) : ""], [tr("s.empty"), nf(st.empty, 9)], [tr("s.errors"), st.errors || ""],
+    [tr("s.formulas"), st.formulas || ""], [tr("s.sum"), st.numbers ? nf(st.sum) : ""], [tr("s.mean"), st.numbers ? nf(st.mean) : ""],
+    [tr("s.min"), st.numbers ? nf(st.min) : ""], [tr("s.max"), st.numbers ? nf(st.max) : ""]]);
+  if (sh.notes.length) h += sh.notes.map((n) => `<div class="note warn">${esc(n)}</div>`).join("");
+  h = markHtml() + dsHtml() + h;
+  const m = sh.meta || {};
+  h += `<details class="lab-fold" data-fold="sheet"><summary>${esc(tr("s.sheet"))}</summary>` + kv([
+    [tr("s.size"), tr("st.rows", { r: nf(sh.rows, 9), c: sh.cols })], [tr("s.merged"), sh.merged.length || ""],
+    ...Object.entries(sh.types || {}).map(([k, n]) => [tr({ number: "t.num", text: "t.text", date: "t.date", error: "t.err", formula: "t.form", bool: "t.bool" }[k] || k), nf(n, 9)]),
+  ]) + `<div class="legend">${[["num", "t.num"], ["date", "t.date"], ["errc", "t.err"], ["form", "t.form"]].map(([c, k]) => `<span><i style="background:${COL[c]}"></i>${esc(tr(k))}</span>`).join("")}</div></details>`;
+  if (m.sep !== undefined) h += `<details class="lab-fold" data-fold="format"><summary>${esc(tr("s.format"))}</summary>` + kv([
+    [tr("s.sep"), { tab: "Tabulator", space: "Leerzeichen" }[m.sep] || m.sep], [tr("s.dec"), m.dec_comma ? "Komma" : "Punkt"],
+    [tr("s.header"), m.header !== null && m.header !== undefined ? `Zeile ${m.header + 1}` : "–"],
+    [tr("s.units"), m.units !== null && m.units !== undefined ? `Zeile ${m.units + 1}` : "–"],
+    [tr("s.block"), m.end > m.start ? `Zeilen ${m.start + 1}–${m.end}` : "–"]]) + `</details>`;
+  h += `<details class="lab-fold" data-fold="file"><summary>${esc(tr("s.file"))}</summary>` + kv([
+    [tr("s.file"), f.file], ["Bytes", nf(f.bytes, 12)], ["SHA-256", f.sha256.slice(0, 16) + "…"]]) + `</details>`;
+  $("#pane").innerHTML = h;
+  bindMark();
+  bindDs();
+  if (window.LabUI) LabUI.folds("datenaufbereitung", $("#pane"));
+}
+
+// ================================================================== Menüs
+function buildMenus() {
+  const f = cur();
+  const menus = [
+    { label: tr("m.file"), items: [
+      { label: tr("mt.new"), act: newManual },
+      { label: tr("ds.openm"), act: dsBrowse },
+      { label: tr("tp.menu"), act: tplDialog },
+      { label: tr("dp.open"), k: KEY("O"), act: () => $("#file").click() },
+      { label: tr("dp.paste"), k: f && f.manual ? "" : KEY("V"), act: () => pasteDialog() },
+      { sep: true },
+      { label: tr("m.rename"), act: renameFile, off: !f || !f.id },
+      { label: tr("m.remove"), act: () => removeFile(S.sel), off: !f || !f.id },
+      ...(f && f.manual ? [{ sep: true }, { label: tr("mt.undo"), k: KEY("Z"), act: undo }, { label: tr("mt.redo"), k: KEY("Y"), act: redo },
+        { label: tr("mt.addsheet"), act: () => sheetOp("add") }, { label: tr("mt.rensheet"), act: () => sheetOp("rename") },
+        { label: tr("mt.rmsheet"), act: () => sheetOp("remove"), off: f.sheets.length < 2 }] : []),
+      { sep: true },
+      { label: tr("m.envs"), act: () => window.ENVS && window.ENVS.dialog() },
+      { label: tr("m.index"), act: () => LabIndex.browse(api, toast) },
+    ] },
+    { label: tr("m.view"), items: [
+      { label: tr("m.all"), k: KEY("A"), act: () => { const sh = curSheet(); if (sh) setSel({ r0: 0, c0: 0, r1: sh.rows - 1, c1: sh.cols - 1 }); }, off: !f },
+      { label: tr("m.goto"), act: () => $("#refBox").focus(), off: !f },
+      { label: tr("m.side"), act: () => { S.side = !S.side; $("#main").classList.toggle("noside", !S.side); draw(); } },
+    ] },
+  ];
+  const bar = $("#menubar");
+  bar.innerHTML = "";
+  menus.forEach((m) => {
+    const w = document.createElement("div");
+    w.className = "m";
+    const b = document.createElement("button");
+    b.textContent = m.label;
+    b.setAttribute("aria-haspopup", "true");
+    w.appendChild(b);
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = w.querySelector(".dd");
+      closeMenus();
+      if (open) return;
+      b.classList.add("open");
+      const dd = document.createElement("div");
+      dd.className = "dd";
+      dd.setAttribute("role", "menu");
+      m.items.forEach((it) => {
+        if (it.sep) { dd.appendChild(document.createElement("hr")); return; }
+        const x = document.createElement("button");
+        x.setAttribute("role", "menuitem");
+        x.disabled = !!it.off;
+        x.innerHTML = `<span>${esc(it.label)}</span>${it.k ? `<span class="k">${esc(it.k)}</span>` : ""}`;
+        x.addEventListener("click", () => { closeMenus(); it.act(); });
+        dd.appendChild(x);
+      });
+      w.appendChild(dd);
+    });
+    bar.appendChild(w);
+  });
+}
+const KEY = (k) => (window.LabUI && LabUI.lang() === "en" ? "Ctrl+" : "Strg+") + k;
+function closeMenus() { document.querySelectorAll("#menubar .dd").forEach((d) => d.remove()); document.querySelectorAll("#menubar button.open").forEach((b) => b.classList.remove("open")); }
+document.addEventListener("click", closeMenus);
+
+// ================================================================== Laden, Einfügen, Ziehen
+$("#btnOpen").addEventListener("click", () => $("#file").click());
+$("#btnPaste").addEventListener("click", () => pasteDialog());
+$("#file").addEventListener("change", (e) => { const l = [...e.target.files]; e.target.value = ""; if (l.length) loadFiles(l); });
+const box = $("#gbox");
+["dragenter", "dragover"].forEach((t) => box.addEventListener(t, (e) => { e.preventDefault(); box.classList.add("drop"); }));
+["dragleave", "drop"].forEach((t) => box.addEventListener(t, (e) => { e.preventDefault(); box.classList.remove("drop"); }));
+box.addEventListener("drop", (e) => { const l = [...(e.dataTransfer.files || [])]; if (l.length) loadFiles(l); });
+document.addEventListener("paste", (e) => {
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if (/INPUT|TEXTAREA/.test(tag) || $("#pasteDlg").open || $("#askDlg").open) return;
+  const text = e.clipboardData && e.clipboardData.getData("text/plain");
+  if (!text || !text.trim()) return;
+  e.preventDefault();
+  if (cur() && cur().manual && pasteCells(text)) return;          // DP-M1: into the cells of a measurement sheet
+  pasteDialog(text);
+});
+$("#emptyX").addEventListener("click", () => { S.hintOff = true; $("#empty").hidden = true; });
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && (e.key === "o" || e.key === "O")) { e.preventDefault(); $("#file").click(); }
+});
+
+// ================================================================== Start
+function envSummary() {
+  const n = S.files.length;
+  // UI-18: die gespeicherten Datensätze dieser Umgebung als kleine Grafiken (x gegen bis zu drei Spalten)
+  const plots = [];
+  for (const f of S.files) for (const d of Object.values(f.datasets || {})) if (d && d.thumb && plots.length < 4) plots.push(d.thumb);
+  return { title: n ? `${n} ${n === 1 ? "Datei" : "Dateien"}` : "leer", tags: S.files.slice(0, 6).map((f) => f.name), plots };
+}
+async function init() {
+  readColors();
+  META = await api("api/meta");
+  if (META.error) { toast("Modul nicht erreichbar: " + META.error, true); return; }
+  $("#file").accept = META.accept.join(",");
+  unitLists();
+  buildMenus();
+  layout();
+  renderSide();
+  window.ENVS = LabEnv.create({
+    api, toast, label: $("#envName"),
+    keep: ["name", "sheet", "colW", "recipes", "datasets"],
+    list: () => S.files, sel: () => S.sel,
+    reset: () => { S.files = []; S.sel = -1; G.cache.clear(); PHF = null; if (SQ.on) closeSeq(); },
+    add: async (d, saved) => addFile(d, saved), summary: envSummary,
+    done: (i) => { S.sel = i; afterChange(); if (OV) setTimeout(() => OV.sync(), 0); },
+  });
+  await withBusy(() => ENVS.open());
+  if (window.LabUI) {
+    LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("datenaufbereitung");
+    LabUI.onLang(() => { buildMenus(); renderTabs(); renderSide(); selChanged(); });
+  }
+  if (window.LabOverview) {
+    OV = LabOverview.create({
+      api: (p, b) => api(p, b), toast, module: "datenaufbereitung", envs: () => window.ENVS,
+      detail: [$("#menubar"), $("main")], crumbs: $("#crumbs"),
+      word: { de: ["Sammlung", "Sammlungen"], en: ["Collection", "Collections"] },
+      index: () => LabIndex.browse(api, toast),
+      channels: [DS_CH],
+      incoming: { "data.table": { label: () => tr("ds.open"), run: (s) => { OV.showDetail(); return dsOpen(s.id); } } },
+      onView: (v) => { if (v === "detail") setTimeout(() => { layout(); }, 0); },
+    });
+    if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }
+  }
+}
+init();
+</script>
+</body>
+</html>

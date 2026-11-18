@@ -1,0 +1,8 @@
+{
+  "name": "Lab report (English)",
+  "description": "Test report with Folio Lab: figures, tables, values and references from your analyses.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 1,
+  "icon": "chart"
+}

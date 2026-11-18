@@ -1,0 +1,25 @@
+{
+  "id": "rechner",
+  "name": "Rechner",
+  "name_en": "Calculator",
+  "description": "Wissenschaftlicher Rechner mit Einheiten, Matrizen und Diagrammen. Formelsammlung mit über 200 Formeln zum Anklicken, Grössen definieren und automatisch einsetzen, abgeleitete Werte, Suche nach fehlenden Werten.",
+  "description_en": "Scientific calculator with units, matrices and plots. Library of over 200 clickable equations, defined quantities filled in automatically, derived values, search for missing values.",
+  "icon": "calc",
+  "icon_svg": "<rect x=\"5\" y=\"2.5\" width=\"14\" height=\"19\" rx=\"2\"/><path d=\"M8 6.5h8v3H8z\"/><path d=\"M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01\"/>",
+  "color": "#00796b",
+  "status": "ready",
+  "order": 12,
+  "version": "1.3.0",
+  "accepts": [".json"],
+  "produces": ["figure", "table", "values", "data", "text"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "rechner.server", "--port", "{port}", "--aus", "{outputs}", "--kein-browser"],
+    "health": "/api/meta",
+    "requires": ["numpy", "matplotlib"]
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

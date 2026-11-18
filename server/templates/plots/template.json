@@ -1,0 +1,8 @@
+{
+  "name": "Plots & diagrams (pgfplots / TikZ)",
+  "description": "Function plots, plots from CSV data, bar charts, 3D surfaces and TikZ diagrams.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 5,
+  "icon": "chart"
+}

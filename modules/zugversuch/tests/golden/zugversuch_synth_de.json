@@ -1,0 +1,666 @@
+{
+ "bundle": {
+  "format": "folio-lab-bundle/1",
+  "lang": "de",
+  "module": "zugversuch",
+  "module_name": "Zugversuch",
+  "slug": "zugversuch-synthetische-kurve",
+  "summary": "Synthetische Kurve: Rm 140 MPa",
+  "title": "Zugversuch Synthetische Kurve"
+ },
+ "files": {
+  "data/messdaten.csv": {
+   "first": "0,0,0,3.67083e-17,elastisch",
+   "header": "t_s,F_N,sigma_MPa,eps_pct,phase",
+   "last": "72.03,0.06,0.3,12.005,Bruch",
+   "rows": 481,
+   "type": "csv"
+  },
+  "fig/abweichung.pdf": {
+   "size": 17354,
+   "type": "pdf"
+  },
+  "fig/abweichung.png": {
+   "size": 18787,
+   "type": "png"
+  },
+  "fig/feld.pdf": {
+   "size": 56944,
+   "type": "pdf"
+  },
+  "fig/feld.png": {
+   "size": 96167,
+   "type": "png"
+  },
+  "fig/kandidaten.pdf": {
+   "size": 24873,
+   "type": "pdf"
+  },
+  "fig/kandidaten.png": {
+   "size": 39524,
+   "type": "png"
+  },
+  "fig/linear.pdf": {
+   "size": 24871,
+   "type": "pdf"
+  },
+  "fig/linear.png": {
+   "size": 34273,
+   "type": "png"
+  },
+  "fig/probe.pdf": {
+   "size": 7146,
+   "type": "pdf"
+  },
+  "fig/probe.png": {
+   "size": 3534,
+   "type": "png"
+  },
+  "fig/verlauf.pdf": {
+   "size": 27760,
+   "type": "pdf"
+  },
+  "fig/verlauf.png": {
+   "size": 46822,
+   "type": "png"
+  },
+  "kennwerte.tex": {
+   "lines": [
+    "\\begin{tabular}{lr}",
+    "\\toprule",
+    "Kennwert & Wert \\\\",
+    "\\midrule",
+    "Querschnitt $A_0$ & 0,2000\\,mm$^2$ \\\\",
+    "Messlänge $L_0$ & 10,0\\,mm \\\\",
+    "Prüfgeschwindigkeit & 1,00\\,mm/min \\\\",
+    "Fliessbeginn (2,0\\,\\%) & 105\\,MPa \\\\",
+    "Zugfestigkeit $R_m$ & 140\\,MPa \\\\",
+    "Maximalkraft & 27,9\\,N \\\\",
+    "vor dem Bruch & 120\\,MPa \\\\",
+    "Abfall Maximum bis Bruch & 14,3\\,\\% \\\\",
+    "Haltezeit über 90\\,\\% & 54,8\\,s \\\\",
+    "Verhältnis Maximum/Fliessbeginn & 1,33 \\\\",
+    "Elastizitätsmodul (scheinbar) & 70,0\\,GPa \\\\",
+    "Steigung linearer Abschnitt & 23,333\\,N/s \\\\",
+    "Bestimmtheitsmaß $R^2$ & 1,00000 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "referenz.tex": {
+   "lines": [
+    "\\begin{tabular}{lrrr}",
+    "\\toprule",
+    "Kennwert [MPa] & gemessen & Referenz & Abweichung \\\\",
+    "\\midrule",
+    "Zugfestigkeit $R_m$ & 140 & 285 & $-$51,0\\,\\% \\\\",
+    "Fliessbeginn (2,0\\,\\%) / $R_{p0,2}$ & 105 & 220 & $-$52,2\\,\\% \\\\",
+    "Elastizitätsmodul (scheinbar) [GPa] & 70,0 & 70,0 & 0\\,\\% \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "refs.bib": {
+   "lines": [
+    "@misc{mat-en-aw-5052-h38,",
+    "  title = {Werkstoffkennwerte EN AW-5052-H38},",
+    "  howpublished = {Datenblatt},",
+    "  note = {Baetro, Aluminium 5052 (5052-H38 ab 270 MPa und 220 MPa)}",
+    "}",
+    "",
+    "@misc{mat-en-aw-1050a-weich,",
+    "  title = {Werkstoffkennwerte EN AW-1050A, weich},",
+    "  howpublished = {Literatur},",
+    "  note = {MakeItFrom, 1050 gegen 7075 (Rm 76 bis 140 MPa); MakeItFrom, 1050A-F gegen 5754-F (E 68 GPa)}",
+    "}",
+    "",
+    "@misc{mat-en-aw-8011a-o-folie,",
+    "  title = {Werkstoffkennwerte EN AW-8011A-O, Folie},",
+    "  howpublished = {Normspanne, Rp und A Typwert (dickenabhängig)},",
+    "  note = {EN 546-2, Folie}",
+    "}",
+    "",
+    "@misc{mat-en-aw-1050a-h14,",
+    "  title = {Werkstoffkennwerte EN AW-1050A-H14},",
+    "  howpublished = {Normwert, Rp Mindestwert},",
+    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm}",
+    "}",
+    "",
+    "@misc{mat-en-aw-3003-h14,",
+    "  title = {Werkstoffkennwerte EN AW-3003-H14},",
+    "  howpublished = {Normwert, Rp Mindestwert},",
+    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm}",
+    "}",
+    "",
+    "@misc{mat-en-aw-6060-t6,",
+    "  title = {Werkstoffkennwerte EN AW-6060-T6},",
+    "  howpublished = {Normmindestwert},",
+    "  note = {EN 755-2, Strangpressprofil}",
+    "}",
+    "",
+    "@misc{mat-en-aw-5754-o-h111,",
+    "  title = {Werkstoffkennwerte EN AW-5754-O/H111},",
+    "  howpublished = {Normwert, Rp Mindestwert},",
+    "  note = {EN 485-2}",
+    "}",
+    "",
+    "@misc{mat-en-aw-5052-h32,",
+    "  title = {Werkstoffkennwerte EN AW-5052-H32},",
+    "  howpublished = {Datenblatt},",
+    "  note = {Baetro, Aluminium 5052}",
+    "}",
+    "",
+    "@misc{mat-en-aw-5754-h22,",
+    "  title = {Werkstoffkennwerte EN AW-5754-H22},",
+    "  howpublished = {Normwert, Rp Mindestwert},",
+    "  note = {EN 485-2}",
+    "}",
+    "",
+    "@misc{mat-en-aw-5086-h116-h32,",
+    "  title = {Werkstoffkennwerte EN AW-5086-H116/H32},",
+    "  howpublished = {Datenblatt},",
+    "  note = {Aerospace Metals, 5086-H116/H32 (Rm 290 MPa, Rp0,2 207 MPa, E 71 GPa)}",
+    "}",
+    "",
+    "@misc{mat-en-aw-5083-o-h111,",
+    "  title = {Werkstoffkennwerte EN AW-5083-O/H111},",
+    "  howpublished = {Datenblatt},",
+    "  note = {Righton Blackburns, 5083 O/H111 (Blech 0,2 bis 6,3 mm, Rp0,2 ab 125 MPa, Rm 275 bis 350 MPa)}",
+    "}",
+    "",
+    "@misc{mat-en-aw-6061-t6,",
+    "  title = {Werkstoffkennwerte EN AW-6061-T6},",
+    "  howpublished = {Datenblatt},",
+    "  note = {Protolabs, Datenblatt 6061-T651/T6 (Rm 310, Rp0,2 276 MPa); Powertec, Aluminium 6061-T6 (E 68,9 GPa)}",
+    "}",
+    "",
+    "@misc{mat-en-aw-6082-t6,",
+    "  title = {Werkstoffkennwerte EN AW-6082-T6},",
+    "  howpublished = {Normmindestwert},",
+    "  note = {EN 485-2, Blech}",
+    "}",
+    "",
+    "@misc{mat-en-aw-7020-t6,",
+    "  title = {Werkstoffkennwerte EN AW-7020-T6},",
+    "  howpublished = {Normmindestwert},",
+    "  note = {EN 485-2, Blech}",
+    "}",
+    "",
+    "@misc{mat-en-aw-2017a-t4,",
+    "  title = {Werkstoffkennwerte EN AW-2017A-T4},",
+    "  howpublished = {Normmindestwert},",
+    "  note = {EN 485-2, Blech}",
+    "}",
+    "",
+    "@misc{mat-en-aw-2024-t3,",
+    "  title = {Werkstoffkennwerte EN AW-2024-T3},",
+    "  howpublished = {Datenblatt},",
+    "  note = {United Aluminum, 6061/7075/2024 (2024-T3 mit 483 und 345 MPa)}",
+    "}",
+    "",
+    "@misc{mat-en-aw-7075-t6,",
+    "  title = {Werkstoffkennwerte EN AW-7075-T6},",
+    "  howpublished = {Datenblatt},",
+    "  note = {United Aluminum, 6061/7075/2024 (7075-T6 mit 572,3 und 503,3 MPa)}",
+    "}",
+    "",
+    "@misc{data-zugversuch-synthetische-kurve,",
+    "  title = {Datensatz Synthetische Kurve},",
+    "  howpublished = {Folio Lab},",
+    "  year = {2026},",
+    "  note = {s-5e7a0001, Version 1}",
+    "}"
+   ],
+   "type": "bib"
+  },
+  "text-ergebnisse.tex": {
+   "lines": [
+    "Die Probe erreichte eine Zugfestigkeit von \\labval{zugversuch-synthetische-kurve}{Rm} (Maximalkraft \\labval{zugversuch-synthetische-kurve}{Fmax} nach \\labval{zugversuch-synthetische-kurve}{tmax}). Der Fliessbeginn lag bei \\labval{zugversuch-synthetische-kurve}{yield}, das Verhältnis von Maximum zu Fliessbeginn bei \\labval{zugversuch-synthetische-kurve}{ratio}. Vom Maximum bis zum Bruch fiel die Last um \\labval{zugversuch-synthetische-kurve}{drop}; die Last blieb \\labval{zugversuch-synthetische-kurve}{hold} über 90\\,\\% des Maximums. Gegenüber dem Referenzwerkstoff EN AW-5052-H38 ($R_m = $ \\labval{zugversuch-synthetische-kurve}{refRm} \\cite{mat-en-aw-5052-h38}) weicht die Zugfestigkeit um \\labval{zugversuch-synthetische-kurve}{refdRm} ab. Eine Übereinstimmung in $R_m$ allein bestimmt den Werkstoff nicht. Der scheinbare Modul von \\labval{zugversuch-synthetische-kurve}{E} ist kein Werkstoffkennwert."
+   ],
+   "type": "tex"
+  },
+  "text-methodik.tex": {
+   "lines": [
+    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]. Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg. Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}. Der lineare Abschnitt wurde als längstes Zeitfenster bestimmt, in dem die Messpunkte innerhalb einer festen Toleranz auf einer Geraden liegen. Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$. Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert und keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6})."
+   ],
+   "type": "tex"
+  },
+  "values.tex": {
+   "lines": [
+    "% Values of 'Zugversuch Synthetische Kurve' (Zugversuch). Generated by Folio Lab; do not edit.",
+    "% Use as \\labval{zugversuch-synthetische-kurve}{<key>}.",
+    "\\labset{zugversuch-synthetische-kurve}{Fmax}{27,9\\,N}% Maximalkraft",
+    "\\labset{zugversuch-synthetische-kurve}{tmax}{53,9\\,s}% t(Fmax)",
+    "\\labset{zugversuch-synthetische-kurve}{Rm}{140\\,MPa}% Zugfestigkeit $R_m$",
+    "\\labset{zugversuch-synthetische-kurve}{yield}{105\\,MPa}% Fliessbeginn (2,0\\,\\%)",
+    "\\labset{zugversuch-synthetische-kurve}{yieldF}{21,0\\,N}% Kraft bei Fliessbeginn",
+    "\\labset{zugversuch-synthetische-kurve}{break}{120\\,MPa}% vor dem Bruch",
+    "\\labset{zugversuch-synthetische-kurve}{drop}{14,3\\,\\%}% Abfall Maximum bis Bruch",
+    "\\labset{zugversuch-synthetische-kurve}{hold}{54,8\\,s}% Haltezeit",
+    "\\labset{zugversuch-synthetische-kurve}{ratio}{1,33}% Verhältnis Maximum/Fliessbeginn",
+    "\\labset{zugversuch-synthetische-kurve}{E}{70,0\\,GPa}% Elastizitätsmodul (scheinbar)",
+    "\\labset{zugversuch-synthetische-kurve}{A0}{0,2000\\,mm$^2$}% Querschnitt $A_0$",
+    "\\labset{zugversuch-synthetische-kurve}{L0}{10,0\\,mm}% Messlänge $L_0$",
+    "\\labset{zugversuch-synthetische-kurve}{v}{1,00\\,mm/min}% Prüfgeschwindigkeit",
+    "\\labset{zugversuch-synthetische-kurve}{rate}{6,7\\,Hz}% Abtastrate",
+    "\\labset{zugversuch-synthetische-kurve}{thr}{2,0\\,\\%}% Schwelle Fliessbeginn",
+    "\\labset{zugversuch-synthetische-kurve}{refRm}{285\\,MPa}% $R_m$ Referenz",
+    "\\labset{zugversuch-synthetische-kurve}{refdRm}{$-$51,0\\,\\%}% ΔRm"
+   ],
+   "type": "tex"
+  },
+  "werkstoffe.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{rlrrrrl}",
+    "\\toprule",
+    "Nr. & Werkstoff & $R_{p0,2}$ [MPa] & $R_m$ [MPa] & $A$ [\\%] & $E$ [GPa] & Quelle \\\\",
+    "\\midrule",
+    "1 & EN AW-1050A, weich & 25 & 76 & 30 & 68,0 & \\cite{mat-en-aw-1050a-weich} \\\\",
+    "2 & EN AW-8011A-O, Folie & 50 & 105 & 4 & 69,0 & \\cite{mat-en-aw-8011a-o-folie} \\\\",
+    "3 & EN AW-1050A-H14 & 85 & 125 & 4 & 69,0 & \\cite{mat-en-aw-1050a-h14} \\\\",
+    "4 & EN AW-3003-H14 & 125 & 165 & 4 & 69,0 & \\cite{mat-en-aw-3003-h14} \\\\",
+    "5 & EN AW-6060-T6 & 150 & 190 & 8 & 69,0 & \\cite{mat-en-aw-6060-t6} \\\\",
+    "6 & EN AW-5754-O/H111 & 80 & 215 & 18 & 70,5 & \\cite{mat-en-aw-5754-o-h111} \\\\",
+    "7 & EN AW-5052-H32 & 130 & 235 & 12 & 70,0 & \\cite{mat-en-aw-5052-h32} \\\\",
+    "8 & EN AW-5754-H22 & 130 & 245 & 10 & 70,5 & \\cite{mat-en-aw-5754-h22} \\\\",
+    "9 & EN AW-5052-H38 & 220 & 285 & 7 & 70,0 & \\cite{mat-en-aw-5052-h38} \\\\",
+    "10 & EN AW-5086-H116/H32 & 207 & 290 & 12 & 71,0 & \\cite{mat-en-aw-5086-h116-h32} \\\\",
+    "11 & EN AW-5083-O/H111 & 125 & 310 & 16 & 70,0 & \\cite{mat-en-aw-5083-o-h111} \\\\",
+    "12 & EN AW-6061-T6 & 276 & 310 & 12 & 68,9 & \\cite{mat-en-aw-6061-t6} \\\\",
+    "13 & EN AW-6082-T6 & 260 & 310 & 10 & 70,0 & \\cite{mat-en-aw-6082-t6} \\\\",
+    "14 & EN AW-7020-T6 & 280 & 350 & 10 & 70,0 & \\cite{mat-en-aw-7020-t6} \\\\",
+    "15 & EN AW-2017A-T4 & 260 & 390 & 12 & 72,5 & \\cite{mat-en-aw-2017a-t4} \\\\",
+    "16 & EN AW-2024-T3 & 345 & 483 & 18 & 73,1 & \\cite{mat-en-aw-2024-t3} \\\\",
+    "17 & EN AW-7075-T6 & 503 & 572 & 11 & 71,7 & \\cite{mat-en-aw-7075-t6} \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  }
+ },
+ "items": [
+  {
+   "key": "mat-en-aw-5052-h38",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-5052-H38"
+  },
+  {
+   "key": "mat-en-aw-1050a-weich",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-1050A, weich"
+  },
+  {
+   "key": "mat-en-aw-8011a-o-folie",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-8011A-O, Folie"
+  },
+  {
+   "key": "mat-en-aw-1050a-h14",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-1050A-H14"
+  },
+  {
+   "key": "mat-en-aw-3003-h14",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-3003-H14"
+  },
+  {
+   "key": "mat-en-aw-6060-t6",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-6060-T6"
+  },
+  {
+   "key": "mat-en-aw-5754-o-h111",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-5754-O/H111"
+  },
+  {
+   "key": "mat-en-aw-5052-h32",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-5052-H32"
+  },
+  {
+   "key": "mat-en-aw-5754-h22",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-5754-H22"
+  },
+  {
+   "key": "mat-en-aw-5086-h116-h32",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-5086-H116/H32"
+  },
+  {
+   "key": "mat-en-aw-5083-o-h111",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-5083-O/H111"
+  },
+  {
+   "key": "mat-en-aw-6061-t6",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-6061-T6"
+  },
+  {
+   "key": "mat-en-aw-6082-t6",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-6082-T6"
+  },
+  {
+   "key": "mat-en-aw-7020-t6",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-7020-T6"
+  },
+  {
+   "key": "mat-en-aw-2017a-t4",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-2017A-T4"
+  },
+  {
+   "key": "mat-en-aw-2024-t3",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-2024-T3"
+  },
+  {
+   "key": "mat-en-aw-7075-t6",
+   "kind": "citation",
+   "title": "Werkstoffkennwerte EN AW-7075-T6"
+  },
+  {
+   "key": "data-zugversuch-synthetische-kurve",
+   "kind": "citation",
+   "title": "Datensatz Synthetische Kurve"
+  },
+  {
+   "caption": "Spannungs-Zeit-Verlauf der Messung Synthetische Kurve nach Phasen mit Fliessbeginn (2,0\\,\\% von $R_m$), Maximum und Bruch.",
+   "cites": [],
+   "file": "fig/verlauf.pdf",
+   "id": "verlauf",
+   "kind": "figure",
+   "label": "fig:zugversuch-synthetische-kurve-verlauf",
+   "preview": "fig/verlauf.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Messpunkte der Messung Synthetische Kurve gegen die verlängerte Ausgleichsgerade des linearen Abschnitts.",
+   "cites": [],
+   "file": "fig/linear.pdf",
+   "id": "linear",
+   "kind": "figure",
+   "label": "fig:zugversuch-synthetische-kurve-linear",
+   "preview": "fig/linear.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Abweichung der Messpunkte von der Ausgleichsgeraden mit der Schwelle des Fliessbeginns (2,0\\,\\% von $R_m$).",
+   "cites": [],
+   "file": "fig/abweichung.pdf",
+   "id": "abweichung",
+   "kind": "figure",
+   "label": "fig:zugversuch-synthetische-kurve-abweichung",
+   "preview": "fig/abweichung.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Gemessene Spannungs-Dehnungs-Kurve im idealisierten Feld der Vergleichsgruppe Aluminium und dem Referenzwerkstoff EN AW-5052-H38. Dehnung aus dem Weg an der Probe. Die Zahlen an den Kurvenenden bezeichnen die Werkstoffe im Schlüssel; Kennwerte aus den angegebenen Quellen~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "cites": [
+    "mat-en-aw-1050a-weich",
+    "mat-en-aw-8011a-o-folie",
+    "mat-en-aw-1050a-h14",
+    "mat-en-aw-3003-h14",
+    "mat-en-aw-6060-t6",
+    "mat-en-aw-5754-o-h111",
+    "mat-en-aw-5052-h32",
+    "mat-en-aw-5754-h22",
+    "mat-en-aw-5052-h38",
+    "mat-en-aw-5086-h116-h32",
+    "mat-en-aw-5083-o-h111",
+    "mat-en-aw-6061-t6",
+    "mat-en-aw-6082-t6",
+    "mat-en-aw-7020-t6",
+    "mat-en-aw-2017a-t4",
+    "mat-en-aw-2024-t3",
+    "mat-en-aw-7075-t6"
+   ],
+   "file": "fig/feld.pdf",
+   "id": "feld",
+   "kind": "figure",
+   "label": "fig:zugversuch-synthetische-kurve-feld",
+   "preview": "fig/feld.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Fliessbeginn und Zugfestigkeit der Messung im Vergleich mit den nächstliegenden Werkstoffen der Gruppe Aluminium~\\cite{mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-8011a-o-folie,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38}.",
+   "cites": [
+    "mat-en-aw-1050a-h14",
+    "mat-en-aw-3003-h14",
+    "mat-en-aw-6060-t6",
+    "mat-en-aw-8011a-o-folie",
+    "mat-en-aw-5052-h32",
+    "mat-en-aw-5754-h22",
+    "mat-en-aw-5052-h38"
+   ],
+   "file": "fig/kandidaten.pdf",
+   "id": "kandidaten",
+   "kind": "figure",
+   "label": "fig:zugversuch-synthetische-kurve-kandidaten",
+   "preview": "fig/kandidaten.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Probengeometrie: Manuell, b = --, Dicke --.",
+   "cites": [],
+   "file": "fig/probe.pdf",
+   "id": "probe",
+   "kind": "figure",
+   "label": "fig:zugversuch-synthetische-kurve-probe",
+   "preview": "fig/probe.png",
+   "width": "0.6"
+  },
+  {
+   "caption": "Kennwerte der Messung Synthetische Kurve.",
+   "cites": [],
+   "file": "kennwerte.tex",
+   "id": "kennwerte",
+   "kind": "table",
+   "label": "tab:zugversuch-synthetische-kurve-kennwerte",
+   "notes": ""
+  },
+  {
+   "caption": "Messung Synthetische Kurve im Vergleich mit dem Referenzwerkstoff EN AW-5052-H38 (Sollwerte, nicht gemessen)~\\cite{mat-en-aw-5052-h38}.",
+   "cites": [
+    "mat-en-aw-5052-h38"
+   ],
+   "file": "referenz.tex",
+   "id": "referenz",
+   "kind": "table",
+   "label": "tab:zugversuch-synthetische-kurve-referenz",
+   "notes": ""
+  },
+  {
+   "caption": "Werkstoffe des Spannungs-Dehnungs-Felds Aluminium mit den Kennwerten, aus denen ihre Kurven idealisiert sind (Nummern wie im Diagramm)~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "cites": [
+    "mat-en-aw-1050a-weich",
+    "mat-en-aw-8011a-o-folie",
+    "mat-en-aw-1050a-h14",
+    "mat-en-aw-3003-h14",
+    "mat-en-aw-6060-t6",
+    "mat-en-aw-5754-o-h111",
+    "mat-en-aw-5052-h32",
+    "mat-en-aw-5754-h22",
+    "mat-en-aw-5052-h38",
+    "mat-en-aw-5086-h116-h32",
+    "mat-en-aw-5083-o-h111",
+    "mat-en-aw-6061-t6",
+    "mat-en-aw-6082-t6",
+    "mat-en-aw-7020-t6",
+    "mat-en-aw-2017a-t4",
+    "mat-en-aw-2024-t3",
+    "mat-en-aw-7075-t6"
+   ],
+   "file": "werkstoffe.tex",
+   "id": "werkstoffe",
+   "kind": "table",
+   "label": "tab:zugversuch-synthetische-kurve-werkstoffe",
+   "notes": ""
+  },
+  {
+   "columns": [
+    "t_s",
+    "F_N",
+    "sigma_MPa",
+    "eps_pct",
+    "phase"
+   ],
+   "description": "Messdaten der Messung Synthetische Kurve: Zeit, Kraft, Spannung, Dehnung.",
+   "file": "data/messdaten.csv",
+   "id": "messdaten",
+   "kind": "data",
+   "labels": {
+    "F_N": "Kraft $F$ [N]",
+    "eps_pct": "Dehnung $\\varepsilon$ [\\%]",
+    "phase": "Phase",
+    "sigma_MPa": "Spannung $\\sigma$ [MPa]",
+    "t_s": "Zeit $t$ [s]"
+   },
+   "plot": {
+    "x": "t_s",
+    "y": "sigma_MPa"
+   },
+   "rows": 481
+  },
+  {
+   "file": "text-methodik.tex",
+   "id": "methodik",
+   "kind": "text",
+   "title": "Methodik"
+  },
+  {
+   "file": "text-ergebnisse.tex",
+   "id": "ergebnisse",
+   "kind": "text",
+   "title": "Ergebnisse"
+  },
+  {
+   "file": "values.tex",
+   "kind": "values",
+   "values": [
+    [
+     "Fmax",
+     "27.9 N"
+    ],
+    [
+     "tmax",
+     "53.9 s"
+    ],
+    [
+     "Rm",
+     "140 MPa"
+    ],
+    [
+     "yield",
+     "105 MPa"
+    ],
+    [
+     "yieldF",
+     "21.0 N"
+    ],
+    [
+     "break",
+     "120 MPa"
+    ],
+    [
+     "drop",
+     "14.3 %"
+    ],
+    [
+     "hold",
+     "54.8 s"
+    ],
+    [
+     "ratio",
+     "1.33"
+    ],
+    [
+     "E",
+     "70.0 GPa"
+    ],
+    [
+     "A0",
+     "0.2000 mm²"
+    ],
+    [
+     "L0",
+     "10.0 mm"
+    ],
+    [
+     "v",
+     "1.00 mm/min"
+    ],
+    [
+     "rate",
+     "6.7 Hz"
+    ],
+    [
+     "thr",
+     "2.0 %"
+    ],
+    [
+     "refRm",
+     "285 MPa"
+    ],
+    [
+     "refdRm",
+     "-51.0 %"
+    ]
+   ]
+  }
+ ],
+ "source": {
+  "files": {
+   "Synthetische Kurve.json": {
+    "size": 13523
+   }
+  },
+  "request": {
+   "items": [
+    {
+     "config": {
+      "a0_mm2": 0.2,
+      "batch": "",
+      "break_lower": 0.01,
+      "break_upper": 0.1,
+      "compare_group": null,
+      "diameter_mm": null,
+      "displacement_source": "probe",
+      "equations": null,
+      "ext_values": null,
+      "extra_refs": null,
+      "fit_start_points": 3,
+      "hold_threshold": 0.9,
+      "l0_mm": 10.0,
+      "material": "",
+      "material_ref": "EN AW-5052-H38",
+      "operator": "",
+      "outer_d_mm": null,
+      "remark": "",
+      "section": "rechteckig",
+      "shape": "Frei",
+      "slope_window_s": 1.0,
+      "specimen_mode": "manuell",
+      "speed_mm_min": 1.0,
+      "thickness_mm": null,
+      "tol_force_n": 0.2,
+      "tol_stress_mpa": 1.0,
+      "wall_mm": null,
+      "width_mm": null,
+      "yield_threshold": 0.02
+     },
+     "name": "Synthetische Kurve.json"
+    }
+   ],
+   "slug": "zugversuch-synthetische-kurve"
+  }
+ }
+}

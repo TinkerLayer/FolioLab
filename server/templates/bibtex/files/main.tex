@@ -1,0 +1,27 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+
+\title{Citing Sources with BibTeX}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This document uses the classic BibTeX workflow with \texttt{natbib}.
+Folio sees the \verb|\bibliography| command and runs BibTeX for you.
+
+\TeX{} was written by Knuth~\citep{knuth1984}. \citet{lamport1994} describes
+\LaTeX{}, and the companion~\citep{mittelbach2004} covers packages. Several
+references at once are compressed into a range~\citep{knuth1984,lamport1994,mittelbach2004}.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

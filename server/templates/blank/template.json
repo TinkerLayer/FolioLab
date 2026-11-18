@@ -1,0 +1,8 @@
+{
+  "name": "Blank document",
+  "description": "A minimal article to start from scratch.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 1,
+  "icon": "blank"
+}

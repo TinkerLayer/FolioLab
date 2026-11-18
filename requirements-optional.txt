@@ -1,0 +1,10 @@
+# Optional Python packages. Folio Lab runs without them; each adds one capability.
+#   xlrd     legacy Excel .xls files in the Datenaufbereitung (tested: 2.0.2)
+#   pyarrow  Parquet import/export in the Datenaufbereitung (tested: 26.0.1)
+#   pyngb    native NETZSCH .ngb-ss3/.ngb-ds3 files in the TGA module (tested: 0.6.1; pulls in polars, pyarrow, scipy)
+# Only for running the test suites:
+#   scipy    cross-checks in the Datenaufbereitung tests (tested: 1.18.1)
+xlrd
+pyarrow
+pyngb>=0.6
+scipy

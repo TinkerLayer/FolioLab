@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Folio Lab</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" data-name="vs/editor/editor.main" href="/vendor/monaco/vs/editor/editor.main.css">
+  <script>
+    try { const t = localStorage.getItem('folio.theme'); if (t && t !== 'system') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+</head>
+<body class="editor-page">
+  <header class="ed-header">
+    <a class="btn ghost icon" href="/" title="Back to Folio Lab (analyses and reports)" data-icon="arrow-left"></a>
+    <button class="title" id="proj-title" title="Rename project">Loading…</button>
+    <span class="save-state" id="save-state"></span>
+    <div class="center">
+      <button class="btn ghost icon sm" id="btn-sidebar" title="Show/hide file tree" data-icon="sidebar"></button>
+      <span class="sep"></span>
+      <button class="btn ghost sm" data-layout="editor" title="Editor only" data-icon="code"></button>
+      <button class="btn ghost sm" data-layout="split" title="Editor and PDF side by side" data-icon="columns"></button>
+      <button class="btn ghost sm" data-layout="pdf" title="PDF only" data-icon="eye"></button>
+    </div>
+    <div class="compile-group">
+      <button class="btn primary" id="btn-compile" title="Compile (Ctrl+S / Ctrl+Enter)"></button>
+      <button class="btn primary caret" id="btn-compile-menu" title="Compile options" data-icon="chevron-down"></button>
+    </div>
+    <button class="btn" id="btn-logs" title="Logs and errors"></button>
+    <span class="sep"></span>
+    <button class="btn ghost icon" id="btn-download" title="Download PDF" data-icon="download"></button>
+    <button class="btn ghost icon" id="btn-zip" title="Download source as .zip" data-icon="folder"></button>
+    <button class="btn ghost icon" id="btn-settings" title="Settings" data-icon="settings"></button>
+    <button class="btn ghost icon" id="btn-theme" title="Toggle light/dark"></button>
+  </header>
+
+  <div class="ed-main" id="main">
+    <aside class="pane sidebar">
+      <div class="side-section files">
+        <div class="pane-toolbar">
+          <span class="label">Files</span>
+          <button class="btn ghost icon sm" id="btn-new-file" title="New file" data-icon="file-plus"></button>
+          <button class="btn ghost icon sm" id="btn-new-folder" title="New folder" data-icon="folder-plus"></button>
+          <button class="btn ghost icon sm" id="btn-upload" title="Upload files (or drag & drop)" data-icon="upload"></button>
+        </div>
+        <div class="tree" id="tree"></div>
+      </div>
+      <div class="side-section outline" id="outline-section">
+        <div class="pane-toolbar"><span class="label" id="outline-toggle" style="cursor:pointer">Outline</span></div>
+        <div class="outline-list" id="outline"></div>
+      </div>
+    </aside>
+    <div class="gutter" id="gutter-side"></div>
+
+    <section class="pane editor-pane">
+      <div class="tabs" id="tabs"></div>
+      <div class="pane-toolbar fmt-toolbar" id="fmt-toolbar">
+        <button class="btn ghost icon sm" data-fmt="bold" title="Bold (Ctrl+B)" data-icon="bold"></button>
+        <button class="btn ghost icon sm" data-fmt="italic" title="Italic (Ctrl+I)" data-icon="italic"></button>
+        <button class="btn ghost icon sm" data-fmt="section" title="Section heading" data-icon="heading"></button>
+        <span class="sep"></span>
+        <button class="btn ghost icon sm" data-fmt="itemize" title="Bulleted list" data-icon="list"></button>
+        <button class="btn ghost icon sm" data-fmt="enumerate" title="Numbered list" data-icon="list-ol"></button>
+        <button class="btn ghost icon sm" data-fmt="math" title="Inline math / equation" data-icon="sigma"></button>
+        <span class="sep"></span>
+        <button class="btn ghost sm" data-fmt="figure" title="Insert figure (image)" data-icon="image"></button>
+        <button class="btn ghost sm" data-fmt="table" title="Insert table" data-icon="table"></button>
+        <button class="btn ghost sm" data-fmt="plot" title="Insert plot (pgfplots)" data-icon="chart"></button>
+        <button class="btn ghost sm" data-fmt="cite" title="Insert citation" data-icon="cite"></button>
+        <button class="btn ghost sm lab-btn" data-fmt="lab" title="Insert analysis results: figures, tables, values, data, references (Folio Lab)" data-icon="flask"></button>
+        <button class="btn ghost icon sm" data-fmt="ref" title="Insert cross-reference" data-icon="ref"></button>
+        <button class="btn ghost icon sm" data-fmt="link" title="Insert link" data-icon="link"></button>
+        <span style="flex:1"></span>
+        <button class="btn ghost sm" id="btn-sync-fwd" title="Show this line in the PDF" data-icon="arrow-right"></button>
+      </div>
+      <div class="monaco-host" id="monaco"></div>
+      <div class="preview-host hidden" id="preview"></div>
+    </section>
+    <div class="gutter" id="gutter-pdf"></div>
+
+    <section class="pane pdf-pane">
+      <div class="pane-toolbar">
+        <span class="page-label" id="page-label"></span>
+        <span style="flex:1"></span>
+        <button class="btn ghost icon sm" id="zoom-out" title="Zoom out" data-icon="zoom-out"></button>
+        <button class="zoom-label" id="zoom-label" title="Zoom options">100%</button>
+        <button class="btn ghost icon sm" id="zoom-in" title="Zoom in" data-icon="zoom-in"></button>
+        <button class="btn ghost icon sm" id="zoom-fit" title="Fit width" data-icon="fit-width"></button>
+        <a class="btn ghost icon sm" id="pdf-open" title="Open PDF in a new tab" target="_blank" data-icon="external"></a>
+      </div>
+      <div class="pdf-scroll" id="pdf-scroll" tabindex="0">
+        <div class="pdf-empty" id="pdf-empty"><div><div class="big">No PDF yet</div>Press <kbd>Ctrl</kbd>+<kbd>S</kbd> or click Recompile.</div></div>
+      </div>
+      <div class="logs hidden" id="logs"></div>
+      <div class="compile-overlay hidden" id="compile-overlay"></div>
+    </section>
+  </div>
+  <input type="file" id="upload-input" multiple hidden>
+
+  <script src="/vendor/monaco/vs/loader.js"></script>
+  <script type="module" src="/js/editor/editor.js"></script>
+</body>
+</html>

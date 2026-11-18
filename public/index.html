@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Folio Lab</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css">
+  <script>
+    try { const t = localStorage.getItem('folio.theme'); if (t && t !== 'system') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="dash-header">
+    <a class="brand" href="/"><span class="logo">F</span>Folio Lab</a>
+    <span class="muted" style="font-size:13px">Data analysis &amp; report writing</span>
+    <span class="spacer"></span>
+    <span id="tex-status" class="pill"><span class="dot"></span>Checking TeX…</span>
+    <button id="theme-btn" class="btn ghost icon" title="Toggle theme"></button>
+  </header>
+
+  <main class="dash">
+    <div id="tex-banner" class="tex-banner hidden"></div>
+    <section class="lab-section">
+      <div class="dash-top">
+        <h1>Analyses</h1>
+        <span class="muted" style="font-size:13px">Evaluate measurements, then send figures, tables, values and references to a report.</span>
+        <label class="muted" style="font-size:13px;margin-left:auto" title="Each module keeps its environments (files and work) per project">Project
+          <select id="suite-project" class="input" style="width:auto;margin-left:4px"></select></label>
+        <button id="suite-new" class="btn" title="New project for module environments">New project…</button>
+      </div>
+      <div id="modules" class="mod-grid"></div>
+    </section>
+    <div class="dash-top">
+      <h1>Reports</h1>
+      <input id="search" class="input search" placeholder="Search reports…" type="search">
+      <button id="combine-btn" class="btn" title="Merge several projects (e.g. from co-authors) into one document"></button>
+      <button id="upload-btn" class="btn"></button>
+      <button id="new-btn" class="btn primary"></button>
+      <input id="zip-input" type="file" accept=".zip,application/zip" hidden>
+    </div>
+    <div id="list"></div>
+    <p class="hint" style="margin-top:14px">Tip: drop a <b>.zip</b> of an existing LaTeX project (for example an Overleaf download) anywhere on this page to import it. Working with co-authors? Use <b>Combine projects</b> to merge their .zip exports into one document.</p>
+  </main>
+
+  <script type="module" src="/js/dashboard.js"></script>
+  <script type="module" src="/js/suite.js"></script>
+</body>
+</html>

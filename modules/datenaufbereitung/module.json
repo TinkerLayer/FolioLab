@@ -1,0 +1,25 @@
+{
+  "id": "datenaufbereitung",
+  "name": "Datenaufbereitung",
+  "name_en": "Data Purification",
+  "description": "Grosse Datenmengen aus Excel (xlsx, xls), ODS, CSV/TXT, JSON, Parquet und eingefügten Zellen lesbar machen: Bereiche im Tabellenblatt markieren und ihre Bedeutung festlegen, Einheiten und Spalten zuordnen, bereinigen (Zahlenformate, Nachweisgrenzen, Ausreisser markieren, Wiederholungen mitteln) und als Datensatz mit Einheiten an Rechner, Elementrechner, TGA und FTIR geben.",
+  "description_en": "Make large amounts of data from Excel (xlsx, xls), ODS, CSV/TXT, JSON, Parquet and pasted cells usable: mark ranges in the sheet and say what they mean, assign units and columns, clean them (number formats, detection limits, outlier flags, replicate means) and pass them as datasets with units to the Calculator, the Elemental Calculator, TGA and FTIR.",
+  "icon": "table",
+  "icon_svg": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 9h18M3 14h18M9 4v16M15 4v16\"/>",
+  "color": "#0f766e",
+  "status": "ready",
+  "order": 14,
+  "version": "0.2.0",
+  "accepts": [".xlsx", ".xlsm", ".xls", ".ods", ".csv", ".txt", ".tsv", ".dat", ".asc", ".prn", ".json", ".parquet"],
+  "produces": ["figure", "table", "data", "values", "citation", "text"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "daten.server", "--port", "{port}", "--out", "{outputs}", "--no-browser"],
+    "health": "/api/meta",
+    "requires": ["numpy", "openpyxl", "matplotlib"]
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

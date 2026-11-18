@@ -1,0 +1,8 @@
+{
+  "name": "Thesis / report (multi-file)",
+  "description": "Chapters in separate files, table of contents, figures, appendix and bibliography.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 6,
+  "icon": "layers"
+}

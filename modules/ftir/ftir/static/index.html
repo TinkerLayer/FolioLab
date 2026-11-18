@@ -1,0 +1,2425 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FTIR</title>
+<style>
+:root {
+  --bg: #f3f6f6; --panel: #ffffff; --ink: #1c2122; --muted: #5d6869; --line: #d6dfe0; --soft: #edf2f2;
+  --accent: #007b83; --accent-ink: #ffffff; --accent-soft: rgba(0,123,131,.10); --accent2: #c2410c;
+  --err-bg: #fde7e7; --err-ink: #a50e0e; --ok-bg: #e6f4ef; --ok-ink: #12602a;
+  --plot: #ffffff; --grid: #e6ecec; --likely: #12602a; --possible: #9a5b00; --unlikely: #8a9192;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121617; --panel: #1a1f20; --ink: #e6eeee; --muted: #9aa8a9; --line: #334042; --soft: #232a2b;
+    --accent: #4fc3c9; --accent-ink: #0f1415; --accent-soft: rgba(79,195,201,.14); --accent2: #fb923c;
+    --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #163126; --ok-ink: #a8dab5;
+    --plot: #161b1c; --grid: #273032; --likely: #7fd49a; --possible: #f0b860; --unlikely: #6f7a7b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121617; --panel: #1a1f20; --ink: #e6eeee; --muted: #9aa8a9; --line: #334042; --soft: #232a2b;
+  --accent: #4fc3c9; --accent-ink: #0f1415; --accent-soft: rgba(79,195,201,.14); --accent2: #fb923c;
+  --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #163126; --ok-ink: #a8dab5;
+  --plot: #161b1c; --grid: #273032; --likely: #7fd49a; --possible: #f0b860; --unlikely: #6f7a7b;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; height: 100vh; overflow: hidden; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+input[type=text], input[type=number], input:not([type]), select, textarea { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; width: 100%; }
+input[type=checkbox] { accent-color: var(--accent); }
+label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+label.chk { display: flex; gap: 6px; align-items: center; color: var(--ink); font-size: 13px; margin: 6px 0; }
+.small { font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+header { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; white-space: nowrap; }
+.brand svg { color: var(--accent); }
+.chips { display: flex; gap: 6px; flex: 1; overflow-x: auto; min-width: 0; padding: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); cursor: pointer; white-space: nowrap; max-width: 240px; }
+.chip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.chip span { overflow: hidden; text-overflow: ellipsis; }
+.chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.chip .x { border: 0; background: transparent; padding: 0 5px; color: var(--muted); }
+
+/* UI-05: Übersicht (Menüleiste und Arbeitsfläche verborgen), Tab-Menü „Mehr“, Aufklapper in den Tabs */
+body.lov-board { grid-template-rows: auto minmax(0, 1fr) auto; }
+header .lov-only { display: none; }
+body.lov-board header .lov-only { display: block; flex: 1; }
+.tabs button.more { margin-left: auto; }
+@media (max-width: 700px) { header { flex-wrap: wrap; } header .chips { order: 9; flex-basis: 100%; } }
+.tabmenu { display: flex; flex-direction: column; gap: 2px; min-width: 230px; }
+.tabmenu button { text-align: left; border: 1px solid transparent; background: transparent; padding: 5px 8px; border-radius: 6px; }
+.tabmenu button:hover, .tabmenu button:focus-visible { border-color: var(--accent); }
+.tabmenu small { display: block; color: var(--muted); font-size: 11.5px; }
+.pane details.lab-fold > summary { margin: 14px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+.pane details.lab-fold > summary .cnt { text-transform: none; letter-spacing: 0; font-weight: 400; }
+#menubar { display: flex; gap: 2px; padding: 2px 8px; background: var(--panel); border-bottom: 1px solid var(--line); position: relative; z-index: 20; }
+#menubar > .m { position: relative; }
+#menubar > .m > button { border: 0; background: transparent; padding: 4px 10px; border-radius: 5px; }
+#menubar > .m > button.open, #menubar > .m > button:hover { background: var(--accent-soft); }
+.dd { position: absolute; top: 100%; left: 0; min-width: 270px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; }
+.dd button { display: flex; width: 100%; justify-content: space-between; gap: 18px; border: 0; background: transparent; text-align: left; padding: 5px 10px; border-radius: 5px; }
+.dd button:hover:not(:disabled) { background: var(--accent-soft); }
+.dd button .k { color: var(--muted); font-size: 12px; }
+.dd button.on::before { content: "✓"; margin-right: -12px; color: var(--accent); }
+.dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+
+main { display: grid; grid-template-columns: 46px minmax(0, 1fr) 380px; min-height: 0; }
+#tools { display: flex; flex-direction: column; gap: 3px; padding: 6px 5px; background: var(--panel); border-right: 1px solid var(--line); }
+#tools button { width: 36px; height: 34px; padding: 0; display: grid; place-items: center; border-color: transparent; background: transparent; }
+#tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+#tools hr { width: 70%; border: 0; border-top: 1px solid var(--line); margin: 4px auto; }
+.viewer { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#opts { display: flex; align-items: center; gap: 10px; padding: 5px 10px; background: var(--soft); border-bottom: 1px solid var(--line); min-height: 36px; font-size: 12px; flex-wrap: wrap; }
+#opts .hint { color: var(--muted); flex: 1; min-width: 160px; }
+#stage { position: relative; flex: 1; min-height: 0; background: var(--plot); overflow: hidden; }
+#plot { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; background: var(--plot); }
+#empty .box { border: 2px dashed var(--line); border-radius: 12px; padding: 28px 36px; max-width: 560px; }
+#empty .box b { font-size: 16px; color: var(--ink); display: block; margin-bottom: 6px; }
+#empty button { margin: 12px 4px 0; }
+#stage.drop { outline: 2px dashed var(--accent); outline-offset: -8px; }
+#regionMenu { position: absolute; z-index: 5; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; display: flex; flex-direction: column; min-width: 230px; }
+#regionMenu .t { font-size: 12px; color: var(--muted); padding: 4px 10px; font-variant-numeric: tabular-nums; }
+#regionMenu button { border: 0; background: transparent; text-align: left; padding: 5px 10px; border-radius: 5px; }
+#regionMenu button:hover { background: var(--accent-soft); }
+
+aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 6px 0; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 6px 7px; color: var(--muted); font-size: 12.5px; }
+.tabs button.sel { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.pane { padding: 10px 12px 16px; overflow-y: auto; flex: 1; min-height: 0; }
+.pane h4.sub { margin: 16px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.pane h4.sub:first-child { margin-top: 2px; }
+.note { padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); font-size: 12px; margin-bottom: 8px; }
+.note.warn { background: #fff4e0; color: #7a4a00; }
+#qNote { margin: 0; border-radius: 0; padding: 4px 10px; border-bottom: 1px solid var(--line); }
+#qNote div + div { margin-top: 2px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .note.warn { background: #3a2c12; color: #f0c98a; } }
+:root[data-theme="dark"] .note.warn { background: #3a2c12; color: #f0c98a; }
+.note.err { background: var(--err-bg); color: var(--err-ink); }
+.list { border: 1px solid var(--line); border-radius: 6px; margin-top: 6px; max-height: 260px; overflow-y: auto; }
+.list .it { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 12.5px; }
+.list .it:last-child { border-bottom: 0; }
+.list .it.sel { background: var(--accent-soft); }
+.list .it .nm { flex: 1; min-width: 0; overflow: hidden; overflow-wrap: anywhere; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }   /* lange Namen mit Quelle: zwei Zeilen statt „…“ */
+.list .it .cv { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.list .it button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+.list .it button:hover { color: var(--ink); }
+.list .it input[type=text] { flex: 1; border-color: transparent; background: transparent; padding: 2px 4px; }
+.list .it input[type=text]:focus { border-color: var(--line); background: var(--bg); }
+.list .empty { padding: 10px; color: var(--muted); font-size: 12px; cursor: default; }
+.list label.it { margin: 0; color: var(--ink); }
+.sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+ol.proto { margin: 8px 0 0; padding: 0; list-style: none; counter-reset: s; }
+ol.proto li { counter-increment: s; display: flex; gap: 8px; align-items: flex-start; padding: 5px 6px; border-bottom: 1px solid var(--line); }
+ol.proto li::before { content: counter(s); color: var(--muted); min-width: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+ol.proto li span { flex: 1; }
+ol.proto li button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+ol.proto li.empty::before { content: ""; }
+.tw { overflow: auto; max-height: 340px; border: 1px solid var(--line); border-radius: 6px; margin-top: 8px; }
+table.res { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; width: 100%; }
+table.res th, table.res td { padding: 3px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.res th { position: sticky; top: 0; background: var(--soft); font-weight: 600; z-index: 1; }
+table.res td.l, table.res th.l { text-align: left; }
+table.res td.wrap { white-space: normal; text-align: left; min-width: 120px; }
+table.res tbody tr { cursor: pointer; }
+table.res tbody tr:hover td { background: var(--soft); }
+table.res tr.hl td { background: var(--accent-soft) !important; }
+table.res td.man { color: var(--accent2); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 3px 9px; font-size: 12px; }
+.seg button.sel { background: var(--accent); color: var(--accent-ink); }
+.seg button:disabled { opacity: .4; }
+.badge { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; border: 1px solid currentColor; white-space: nowrap; }
+.v-wahrscheinlich { color: var(--likely); }
+.v-möglich { color: var(--possible); }
+.v-unwahrscheinlich { color: var(--unlikely); }
+.gr { border-bottom: 1px solid var(--line); padding: 6px 2px; }
+.gr .h { display: flex; gap: 8px; align-items: baseline; cursor: pointer; }
+.gr .h b { flex: 1; font-weight: 600; }
+.gr .h .cv { color: var(--muted); font-size: 11.5px; }
+.gr ul { margin: 4px 0 2px 0; padding-left: 16px; font-size: 12px; }
+.gr li { cursor: pointer; }
+.gr li:hover { color: var(--accent); }
+.gr li .st-ok { color: var(--likely); }
+.gr li .st-no { color: var(--muted); }
+.gr li .st-x { color: var(--err-ink); }
+.hqi { font-weight: 600; }
+.bar { height: 4px; border-radius: 2px; background: var(--accent); opacity: .7; }
+.combo { border-bottom: 1px solid var(--line); padding: 6px 4px; cursor: pointer; }
+.combo.sel { background: var(--accent-soft); }
+.combo .h { display: flex; justify-content: space-between; gap: 8px; }
+.combo .c { font-size: 12px; color: var(--muted); }
+.detail { margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; background: var(--soft); }
+.detail ol { margin: 4px 0 0; padding-left: 18px; }
+details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 12px; }
+.vars { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.vars button { padding: 1px 7px; font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
+.vars button.ext { border-style: dashed; }
+.dsY { max-height: 168px; overflow: auto; }   /* DP-13: y-Spalten eines Datensatzes */
+.dlgErr { color: var(--err-ink); font-size: 12px; min-height: 0; margin-top: 6px; white-space: pre-line; }
+code.eq { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+
+footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
+footer #stPos { min-width: 280px; color: var(--ink); }
+footer #stInfo { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+#busy { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); }
+#busy::before { content: ""; width: 10px; height: 10px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 0; width: min(460px, calc(100vw - 32px)); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+dialog.wide { width: min(780px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(8,12,14,.45); }
+dialog h3 { margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+dialog .body { padding: 8px 16px 12px; max-height: 70vh; overflow-y: auto; }
+dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
+dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: center; }
+#toasts { position: fixed; right: 14px; bottom: 34px; display: flex; flex-direction: column; gap: 8px; z-index: 50; max-width: min(460px, calc(100vw - 28px)); }
+.toast { padding: 9px 12px; border-radius: 8px; background: var(--ok-bg); color: var(--ok-ink); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.15); font-size: 12.5px; white-space: pre-line; }
+.toast.err { background: var(--err-bg); color: var(--err-ink); }
+.toast a { color: inherit; font-weight: 600; }
+
+@media (max-width: 980px) {
+  body { overflow: auto; height: auto; }
+  main { grid-template-columns: 46px minmax(0, 1fr); }
+  aside { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
+  #stage { min-height: 60vh; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5h2l1.5 2 1.5-1 1.5 9 1.5-11 1.5 6 1.5-2 1.5 4 1.5-3 1.5 9 1.5-7H22"/><path d="M2 20h20"/></svg>
+    FTIR
+  </div>
+  <span id="crumbs"></span>
+  <div class="chips" id="chips" data-lov-detail></div>
+  <span class="hsp lov-only"></span>
+  <span id="langSw"></span>
+  <button id="labBtn" class="primary" hidden data-lov-detail data-i18n="ft.lab" data-i18n-title="ft.lab_t" title="Spektren, Banden, Gruppen, Suchtreffer, Mischung und Quellen in einen Folio Lab Bericht übernehmen">Zum Bericht …</button>
+</header>
+
+<nav id="menubar" aria-label="Menü"></nav>
+
+<main>
+  <div id="tools" role="toolbar" aria-label="Werkzeuge"></div>
+  <div class="viewer">
+    <div id="opts">
+      <span class="hint" id="optHint"></span>
+      <div class="seg" id="modeSeg"><button data-mode="spec" class="sel">Spektrum</button><button data-mode="search">Suchvergleich</button><button data-mode="mix">Mischung</button></div>
+      <button id="yAuto" title="y-Achse an die sichtbaren Daten anpassen">y auto</button>
+      <button id="viewAll" title="Ganzer Bereich (0)">Ganz</button>
+    </div>
+    <div id="qNote" class="note warn" hidden></div>
+    <div id="stage">
+      <canvas id="plot"></canvas>
+      <div id="regionMenu" hidden></div>
+      <div id="empty">
+        <div class="box">
+          <b>Spektren hierher ziehen</b>
+          JCAMP-DX (.jdx, .dx, auch komprimiert und mehrere Blöcke), Thermo OMNIC (.spa), Galactic (.spc), Agilent MicroLab (.fir), CSV/TXT (Komma, Semikolon, Tab; Dezimalkomma; mehrere Spalten)
+          <div><button class="primary" id="emptyOpen">Spektrum öffnen …</button></div>
+          <div class="small" style="margin-top:12px">Beispiele (berechnet, keine Messungen):</div>
+          <div id="emptySamples"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <!-- UI-05: sichtbar sind Bearbeiten, Banden, Suche, der gerade offene Tab und (ab zwei Spektren) Spektren; der Rest unter „Mehr“ -->
+    <nav class="tabs" role="tablist">
+      <button data-tab="bearbeiten" class="sel" data-i18n="ft.tab_bearbeiten">Bearbeiten</button>
+      <button data-tab="banden" data-i18n="ft.tab_banden">Banden</button>
+      <button data-tab="gruppen" data-i18n="ft.tab_gruppen">Gruppen</button>
+      <button data-tab="suche" data-i18n="ft.tab_suche">Suche</button>
+      <button data-tab="mischung" data-i18n="ft.tab_mischung">Mischung</button>
+      <button data-tab="spektren" data-i18n="ft.tab_spektren">Spektren</button>
+      <button data-tab="bibliotheken" data-i18n="ft.tab_bibliotheken">Bibliotheken</button>
+      <button data-tab="gleichungen" data-i18n="ft.tab_gleichungen">Gleichungen</button>
+      <button type="button" id="tabMore" class="more" aria-haspopup="true" data-i18n="ft.more" data-i18n-title="ft.more_t" title="Weitere Auswertungen">Mehr ▾</button>
+    </nav>
+
+    <section class="pane" data-pane="bearbeiten">
+      <div class="small" id="spInfo">Kein Spektrum geladen.</div>
+      <div class="small" id="dsUp" hidden></div>
+      <h4 class="sub">Bearbeitungsschritt</h4>
+      <select id="eOp"></select>
+      <div class="small" id="eHelp" style="margin-top:4px"></div>
+      <div id="eParams"></div>
+      <label class="chk"><input type="checkbox" id="ePrev" checked> Vorschau im Spektrum (vorher grau, Basislinie gestrichelt)</label>
+      <div class="row"><button class="primary" id="eApply">Anwenden</button><button id="eCancel">Verwerfen</button></div>
+      <h4 class="sub">Protokoll</h4>
+      <div class="small">Alle Schritte werden der Reihe nach auf das Originalspektrum angewendet, in der Oberfläche, im Export und im Bericht.</div>
+      <ol class="proto" id="proto"></ol>
+      <div class="row">
+        <button id="pUndo" title="Strg+Z">Rückgängig</button><button id="pRedo" title="Strg+Y">Wiederholen</button><button id="pReset">Original</button>
+      </div>
+      <div class="row">
+        <button id="pSave">Speichern …</button><button id="pLoad">Laden …</button><button id="pAll">Auf alle Spektren</button>
+      </div>
+    </section>
+
+    <section class="pane" data-pane="banden" hidden>
+      <label class="chk"><input type="checkbox" id="pkOn"> Banden markieren (Peak-Liste, geht in den Bericht)</label>
+      <div class="row"><button class="primary" id="pkRun">Banden suchen</button></div>
+      <details class="lab-fold" data-fold="pkParams"><summary data-i18n="ft.f_params">Suchparameter</summary>
+      <div class="row2">
+        <div><label for="pkProm">Mindestprominenz [% des Bereichs]</label><input type="number" id="pkProm" min="0.1" max="50" step="0.5"></div>
+        <div><label for="pkDist">Mindestabstand [cm⁻¹]</label><input type="number" id="pkDist" min="0" max="200" step="1"></div>
+      </div>
+      <div class="row2">
+        <div><label for="pkThr">Schwelle [% des Bereichs]</label><input type="number" id="pkThr" min="0" max="95" step="1"></div>
+        <div><label for="pkMax">Höchstens [Banden]</label><input type="number" id="pkMax" min="1" max="300" step="1"></div>
+      </div>
+      <div class="row2">
+        <div><label for="pkSnr" title="Prominenz mindestens so viel mal das Rauschen; in verrauschten Bereichen (z. B. Diamant-ATR) keine automatischen Peaks. 0 schaltet das aus.">Mindest-S/N [× Rauschen]</label><input type="number" id="pkSnr" min="0" max="100" step="1"></div>
+        <div></div>
+      </div>
+      <div class="row"><button id="pkDef">Standard</button><button id="pkManual" title="Von Hand gesetzte und gelöschte Banden verwerfen">Handkorrekturen zurücksetzen</button></div>
+      <div class="small" style="margin-top:6px">Mit den Werkzeugen <b>P</b> (setzen) und <b>D</b> (löschen) lassen sich Banden im Spektrum von Hand korrigieren. Bei Transmission werden Minima gesucht.</div>
+      </details>
+      <div class="tw" id="pkWrap"></div>
+      <div class="detail" id="pkDetail" hidden></div>
+      <div class="row"><button id="pkCopy">Tabelle kopieren</button><button id="pkCsv">CSV speichern</button></div>
+
+      <details class="lab-fold" data-fold="bands"><summary><span data-i18n="ft.f_bands">Bandenflächen</span> <span class="cnt" id="bdCnt"></span></summary>
+      <div class="small">Bereich mit dem Werkzeug <b>R</b> im Spektrum aufziehen oder hier eingeben. Fläche über einer Geraden zwischen den Grenzen (oder über null).</div>
+      <div class="row3">
+        <div><label for="bdFrom">von [cm⁻¹]</label><input type="number" id="bdFrom"></div>
+        <div><label for="bdTo">bis [cm⁻¹]</label><input type="number" id="bdTo"></div>
+        <div><label for="bdName">Name</label><input type="text" id="bdName" placeholder="z. B. C=O"></div>
+      </div>
+      <div class="row"><select id="bdBase" style="width:auto"><option value="linear">Basis: Gerade</option><option value="zero">Basis: null</option></select><button id="bdAdd">Hinzufügen</button></div>
+      <div class="tw" id="bdWrap" style="max-height:220px"></div>
+      </details>
+      <details class="lab-fold" data-fold="ratios"><summary><span data-i18n="ft.f_ratios">Verhältnisse</span> <span class="cnt" id="raCnt"></span></summary>
+      <div class="row3">
+        <div><label for="raNum">Zähler</label><select id="raNum"></select></div>
+        <div><label for="raDen">Nenner</label><select id="raDen"></select></div>
+        <div><label for="raKind">aus</label><select id="raKind"><option value="area">Fläche</option><option value="height">Höhe</option></select></div>
+      </div>
+      <div class="row"><button id="raAdd">Verhältnis hinzufügen</button></div>
+      <div class="list" id="raList"></div>
+      </details>
+    </section>
+
+    <section class="pane" data-pane="gruppen" hidden>
+      <label class="chk"><input type="checkbox" id="grOn"> Funktionelle Gruppen bewerten (geht in den Bericht)</label>
+      <div class="small">Prüft für rund 30 Stoffklassen, ob die nötigen Banden (Lage und Mindeststärke) vorhanden sind, und welche Schlüsselbereiche leer sind. Ein Hinweis, keine Identifizierung. Eintrag anklicken zeigt die Belege, Beleg anklicken markiert den Bereich.</div>
+      <div id="grAbsent"></div>
+      <div id="grList"></div>
+      <label class="chk"><input type="checkbox" id="grAll"> Auch unwahrscheinliche Klassen zeigen</label>
+      <details id="ctDetails">
+        <summary>Korrelationstabelle (Gruppenfrequenzen)</summary>
+        <input type="text" id="ctFilter" placeholder="Filtern, z. B. Ester oder 1720" style="margin-top:6px">
+        <div class="tw" id="ctWrap" style="max-height:300px"></div>
+      </details>
+    </section>
+
+    <section class="pane" data-pane="suche" hidden>
+      <div class="note warn" id="sModelNote" hidden>Die <b>Modellbibliothek</b> enthält aus Literatur-Bandenlagen berechnete Referenzen, keine gemessenen Spektren; Treffer daraus sind Hinweise. Die mitgelieferten gemessenen Referenzen (Open Specy) decken vor allem Kunststoffe, Fasern, Mineralien und Wirkstoffe ab. Für belastbare Identifizierungen den Treffer mit einer eigenen Referenzmessung bestätigen oder eine lizenzierte Datenbank als Bibliothek einlesen (Tab Bibliotheken).</div>
+      <div class="note warn" id="sStale" hidden>Das Spektrum wurde seit der Suche geändert. Bitte neu suchen; veraltete Ergebnisse gehen nicht in den Bericht.</div>
+      <div class="row"><button class="primary" id="sRun">Suchen (F3)</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="sRep" checked> In den Bericht</label></div>
+      <details class="lab-fold" data-fold="sOpts"><summary><span data-i18n="ft.f_sopts">Bibliotheken und Optionen</span> <span class="cnt" id="sOptCnt"></span></summary>
+      <label>Bibliotheken</label>
+      <div class="list" id="sLibs" style="max-height:140px"></div>
+      <div class="row2">
+        <div><label for="sAlgo">Verfahren</label><select id="sAlgo"></select></div>
+        <div><label for="sCat">Kategorie</label><select id="sCat"></select></div>
+      </div>
+      <div class="row2">
+        <div><label for="sFrom">Suchbereich von [cm⁻¹]</label><input type="number" id="sFrom" placeholder="ganzes Spektrum"></div>
+        <div><label for="sTo">bis [cm⁻¹]</label><input type="number" id="sTo"></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="sCO2" checked> CO₂ (2400–2280 cm⁻¹) ausblenden</label>
+      <label class="chk" title="Bereiche mit stark erhöhtem Rauschen (z. B. 2300–1900 cm⁻¹ bei Diamant-ATR) zählen weder für Basislinie und Normierung noch für den Vergleich."><input type="checkbox" id="sNoise" checked> Verrauschte Bereiche ausblenden</label>
+      <label class="chk" title="Mitgelieferte gemessene Bibliotheken enthalten je Stoff mehrere Spektren (z. B. PE aus verschiedenen Laboren). Zusammengefasst erscheint je Stoff nur der beste Treffer, (+n) nennt die weiteren."><input type="checkbox" id="sGroup" checked> Gleiche Stoffe zusammenfassen</label>
+      <div id="sEx" class="small"></div>
+      </details>
+      <div class="tw" id="sWrap"></div>
+      <div class="detail" id="sDetail" hidden></div>
+    </section>
+
+    <section class="pane" data-pane="mischung" hidden>
+      <div class="small">Sucht Kombinationen aus 2–4 Referenzen, deren gewichtete Summe das Spektrum am besten erklärt (nicht-negative Gewichte, gleiche Bibliotheken und Bereiche wie die Suche). Anteile beziehen sich auf die Absorbanz, nicht auf die Masse. Mehr Komponenten werden nur genommen, wenn sie spürbar besser passen.</div>
+      <div class="row2">
+        <div><label for="mMax">Höchstens</label><select id="mMax"><option value="2">2 Komponenten</option><option value="3" selected>3 Komponenten</option><option value="4">4 Komponenten (langsamer)</option></select></div>
+        <div></div>
+      </div>
+      <div class="row"><button class="primary" id="mRun">Mischung analysieren</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="mRep" checked> In den Bericht</label></div>
+      <div class="note warn" id="mStale" hidden>Das Spektrum wurde seit der Analyse geändert. Bitte neu rechnen.</div>
+      <div class="list" id="mList" style="max-height:330px"></div>
+      <div class="detail" id="mDetail" hidden></div>
+    </section>
+
+    <section class="pane" data-pane="spektren" hidden>
+      <div class="small">Markierte Spektren werden im Diagramm überlagert (jeweils mit ihrem eigenen Protokoll). Name anklicken zum Umbenennen.</div>
+      <div class="list" id="cList" style="max-height:240px"></div>
+      <label>Darstellung der Überlagerung</label>
+      <div class="seg" id="ovSeg"><button data-ov="over" class="sel">Überlagert</button><button data-ov="norm">Normiert</button><button data-ov="stack">Gestapelt</button></div>
+      <h4 class="sub">Neue Spektren berechnen</h4>
+      <div class="row2">
+        <div><label for="dA">Spektrum A</label><select id="dA"></select></div>
+        <div><label for="dB">minus B</label><select id="dB"></select></div>
+      </div>
+      <div class="row2">
+        <div><label for="dF">Faktor für B</label><input type="number" id="dF" step="any" placeholder="automatisch"></div>
+        <div><label>&nbsp;</label><button id="dDiff" style="width:100%">Differenzspektrum A − f·B</button></div>
+      </div>
+      <div class="small" style="margin-top:4px">Automatischer Faktor: kleinste Quadrate im ganzen gemeinsamen Bereich, oder im Bereich, der mit dem Werkzeug R gewählt wurde. Transmission wird vorher in Absorbanz umgerechnet.</div>
+      <div class="row"><button id="dAvg">Mittelwert der markierten</button><button id="dSum">Summe der markierten</button></div>
+    </section>
+
+    <section class="pane" data-pane="bibliotheken" hidden>
+      <label for="lSel">Bibliothek</label>
+      <select id="lSel"></select>
+      <div class="small" id="lInfo" style="margin-top:4px"></div>
+      <div class="row"><button id="lNew">Neu …</button><button id="lDel">Löschen</button><button id="lExp">Als JCAMP exportieren</button></div>
+      <div class="row"><button class="primary" id="lAdd">Aktuelles Spektrum hinzufügen …</button><button id="lImp">Referenzen importieren …</button></div>
+      <div class="row"><button id="lRef" title="Spektrum aus einer Datei mit Quellenangabe in „Eigene Referenzen“ speichern und gleich überlagern">Referenz aus Datei einblenden …</button></div>
+      <input type="text" id="lFilter" placeholder="Einträge filtern" style="margin-top:10px">
+      <div class="list" id="lList" style="max-height:380px"></div>
+      <details class="lab-fold" data-fold="libHelp"><summary data-i18n="ft.f_libhelp">Hinweise zu Bibliotheken</summary>
+      <div class="small">Eigene Bibliotheken liegen im Ausgabeordner unter <code>bibliotheken</code>. Import: JCAMP-DX (auch Mehrblock-Dateien aus anderen Programmen), .spa, .spc, CSV. Gespeichert wird, wie im Spektrum hinterlegt; für die Suche wird jedes Spektrum gleich vorbereitet (Absorbanz, Basislinie, Maximum 1, Raster 2 cm⁻¹).</div>
+      </details>
+    </section>
+
+    <section class="pane" data-pane="gleichungen" hidden>
+      <div class="small">Eigene Formeln über die Auswertung des aktuellen Spektrums, z. B. Carbonylindex <code class="eq">CI = area(1650, 1850)/area(1420, 1500)</code>. Aktive Gleichungen gehen mit Wert, Formel und Quelle in den Bericht. Spätere Gleichungen dürfen frühere verwenden.</div>
+      <div class="list" id="eqList" style="max-height:220px"></div>
+      <div class="row"><button class="primary" id="eqNew">Neue Gleichung …</button><button id="eqImp">Importieren …</button><button id="eqExp">Exportieren</button></div>
+      <h4 class="sub">Ergebnisse</h4>
+      <div id="eqRes"></div>
+      <h4 class="sub">Variablen und Funktionen</h4>
+      <div class="small">Variablen kommen aus den Bandenflächen und Verhältnissen (Tab Banden): B1… Fläche, H1… Höhe, P1… Lage, R1… Verhältnis. Anklicken kopiert den Namen.</div>
+      <div class="vars" id="eqVars"></div>
+      <div class="small" id="eqFuncs" style="margin-top:6px"></div>
+    </section>
+  </aside>
+</main>
+
+<footer>
+  <span id="stPos">–</span>
+  <span id="stInfo"></span>
+  <span id="envName" hidden title="Projekt · Umgebung (Datei ▸ Umgebungen …)"></span>
+  <span id="busy" hidden>rechnet …</span>
+</footer>
+
+<input type="file" id="file" multiple accept=".jdx,.dx,.jcamp,.spa,.spc,.fir,.0,.1,.2,.3,.4,.5,.6,.7,.8,.9,.csv,.txt,.dpt,.prn,.asc" hidden>
+<input type="file" id="libFile" multiple accept=".jdx,.dx,.jcamp,.spa,.spc,.fir,.0,.1,.2,.3,.4,.5,.6,.7,.8,.9,.csv,.txt,.dpt" hidden>
+<input type="file" id="protoFile" accept=".json" hidden>
+<input type="file" id="refFile" accept=".jdx,.dx,.jcamp,.spa,.spc,.fir,.0,.1,.2,.3,.4,.5,.6,.7,.8,.9,.csv,.txt,.dpt,.prn,.asc" hidden>
+<input type="file" id="eqFile" accept=".json" hidden>
+<dialog id="dlg"><form method="dialog"><h3 id="dlgTitle"></h3><div class="body" id="dlgBody"></div><div class="foot" id="dlgFoot"></div></form></dialog>
+<div id="toasts" aria-live="polite"></div>
+
+<script src="/lab/sdk.js"></script>
+<script src="labref.js"></script>
+<script src="labindex.js"></script>
+<script src="labenv.js"></script>
+<script src="labui.js"></script>
+<script src="labboard.js"></script>
+<script src="laboverview.js"></script>
+<script src="labimport.js"></script>
+<script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
+   Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
+(function (g) {
+  const msg = "Der laufende Modulserver ist älter als diese Seite. Bitte das Modul bzw. den Hub neu starten; bis dahin fehlen Umgebungen und Projektindex.";
+  if (!g.LabEnv) g.LabEnv = { stub: true, create: (o) => ({ ready: false, info: null, open: async () => o.toast(msg, true), save() {}, flush: () => Promise.resolve(), check() {}, dialog: () => o.toast(msg, true) }) };
+  const no = (a, t) => { t(msg, true); return Promise.resolve(null); };
+  if (!g.LabIndex) g.LabIndex = { stub: true, add: no, addMany: no, browse: no, history: no, exportDeps: no };
+})(window);</script>
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// UI-05: Kopf, Menüleiste, Tabs, Aufklapper und Übersicht DE/EN über labui.js (Menüeinträge und Tab-Inhalte vorerst deutsch)
+const FT_T = {
+  de: { "ft.tab_bearbeiten": "Bearbeiten", "ft.tab_banden": "Banden", "ft.tab_gruppen": "Gruppen", "ft.tab_suche": "Suche",
+        "ft.tab_mischung": "Mischung", "ft.tab_spektren": "Spektren", "ft.tab_bibliotheken": "Bibliotheken", "ft.tab_gleichungen": "Gleichungen",
+        "ft.more": "Mehr ▾", "ft.more_t": "Weitere Auswertungen: Gruppen, Mischung, Spektren, Bibliotheken, Gleichungen",
+        "ft.tab_h_gruppen": "Funktionelle Gruppen bewerten, Korrelationstabelle", "ft.tab_h_mischung": "Kombination aus 2–4 Referenzen",
+        "ft.tab_h_spektren": "Überlagern, Differenz, Mittelwert", "ft.tab_h_bibliotheken": "Eigene Bibliotheken und Referenzen",
+        "ft.tab_h_gleichungen": "Eigene Formeln über die Auswertung", "ft.tab_h_bearbeiten": "Bearbeitungsschritte und Protokoll",
+        "ft.tab_h_banden": "Peak-Liste, Bandenflächen, Verhältnisse", "ft.tab_h_suche": "Bibliothekssuche",
+        "ft.f_params": "Suchparameter", "ft.f_bands": "Bandenflächen", "ft.f_ratios": "Verhältnisse", "ft.f_sopts": "Bibliotheken und Optionen",
+        "ft.f_libhelp": "Hinweise zu Bibliotheken", "ft.n_libs": "{n} Bibliotheken", "ft.n_libs1": "1 Bibliothek",
+        "ft.m_file": "Datei", "ft.m_edit": "Bearbeiten", "ft.m_analysis": "Analyse", "ft.m_view": "Ansicht", "ft.m_lib": "Bibliothek",
+        "ft.lab": "Zum Bericht …", "ft.lab_t": "Spektren, Banden, Gruppen, Suchtreffer, Mischung und Quellen in einen Folio Lab Bericht übernehmen",
+        "ft.n_sp": "{n} Spektren", "ft.n_sp1": "1 Spektrum", "ft.hit": "Treffer", "ft.t_peaks": "Banden", "ft.t_groups": "Gruppen",
+        // DP-13: Spektrum aus Datensatz
+        "ft.ds_open": "Spektrum aus Datensatz …", "ft.ds_refresh": "Aus Datensatz aktualisieren", "ft.ds_title": "Spektrum aus Datensatz",
+        "ft.ds_none": "Noch keine Datensätze im Projekt. In der Datenaufbereitung eine Tabelle „Als Datensatz speichern“.",
+        "ft.imp_sp": "Als Spektren öffnen", "ft.imp_sp_t": "danach Wellenzahl- und Intensitätsspalten wählen", "ft.imp_two": "braucht zwei Zahlenspalten",
+        "ft.ds_set": "Datensatz", "ft.ds_rows": "{n} Zeilen", "ft.ds_x": "x: Wellenzahl (cm⁻¹) oder Wellenlänge", "ft.ds_y": "y: je Spalte ein Spektrum",
+        "ft.ds_yu": "y-Einheit", "ft.ds_auto": "aus Spalte (dimensionslos = Absorbanz, % = Transmission)",
+        "ft.ds_live": "live (neueste Version)", "ft.ds_pin": "fest auf v{v}", "ft.ds_pin_s": "fest", "ft.ds_live_s": "live",
+        "ft.ds_ok": "Spektren erstellen", "ft.ds_noy": "Bitte mindestens eine y-Spalte wählen.",
+        "ft.ds_from": "Datensatz „{t}“ v{v}", "ft.ds_upd": "auf v{v} aktualisieren", "ft.ds_newer": "neuere Version v{v} vorhanden",
+        "ft.ds_same": "Schon aktuell (v{v}).", "ft.ds_done": "Aktualisiert auf v{v}.",
+        "ft.yu_A": "Absorbanz", "ft.yu_T": "Transmission [%]", "ft.yu_R": "Reflexion [%]", "ft.yu_KM": "Kubelka-Munk", "ft.yu_LR": "log(1/R)" },
+  en: { "ft.tab_bearbeiten": "Edit", "ft.tab_banden": "Bands", "ft.tab_gruppen": "Groups", "ft.tab_suche": "Search",
+        "ft.tab_mischung": "Mixture", "ft.tab_spektren": "Spectra", "ft.tab_bibliotheken": "Libraries", "ft.tab_gleichungen": "Equations",
+        "ft.more": "More ▾", "ft.more_t": "Further analyses: groups, mixture, spectra, libraries, equations",
+        "ft.tab_h_gruppen": "Assess functional groups, correlation table", "ft.tab_h_mischung": "Combination of 2–4 references",
+        "ft.tab_h_spektren": "Overlay, difference, mean", "ft.tab_h_bibliotheken": "Own libraries and references",
+        "ft.tab_h_gleichungen": "Own formulas on the evaluation", "ft.tab_h_bearbeiten": "Processing steps and protocol",
+        "ft.tab_h_banden": "Peak list, band areas, ratios", "ft.tab_h_suche": "Library search",
+        "ft.f_params": "Search parameters", "ft.f_bands": "Band areas", "ft.f_ratios": "Ratios", "ft.f_sopts": "Libraries and options",
+        "ft.f_libhelp": "Notes on libraries", "ft.n_libs": "{n} libraries", "ft.n_libs1": "1 library",
+        "ft.m_file": "File", "ft.m_edit": "Edit", "ft.m_analysis": "Analysis", "ft.m_view": "View", "ft.m_lib": "Library",
+        "ft.lab": "To report …", "ft.lab_t": "Send spectra, bands, groups, search hits, mixture and sources to a Folio Lab report",
+        "ft.n_sp": "{n} spectra", "ft.n_sp1": "1 spectrum", "ft.hit": "Hit", "ft.t_peaks": "Bands", "ft.t_groups": "Groups",
+        "ft.ds_open": "Spectrum from dataset …", "ft.ds_refresh": "Update from dataset", "ft.ds_title": "Spectrum from dataset",
+        "ft.ds_none": "The project has no datasets yet. In Data preparation, use “Save as dataset” on a table.",
+        "ft.imp_sp": "Open as spectra", "ft.imp_sp_t": "then choose the wavenumber and intensity columns", "ft.imp_two": "needs two number columns",
+        "ft.ds_set": "Dataset", "ft.ds_rows": "{n} rows", "ft.ds_x": "x: wavenumber (cm⁻¹) or wavelength", "ft.ds_y": "y: one spectrum per column",
+        "ft.ds_yu": "y unit", "ft.ds_auto": "from column (dimensionless = absorbance, % = transmittance)",
+        "ft.ds_live": "live (latest version)", "ft.ds_pin": "pinned to v{v}", "ft.ds_pin_s": "pinned", "ft.ds_live_s": "live",
+        "ft.ds_ok": "Create spectra", "ft.ds_noy": "Please choose at least one y column.",
+        "ft.ds_from": "Dataset “{t}” v{v}", "ft.ds_upd": "update to v{v}", "ft.ds_newer": "newer version v{v} available",
+        "ft.ds_same": "Already up to date (v{v}).", "ft.ds_done": "Updated to v{v}.",
+        "ft.yu_A": "Absorbance", "ft.yu_T": "Transmittance [%]", "ft.yu_R": "Reflectance [%]", "ft.yu_KM": "Kubelka-Munk", "ft.yu_LR": "log(1/R)" },
+};
+if (window.LabUI) LabUI.strings(FT_T);
+const tr = (k, v) => (window.LabUI ? LabUI.t(k, v) : (FT_T.de[k] || k).replace(/\{(\w+)\}/g, (m, x) => (v && v[x] !== undefined ? v[x] : m)));
+const NF = {};
+function fmt(v, nd = 3) {
+  if (v === null || v === undefined || !isFinite(v)) return "–";
+  NF[nd] = NF[nd] || new Intl.NumberFormat("de-DE", { maximumFractionDigits: nd, minimumFractionDigits: 0, useGrouping: false });
+  return NF[nd].format(v);
+}
+const fx = (v, nd) => (v === null || v === undefined || !isFinite(v)) ? "–" : v.toFixed(nd).replace(".", ",");
+const pnum = (v) => { const s = String(v ?? "").trim().replace(",", "."); return s === "" ? null : Number(s); };
+const csvNum = (v) => (v === null || v === undefined || (typeof v === "number" && !isFinite(v))) ? "" :
+  typeof v === "number" ? String(+v.toPrecision(7)).replace(".", ",") : /[;"\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const COLORS = ["#007b83", "#c2410c", "#4338ca", "#15803d", "#a21caf", "#b45309", "#0369a1", "#be123c", "#4d7c0f", "#7c3aed"];
+const VERD = { "wahrscheinlich": "wahrscheinlich", "möglich": "möglich", "unwahrscheinlich": "unwahrscheinlich" };
+const STR_DE = { vs: "sehr stark", s: "stark", m: "mittel", w: "schwach" };
+
+// ---------------------------------------------------------------- Zustand
+let META = null;
+let GRID = null;            // Raster der Suche (400–4000 cm⁻¹, 2 cm⁻¹)
+let GTABLE = [];            // Korrelationstabelle
+const S = {
+  sps: [], sel: -1, tool: "cursor", tab: "bearbeiten", mode: "spec", busy: 0,
+  view: null, mouse: null, drag: null, ov: "over", labels: true, regions: true,
+  edit: null, preview: null, prevTimer: 0, hlPeak: null, hlRange: null, region: null,
+  libs: [], searchLibs: null, libSel: null, libEntries: [], colorIdx: 0, eqs: [], eqOn: [],
+};
+const cur = () => S.sps[S.sel] || null;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("folio.ftir." + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("folio.ftir." + k, JSON.stringify(v)); } catch (e) { /* ohne Speicher */ } },
+};
+
+// ---------------------------------------------------------------- Server
+async function api(path, body, raw) {
+  const opt = { method: body === undefined ? "GET" : "POST" };
+  if (body !== undefined) {
+    opt.body = raw ? body : JSON.stringify(body);
+    opt.headers = { "Content-Type": raw ? "application/octet-stream" : "application/json" };
+  }
+  try {
+    const r = await fetch(path, opt);
+    const j = await r.json().catch(() => ({ error: "Antwort unlesbar" }));
+    j._status = r.status;
+    return j;
+  } catch (e) {
+    return { error: "Keine Verbindung zum Modul (" + e.message + ")", _status: 0 };
+  }
+}
+function busy(d) { S.busy += d; $("#busy").hidden = S.busy <= 0; }
+async function withBusy(fn) { busy(1); try { return await fn(); } finally { busy(-1); } }
+function toast(msg, err = false, folder = null) {
+  const t = document.createElement("div");
+  t.className = "toast" + (err ? " err" : "");
+  t.innerHTML = esc(msg) + (folder ? ` <a href="#">Ordner öffnen</a>` : "");
+  if (folder) t.querySelector("a").addEventListener("click", (e) => { e.preventDefault(); api("api/open", { folder }); });
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), err ? 9000 : 6000);
+}
+function stem(n) { return String(n).replace(/\.[^.]+$/, ""); }
+function download(name, text, type = "text/csv;charset=utf-8", bom = true) {
+  const blob = text instanceof Blob ? text : new Blob([(bom ? "﻿" : "") + text], { type });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function dialog(title, bodyHtml, buttons, leftHtml = "", onOpen = null, wide = false) {
+  const d = $("#dlg");
+  d.classList.toggle("wide", wide);
+  $("#dlgTitle").textContent = title;
+  $("#dlgBody").innerHTML = bodyHtml;
+  $("#dlgFoot").innerHTML = (leftHtml ? `<div class="left">${leftHtml}</div>` : "") +
+    buttons.map(b => `<button value="${b.value}" ${b.primary ? 'class="primary"' : ""}>${esc(b.label)}</button>`).join("");
+  if (onOpen) onOpen($("#dlgBody"));
+  return new Promise((res) => {
+    const done = () => { d.removeEventListener("close", done); res(d.returnValue || "cancel"); };
+    d.returnValue = "";
+    d.addEventListener("close", done);
+    d.showModal();
+    const f = $("input,select,textarea", $("#dlgBody"));
+    if (f) f.focus();
+  });
+}
+// Dialog, der beim OK erst prüft (check gibt {error} oder ein Ergebnis zurück) und bei Fehler offen bleibt
+function dialogCheck(title, bodyHtml, okLabel, check, onOpen = null, wide = false) {
+  const d = $("#dlg"), form = $("form", d);
+  d.classList.toggle("wide", wide);
+  $("#dlgTitle").textContent = title;
+  $("#dlgBody").innerHTML = bodyHtml + `<div class="dlgErr" id="dlgErr"></div>`;
+  $("#dlgFoot").innerHTML = `<button type="button" value="cancel">Abbrechen</button><button type="submit" value="ok" class="primary">${esc(okLabel)}</button>`;
+  if (onOpen) onOpen($("#dlgBody"));
+  return new Promise((res) => {
+    let result = null, running = false;
+    const ok = async (ev) => {
+      ev.preventDefault();
+      if (running) return;
+      running = true; $("#dlgErr").textContent = "";
+      try {
+        const r = await check($("#dlgBody"));
+        if (r && r.error) { $("#dlgErr").textContent = r.error; return; }
+        result = r; d.close("ok");
+      } catch (e) { $("#dlgErr").textContent = e.message; }
+      finally { running = false; }
+    };
+    const cancel = () => d.close("cancel");
+    const done = () => { d.removeEventListener("close", done); form.removeEventListener("submit", ok); res(result); };
+    d.returnValue = "";
+    form.addEventListener("submit", ok);
+    $('#dlgFoot [value="cancel"]').addEventListener("click", cancel);
+    d.addEventListener("close", done);
+    d.showModal();
+    const f = $("input,select,textarea", $("#dlgBody"));
+    if (f) f.focus();
+  });
+}
+const hasSrc = (r) => !!(r && (r.title || r.doi || r.url));
+function srcBlock(rec, summary, open) {
+  return window.LabRef ? `<details class="src"${open ? " open" : ""}><summary>${esc(summary)}</summary>${LabRef.form(rec || { type: "article" })}</details>` : "";
+}
+function readSrc(root) {
+  const box = $(".src", root);
+  if (!box || !window.LabRef) return { rec: null };
+  const r = LabRef.read(box);
+  const filled = Object.keys(r).some(k => k !== "type" && k !== "accessed");
+  if (!filled) return { rec: null };
+  const e = LabRef.errors(r);
+  return e.length ? { rec: r, error: "Quelle: " + e.join(" · ") } : { rec: r };
+}
+
+// ---------------------------------------------------------------- Spektren laden
+async function openFiles(files) {
+  for (const f of files) {
+    const buf = await f.arrayBuffer();
+    const j = await withBusy(() => api("api/load?name=" + encodeURIComponent(f.name), buf, true));
+    if (j.error) { toast(`${f.name}: ${j.error}`, true); continue; }
+    await addSpectra(j.spectra);
+    if (j.spectra.length > 1) toast(`${f.name}: ${j.spectra.length} Spektren gelesen.`);
+  }
+}
+async function loadSample(which) {
+  const j = await withBusy(() => api("api/sample", { which }));
+  if (j.error) return toast(j.error, true);
+  await addSpectra(j.spectra);
+}
+function newSp(d) {
+  return {
+    id: d.id, name: d.name, file: d.file, idx: d.idx, info: d, pipeline: [], redo: [], data: null,
+    color: COLORS[S.colorIdx++ % COLORS.length], overlay: false,
+    peaksOn: true, peakParams: { ...META.peak_defaults }, peakAdd: [], peakRemove: [], peaks: [],
+    groupsOn: false, groups: null, bands: [], ratios: [], bandRes: [], ratioRes: [],
+    search: null, hitSel: 0, searchStale: false, searchRep: true,
+    mix: null, mixSel: 0, mixStale: false, mixRep: true, eqRes: [], vars: [],
+  };
+}
+async function addSpectra(list) {
+  if (!list || !list.length) return;
+  for (const d of list) {
+    const o = newSp(d);
+    S.sps.push(o);
+    try { await refresh(o); } catch (e) { toast(`${o.name}: ${e.message}`, true); }
+  }
+  S.sel = S.sps.length - 1;
+  S.view = null; S.mode = "spec";
+  selectSp(S.sel);
+}
+function selectSp(i) {
+  S.sel = i;
+  S.edit = null; S.preview = null; S.hlPeak = null; S.hlRange = null; hideRegionMenu();
+  const o = cur();
+  if (o && S.mode === "search" && !o.search) S.mode = "spec";
+  if (o && S.mode === "mix" && !o.mix) S.mode = "spec";
+  S.view = null;
+  renderChips(); updateAll(); draw();
+}
+// ---------------------------------------------------------------- Umgebungen (A2): Spektren und Arbeitsstand bleiben erhalten
+// UI-05: über das gemeinsame labenv.js (vorher eigener Code). Gespeicherte Stände vor UI-05 hiessen client.sps statt
+// client.items; envApi liest beide, gespeichert wird ab jetzt im gemeinsamen Format.
+const ENV_KEEP = ["name", "pipeline", "redo", "color", "overlay", "peaksOn", "peakParams", "peakAdd", "peakRemove", "groupsOn", "bands", "ratios"];
+let OV = null;
+async function envApi(p, b) {
+  const slow = /\/(switch|create|delete)$/.test(p) || (p.endsWith("/open") && !(b && b.check));
+  const j = await (slow ? withBusy(() => api(p, b)) : api(p, b));
+  if (j && j.client && j.client.sps && !j.client.items) j.client.items = j.client.sps;
+  return j;
+}
+function envSummary() {          // Kasten der Umgebung in der Übersicht
+  const tags = [S.sps.length === 1 ? tr("ft.n_sp1") : tr("ft.n_sp", { n: S.sps.length })];
+  for (const o of S.sps.slice(0, 6)) {
+    const h = o.search && !o.searchStale && o.search.hits && o.search.hits[0];
+    if (h) tags.push(`${tr("ft.hit")}: ${h.name} (${fx(h.hqi, 0)})`.slice(0, 60));
+  }
+  if (S.sps.some(o => o.peaksOn)) tags.push(tr("ft.t_peaks"));
+  if (S.sps.some(o => o.groupsOn)) tags.push(tr("ft.t_groups"));
+  let values = [];                                                    // Wertekatalog für Verbindungen zu anderen Umgebungen
+  try { values = LabOverview.summaryValues(valCatalogue()); } catch (e) { values = []; }
+  // UI-18: die Spektren als kleine Grafiken im Kasten der Übersicht (bearbeitet, wie im Spektrumfenster)
+  const en = /^en/i.test(document.documentElement.lang || "");
+  const plots = S.sps.filter(o => o.data && o.data.x && o.data.x.length).slice(0, 4).map(o => ({
+    title: o.name, xlab: en ? "Wavenumber [cm⁻¹]" : "Wellenzahl [cm⁻¹]", ylab: (META && META.yunits && META.yunits[o.data.yunit]) || o.data.yunit || "",
+    xrev: true, series: [{ name: o.name, x: o.data.x, y: o.data.y }] }));
+  return { title: S.sps.map(o => o.name).join(" · ").slice(0, 200), tags: tags.slice(0, 8), values, plots };
+}
+// ⇄: Flächen, Verhältnisse und Gleichungsergebnisse an andere Umgebungen; übernommene Werte als Variablen (S.ext)
+function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.sps.map(o => ({ name: o.name, vars: o.vars, eqs: o.eqRes }))) : []; }
+function shr(name) {
+  if (!OV || !OV.shareButton) return "";
+  const i = S.sps.indexOf(cur());
+  return OV.shareButton(String(name).slice(0, 21) + (i > 0 ? "_" + (i + 1) : ""));
+}
+async function applyExt(rows) {
+  const r = LabOverview.extValues(S.ext, rows);
+  if (!r.changed && !S.extDirty) return;                              // extDirty: Umgebung eben geöffnet, Auswertung noch ohne
+  S.ext = r.list; S.extDirty = false;
+  for (const o of S.sps) await analyse(o);
+  updateAll(); draw();
+}
+const ENVS = window.ENVS = LabEnv.create({
+  api: envApi, toast, keep: ENV_KEEP, label: $("#envName"),
+  list: () => S.sps, sel: () => S.sel,
+  reset: () => { S.sps = []; S.sel = -1; S.ext = []; },
+  add: async (d, saved) => { const o = newSp(d); Object.assign(o, saved); S.sps.push(o); await refresh(o); },
+  extra: () => ({ ext: S.ext || [] }),
+  done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.sel = sel; S.view = null; S.mode = "spec"; selectSp(S.sel); if (OV) setTimeout(() => OV.sync(), 0); },
+  summary: envSummary,
+});
+function envSave() { ENVS.save(); }
+function envFlush(keepalive = false) { return ENVS.flush(keepalive); }
+function envDialog() { return ENVS.dialog(); }
+async function closeSp(i) {
+  const o = S.sps[i];
+  api("api/remove", { id: o.id });
+  S.sps.splice(i, 1);
+  if (S.sel >= S.sps.length) S.sel = S.sps.length - 1;
+  selectSp(S.sel);
+}
+function renderChips() {
+  const el = $("#chips");
+  el.innerHTML = "";
+  S.sps.forEach((o, i) => {
+    const c = document.createElement("div");
+    c.className = "chip" + (i === S.sel ? " sel" : "");
+    c.title = `${o.name} (${o.file})`;
+    c.innerHTML = `<i style="background:${o.color}"></i><span>${esc(o.name)}</span><button class="x" title="Schliessen">×</button>`;
+    c.addEventListener("click", (e) => { if (e.target.classList.contains("x")) closeSp(i); else selectSp(i); });
+    el.appendChild(c);
+  });
+  $("#labBtn").disabled = !S.sps.length;
+  $("#empty").hidden = S.sps.length > 0;
+}
+
+// ---------------------------------------------------------------- Protokoll anwenden, Auswertung holen
+async function loadData(o, pipeline = o.pipeline) {
+  const j = await withBusy(() => api("api/spectrum", { id: o.id, pipeline }));
+  if (j.error) throw new Error(j.error);
+  o.data = j;
+}
+async function analyse(o) {
+  if (!o.data) return;
+  const eqs = activeEqs();
+  const need = o.peaksOn || o.groupsOn || o.bands.length || eqs.length || (S.ext && S.ext.length);
+  if (!need) { o.peaks = []; o.groups = null; o.bandRes = []; o.ratioRes = []; o.eqRes = []; o.vars = []; return; }
+  const st = stateOf(o, true);
+  if (o.search && !o.searchStale && o.search.hits.length) st.search = { hits: [{ name: o.search.hits[0].name, hqi: o.search.hits[0].hqi }] };
+  const j = await withBusy(() => api("api/analyse", { id: o.id, ...st }));
+  if (j.error) { toast(j.error, true); return; }
+  o.peaks = j.peaks || []; o.groups = j.groups; o.bandRes = j.bands || []; o.ratioRes = j.ratios || [];
+  o.eqRes = j.equations || []; o.vars = j.variables || [];
+}
+async function refresh(o) {
+  await loadData(o);
+  await analyse(o);
+}
+async function setPipeline(o, pl) {
+  const old = o.pipeline;
+  o.pipeline = pl;
+  try { await refresh(o); }
+  catch (e) { o.pipeline = old; toast(e.message, true); try { await refresh(o); } catch (e2) { /* alter Stand */ } return e.message; }
+  if (o.search) o.searchStale = true;
+  if (o.mix) o.mixStale = true;
+  if (o === cur()) { S.view = keepX(); updateAll(); draw(); }
+  return true;
+}
+function keepX() { return S.view ? { x0: S.view.x0, x1: S.view.x1, yAuto: true } : null; }
+async function pushStep(step) {
+  const o = cur();
+  if (!o) return;
+  if (await setPipeline(o, [...o.pipeline, step]) === true) o.redo = [];
+}
+async function undo() { const o = cur(); if (!o || !o.pipeline.length) return; const st = o.pipeline[o.pipeline.length - 1]; if (await setPipeline(o, o.pipeline.slice(0, -1)) === true) o.redo.push(st); updateProto(); }
+async function redo() { const o = cur(); if (!o || !o.redo.length) return; const st = o.redo.pop(); if (await setPipeline(o, [...o.pipeline, st]) !== true) o.redo.push(st); updateProto(); }
+
+// Arbeitsstand (gleiche Form wie im Bericht gespeichert)
+function stateOf(o, forAnalyse = false) {
+  const st = {
+    pipeline: o.pipeline,
+    peaks: o.peaksOn ? { params: o.peakParams, add: o.peakAdd, remove: o.peakRemove } : null,
+    bands: o.bands, ratios: o.ratios, groups: !!o.groupsOn, search: null, mixture: null,
+    equations: activeEqs(),
+  };
+  if (S.ext && S.ext.length) st.ext_values = S.ext;                  // Werte anderer Umgebungen (Verbindung)
+  if (forAnalyse) return st;
+  if (o.search && o.searchRep && !o.searchStale && o.search.hits.length) {
+    const s = o.search;
+    st.search = { algo: s.algo, libs: s.libs, include: s.include, exclude: s.exclude, query: s.query,
+      hits: s.hits.slice(0, 10).map((h, i) => ({ rank: h.rank, name: h.name, lib: h.lib, lib_name: h.lib_name, category: h.category,
+        cas: h.cas, hqi: h.hqi, source: h.source || "", y: i < 3 ? h.y : null })) };
+  }
+  const c = o.mix && o.mix.combos[o.mixSel];
+  if (c && o.mixRep && !o.mixStale) {
+    st.mixture = { hqi: c.hqi, query: o.mix.query, fit: c.fit, residual: c.residual,
+      components: c.components.map(k => ({ name: k.name, lib: k.lib, lib_name: k.lib_name, source: k.source || "", frac: k.frac, y: k.y })) };
+  }
+  return st;
+}
+
+// ---------------------------------------------------------------- Diagramm
+const cv = $("#plot");
+const ctx = cv.getContext("2d");
+let PW = 0, PH = 0, DPR = 1, COL = {};
+const MG = { l: 64, r: 16, t: 18, b: 38 };
+function sizeCanvas() {
+  const r = $("#stage").getBoundingClientRect();
+  DPR = window.devicePixelRatio || 1;
+  PW = Math.max(50, r.width); PH = Math.max(50, r.height);
+  cv.width = Math.round(PW * DPR); cv.height = Math.round(PH * DPR);
+  draw();
+}
+function frame() { return { x: MG.l, y: MG.t, w: Math.max(10, PW - MG.l - MG.r), h: Math.max(10, PH - MG.t - MG.b) }; }
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ["ink", "muted", "line", "grid", "plot", "accent", "accent2", "soft", "accent-soft", "err-ink"]) COL[k] = cs.getPropertyValue("--" + k).trim();
+}
+const xToPx = (x) => { const f = frame(), v = S.view; return f.x + (v.x0 - x) / (v.x0 - v.x1) * f.w; };
+const pxToX = (px) => { const f = frame(), v = S.view; return v.x0 - (px - f.x) / f.w * (v.x0 - v.x1); };
+const yToPx = (y) => { const f = frame(), v = S.view; return f.y + (v.y1 - y) / (v.y1 - v.y0) * f.h; };
+const pxToY = (py) => { const f = frame(), v = S.view; return v.y1 - (py - f.y) / f.h * (v.y1 - v.y0); };
+
+function gridX() {
+  if (!GRID) { GRID = new Float64Array(META.grid.n); for (let i = 0; i < META.grid.n; i++) GRID[i] = META.grid.x0 + i * META.grid.dx; }
+  return GRID;
+}
+// Kurven für die aktuelle Ansicht: [{x, y, color, width, dash, fill, label, kind}]
+function seriesFor() {
+  const o = cur();
+  if (!o || !o.data) return { list: [], unit: "A" };
+  const list = [];
+  if (S.mode === "search" && o.search) {
+    const g = gridX(), h = o.search.hits[o.hitSel];
+    list.push({ x: g, y: o.search.query, color: COL.ink, width: 1.3, label: o.name, kind: "q" });
+    if (h && h.y) list.push({ x: g, y: h.y, color: COL.accent2, width: 1.2, label: `${h.name} (HQI ${fx(h.hqi, 1)})`, kind: "hit" });
+    return { list, unit: "N", title: "Suchvergleich: vorbereitete Spektren (Absorbanz, Basislinie, Maximum 1)" };
+  }
+  if (S.mode === "mix" && o.mix && o.mix.combos[o.mixSel]) {
+    const g = gridX(), c = o.mix.combos[o.mixSel];
+    c.components.forEach((k, i) => list.push({ x: g, y: k.y, color: COLORS[(i + 2) % COLORS.length], width: 0.9, fill: true, label: `${k.name} (${fx(100 * k.frac, 0)} %)` }));
+    list.push({ x: g, y: o.mix.query, color: COL.ink, width: 1.3, label: o.name, kind: "q" });
+    list.push({ x: g, y: c.fit, color: COL.accent2, width: 1.2, dash: [5, 3], label: `Anpassung (HQI ${fx(c.hqi, 1)})` });
+    const res = c.residual.map(v => v === null ? null : v - 0.18);
+    list.push({ x: g, y: res, color: COL.muted, width: 0.9, label: "Rest (versetzt)" });
+    return { list, unit: "N", title: "Mischung: Probe, Anpassung und Komponenten (Absorbanz, normiert)" };
+  }
+  const d = o.data;
+  const pv = S.preview && S.preview.id === o.id ? S.preview : null;
+  let unit = d.yunit;
+  if (pv) {
+    unit = pv.yunit;
+    if (pv.before && pv.before.yunit === pv.yunit) list.push({ x: pv.before.x, y: pv.before.y, color: COL.muted, width: 1, label: "vorher" });
+    if (pv.baseline) list.push({ x: pv.before.x, y: pv.baseline, color: COL["err-ink"], width: 1.2, dash: [6, 4], label: "Basislinie" });
+    if (!pv.baseline || !pv.before || pv.before.yunit !== pv.yunit) list.push({ x: pv.x, y: pv.y, color: o.color, width: 1.3, label: "nachher", main: true });
+    else list.push({ x: pv.x, y: pv.y, color: o.color, width: 1.1, label: "nachher", main: true, alpha: 0.85 });
+    return { list, unit, title: "Vorschau: " + (META.ops[S.edit.op] || {}).de };
+  }
+  const ovs = S.sps.filter(s => s !== o && s.overlay && s.data);
+  const main = { x: d.x, y: d.y, color: o.color, width: 1.3, label: o.name, main: true };
+  if (!ovs.length) return { list: [main], unit };
+  const all = [main, ...ovs.map(s => ({ x: s.data.x, y: s.data.y, color: s.color, width: 1.1, label: s.name, unit: s.data.yunit }))];
+  if (S.ov === "over") return { list: all, unit: ovs.every(s => s.data.yunit === unit) ? unit : "au" };
+  // normiert / gestapelt: jedes Spektrum auf 0..1 (Transmission gespiegelt bleibt Transmission)
+  const out = all.map((s, k) => {
+    let mn = Infinity, mx = -Infinity;
+    for (const v of s.y) { if (v !== null && isFinite(v)) { if (v < mn) mn = v; if (v > mx) mx = v; } }
+    const r = (mx - mn) || 1, off = S.ov === "stack" ? -1.1 * k : 0;
+    return { ...s, y: Array.from(s.y, v => v === null ? null : (v - mn) / r + off), stackOff: off };
+  });
+  return { list: out, unit: "N", title: S.ov === "stack" ? "gestapelt, je auf 0–1 normiert" : "je auf 0–1 normiert" };
+}
+function dataExtent(list) {
+  let x0 = -Infinity, x1 = Infinity;
+  for (const s of list) { if (!s.x.length) continue; x0 = Math.max(x0, s.x[s.x.length - 1]); x1 = Math.min(x1, s.x[0]); }
+  return [x0, x1];
+}
+function autoY(list, unit) {
+  const v = S.view;
+  let mn = Infinity, mx = -Infinity;
+  const lo = Math.min(v.x0, v.x1), hi = Math.max(v.x0, v.x1);
+  for (const s of list) {
+    for (let i = 0; i < s.x.length; i++) {
+      const x = s.x[i];
+      if (x < lo || x > hi) continue;
+      const y = s.y[i];
+      if (y === null || !isFinite(y)) continue;
+      if (y < mn) mn = y; if (y > mx) mx = y;
+    }
+  }
+  if (!isFinite(mn)) { mn = 0; mx = 1; }
+  if (mx - mn < 1e-12) { mn -= 0.5; mx += 0.5; }
+  const r = mx - mn;
+  const o = cur();
+  const lab = S.mode === "spec" && S.labels && o && o.peaksOn && o.peaks.length && !S.preview;
+  const valley = unit === "T" || unit === "R";
+  v.y0 = mn - r * (lab && valley ? 0.2 : 0.05);
+  v.y1 = mx + r * (lab && !valley ? 0.2 : 0.06);
+}
+function niceStep(range, n) {
+  const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+function draw() {
+  if (!PW) return;
+  readColors();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = COL.plot; ctx.fillRect(0, 0, PW, PH);
+  const o = cur();
+  if (!o || !o.data) return;
+  const { list, unit, title } = seriesFor();
+  if (!list.length) return;
+  if (!S.view) { const [a, b] = dataExtent(list); S.view = { x0: a, x1: b, yAuto: true }; }
+  if (S.view.yAuto || S.view.y0 === undefined) autoY(list, unit);
+  const f = frame(), v = S.view;
+  // Gitter und Achsen
+  ctx.font = "11px system-ui, sans-serif";
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1; ctx.fillStyle = COL.muted;
+  const xs = niceStep(Math.abs(v.x0 - v.x1), Math.max(3, f.w / 85));
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let x = Math.ceil(Math.min(v.x0, v.x1) / xs) * xs; x <= Math.max(v.x0, v.x1) + 1e-9; x += xs) {
+    const px = Math.round(xToPx(x)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(px, f.y); ctx.lineTo(px, f.y + f.h); ctx.stroke();
+    ctx.fillText(fmt(x, xs < 1 ? 1 : 0), px, f.y + f.h + 5);
+  }
+  const ys = niceStep(v.y1 - v.y0, Math.max(3, f.h / 50));
+  const ynd = Math.max(0, -Math.floor(Math.log10(ys)) + (ys / Math.pow(10, Math.floor(Math.log10(ys))) === 5 ? 0 : 0));
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let y = Math.ceil(v.y0 / ys) * ys; y <= v.y1 + 1e-12; y += ys) {
+    const py = Math.round(yToPx(y)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(f.x, py); ctx.lineTo(f.x + f.w, py); ctx.stroke();
+    if (unit !== "N" || S.mode === "spec") ctx.fillText(fmt(y, Math.min(4, ynd)), f.x - 6, py);
+  }
+  ctx.strokeStyle = COL.line; ctx.strokeRect(f.x + 0.5, f.y + 0.5, f.w, f.h);
+  ctx.fillStyle = COL.ink; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  ctx.fillText("Wellenzahl [cm⁻¹]", f.x + f.w / 2, PH - 2);
+  ctx.save(); ctx.translate(13, f.y + f.h / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = "middle";
+  ctx.fillText(unit === "N" ? "normiert" : (META.yunits[unit] || unit), 0, 0); ctx.restore();
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(f.x, f.y, f.w, f.h); ctx.clip();
+  // Bereiche
+  if (S.mode === "spec" && S.regions) {
+    for (const b of o.bandRes.length ? o.bandRes : o.bands) shadeRange(b.lo, b.hi, COL["accent-soft"], b.name);
+  }
+  if (S.tab === "suche" || S.mode === "search") {
+    for (const r of searchExclude()) shadeRange(r[0], r[1], "rgba(128,128,128,.13)", "");
+    const inc = searchInclude();
+    if (inc) { shadeRange(Math.max(...inc[0]), Math.max(v.x0, v.x1) + 9999, "rgba(128,128,128,.13)", ""); shadeRange(Math.min(...inc[0]), Math.min(v.x0, v.x1) - 9999, "rgba(128,128,128,.13)", ""); }
+  }
+  if (o && o.data && o.data.quality) for (const r of o.data.quality.noisy || []) hatchRange(r[0], r[1], "verrauscht");
+  if (S.hlRange) shadeRange(S.hlRange[0], S.hlRange[1], "rgba(194,65,12,.16)", S.hlRange[2] || "");
+  if (S.region) shadeRange(S.region[0], S.region[1], "rgba(0,123,131,.18)", "");
+  // Kurven
+  for (const s of list) drawSeries(s);
+  // Banden
+  if (S.mode === "spec" && o.peaksOn && !S.preview && o.peaks.length && (!list.some(s => s.stackOff) || true)) drawPeaks(o, unit, list[0]);
+  // Stützpunkte der Basislinie
+  const pts = editPoints();
+  if (pts) {
+    const src = S.preview && S.preview.before ? S.preview.before : o.data;
+    ctx.fillStyle = COL["err-ink"];
+    for (const x of pts) { const y = interpAt(src.x, src.y, x); if (y === null) continue; ctx.beginPath(); ctx.arc(xToPx(x), yToPx(y), 4, 0, 7); ctx.fill(); }
+  }
+  // Zoomrahmen / Bereich ziehen
+  if (S.drag && S.drag.kind === "zoom") {
+    const d = S.drag; ctx.strokeStyle = COL.accent; ctx.setLineDash([4, 3]); ctx.strokeRect(Math.min(d.sx, d.cx), Math.min(d.sy, d.cy), Math.abs(d.cx - d.sx), Math.abs(d.cy - d.sy)); ctx.setLineDash([]);
+  }
+  // Fadenkreuz
+  if (S.mouse && S.mouse.in) {
+    ctx.strokeStyle = COL.muted; ctx.globalAlpha = 0.5; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(S.mouse.px + 0.5, f.y); ctx.lineTo(S.mouse.px + 0.5, f.y + f.h); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+  // Legende
+  ctx.font = "11.5px system-ui, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+  let ly = f.y + 6;
+  const legend = list.filter(s => s.label && (list.length > 1));
+  if (title) { ctx.fillStyle = COL.muted; ctx.fillText(title, f.x + 8, ly); ly += 16; }
+  for (const s of legend.slice(0, 9)) {
+    ctx.fillStyle = s.color; ctx.fillRect(f.x + 8, ly + 5, 14, 2.5);
+    ctx.fillStyle = COL.ink; ctx.fillText(s.label.length > 70 ? s.label.slice(0, 68) + "…" : s.label, f.x + 28, ly);
+    ly += 15;
+  }
+}
+function shadeRange(a, b, color, label) {
+  const f = frame();
+  const p0 = clamp(xToPx(Math.max(a, b)), f.x - 5, f.x + f.w + 5), p1 = clamp(xToPx(Math.min(a, b)), f.x - 5, f.x + f.w + 5);
+  if (p1 - p0 < 0.5) return;
+  ctx.fillStyle = color; ctx.fillRect(p0, f.y, p1 - p0, f.h);
+  if (label) { ctx.fillStyle = COL.muted; ctx.font = "10.5px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "bottom"; ctx.fillText(label, (p0 + p1) / 2, f.y + f.h - 3); }
+}
+function hatchRange(a, b, label) {
+  // schräg schraffiert: Bereich mit stark erhöhtem Rauschen (wird bei Peaks, Gruppen und Suche nicht berücksichtigt)
+  const f = frame();
+  const p0 = clamp(xToPx(Math.max(a, b)), f.x, f.x + f.w), p1 = clamp(xToPx(Math.min(a, b)), f.x, f.x + f.w);
+  if (p1 - p0 < 1) return;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(p0, f.y, p1 - p0, f.h); ctx.clip();
+  ctx.fillStyle = "rgba(128,128,128,.07)"; ctx.fillRect(p0, f.y, p1 - p0, f.h);
+  ctx.strokeStyle = "rgba(128,128,128,.22)"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = p0 - f.h; x < p1; x += 9) { ctx.moveTo(x, f.y + f.h); ctx.lineTo(x + f.h, f.y); }
+  ctx.stroke();
+  ctx.restore();
+  if (label && p1 - p0 > 40) { ctx.fillStyle = COL.muted; ctx.font = "10.5px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillText(label, (p0 + p1) / 2, f.y + 4); }
+}
+function drawSeries(s) {
+  const f = frame(), v = S.view;
+  const lo = Math.min(v.x0, v.x1), hi = Math.max(v.x0, v.x1);
+  const n = s.x.length;
+  let i0 = 0, i1 = n - 1;
+  while (i0 < n - 1 && s.x[i0 + 1] < lo) i0++;
+  while (i1 > 0 && s.x[i1 - 1] > hi) i1--;
+  const step = Math.max(1, Math.floor((i1 - i0) / (f.w * 2.5)));
+  ctx.strokeStyle = s.color; ctx.lineWidth = s.width || 1.2; ctx.setLineDash(s.dash || []);
+  ctx.globalAlpha = s.alpha || 1;
+  ctx.beginPath();
+  let pen = false;
+  const pathPts = [];
+  for (let i = i0; i <= i1; i += step) {
+    // bei Ausdünnung Minimum und Maximum je Block behalten
+    if (step > 1) {
+      let mn = Infinity, mx = -Infinity, imn = i, imx = i;
+      for (let k = i; k < Math.min(i + step, i1 + 1); k++) { const y = s.y[k]; if (y === null) continue; if (y < mn) { mn = y; imn = k; } if (y > mx) { mx = y; imx = k; } }
+      if (!isFinite(mn)) { pen = false; continue; }
+      for (const k of imn < imx ? [imn, imx] : [imx, imn]) { const px = xToPx(s.x[k]), py = yToPx(s.y[k]); if (pen) ctx.lineTo(px, py); else { ctx.moveTo(px, py); pen = true; } pathPts.push([px, py]); }
+      continue;
+    }
+    const y = s.y[i];
+    if (y === null || !isFinite(y)) { pen = false; continue; }
+    const px = xToPx(s.x[i]), py = yToPx(y);
+    if (pen) ctx.lineTo(px, py); else { ctx.moveTo(px, py); pen = true; }
+    pathPts.push([px, py]);
+  }
+  ctx.stroke();
+  if (s.fill && pathPts.length > 1) {
+    const base = yToPx(0);
+    ctx.globalAlpha = 0.16; ctx.fillStyle = s.color;
+    ctx.beginPath(); ctx.moveTo(pathPts[0][0], base);
+    for (const [px, py] of pathPts) ctx.lineTo(px, py);
+    ctx.lineTo(pathPts[pathPts.length - 1][0], base); ctx.closePath(); ctx.fill();
+  }
+  ctx.globalAlpha = 1; ctx.setLineDash([]);
+}
+function drawPeaks(o, unit, main) {
+  const valley = o.data.yunit === "T" || o.data.yunit === "R";
+  const placed = [];
+  const order = [...o.peaks].sort((a, b) => b.prom - a.prom);
+  const off = main.stackOff || 0;
+  const scale = (S.ov !== "over" && main.y !== o.data.y) ? main : null;
+  let mn = 0, r = 1;
+  if (scale) { mn = Infinity; let mx = -Infinity; for (const v of o.data.y) { if (v < mn) mn = v; if (v > mx) mx = v; } r = (mx - mn) || 1; }
+  ctx.font = "10.5px system-ui, sans-serif";
+  for (const p of order) {
+    const y = scale ? (p.y - mn) / r + off : p.y;
+    const px = xToPx(p.x), py = yToPx(y);
+    const hl = S.hlPeak !== null && Math.abs(S.hlPeak - p.x) < 0.01;
+    ctx.strokeStyle = p.manual ? COL.accent2 : COL.ink; ctx.lineWidth = hl ? 2 : 1;
+    ctx.beginPath(); ctx.moveTo(px, py + (valley ? 3 : -3)); ctx.lineTo(px, py + (valley ? 9 : -9)); ctx.stroke();
+    if (!S.labels) continue;
+    if (!hl && placed.some(q => Math.abs(q - px) < 12)) continue;
+    placed.push(px);
+    ctx.save(); ctx.translate(px, py + (valley ? 12 : -12)); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = hl ? COL.accent2 : (p.manual ? COL.accent2 : COL.ink);
+    ctx.textAlign = valley ? "right" : "left"; ctx.textBaseline = "middle";
+    ctx.fillText(fmt(p.x, 0), 0, 0); ctx.restore();
+  }
+}
+function interpAt(xa, ya, x) {
+  const n = xa.length;
+  if (!n || x < xa[0] || x > xa[n - 1]) return null;
+  let lo = 0, hi = n - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (xa[m] <= x) lo = m; else hi = m; }
+  const a = ya[lo], b = ya[hi];
+  if (a === null || b === null) return a ?? b;
+  const t = xa[hi] === xa[lo] ? 0 : (x - xa[lo]) / (xa[hi] - xa[lo]);
+  return a + t * (b - a);
+}
+function resetView() { S.view = null; draw(); }
+function zoomX(cx, factor) {
+  const v = S.view; if (!v) return;
+  const x = pxToX(cx);
+  v.x0 = x + (v.x0 - x) * factor; v.x1 = x + (v.x1 - x) * factor;
+  draw();
+}
+function setRange(hi, lo) { if (!S.view) draw(); if (!S.view) return; S.view.x0 = hi; S.view.x1 = lo; S.view.yAuto = true; draw(); }
+
+// ---------------------------------------------------------------- Werkzeuge
+const ICON = {
+  cursor: '<path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3.5"/>',
+  zoom: '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5M8 10.5h5M10.5 8v5"/>',
+  pan: '<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>',
+  padd: '<path d="M3 19c3 0 4-11 6-11s3 11 6 11"/><path d="M18 4v6M15 7h6"/>',
+  pdel: '<path d="M3 19c3 0 4-11 6-11s3 11 6 11"/><path d="M15 7h6"/>',
+  region: '<path d="M6 4v16M18 4v16"/><path d="M6 12h12" stroke-dasharray="2 2"/><path d="M3 18c2 0 3-8 5-8s3 6 4 6 2-9 4-9 3 11 5 11"/>',
+  bpts: '<path d="M3 16c4-1 6-2 9-2s5 1 9 2" stroke-dasharray="3 2"/><circle cx="5" cy="15.5" r="1.8"/><circle cx="12" cy="14" r="1.8"/><circle cx="19" cy="15.5" r="1.8"/>',
+};
+const TOOLS = [
+  ["cursor", "Lesen (C): Werte und mögliche Zuordnung unter dem Mauszeiger; Klick auf eine Bande wählt sie", "c"],
+  ["zoom", "Zoomen (Z): Rahmen aufziehen; Doppelklick oder 0 = ganzer Bereich; Mausrad zoomt überall", "z"],
+  ["pan", "Verschieben (H)", "h"],
+  "-",
+  ["padd", "Bande von Hand setzen (P)", "p"],
+  ["pdel", "Bande löschen (D)", "d"],
+  ["region", "Bereich wählen (R): integrieren, Suchbereich, ausschneiden, Differenzfaktor", "r"],
+  ["bpts", "Stützpunkte für die Basislinie setzen (B); Klick auf einen Punkt entfernt ihn", "b"],
+];
+const HINT = {
+  cursor: "Mauszeiger zeigt Wellenzahl, Wert und mögliche Zuordnungen. Mausrad: zoomen, Umschalt+Mausrad: verschieben.",
+  zoom: "Rahmen aufziehen zum Vergrössern (flacher Rahmen: nur Wellenzahl). Doppelklick: ganzer Bereich.",
+  pan: "Ziehen verschiebt die Ansicht.",
+  padd: "Klick setzt eine Bande (am höchsten Punkt in ±6 cm⁻¹).",
+  pdel: "Klick auf eine Bande löscht sie.",
+  region: "Bereich aufziehen, dann wählen, was damit geschehen soll.",
+  bpts: "Klick setzt Stützpunkte für „Basislinie: Stützpunkte von Hand“, Klick auf einen Punkt entfernt ihn.",
+};
+function buildTools() {
+  const el = $("#tools");
+  for (const t of TOOLS) {
+    if (t === "-") { el.appendChild(document.createElement("hr")); continue; }
+    const b = document.createElement("button");
+    b.dataset.tool = t[0]; b.title = t[1]; b.setAttribute("aria-label", t[1]);
+    b.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[t[0]]}</svg>`;
+    b.addEventListener("click", () => setTool(t[0]));
+    el.appendChild(b);
+  }
+}
+function setTool(t) {
+  S.tool = t;
+  $$("#tools button").forEach(b => b.classList.toggle("sel", b.dataset.tool === t));
+  $("#optHint").textContent = HINT[t] || "";
+  cv.style.cursor = t === "pan" ? "grab" : t === "cursor" ? "crosshair" : "crosshair";
+  if (t === "bpts") startPointsEdit();
+  if (t !== "region") hideRegionMenu();
+}
+function evPos(e) { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+function inFrame(px, py) { const f = frame(); return px >= f.x && px <= f.x + f.w && py >= f.y && py <= f.y + f.h; }
+function onDown(e) {
+  if (!cur() || !S.view) return;
+  const [px, py] = evPos(e);
+  if (!inFrame(px, py)) return;
+  hideRegionMenu();
+  cv.setPointerCapture(e.pointerId);
+  const t = e.button === 1 ? "pan" : S.tool;
+  if (t === "zoom") S.drag = { kind: "zoom", sx: px, sy: py, cx: px, cy: py };
+  else if (t === "pan") { S.drag = { kind: "pan", sx: px, sy: py, v: { ...S.view } }; cv.style.cursor = "grabbing"; }
+  else if (t === "region") S.drag = { kind: "region", sx: px, x0: pxToX(px) };
+  else S.drag = { kind: "click", sx: px, sy: py };
+}
+function onMove(e) {
+  const [px, py] = evPos(e);
+  S.mouse = { px, py, in: inFrame(px, py) };
+  const d = S.drag;
+  if (d && d.kind === "zoom") { d.cx = px; d.cy = py; }
+  else if (d && d.kind === "pan") {
+    const f = frame(), v = d.v;
+    const dx = (px - d.sx) / f.w * (v.x0 - v.x1);
+    S.view.x0 = v.x0 + dx; S.view.x1 = v.x1 + dx;
+    if (!v.yAuto) { const dy = (py - d.sy) / f.h * (v.y1 - v.y0); S.view.y0 = v.y0 + dy; S.view.y1 = v.y1 + dy; }
+  } else if (d && d.kind === "region") { const x = pxToX(px); S.region = [Math.max(d.x0, x), Math.min(d.x0, x)]; }
+  status();
+  draw();
+}
+async function onUp(e) {
+  const d = S.drag; S.drag = null;
+  if (S.tool === "pan") cv.style.cursor = "grab";
+  if (!d) return;
+  const [px, py] = evPos(e);
+  const o = cur();
+  if (d.kind === "zoom") {
+    if (Math.abs(px - d.sx) > 6) {
+      const a = pxToX(d.sx), b = pxToX(px);
+      S.view.x0 = Math.max(a, b); S.view.x1 = Math.min(a, b);
+      if (Math.abs(py - d.sy) > 12) { const c = pxToY(d.sy), g = pxToY(py); S.view.y0 = Math.min(c, g); S.view.y1 = Math.max(c, g); S.view.yAuto = false; }
+      else S.view.yAuto = true;
+    }
+    return draw();
+  }
+  if (d.kind === "region") {
+    if (Math.abs(px - d.sx) < 4) { S.region = null; return draw(); }
+    showRegionMenu(px, py);
+    return draw();
+  }
+  if (d.kind !== "click" || Math.abs(px - d.sx) > 4) return draw();
+  const x = pxToX(px);
+  if (S.tool === "padd" && S.mode === "spec") {
+    o.peaksOn = true;
+    o.peakRemove = o.peakRemove.filter(r => Math.abs(r - x) > 6);
+    o.peakAdd.push(Math.round(x * 10) / 10);
+    await analyse(o); updatePeaks(); draw();
+  } else if (S.tool === "pdel" && S.mode === "spec") {
+    const p = nearestPeak(px, py, 14);
+    if (!p) return toast("Keine Bande in der Nähe.", true);
+    if (p.manual) o.peakAdd = o.peakAdd.filter(a => Math.abs(a - p.x) > 6);
+    else o.peakRemove.push(p.x);
+    await analyse(o); updatePeaks(); draw();
+  } else if (S.tool === "bpts") {
+    const pts = editPoints() || [];
+    const near = pts.findIndex(q => Math.abs(xToPx(q) - px) < 8);
+    if (near >= 0) pts.splice(near, 1); else { pts.push(Math.round(x * 10) / 10); pts.sort((a, b) => b - a); }
+    S.edit.params.pts = pts;
+    renderEditParams(); schedulePreview(); draw();
+  } else if (S.tool === "cursor" && S.mode === "spec") {
+    const p = nearestPeak(px, py, 14);
+    if (p) { S.hlPeak = p.x; if (S.tab !== "banden") switchTab("banden"); updatePeaks(); showPeakDetail(p); draw(); }
+  }
+}
+function nearestPeak(px, py, tol) {
+  const o = cur(); if (!o || !o.peaks.length) return null;
+  let best = null, bd = tol;
+  for (const p of o.peaks) { const d = Math.abs(xToPx(p.x) - px); if (d < bd) { bd = d; best = p; } }
+  return best;
+}
+function status() {
+  const o = cur();
+  if (!o || !S.mouse || !S.mouse.in || !S.view) { $("#stPos").textContent = "–"; return; }
+  const x = pxToX(S.mouse.px);
+  let t = `ν̃ ${fx(x, 1)} cm⁻¹  ·  λ ${fx(1e4 / x, 3)} µm`;
+  if (S.mode === "spec" && o.data) { const y = interpAt(o.data.x, o.data.y, x); if (y !== null) t += `  ·  ${o.data.yunit === "A" ? "A" : o.data.yunit === "T" ? "%T" : o.data.yunit} ${fmt(y, 4)}`; }
+  if (S.region) t += `  ·  Bereich ${fx(S.region[0], 0)}–${fx(S.region[1], 0)}`;
+  $("#stPos").textContent = t;
+  if (S.tool === "cursor" && S.mode === "spec") {
+    const hits = GTABLE.filter(g => x >= g.lo - 2 && x <= g.hi + 2).sort((a, b) => (a.hi - a.lo) - (b.hi - b.lo)).slice(0, 3).map(g => g.name);
+    $("#stInfo").textContent = hits.length ? "Möglich: " + hits.join(" · ") : spInfoText(o);
+  }
+}
+function spInfoText(o) {
+  if (!o) return "";
+  const i = o.info, d = o.data;
+  const m = i.meta || {}, ds = dsOf(o);                                  // DP-13: Herkunft aus einem Datensatz
+  return `${ds ? tr("ft.ds_from", { t: ds.title || ds.share, v: ds.version }) + ` (${ds.share}, ${tr(ds.mode === "pin" ? "ft.ds_pin_s" : "ft.ds_live_s")})` : o.file}${o.idx ? ` (Spektrum ${o.idx + 1})` : ""} · ${fmt(i.xmin, 0)}–${fmt(i.xmax, 0)} cm⁻¹ · ${i.n} Punkte, Abstand ${fmt(i.step, 3)} cm⁻¹ · ${META.yunits[i.yunit] || i.yunit}` +
+    (d && d.yunit !== i.yunit ? ` → ${META.yunits[d.yunit] || d.yunit}` : "") +
+    (m.resolution ? ` · Auflösung ${m.resolution} cm⁻¹` : "") + (m.instrument ? ` · ${m.instrument}` : "") +
+    (d && d.quality && d.quality.snr != null ? ` · S/N ≈ ${fmt(d.quality.snr, 0)}` : "");
+}
+
+// ---------------------------------------------------------------- DP-13: Spektren aus Datensatz (Datenaufbereitung)
+const dsOf = (o) => (o && o.info && o.info.meta && o.info.meta.dataset && o.info.meta.dataset.share) ? o.info.meta.dataset : null;
+function dsUpdateHint(o) {
+  const ds = dsOf(o), lat = o && o.info ? o.info.ds_latest : null, el = $("#dsUp");
+  el.hidden = !(ds && lat && lat > ds.version);
+  if (!el.hidden) el.innerHTML = (ds.mode === "pin" ? `${esc(tr("ft.ds_newer", { v: lat }))} · ` : "") + `<a href="#" data-dsup="1">${esc(tr("ft.ds_upd", { v: lat }))}</a>`;
+}
+$("#dsUp").addEventListener("click", (e) => { if (e.target.closest("[data-dsup]")) { e.preventDefault(); dsRefresh(cur()); } });
+// I-03: „Spektrum aus Datensatz …“ und „⤓ Importieren“ öffnen das Import-Fenster (labimport.js); danach x/y-Spalten
+const FT_IMP = { actions: [{ id: "spectra", label: () => tr("ft.imp_sp"), hint: () => tr("ft.imp_sp_t") }],
+                 check: (d) => ((d.columns || []).filter(c => c.dtype !== "text").length >= 2 ? "" : tr("ft.imp_two")), run: (p) => dsDialog(p) };
+async function dsDialog(pk = null) {
+  if (!pk && window.LabImport && OV && OV.ok) return OV.importDataset();
+  const j = await withBusy(() => api("api/dataset", { list: true }));
+  if (j.error) return toast(j.error, true);
+  let L = j.datasets || [];
+  if (pk) L = L.filter(x => x.id === pk.id);
+  if (!L.length) return toast(tr("ft.ds_none"), true);
+  const pinV = (d) => (pk && pk.mode === "pin" && d.id === pk.id ? pk.version : d.latest);
+  const ds = (id) => L.find(x => x.id === id) || L[0];
+  const colsHtml = (d) => {
+    const num = d.columns.filter(c => c.dtype !== "text"), xk = (num.find(c => c.guess === "x") || num[0] || {}).key;
+    const lab = (c) => `${esc(c.name)}${c.unit ? " [" + esc(c.unit) + "]" : ""}`;
+    return `<label for="dsX">${esc(tr("ft.ds_x"))}</label><select id="dsX">${num.map(c => `<option value="${esc(c.key)}"${c.key === xk ? " selected" : ""}>${lab(c)}</option>`).join("")}</select>
+      <label>${esc(tr("ft.ds_y"))}</label><div class="dsY">${num.map(c => `<label class="chk"><input type="checkbox" value="${esc(c.key)}"${c.guess === "y" && c.key !== xk ? " checked" : ""}>${lab(c)}</label>`).join("")}</div>
+      <div class="row2"><label class="chk"><input type="radio" name="dsMode" value="live"${pk && pk.mode === "pin" ? "" : " checked"}>${esc(tr("ft.ds_live"))}</label>
+      <label class="chk"><input type="radio" name="dsMode" value="pin"${pk && pk.mode === "pin" ? " checked" : ""}>${esc(tr("ft.ds_pin", { v: pinV(d) }))}</label></div>`;
+  };
+  const head = pk ? `<div><b>${esc(L[0].title || L[0].id)}</b> <span class="small">· ${esc(tr("ft.ds_rows", { n: L[0].rows }))}${L[0].producer && L[0].producer.env_name ? " · " + esc(L[0].producer.env_name) : ""}</span></div><input type="hidden" id="dsSel" value="${esc(L[0].id)}">`
+    : `<label for="dsSel">${esc(tr("ft.ds_set"))}</label><select id="dsSel">${L.map(x => `<option value="${esc(x.id)}">${esc(x.title || x.id)} · v${x.latest} · ${esc(tr("ft.ds_rows", { n: x.rows }))}${x.producer && x.producer.env_name ? " · " + esc(x.producer.env_name) : ""}</option>`).join("")}</select>`;
+  const html = `${head}
+    <div id="dsCols">${colsHtml(L[0])}</div>
+    <label for="dsYu">${esc(tr("ft.ds_yu"))}</label><select id="dsYu"><option value="auto">${esc(tr("ft.ds_auto"))}</option>${["A", "T", "R", "KM", "LR"].map(k => `<option value="${k}">${esc(tr("ft.yu_" + k))}</option>`).join("")}</select>`;
+  const res = await dialogCheck(tr("ft.ds_title"), html, tr("ft.ds_ok"), async (b) => {
+    const d = ds($("#dsSel", b).value), y = $$(".dsY input:checked", b).map(x => x.value);
+    if (!y.length) return { error: tr("ft.ds_noy") };
+    const mode = ($("input[name=dsMode]:checked", b) || {}).value === "pin" ? "pin" : "live";
+    const r = await withBusy(() => api("api/dataset/spectra", { id: d.id, mode, version: mode === "pin" ? pinV(d) : null, x: $("#dsX", b).value, y, yunit: $("#dsYu", b).value }));
+    return r.error ? { error: r.error } : r;
+  }, (b) => { $("#dsSel", b).addEventListener("change", (e) => { $("#dsCols", b).innerHTML = colsHtml(ds(e.target.value)); }); }, true);
+  if (res && res.spectra) await addSpectra(res.spectra);
+}
+async function dsRefresh(o) {
+  if (!dsOf(o)) return;
+  const j = await withBusy(() => api("api/dataset/refresh", { id: o.id }));
+  if (j.error) return toast(j.error, true);
+  const v = j.spectrum.meta && j.spectrum.meta.dataset ? j.spectrum.meta.dataset.version : "?";
+  o.info = j.spectrum;
+  if (!j.changed) { updateProto(); return toast(tr("ft.ds_same", { v })); }
+  o.name = j.spectrum.name;
+  if (o.search) o.searchStale = true;
+  if (o.mix) o.mixStale = true;
+  try { await refresh(o); } catch (e) { toast(`${o.name}: ${e.message}`, true); }
+  selectSp(S.sps.indexOf(o));
+  toast(tr("ft.ds_done", { v }));
+}
+
+// Bereichsmenü (Werkzeug R)
+function showRegionMenu(px, py) {
+  const o = cur(), r = S.region;
+  const m = $("#regionMenu");
+  const acts = [
+    ["band", "Als Bandenfläche aufnehmen"],
+    ["zoom", "Auf den Bereich zoomen"],
+    ["search", "Als Suchbereich setzen"],
+    ["exclude", "Aus der Suche ausblenden"],
+    ["cut", "Spektrum auf den Bereich zuschneiden (Protokoll)"],
+    ["factor", "Bereich für den Differenzfaktor"],
+  ];
+  m.innerHTML = `<div class="t">${fx(r[0], 1)} – ${fx(r[1], 1)} cm⁻¹</div>` + acts.map(a => `<button data-a="${a[0]}">${esc(a[1])}</button>`).join("");
+  m.hidden = false;
+  const st = $("#stage").getBoundingClientRect();
+  m.style.left = clamp(px + 8, 4, st.width - 250) + "px";
+  m.style.top = clamp(py - 20, 4, st.height - 260) + "px";
+  $$("button", m).forEach(b => b.addEventListener("click", () => regionAction(b.dataset.a)));
+}
+function hideRegionMenu() { const m = $("#regionMenu"); if (m) m.hidden = true; }
+async function regionAction(a) {
+  const o = cur(), [hi, lo] = S.region;
+  hideRegionMenu();
+  if (a === "band") {
+    const name = await askText("Bandenfläche", "Name der Bande", suggestBandName(hi, lo));
+    if (name === null) { S.region = null; return draw(); }
+    o.bands.push({ name: uniqueBand(o, name), lo: r1(lo), hi: r1(hi), base: $("#bdBase").value });
+    await analyse(o); switchTab("banden"); openFold("bands"); updatePeaks();
+  } else if (a === "zoom") setRange(hi, lo);
+  else if (a === "search") { $("#sFrom").value = Math.round(hi); $("#sTo").value = Math.round(lo); switchTab("suche"); }
+  else if (a === "exclude") { S.searchEx = [...(S.searchEx || []), [r1(hi), r1(lo)]]; switchTab("suche"); updateSearch(); }
+  else if (a === "cut") { S.region = null; return pushStep({ op: "cut", lo: r1(lo), hi: r1(hi) }); }
+  else if (a === "factor") { S.factorRegion = [hi, lo]; switchTab("spektren"); toast(`Differenzfaktor wird im Bereich ${fx(hi, 0)}–${fx(lo, 0)} cm⁻¹ bestimmt.`); }
+  S.region = null; draw();
+}
+const r1 = (v) => Math.round(v * 10) / 10;
+function suggestBandName(hi, lo) {
+  const c = (hi + lo) / 2;
+  const g = GTABLE.filter(t => c >= t.lo && c <= t.hi).sort((a, b) => (a.hi - a.lo) - (b.hi - b.lo))[0];
+  return g ? g.name.split(/[ ,(]/)[0] : `${Math.round(hi)}–${Math.round(lo)}`;
+}
+function uniqueBand(o, name) { let n = name, k = 2; while (o.bands.some(b => b.name === n)) n = `${name} (${k++})`; return n; }
+async function askText(title, label, value) {
+  const r = await dialog(title, `<label for="askT">${esc(label)}</label><input type="text" id="askT" value="${esc(value)}">`,
+    [{ value: "cancel", label: "Abbrechen" }, { value: "ok", label: "OK", primary: true }]);
+  return r === "ok" ? ($("#askT").value.trim() || value) : null;
+}
+
+// ---------------------------------------------------------------- Bearbeiten (Schritte mit Vorschau)
+const VIS = {   // Parameter, die nur bei bestimmten Einstellungen gelten
+  baseline: { lam: (p) => p.method === "als", p: (p) => p.method === "als", deg: (p) => p.method === "poly", interp: (p) => p.method === "points", pts: (p) => p.method === "points" },
+  smooth: { order: (p) => p.method === "sg" },
+  normalize: { at: (p) => p.mode === "peak" },
+  offset: { value: (p) => p.mode === "value" },
+};
+const OP_HELP = {
+  to_abs: "A = −log₁₀(T/100). Die meisten Auswertungen (Flächen, Mischungen) setzen Absorbanz voraus.",
+  to_trans: "T = 100 · 10^(−A).",
+  km: "Kubelka-Munk-Funktion (1−R)²/(2R) für diffuse Reflexion (DRIFTS).",
+  cut: "Behält nur den Bereich zwischen den Grenzen (z. B. ohne verrauschte Ränder oder Diamant-Bereich).",
+  interp: "Gleichmässiger Punktabstand, z. B. um Spektren verschiedener Geräte zu vergleichen.",
+  smooth: "Savitzky-Golay erhält Bandenlagen und -höhen besser als ein gleitender Mittelwert.",
+  baseline: "Gummiband: untere konvexe Hülle, ohne Parameter. ALS: flexibel, für gekrümmte Basislinien. Polynom: iterativ unter das Spektrum. Stützpunkte: mit Werkzeug B ins Spektrum klicken.",
+  co2: "Ersetzt die CO₂-Banden (2400–2250 und 720–630 cm⁻¹) durch eine Gerade.",
+  atr: "Gleicht die wellenlängenabhängige Eindringtiefe aus (A · ν̃/ν̃ref), damit ATR-Spektren Transmissionsspektren ähneln.",
+  normalize: "Macht Spektren unterschiedlicher Schichtdicke oder Konzentration vergleichbar.",
+  offset: "Verschiebt das Spektrum senkrecht.",
+  scale: "Multipliziert alle Werte.",
+  deriv: "Ableitungen trennen überlappende Banden und entfernen Basislinien (2. Ableitung: Minima an den Bandenlagen).",
+};
+function opOk(op, unit) {
+  const n = (META.ops[op] || {}).needs || "";
+  return !n || n.split(" ").includes(unit);
+}
+function buildOpSelect() {
+  const o = cur(), unit = o && o.data ? o.data.yunit : "A";
+  const sel = $("#eOp"), was = S.edit ? S.edit.op : sel.value;
+  sel.innerHTML = `<option value="">Schritt wählen …</option>` + Object.entries(META.ops).map(([k, d]) =>
+    `<option value="${k}" ${opOk(k, unit) ? "" : "disabled"}>${esc(d.de)}${opOk(k, unit) ? "" : " (nicht für " + esc(META.yunits[unit] || unit) + ")"}</option>`).join("");
+  sel.value = S.edit ? S.edit.op : "";
+  if (was && !S.edit) sel.value = "";
+}
+function startEdit(op) {
+  const o = cur(); if (!o) return;
+  const d = META.ops[op];
+  if (!d) { S.edit = null; S.preview = null; renderEdit(); draw(); return; }
+  if (!opOk(op, o.data.yunit)) { toast(`„${d.de}“ geht nur mit ${d.needs.split(" ").map(u => META.yunits[u]).join(" oder ")}.`, true); return; }
+  const last = store.get("op." + op, {});
+  const params = {};
+  for (const p of d.params) params[p.key] = p.key in last && p.type !== "points" ? last[p.key] : (Array.isArray(p.default) ? [...p.default] : p.default);
+  if (op === "cut" && o.data) { params.lo = Math.max(params.lo, Math.ceil(o.data.x[0])); params.hi = Math.min(params.hi, Math.floor(o.data.x[o.data.x.length - 1])); }
+  S.edit = { op, params };
+  if (S.tab !== "bearbeiten") switchTab("bearbeiten");
+  renderEdit();
+  if (op === "baseline" && params.method === "points") setTool("bpts");
+  schedulePreview(0);
+}
+function renderEdit() {
+  buildOpSelect();
+  const e = S.edit;
+  $("#eHelp").textContent = e ? (OP_HELP[e.op] || "") : "Schritte lassen sich auch über das Menü Bearbeiten wählen.";
+  $("#eApply").disabled = !e; $("#eCancel").disabled = !e;
+  renderEditParams();
+}
+function renderEditParams() {
+  const e = S.edit, el = $("#eParams");
+  if (!e) { el.innerHTML = ""; return; }
+  const d = META.ops[e.op], vis = VIS[e.op] || {};
+  el.innerHTML = d.params.map(p => {
+    if (vis[p.key] && !vis[p.key](e.params)) return "";
+    const v = e.params[p.key];
+    if (p.type === "select") return `<label>${esc(p.label)}</label><select data-k="${p.key}">${p.options.map(([ov, ol]) => `<option value="${esc(ov)}" ${String(v) === String(ov) ? "selected" : ""}>${esc(ol)}</option>`).join("")}</select>`;
+    if (p.type === "points") {
+      const pts = v || [];
+      return `<label>${esc(p.label)}</label><div class="small">${pts.length ? pts.map(x => fx(x, 0)).join(", ") : "noch keine"} &nbsp; <button type="button" id="ePtsTool">Im Spektrum setzen (B)</button> <button type="button" id="ePtsAuto" title="Stützpunkte an den lokalen Minima vorschlagen">Vorschlagen</button> <button type="button" id="ePtsClr">Leeren</button></div>`;
+    }
+    return `<label>${esc(p.label)}</label><input type="number" data-k="${p.key}" value="${v ?? ""}" ${p.min !== undefined ? `min="${p.min}"` : ""} ${p.max !== undefined ? `max="${p.max}"` : ""} step="${p.step ?? "any"}">`;
+  }).join("");
+  $$("[data-k]", el).forEach(inp => inp.addEventListener(inp.tagName === "SELECT" ? "change" : "input", () => {
+    const p = d.params.find(q => q.key === inp.dataset.k);
+    e.params[p.key] = p.type === "select" ? inp.value : pnum(inp.value);
+    if (p.type === "select") { renderEditParams(); if (e.op === "baseline" && e.params.method === "points") setTool("bpts"); }
+    schedulePreview();
+  }));
+  if ($("#ePtsTool")) $("#ePtsTool").addEventListener("click", () => setTool("bpts"));
+  if ($("#ePtsClr")) $("#ePtsClr").addEventListener("click", () => { e.params.pts = []; renderEditParams(); schedulePreview(); draw(); });
+  if ($("#ePtsAuto")) $("#ePtsAuto").addEventListener("click", () => { e.params.pts = suggestPoints(); renderEditParams(); schedulePreview(); draw(); });
+}
+function suggestPoints() {
+  // lokale Minima (Absorbanz) bzw. Maxima (Transmission) in gleich breiten Abschnitten
+  const o = cur(); const d = o.data;
+  const valley = d.yunit === "T" || d.yunit === "R";
+  const n = 10, x0 = d.x[0], x1 = d.x[d.x.length - 1], out = [];
+  for (let k = 0; k < n; k++) {
+    const a = x0 + (x1 - x0) * k / n, b = x0 + (x1 - x0) * (k + 1) / n;
+    let best = null, bv = Infinity;
+    for (let i = 0; i < d.x.length; i++) { if (d.x[i] < a || d.x[i] > b) continue; const v = valley ? -d.y[i] : d.y[i]; if (v < bv) { bv = v; best = d.x[i]; } }
+    if (best !== null) out.push(r1(best));
+  }
+  return out.sort((a, b) => b - a);
+}
+function editPoints() { return S.edit && S.edit.op === "baseline" && S.edit.params.method === "points" ? (S.edit.params.pts = S.edit.params.pts || []) : null; }
+function startPointsEdit() {
+  if (!cur()) return;
+  if (!(S.edit && S.edit.op === "baseline")) startEdit("baseline");
+  if (S.edit && S.edit.params.method !== "points") { S.edit.params.method = "points"; renderEditParams(); schedulePreview(); }
+}
+function currentStep() {
+  const e = S.edit; if (!e) return null;
+  const st = { op: e.op };
+  const vis = VIS[e.op] || {};
+  for (const p of META.ops[e.op].params) { if (vis[p.key] && !vis[p.key](e.params)) continue; st[p.key] = e.params[p.key]; }
+  return st;
+}
+function schedulePreview(delay = 220) {
+  clearTimeout(S.prevTimer);
+  if (!S.edit || !$("#ePrev").checked) { S.preview = null; draw(); return; }
+  S.prevTimer = setTimeout(async () => {
+    const o = cur(), st = currentStep();
+    if (!o || !st) return;
+    if (st.op === "baseline" && st.method === "points" && (st.pts || []).length < 2) { S.preview = null; draw(); return; }
+    const j = await withBusy(() => api("api/spectrum", { id: o.id, pipeline: [...o.pipeline, st], preview: true }));
+    if (!S.edit || cur() !== o) return;
+    if (j.error) { S.preview = null; $("#eHelp").innerHTML = `<span style="color:var(--err-ink)">${esc(j.error)}</span>`; draw(); return; }
+    $("#eHelp").textContent = OP_HELP[st.op] || "";
+    S.preview = { id: o.id, x: j.x, y: j.y, yunit: j.yunit, before: j.before, baseline: j.baseline };
+    draw();
+  }, delay);
+}
+async function applyEdit() {
+  const st = currentStep(); if (!st) return;
+  if (st.op === "baseline" && st.method === "points" && (st.pts || []).length < 2) return toast("Bitte mindestens zwei Stützpunkte setzen (Werkzeug B).", true);
+  const keep = { ...S.edit.params }; delete keep.pts;
+  store.set("op." + st.op, keep);
+  S.edit = null; S.preview = null;
+  if (S.tool === "bpts") setTool("cursor");
+  await pushStep(st);
+  renderEdit(); updateProto();
+}
+function cancelEdit() { S.edit = null; S.preview = null; if (S.tool === "bpts") setTool("cursor"); renderEdit(); draw(); }
+function updateProto() {
+  const o = cur(), el = $("#proto");
+  dsUpdateHint(o);
+  if (!o) { el.innerHTML = ""; return; }
+  const steps = o.data ? o.data.steps : [];
+  el.innerHTML = o.pipeline.length ? o.pipeline.map((s, i) => `<li><span>${esc(steps[i] || s.op)}</span><button data-i="${i}" title="Diesen Schritt entfernen">×</button></li>`).join("")
+    : `<li class="empty"><span class="small">Noch keine Bearbeitung: das Spektrum wird so ausgewertet, wie es eingelesen wurde.</span></li>`;
+  $$("button[data-i]", el).forEach(b => b.addEventListener("click", async () => {
+    const i = +b.dataset.i; await setPipeline(o, o.pipeline.filter((_, k) => k !== i)); o.redo = []; updateProto();
+  }));
+  $("#pUndo").disabled = !o.pipeline.length; $("#pRedo").disabled = !o.redo.length; $("#pReset").disabled = !o.pipeline.length;
+  $("#spInfo").textContent = spInfoText(o);
+}
+function saveProtocol() {
+  const o = cur(); if (!o) return;
+  download(`${stem(o.name)}_protokoll.json`, JSON.stringify({ format: "folio-ftir-protokoll/1", pipeline: o.pipeline, steps: o.data ? o.data.steps : [],
+    peaks: { params: o.peakParams }, bands: o.bands, ratios: o.ratios }, null, 2), "application/json", false);
+}
+async function loadProtocol(file) {
+  const o = cur(); if (!o) return;
+  let d; try { d = JSON.parse(await file.text()); } catch (e) { return toast("Keine lesbare Protokolldatei (JSON).", true); }
+  const pl = Array.isArray(d) ? d : d.pipeline;
+  if (!Array.isArray(pl) || pl.some(s => !s || !META.ops[s.op])) return toast("Die Datei enthält kein gültiges Protokoll.", true);
+  if (d.peaks && d.peaks.params) o.peakParams = { ...META.peak_defaults, ...d.peaks.params };
+  if (Array.isArray(d.bands)) o.bands = d.bands;
+  if (Array.isArray(d.ratios)) o.ratios = d.ratios;
+  if (await setPipeline(o, pl) === true) { o.redo = []; updateAll(); toast(`Protokoll mit ${pl.length} Schritt(en) angewendet.`); }
+}
+async function applyAll() {
+  const o = cur(); if (!o) return;
+  const errs = [];
+  for (const s of S.sps) {
+    if (s === o) continue;
+    s.peakParams = { ...o.peakParams }; s.peaksOn = o.peaksOn; s.groupsOn = o.groupsOn;
+    s.bands = JSON.parse(JSON.stringify(o.bands)); s.ratios = JSON.parse(JSON.stringify(o.ratios));
+    const r = await setPipeline(s, JSON.parse(JSON.stringify(o.pipeline)));
+    if (r !== true) errs.push(`${s.name}: ${r}`); else s.redo = [];
+  }
+  updateAll(); draw();
+  toast(errs.length ? "Nicht auf alle anwendbar:\n" + errs.join("\n") : "Protokoll, Bandenparameter und Flächen auf alle Spektren übertragen.", !!errs.length);
+}
+
+// ---------------------------------------------------------------- Banden
+function readPeakParams() {
+  const o = cur(); if (!o) return;
+  const p = o.peakParams;
+  for (const [id, k] of [["pkProm", "prominence"], ["pkDist", "distance"], ["pkThr", "threshold"], ["pkMax", "max"], ["pkSnr", "snr"]]) {
+    const v = pnum($("#" + id).value); if (v !== null && isFinite(v)) p[k] = v;
+  }
+}
+function updatePeaks() {
+  const o = cur();
+  const dis = !o;
+  ["pkOn", "pkProm", "pkDist", "pkThr", "pkMax", "pkSnr", "pkRun", "pkDef", "pkManual", "pkCopy", "pkCsv", "bdAdd", "raAdd"].forEach(id => $("#" + id).disabled = dis);
+  if (!o) { $("#pkWrap").innerHTML = ""; $("#bdWrap").innerHTML = ""; $("#raList").innerHTML = ""; return; }
+  $("#pkOn").checked = o.peaksOn;
+  const p = o.peakParams;
+  $("#pkProm").value = p.prominence; $("#pkDist").value = p.distance; $("#pkThr").value = p.threshold; $("#pkMax").value = p.max;
+  $("#pkSnr").value = p.snr ?? 0;
+  $("#pkManual").disabled = !(o.peakAdd.length || o.peakRemove.length);
+  const unit = o.data ? o.data.yunit : "A";
+  const yl = unit === "T" ? "%T" : unit === "R" ? "%R" : unit === "A" ? "A" : "y";
+  if (!o.peaksOn) $("#pkWrap").innerHTML = `<div class="small" style="padding:10px">Bandenmarkierung ist aus.</div>`;
+  else if (!o.peaks.length) $("#pkWrap").innerHTML = `<div class="small" style="padding:10px">Keine Banden mit diesen Einstellungen.</div>`;
+  else {
+    $("#pkWrap").innerHTML = `<table class="res"><thead><tr><th>Nr.</th><th>ν̃ [cm⁻¹]</th><th>${yl}</th><th>Int.</th><th>FWHM</th><th class="l">Zuordnung</th></tr></thead><tbody>` +
+      o.peaks.map((q, i) => `<tr data-x="${q.x}" class="${S.hlPeak !== null && Math.abs(S.hlPeak - q.x) < 0.01 ? "hl" : ""}"><td>${i + 1}</td><td class="${q.manual ? "man" : ""}">${fx(q.x, 1)}</td><td>${fmt(q.y, unit === "T" || unit === "R" ? 1 : 4)}</td><td>${q.strength}${q.shape ? " br" : ""}</td><td>${fmt(q.fwhm, 0)}</td><td class="wrap">${esc((q.assign || [])[0] || "–")}</td></tr>`).join("") + `</tbody></table>`;
+    $$("#pkWrap tbody tr").forEach(tr => tr.addEventListener("click", () => {
+      const q = o.peaks.find(z => z.x === +tr.dataset.x);
+      S.hlPeak = q.x; updatePeaks(); showPeakDetail(q); draw();
+      const v = S.view; if (v && (q.x > Math.max(v.x0, v.x1) || q.x < Math.min(v.x0, v.x1))) resetView();
+    }));
+  }
+  if (S.hlPeak === null) $("#pkDetail").hidden = true;
+  // Flächen
+  const res = o.bandRes;
+  $("#bdWrap").innerHTML = o.bands.length ? `<table class="res"><thead><tr><th class="l">Bande</th><th>Bereich</th><th>Fläche</th><th>Höhe</th><th>Lage</th><th></th></tr></thead><tbody>` +
+    o.bands.map((b, i) => { const r = res[i] || {}; return `<tr data-i="${i}"><td class="l">${esc(b.name)}</td><td>${fx(b.hi, 0)}–${fx(b.lo, 0)}</td><td>${fmt(r.area, 4)}${r.area != null ? shr("B" + (i + 1)) : ""}</td><td>${fmt(r.height, 4)}</td><td>${fmt(r.pos, 0)}</td><td><button data-del="${i}" title="Entfernen" style="border:0;background:transparent;padding:0 4px">×</button></td></tr>`; }).join("") + `</tbody></table>`
+    : `<div class="small" style="padding:10px">Noch keine Flächen.</div>`;
+  $$("#bdWrap tbody tr").forEach(tr => tr.addEventListener("click", async (e) => {
+    const i = +tr.dataset.i, b = o.bands[i];
+    if (e.target.dataset.del !== undefined) {
+      const nm = b.name; o.bands.splice(i, 1); o.ratios = o.ratios.filter(r => r.num !== nm && r.den !== nm);
+      await analyse(o); updatePeaks(); draw(); return;
+    }
+    S.hlRange = [b.hi, b.lo, b.name]; draw();
+  }));
+  const opts = o.bands.map(b => `<option>${esc(b.name)}</option>`).join("");
+  $("#raNum").innerHTML = opts; $("#raDen").innerHTML = opts;
+  if (o.bands.length > 1) $("#raDen").selectedIndex = 1;
+  $("#raAdd").disabled = o.bands.length < 2;
+  $("#raList").innerHTML = o.ratios.length ? o.ratios.map((r, i) => { const v = (o.ratioRes[i] || {}).value; return `<div class="it"><span class="nm">${esc(r.name)} <span class="cv">(${r.kind === "height" ? "Höhen" : "Flächen"})</span></span><b>${fmt(v, 4)}</b>${v != null ? shr("R" + (i + 1)) : ""}<button data-i="${i}" title="Entfernen">×</button></div>`; }).join("")
+    : `<div class="empty">Verhältnis zweier Flächen oder Höhen, z. B. Carbonylindex C=O / CH₂.</div>`;
+  $$("#raList button[data-i]").forEach(b => b.addEventListener("click", async () => { o.ratios.splice(+b.dataset.i, 1); await analyse(o); updatePeaks(); }));
+}
+async function showPeakDetail(q) {
+  const el = $("#pkDetail");
+  el.hidden = false;
+  el.innerHTML = `<b>${fx(q.x, 1)} cm⁻¹</b> · ${STR_DE[q.strength] || q.strength}${q.shape ? ", breit" : ""} · FWHM ${fmt(q.fwhm, 0)} cm⁻¹ · λ ${fx(1e4 / q.x, 2)} µm${q.manual ? " · von Hand gesetzt" : ""}<div class="small">mögliche Zuordnungen …</div>`;
+  const j = await api("api/assign", { x: q.x, strength: q.strength });
+  if (S.hlPeak !== q.x) return;
+  el.innerHTML = el.innerHTML.replace(/<div class="small">.*<\/div>$/, "") +
+    (j.assign && j.assign.length ? `<ol>${j.assign.map(a => `<li>${esc(a)}</li>`).join("")}</ol>` : `<div class="small">Keine Zuordnung in der Tabelle.</div>`);
+}
+function peakCsv() {
+  const o = cur(); if (!o || !o.peaks.length) return "";
+  const rows = [["Nr", "Wellenzahl_cm-1", "y", "rel_Intensitaet", "Staerke", "FWHM_cm-1", "Flaeche", "von_Hand", "Zuordnung"]];
+  o.peaks.forEach((q, i) => rows.push([i + 1, q.x, q.y, q.rel, q.strength + (q.shape ? " br" : ""), q.fwhm, q.area, q.manual ? "ja" : "", (q.assign || []).join(" | ")]));
+  return rows.map(r => r.map(csvNum).join(";")).join("\r\n");
+}
+
+// ---------------------------------------------------------------- Gruppen
+function updateGroups() {
+  const o = cur();
+  $("#grOn").disabled = !o;
+  if (!o) { $("#grList").innerHTML = ""; $("#grAbsent").innerHTML = ""; return; }
+  $("#grOn").checked = o.groupsOn;
+  if (!o.groupsOn) { $("#grList").innerHTML = `<div class="small" style="margin-top:10px">Häkchen setzen, um die Bewertung zu rechnen.</div>`; $("#grAbsent").innerHTML = ""; return; }
+  const g = o.groups;
+  if (!g) { $("#grList").innerHTML = ""; return; }
+  if (g.note) { $("#grList").innerHTML = `<div class="note">${esc(g.note)}</div>`; $("#grAbsent").innerHTML = ""; return; }
+  const masked = (g.masked || []).length ? `<div class="small" style="margin-top:6px">Nicht bewertet (verrauscht): ${g.masked.map(r => `${fx(r[0], 0)}–${fx(r[1], 0)}`).join(", ")} cm⁻¹</div>` : "";
+  $("#grAbsent").innerHTML = (g.absent.length ? `<div class="note" style="margin-top:8px">${g.absent.map(a => `<div style="cursor:pointer" data-r="${a.range[0]},${a.range[1]}">${esc(a.text)}</div>`).join("")}</div>`
+    : g.absent_note ? `<div class="small" style="margin-top:8px">${esc(g.absent_note)}</div>` : "") + masked;
+  $$("#grAbsent [data-r]").forEach(d => d.addEventListener("click", () => { const [a, b] = d.dataset.r.split(",").map(Number); S.hlRange = [a, b, ""]; draw(); }));
+  const all = $("#grAll").checked;
+  const cls = g.classes.filter(c => all || c.verdict !== "unwahrscheinlich");
+  $("#grList").innerHTML = cls.length ? cls.map((c, i) => `<div class="gr" data-i="${i}"><div class="h"><span class="badge v-${c.verdict}">${VERD[c.verdict]}</span><b>${esc(c.name)}</b><span class="cv">${c.found}/${c.needed}</span></div>
+      <ul hidden>${c.evidence.map(e => `<li data-r="${e.range[0]},${e.range[1]}"><span class="${e.status === "ok" ? "st-ok" : e.status === "widerspricht" ? "st-x" : "st-no"}">${e.status === "ok" ? "✓" : e.status === "widerspricht" ? "✗" : "–"}</span> ${esc(e.band)} <span class="small">(${fx(e.range[0], 0)}–${fx(e.range[1], 0)}${e.at ? `, gefunden bei ${fx(e.at, 0)}` : ""}${e.kind !== "nötig" ? ", " + e.kind : ""})</span></li>`).join("")}</ul></div>`).join("")
+    : `<div class="small" style="margin-top:10px">Keine Stoffklasse passt sicher.</div>`;
+  $$("#grList .gr .h").forEach(h => h.addEventListener("click", () => { const u = h.nextElementSibling; u.hidden = !u.hidden; }));
+  $$("#grList li").forEach(li => li.addEventListener("click", () => { const [a, b] = li.dataset.r.split(",").map(Number); S.hlRange = [a, b, ""]; draw(); }));
+}
+function updateCorrTable() {
+  const f = ($("#ctFilter").value || "").trim().toLowerCase();
+  const num = pnum(f);
+  const rows = GTABLE.filter(t => !f || (num !== null && isFinite(num) ? num >= t.lo - 5 && num <= t.hi + 5 : (t.name + " " + t.group).toLowerCase().includes(f)));
+  $("#ctWrap").innerHTML = `<table class="res"><thead><tr><th>Bereich [cm⁻¹]</th><th>St.</th><th class="l">Schwingung</th></tr></thead><tbody>` +
+    rows.map(t => `<tr data-r="${t.hi},${t.lo}"><td>${fx(t.hi, 0)}–${fx(t.lo, 0)}</td><td>${t.strength}${t.shape ? " " + t.shape : ""}</td><td class="wrap">${esc(t.name)}</td></tr>`).join("") + `</tbody></table>`;
+  $$("#ctWrap tbody tr").forEach(tr => tr.addEventListener("click", () => { const [a, b] = tr.dataset.r.split(",").map(Number); S.hlRange = [a, b, ""]; draw(); }));
+}
+
+// ---------------------------------------------------------------- Suche und Mischung
+function searchExclude() { const ex = $("#sCO2").checked ? [...META.exclude] : []; return ex.concat(S.searchEx || []); }
+function searchInclude() { const a = pnum($("#sFrom").value), b = pnum($("#sTo").value); return a !== null && b !== null && isFinite(a) && isFinite(b) && a !== b ? [[a, b]] : null; }
+function libIds() { return [...S.searchLibs].filter(id => S.libs.some(l => l.id === id)); }
+function updateSearch() {
+  const o = cur();
+  $("#sLibs").innerHTML = S.libs.map(l => `<label class="it"><input type="checkbox" data-lib="${esc(l.id)}" ${S.searchLibs.has(l.id) ? "checked" : ""}><span class="nm">${esc(l.name)}</span><span class="cv">${l.count}</span></label>`).join("");
+  $$("#sLibs input").forEach(c => c.addEventListener("change", () => { c.checked ? S.searchLibs.add(c.dataset.lib) : S.searchLibs.delete(c.dataset.lib); store.set("libs", [...S.searchLibs]); updateSearch(); updateFoldCounts(); }));
+  const cats = [...new Set(S.libs.filter(l => S.searchLibs.has(l.id)).flatMap(l => l.categories))].sort();
+  const cv0 = $("#sCat").value;
+  $("#sCat").innerHTML = `<option value="">alle</option>` + cats.map(c => `<option ${c === cv0 ? "selected" : ""}>${esc(c)}</option>`).join("");
+  $("#sModelNote").hidden = !S.searchLibs.has(META.model_id);
+  const qn = $("#sNoise").checked && o && o.data && o.data.quality ? o.data.quality.noisy : [];
+  $("#sEx").innerHTML = ((S.searchEx || []).length ? "Ausgeblendet: " + S.searchEx.map((r, i) => `${fx(r[0], 0)}–${fx(r[1], 0)} <button data-i="${i}" style="border:0;background:transparent;padding:0 3px">×</button>`).join(", ") : "") +
+    (qn.length ? `<div>Verrauscht, automatisch ausgeblendet: ${qn.map(r => `${fx(r[0], 0)}–${fx(r[1], 0)}`).join(", ")} cm⁻¹</div>` : "");
+  $$("#sEx button").forEach(b => b.addEventListener("click", () => { S.searchEx.splice(+b.dataset.i, 1); updateSearch(); draw(); }));
+  $("#sRun").disabled = !o || !libIds().length; $("#mRun").disabled = !o || !libIds().length;
+  if (!o) { $("#sWrap").innerHTML = ""; $("#sDetail").hidden = true; $("#sStale").hidden = true; return; }
+  $("#sStale").hidden = !(o.search && o.searchStale);
+  $("#sRep").checked = o.searchRep;
+  const s = o.search;
+  if (!s) { $("#sWrap").innerHTML = `<div class="small" style="padding:10px">Noch nicht gesucht.</div>`; $("#sDetail").hidden = true; return; }
+  if (!s.hits.length) { $("#sWrap").innerHTML = `<div class="small" style="padding:10px">Keine Treffer.</div>`; $("#sDetail").hidden = true; return; }
+  $("#sWrap").innerHTML = `<table class="res"><thead><tr><th>#</th><th class="l">Referenz</th><th>HQI</th><th class="l">Bibliothek</th></tr></thead><tbody>` +
+    s.hits.map((h, i) => `<tr data-i="${i}" class="${i === o.hitSel ? "hl" : ""}" title="${esc(h.category || "")}${h.cas ? " · CAS " + esc(h.cas) : ""}${h.similar ? ` · ${h.similar} weitere Spektren dieses Stoffs` : ""}"><td>${h.rank}</td><td class="wrap">${esc(h.name)}${h.similar ? ` <span class="small">(+${h.similar})</span>` : ""}<div class="bar" style="width:${clamp(h.hqi, 0, 100)}%"></div></td><td class="hqi">${fx(h.hqi, 1)}</td><td class="l small" style="white-space:normal;max-width:150px;line-height:1.25" title="${esc(h.lib_name)}">${esc(h.lib_name)}</td></tr>`).join("") + `</tbody></table>`;
+  $$("#sWrap tbody tr").forEach(tr => {
+    tr.addEventListener("click", () => { o.hitSel = +tr.dataset.i; S.mode = "search"; S.view = keepX(); updateSearch(); updateMode(); draw(); });
+    tr.addEventListener("dblclick", () => openHit(o.search.hits[+tr.dataset.i]));
+  });
+  const h = s.hits[o.hitSel];
+  const el = $("#sDetail");
+  el.hidden = !h;
+  if (h) {
+    el.innerHTML = `<b>${esc(h.name)}</b> · HQI ${fx(h.hqi, 1)} · Abdeckung ${fx(100 * h.coverage, 0)} %<br>${esc(h.lib_name)}${h.category ? " · " + esc(h.category) : ""}${h.cas ? " · CAS " + esc(h.cas) : ""}${h.comment ? " · " + esc(h.comment) : ""}${h.similar ? ` · ${h.similar} weitere Spektren dieses Stoffs (ohne „Zusammenfassen“ einzeln)` : ""}${h.source ? "<br><span class='small'>" + esc(h.source) + "</span>" : ""}` +
+      `<div class="row"><button id="sOpen">Als Spektrum öffnen</button>${h.y ? "" : "<span class='small'>Für Treffer ab Rang 11 keine Überlagerung.</span>"}</div>`;
+    $("#sOpen").addEventListener("click", () => openHit(h));
+  }
+}
+async function openHit(h) {
+  const j = await withBusy(() => api("api/library/open", { lib: h.lib, eid: h.id }));
+  if (j.error) return toast(j.error, true);
+  if (await overlayRefs(j.spectra)) toast(`${h.name} geöffnet und normiert überlagert (Darstellung im Tab Spektren).`);
+}
+// Referenzen neben der Probe öffnen und normiert überlagern; die Probe bleibt ausgewählt
+async function overlayRefs(list) {
+  if (!list || !list.length) return false;
+  if (!S.sps.length) { await addSpectra(list); return true; }
+  for (const d of list) {
+    const n = newSp(d);
+    n.peaksOn = false;
+    S.sps.push(n);
+    try { await refresh(n); } catch (e) { toast(e.message, true); return false; }
+    n.overlay = true;
+  }
+  S.ov = "norm"; S.mode = "spec"; S.view = keepX();
+  renderChips(); updateAll(); draw();
+  return true;
+}
+// „Referenz aus Datei einblenden …“: Datei + Quelle → Bibliothek „Eigene Referenzen“ → gleich überlagert
+async function refFromFile(file) {
+  const r = await dialogCheck("Referenz aus Datei einblenden",
+    `<p class="small" style="margin-top:0">„${esc(file.name)}“ wird in der Bibliothek <b>Eigene Referenzen</b> gespeichert (dort später bearbeitbar, auch für die Suche) und sofort normiert überlagert. Im Bericht wird die Quelle zitiert.</p>
+     <label for="rfName">Name im Diagramm</label><input type="text" id="rfName" value="${esc(stem(file.name))}">
+     <label for="rfCat">Kategorie (optional)</label><input type="text" id="rfCat" list="catList3"><datalist id="catList3">${[...new Set(S.libs.flatMap(l => l.categories || []))].map(c => `<option>${esc(c)}</option>`).join("")}</datalist>
+     <h4 class="sub">Quelle der Referenz</h4>
+     <div class="src">${window.LabRef ? LabRef.form({ type: "article" }) : ""}</div>`,
+    "Speichern und einblenden",
+    async (b) => {
+      const s = readSrc(b);
+      if (s.error) return { error: s.error };
+      if (!s.rec) return { error: "Bitte die Quelle angeben (mindestens Titel, DOI oder URL); eigene Messungen z. B. als „Sonstiges“ mit Titel und Gerät." };
+      const q = `lib=${encodeURIComponent(META.own_refs)}&open=1&name=${encodeURIComponent(file.name)}&label=${encodeURIComponent($("#rfName", b).value.trim())}` +
+        `&category=${encodeURIComponent($("#rfCat", b).value.trim())}&cite=${encodeURIComponent(JSON.stringify(s.rec))}`;
+      const j = await withBusy(async () => api("api/library/import?" + q, await file.arrayBuffer(), true));
+      if (j.error) return { error: j.error };
+      if (!j.added.length) return { error: "Nicht übernommen: " + (j.failed.join("; ") || "keine Spektren in der Datei") };
+      return j;
+    }, null, true);
+  if (!r) return;
+  S.libs = r.libs;
+  if (S.searchLibs && r.lib) { S.searchLibs.add(r.lib.id); store.set("libs", [...S.searchLibs]); }
+  await overlayRefs(r.spectra);
+  updateSearch(); if (S.tab === "bibliotheken") updateLibs();
+  toast(`${r.added.length} Referenz(en) in „${r.lib.name}“ gespeichert und überlagert.` + (r.failed.length ? " Nicht übernommen: " + r.failed.join("; ") : ""));
+}
+async function runSearch() {
+  const o = cur(); if (!o) return;
+  const libs = libIds();
+  if (!libs.length) return toast("Bitte mindestens eine Bibliothek wählen.", true);
+  const body = { id: o.id, pipeline: o.pipeline, libs, algo: $("#sAlgo").value, include: searchInclude(), exclude: searchExclude(),
+    category: $("#sCat").value || null, n: 30, noise_mask: $("#sNoise").checked, collapse: $("#sGroup").checked };
+  const t0 = performance.now();
+  const j = await withBusy(() => api("api/search", body));
+  if (j.error) return toast(j.error, true);
+  o.search = { ...j, libs, include: body.include, exclude: body.exclude };
+  o.hitSel = 0; o.searchStale = false;
+  if (activeEqs().length) { await analyse(o); updateEq(); }      // hqi1 in eigenen Gleichungen
+  S.mode = "search"; S.view = keepX();
+  updateSearch(); updateMode(); draw();
+  $("#stInfo").textContent = `Suche: ${j.hits.length} Treffer in ${fmt((performance.now() - t0) / 1000, 2)} s`;
+}
+async function runMixture() {
+  const o = cur(); if (!o) return;
+  const libs = libIds();
+  if (!libs.length) return toast("Bitte unter Suche mindestens eine Bibliothek wählen.", true);
+  const j = await withBusy(() => api("api/mixture", { id: o.id, pipeline: o.pipeline, libs, include: searchInclude(), exclude: searchExclude(), max: +$("#mMax").value, noise_mask: $("#sNoise").checked }));
+  if (j.error) return toast(j.error, true);
+  if (!j.combos.length) { toast(j.note || "Keine passende Kombination gefunden.", true); }
+  o.mix = j; o.mixSel = 0; o.mixStale = false;
+  if (j.combos.length) { S.mode = "mix"; S.view = keepX(); }
+  updateMix(); updateMode(); draw();
+}
+function updateMix() {
+  const o = cur();
+  if (!o) { $("#mList").innerHTML = ""; $("#mDetail").hidden = true; $("#mStale").hidden = true; return; }
+  $("#mStale").hidden = !(o.mix && o.mixStale);
+  $("#mRep").checked = o.mixRep;
+  const m = o.mix;
+  if (!m) { $("#mList").innerHTML = `<div class="empty">Noch nicht gerechnet.</div>`; $("#mDetail").hidden = true; return; }
+  if (!m.combos.length) { $("#mList").innerHTML = `<div class="empty">${esc(m.note || "Keine Kombination gefunden.")}</div>`; $("#mDetail").hidden = true; return; }
+  $("#mList").innerHTML = m.combos.map((c, i) => `<div class="combo ${i === o.mixSel ? "sel" : ""}" data-i="${i}"><div class="h"><span>${c.components.map(k => esc(k.name)).join(" + ")}</span><span class="hqi">${fx(c.hqi, 1)}</span></div><div class="c">${c.components.map(k => `${fx(100 * k.frac, 0)} %`).join(" / ")} · ${c.n} Komponente${c.n > 1 ? "n" : ""}</div></div>`).join("");
+  $$("#mList .combo").forEach(d => d.addEventListener("click", () => { o.mixSel = +d.dataset.i; S.mode = "mix"; S.view = keepX(); updateMix(); updateMode(); draw(); }));
+  const c = m.combos[o.mixSel];
+  $("#mDetail").hidden = false;
+  $("#mDetail").innerHTML = `<b>HQI ${fx(c.hqi, 1)}</b> (Bestimmtheit der Anpassung)<table class="res" style="margin-top:6px"><thead><tr><th class="l">Komponente</th><th class="l">Bibliothek</th><th>Anteil</th></tr></thead><tbody>` +
+    c.components.map(k => `<tr><td class="wrap">${esc(k.name)}</td><td class="l">${esc(k.lib_name)}</td><td>${fx(100 * k.frac, 1)} %</td></tr>`).join("") + `</tbody></table>`;
+}
+function updateMode() {
+  const o = cur();
+  $$("#modeSeg button").forEach(b => {
+    b.classList.toggle("sel", b.dataset.mode === S.mode);
+    b.disabled = !o || (b.dataset.mode === "search" && !(o.search && o.search.hits.length)) || (b.dataset.mode === "mix" && !(o.mix && o.mix.combos.length));
+  });
+}
+
+// ---------------------------------------------------------------- Spektren vergleichen, ableiten
+function updateCompare() {
+  const o = cur();
+  $("#cList").innerHTML = S.sps.length ? S.sps.map((s, i) => `<div class="it ${s === o ? "sel" : ""}" data-i="${i}"><input type="checkbox" data-ov="${i}" ${s.overlay && s !== o ? "checked" : ""} ${s === o ? "disabled title='aktuelles Spektrum'" : "title='überlagern'"}><span class="sw" style="background:${s.color}"></span><input type="text" data-nm="${i}" value="${esc(s.name)}"><span class="cv">${s.data ? (META.yunits[s.data.yunit] || s.data.yunit).replace(/ \[.*\]/, "") : ""}</span></div>`).join("")
+    : `<div class="empty">Keine Spektren geladen.</div>`;
+  $$("#cList [data-ov]").forEach(c => c.addEventListener("change", () => { S.sps[+c.dataset.ov].overlay = c.checked; S.view = keepX(); draw(); }));
+  $$("#cList [data-nm]").forEach(inp => inp.addEventListener("change", async () => {
+    const s = S.sps[+inp.dataset.nm], name = inp.value.trim();
+    if (!name) { inp.value = s.name; return; }
+    const j = await api("api/rename", { id: s.id, name });
+    if (j.error) return toast(j.error, true);
+    s.name = j.name; renderChips(); draw();
+  }));
+  $$("#cList .it").forEach(d => d.addEventListener("dblclick", (e) => { if (e.target.tagName !== "INPUT") selectSp(+d.dataset.i); }));
+  const opts = S.sps.map((s, i) => `<option value="${i}">${esc(s.name)}</option>`).join("");
+  const a = $("#dA").value, b = $("#dB").value;
+  $("#dA").innerHTML = opts; $("#dB").innerHTML = opts;
+  if (S.sps.length) { $("#dA").value = a && +a < S.sps.length ? a : String(S.sel); $("#dB").value = b && +b < S.sps.length && b !== $("#dA").value ? b : String(S.sps.findIndex((_, i) => i !== +$("#dA").value)); }
+  $("#dDiff").disabled = S.sps.length < 2;
+  const marked = S.sps.filter(s => s.overlay || s === o).length;
+  $("#dAvg").disabled = marked < 2; $("#dSum").disabled = marked < 2;
+  updateOv();
+}
+function updateOv() { $$("#ovSeg button").forEach(b => b.classList.toggle("sel", b.dataset.ov === S.ov)); }
+async function derive(op) {
+  let body;
+  if (op === "diff") {
+    const A = S.sps[+$("#dA").value], B = S.sps[+$("#dB").value];
+    if (!A || !B || A === B) return toast("Bitte zwei verschiedene Spektren wählen.", true);
+    const f = pnum($("#dF").value);
+    body = { op, ids: [A.id, B.id], pipelines: { [A.id]: A.pipeline, [B.id]: B.pipeline }, factor: f === null ? "auto" : f, region: S.factorRegion || null };
+  } else {
+    const o = cur();
+    const list = S.sps.filter(s => s.overlay || s === o);
+    body = { op, ids: list.map(s => s.id), pipelines: Object.fromEntries(list.map(s => [s.id, s.pipeline])) };
+  }
+  const j = await withBusy(() => api("api/derive", body));
+  if (j.error) return toast(j.error, true);
+  await addSpectra(j.spectra);
+  if (op === "diff" && j.spectra[0].factor !== undefined) toast(`Differenzspektrum mit Faktor ${fmt(j.spectra[0].factor, 4)} berechnet.`);
+}
+
+// ---------------------------------------------------------------- Bibliotheken
+async function loadLibs() {
+  const j = await api("api/library/list", {});
+  if (j.error) return toast(j.error, true);
+  S.libs = j.libs;
+  if (!S.libSel || !S.libs.some(l => l.id === S.libSel)) S.libSel = (S.libs.find(l => !l.readonly) || S.libs[0] || {}).id;
+  updateSearch(); await updateLibs();
+}
+async function updateLibs() {
+  const sel = $("#lSel");
+  sel.innerHTML = S.libs.map(l => `<option value="${esc(l.id)}">${esc(l.name)} (${l.count})${l.readonly ? " · schreibgeschützt" : ""}</option>`).join("");
+  sel.value = S.libSel || "";
+  const lib = S.libs.find(l => l.id === S.libSel);
+  $("#lDel").disabled = !lib || lib.readonly; $("#lAdd").disabled = !lib || lib.readonly || !cur(); $("#lImp").disabled = !lib || lib.readonly; $("#lExp").disabled = !lib || !lib.count;
+  if (!lib) { $("#lInfo").textContent = "Noch keine Bibliothek."; $("#lList").innerHTML = ""; return; }
+  $("#lInfo").innerHTML = esc(lib.description || "") + (lib.readonly ? ` <b>Nur zum Ausprobieren und Eingrenzen.</b>` : "") +
+    (lib.cite && window.LabRef ? `<br>Quelle: ${esc(LabRef.text(lib.cite))}` : "");
+  const j = await api("api/library/entries", { lib: lib.id });
+  if (j.error) return toast(j.error, true);
+  S.libEntries = j.entries;
+  renderLibEntries();
+}
+function renderLibEntries() {
+  const lib = S.libs.find(l => l.id === S.libSel);
+  const f = ($("#lFilter").value || "").trim().toLowerCase();
+  const es = S.libEntries.filter(e => !f || `${e.name} ${e.category} ${e.cas} ${e.comment}`.toLowerCase().includes(f));
+  $("#lList").innerHTML = es.length ? es.map(e => `<div class="it" data-e="${esc(e.id)}"><span class="nm" title="${esc(e.source || "")}${e.comment ? " · " + esc(e.comment) : ""}">${esc(e.name)}</span><span class="cv">${e.cite && window.LabRef ? esc(LabRef.short(e.cite)) + " · " : ""}${esc(e.category || "")}</span><button data-a="open" title="Als eigenes Spektrum öffnen">Öffnen</button><button data-a="overlay" title="Neben dem aktuellen Spektrum normiert überlagern">Einblenden</button>${lib && !lib.readonly ? `<button data-a="edit" title="Angaben bearbeiten">✎</button><button data-a="del" title="Löschen">×</button>` : ""}</div>`).join("")
+    : `<div class="empty">${S.libEntries.length ? "Kein Eintrag passt." : "Leer. Aktuelles Spektrum hinzufügen oder Referenzen importieren."}</div>`;
+  $$("#lList button").forEach(b => b.addEventListener("click", (ev) => { ev.stopPropagation(); libEntryAction(b.closest(".it").dataset.e, b.dataset.a); }));
+  $$("#lList .it").forEach(d => d.addEventListener("dblclick", () => libEntryAction(d.dataset.e, "open")));
+}
+function metaForm(m = {}) {
+  return `<label for="mName">Name</label><input type="text" id="mName" value="${esc(m.name || "")}">
+    <div class="row2"><div><label for="mCat">Kategorie</label><input type="text" id="mCat" list="catList" value="${esc(m.category || "")}" placeholder="z. B. Kunststoff"></div>
+    <div><label for="mCas">CAS-Nr.</label><input type="text" id="mCas" value="${esc(m.cas || "")}"></div></div>
+    <div class="row2"><div><label for="mForm">Summenformel</label><input type="text" id="mForm" value="${esc(m.formula || "")}"></div>
+    <div><label for="mSrc" title="Kurzangabe, z. B. Gerät oder Datei; bei strukturierter Quelle unten leer lassen">Herkunft (Text)</label><input type="text" id="mSrc" value="${esc(m.cite ? "" : (m.source || ""))}"></div></div>
+    <label for="mCom">Bemerkung</label><input type="text" id="mCom" value="${esc(m.comment || "")}">
+    <datalist id="catList">${[...new Set(S.libs.flatMap(l => l.categories))].map(c => `<option>${esc(c)}</option>`).join("")}</datalist>
+    ${srcBlock(m.cite, "Quelle (Literatur, Datenbank, eigene Messung) – wird im Bericht zitiert", !!m.cite)}`;
+}
+// Liest die Angaben; bei strukturierter Quelle bildet der Server den Quellentext daraus
+function readMeta(root = $("#dlgBody")) {
+  const s = readSrc(root);
+  if (s.error) return { error: s.error };
+  return { name: $("#mName").value.trim(), category: $("#mCat").value.trim(), cas: $("#mCas").value.trim(), formula: $("#mForm").value.trim(),
+    source: $("#mSrc").value.trim(), comment: $("#mCom").value.trim(), cite: s.rec };
+}
+async function libEntryAction(eid, a) {
+  const lib = S.libSel;
+  if (a === "open" || a === "overlay") {
+    const j = await withBusy(() => api("api/library/open", { lib, eid }));
+    if (j.error) return toast(j.error, true);
+    if (a === "overlay" && cur()) { if (await overlayRefs(j.spectra)) toast("Referenz normiert überlagert (Darstellung im Tab Spektren)."); return; }
+    return addSpectra(j.spectra);
+  }
+  const e = S.libEntries.find(x => x.id === eid);
+  if (a === "del") {
+    if (!confirm(`„${e.name}“ aus der Bibliothek löschen?`)) return;
+    const j = await api("api/library/remove", { lib, eid });
+    if (j.error) return toast(j.error, true);
+    return loadLibs();
+  }
+  if (a === "edit") {
+    const r = await dialogCheck("Referenz bearbeiten", metaForm(e), "Speichern", async (b) => {
+      const meta = readMeta(b);
+      if (meta.error) return meta;
+      const j = await api("api/library/update", { lib, eid, meta });
+      return j.error ? { error: j.error } : j;
+    }, null, true);
+    if (r) return loadLibs();
+  }
+}
+async function libAddCurrent() {
+  const o = cur(); const lib = S.libs.find(l => l.id === S.libSel);
+  if (!o || !lib || lib.readonly) return toast("Bitte erst eine eigene Bibliothek anlegen oder wählen.", true);
+  const j = await dialogCheck(`Zu „${lib.name}“ hinzufügen`, `<p class="small" style="margin-top:0">Gespeichert wird das Spektrum mit seiner aktuellen Bearbeitung (${o.pipeline.length} Schritt${o.pipeline.length === 1 ? "" : "e"}).</p>` + metaForm({ name: o.name, source: o.file }),
+    "Hinzufügen", async (b) => {
+      const meta = readMeta(b);
+      if (meta.error) return meta;
+      const r = await withBusy(() => api("api/library/add", { lib: lib.id, id: o.id, pipeline: o.pipeline, meta }));
+      return r.error ? { error: r.error } : r;
+    }, null, true);
+  if (!j) return;
+  toast(`„${j.entry.name}“ zu ${lib.name} hinzugefügt.`);
+  loadLibs();
+}
+async function libImport(files) {
+  const lib = S.libs.find(l => l.id === S.libSel);
+  if (!lib || lib.readonly) return;
+  const r = await dialog("Referenzen importieren", `<p class="small" style="margin-top:0">${files.length} Datei(en) nach „${esc(lib.name)}“. Namen kommen aus den Dateien (bei JCAMP aus ##TITLE).</p><label for="iCat">Kategorie für alle (optional)</label><input type="text" id="iCat" list="catList2"><datalist id="catList2">${[...new Set(S.libs.flatMap(l => l.categories))].map(c => `<option>${esc(c)}</option>`).join("")}</datalist>`,
+    [{ value: "cancel", label: "Abbrechen" }, { value: "ok", label: "Importieren", primary: true }]);
+  if (r !== "ok") return;
+  const cat = $("#iCat").value.trim();
+  let n = 0; const fails = [];
+  for (const f of files) {
+    const j = await withBusy(async () => api(`api/library/import?lib=${encodeURIComponent(lib.id)}&name=${encodeURIComponent(f.name)}&category=${encodeURIComponent(cat)}`, await f.arrayBuffer(), true));
+    if (j.error) { fails.push(`${f.name}: ${j.error}`); continue; }
+    n += j.added.length; fails.push(...j.failed);
+  }
+  toast(`${n} Referenz(en) importiert.` + (fails.length ? "\nNicht übernommen:\n" + fails.slice(0, 6).join("\n") : ""), !!fails.length && !n);
+  loadLibs();
+}
+async function libNew() {
+  const j = await dialogCheck("Neue Bibliothek", `<label for="nlName">Name</label><input type="text" id="nlName" placeholder="z. B. Eigene Kunststoffe"><label for="nlDesc">Beschreibung</label><input type="text" id="nlDesc" placeholder="Gerät, ATR-Kristall, Auflösung …">` +
+    srcBlock(null, "Quelle der ganzen Sammlung (optional, z. B. veröffentlichte Datenbank)", false),
+    "Anlegen", async (b) => {
+      const s = readSrc(b);
+      if (s.error) return { error: s.error };
+      const r = await api("api/library/create", { name: $("#nlName").value, description: $("#nlDesc").value, cite: s.rec });
+      return r.error ? { error: r.error } : r;
+    }, null, true);
+  if (!j) return;
+  S.libSel = j.lib.id; S.searchLibs.add(j.lib.id); store.set("libs", [...S.searchLibs]);
+  switchTab("bibliotheken");
+  loadLibs();
+}
+async function libDelete() {
+  const lib = S.libs.find(l => l.id === S.libSel);
+  if (!lib || lib.readonly) return;
+  if (!confirm(`Bibliothek „${lib.name}“ mit ${lib.count} Einträgen endgültig löschen? Das lässt sich nicht rückgängig machen.`)) return;
+  const j = await api("api/library/delete", { lib: lib.id });
+  if (j.error) return toast(j.error, true);
+  S.libSel = null; loadLibs();
+}
+async function libExport() {
+  const j = await withBusy(() => api("api/library/export", { lib: S.libSel }));
+  if (j.error) return toast(j.error, true);
+  download(j.filename, j.text, j.mime, false);
+}
+
+// ---------------------------------------------------------------- Eigene Gleichungen
+function activeEqs() {
+  return (S.eqs || []).filter(e => (S.eqOn || []).includes(e.id))
+    .map(e => ({ sym: e.sym, label: e.label, expr: e.expr, unit: e.unit, digits: e.digits, source: e.source || null }));
+}
+async function refreshEqs() {
+  for (const o of S.sps) if (o.data) await analyse(o);
+  updateAll(); draw();
+}
+function updateEq() {
+  const o = cur();
+  $("#eqList").innerHTML = (S.eqs || []).map(e => `<div class="it"><input type="checkbox" data-on="${esc(e.id)}"${S.eqOn.includes(e.id) ? " checked" : ""} title="aktiv (Anzeige und Bericht)"><span class="nm" title="${esc(e.label || "")}${hasSrc(e.source) && window.LabRef ? " · " + esc(LabRef.text(e.source)) : ""}"><code class="eq">${esc(e.sym)} = ${esc(e.expr)}</code>${e.unit ? " [" + esc(e.unit) + "]" : ""}</span><span class="cv">${hasSrc(e.source) && window.LabRef ? esc(LabRef.short(e.source)) : ""}</span><button data-ed="${esc(e.id)}" title="bearbeiten">✎</button><button data-rm="${esc(e.id)}" title="löschen">×</button></div>`).join("")
+    || `<div class="empty">Noch keine eigenen Gleichungen.</div>`;
+  $$("#eqList [data-on]").forEach(c => c.addEventListener("change", async () => {
+    S.eqOn = $$("#eqList [data-on]").filter(x => x.checked).map(x => x.dataset.on); store.set("eqOn", S.eqOn); await refreshEqs();
+  }));
+  $$("#eqList [data-ed]").forEach(b => b.addEventListener("click", () => eqDialog(S.eqs.find(e => e.id === b.dataset.ed))));
+  $$("#eqList [data-rm]").forEach(b => b.addEventListener("click", async () => {
+    const e = S.eqs.find(x => x.id === b.dataset.rm);
+    if (!e || !confirm(`Gleichung ${e.sym} löschen? Bereits erstellte Berichte behalten ihre Werte.`)) return;
+    const j = await api("api/equations/delete", { id: e.id }); if (j.error) return toast(j.error, true);
+    S.eqs = j.items; S.eqOn = S.eqOn.filter(x => x !== e.id); store.set("eqOn", S.eqOn); await refreshEqs();
+  }));
+  const res = (o && o.eqRes) || [];
+  $("#eqRes").innerHTML = !o ? `<div class="small">Kein Spektrum geladen.</div>`
+    : res.length ? `<div class="tw" style="max-height:220px"><table class="res"><thead><tr><th class="l">Name</th><th class="l">Bedeutung</th><th>Wert</th><th class="l">Einheit</th></tr></thead><tbody>${res.map(x => `<tr><td class="l"><code class="eq">${esc(x.sym)}</code></td><td class="wrap">${esc(x.label || "")}</td><td>${x.error ? `<span style="color:var(--err-ink);white-space:normal">${esc(x.error)}</span>` : `<b>${esc(x.text)}</b>${shr(x.sym)}`}</td><td class="l">${esc(x.unit || "")}</td></tr>`).join("")}</tbody></table></div>`
+    : `<div class="small">${(S.eqs || []).length ? "Keine Gleichung aktiv." : "Mit „Neue Gleichung …“ eine Formel anlegen."}</div>`;
+  const vars = (o && o.vars) || [];
+  $("#eqVars").innerHTML = vars.map(x => `<button data-v="${esc(x.name)}" title="${esc(x.label)}: ${fmt(x.value, 4)} ${esc(x.unit || "")}"${x.ext ? ' class="ext"' : ""}>${x.ext ? "← " : ""}${esc(x.name)}</button>`).join("")
+    || `<span class="small">Noch keine; erst Bandenflächen festlegen.</span>`;
+  $$("#eqVars [data-v]").forEach(b => b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(b.dataset.v); toast(`„${b.dataset.v}“ kopiert.`); } catch (e) { /* ohne Zwischenablage */ }
+  }));
+  $("#eqFuncs").innerHTML = "Funktionen: " + (META.eq_functions || []).map(([n, d]) => `<code class="eq" title="${esc(d)}">${esc(n)}</code>`).join(", ") + ". Wellenzahlen in cm⁻¹.";
+}
+async function eqDialog(e) {
+  const o = cur(), vars = (o && o.vars) || [];
+  e = e || { sym: "", label: "", expr: "", unit: "", digits: 4 };
+  const ins = [...vars.map(x => [x.name, `${x.label} = ${fmt(x.value, 4)} ${x.unit || ""}`]),
+    ...(META.eq_functions || []).map(([n, d]) => [n.replace(/\(.*$/, "("), d]), ["sqrt(", ""], ["ln(", ""], ["log10(", ""], ["exp(", ""]];
+  const html = `<div class="row3"><div><label for="eqSym">Name</label><input type="text" id="eqSym" value="${esc(e.sym)}" placeholder="z. B. CI"></div>
+      <div><label for="eqUnit">Einheit</label><input type="text" id="eqUnit" value="${esc(e.unit || "")}" placeholder="leer = Zahl"></div>
+      <div><label for="eqDig">Stellen</label><input type="number" id="eqDig" min="1" max="10" value="${e.digits ?? 4}"></div></div>
+    <label for="eqLab">Bedeutung</label><input type="text" id="eqLab" value="${esc(e.label || "")}" placeholder="z. B. Carbonylindex (SAUB)">
+    <label for="eqExpr">Formel</label><input type="text" id="eqExpr" value="${esc(e.expr)}" placeholder="z. B. area(1650, 1850)/area(1420, 1500)" style="font-family:ui-monospace,Consolas,monospace">
+    <div class="vars">${ins.map(([t, d]) => `<button type="button" data-ins="${esc(t)}" title="${esc(d)}">${esc(t)}</button>`).join("")}</div>
+    <div class="small" style="margin-top:4px">Flächen und Höhen in den Einheiten des bearbeiteten Spektrums; <code class="eq">A(ν)</code> rechnet Transmission und Reflexion in Absorbanz um.</div>
+    ${srcBlock(e.source || { type: "article" }, "Quelle der Gleichung (empfohlen, wird im Bericht zitiert)", hasSrc(e.source))}`;
+  const r = await dialogCheck(e.id ? "Gleichung bearbeiten" : "Neue Gleichung", html, "Speichern", async (b) => {
+    const s = readSrc(b);
+    if (s.error) return { error: s.error };
+    const g = (id) => $(id, b).value.trim();
+    const item = { id: e.id, sym: g("#eqSym"), unit: g("#eqUnit"), digits: +g("#eqDig") || 4, label: g("#eqLab"), expr: g("#eqExpr"), source: s.rec };
+    const j = await api("api/equations/save", { item });
+    return j.error ? { error: j.error } : j;
+  }, (b) => $$("[data-ins]", b).forEach(x => x.addEventListener("click", () => {
+    const i = $("#eqExpr", b), p = i.selectionStart ?? i.value.length;
+    i.value = i.value.slice(0, p) + x.dataset.ins + i.value.slice(i.selectionEnd ?? p);
+    i.focus(); const q = p + x.dataset.ins.length; i.setSelectionRange(q, q);
+  })), true);
+  if (!r) return;
+  S.eqs = r.items;
+  if (!S.eqOn.includes(r.item.id)) { S.eqOn.push(r.item.id); store.set("eqOn", S.eqOn); }
+  await refreshEqs();
+  const x = ((cur() || {}).eqRes || []).find(q => q.sym === r.item.sym);
+  if (x && x.error) toast(`${x.sym}: ${x.error}`, true);
+}
+async function eqImport(file) {
+  let data;
+  try { data = JSON.parse(await file.text()); } catch (e) { return toast("Keine gültige JSON-Datei.", true); }
+  const j = await api("api/equations/import", { data });
+  if (j.error) return toast(j.error, true);
+  const before = new Set((S.eqs || []).map(e => e.id));
+  S.eqs = j.items; S.eqOn = [...new Set([...S.eqOn, ...j.items.filter(e => !before.has(e.id)).map(e => e.id)])]; store.set("eqOn", S.eqOn);
+  toast(`${j.added} Gleichung(en) importiert.`);
+  await refreshEqs();
+}
+
+// ---------------------------------------------------------------- Speichern, Export, Bericht
+async function saveSpectrum(format) {
+  const o = cur(); if (!o) return;
+  const j = await api("api/save", { id: o.id, pipeline: o.pipeline, format });
+  if (j.error) return toast(j.error, true);
+  download(j.filename, j.text, j.mime, false);
+}
+function savePng() {
+  const o = cur(); if (!o) return;
+  cv.toBlob(b => download(`${stem(o.name)}_ansicht.png`, b), "image/png");
+}
+async function doExport(overwrite = false) {
+  const o = cur(); if (!o) return;
+  const j = await withBusy(() => api("api/export", { id: o.id, ...stateOf(o), overwrite }));
+  if (j.exists) { if (confirm(`Der Ordner\n${j.folder}\nenthält schon Dateien. Überschreiben?`)) return doExport(true); return; }
+  if (j.error) return toast(j.error, true);
+  toast(`Exportiert: ${j.files.join(", ")}`, false, j.folder);
+}
+function sendToReport() {
+  const o = cur();
+  if (!o || !window.Lab) return;
+  const scopes = [{ id: "sel", label: `Aktuelles Spektrum (${o.name})` }];
+  if (S.sps.length > 1) scopes.push({ id: "all", label: `Alle ${S.sps.length} Spektren als Vergleich` });
+  window.Lab.sendToReport({
+    module: "ftir",
+    title: "FTIR " + o.name,
+    scopes,
+    include: [
+      { id: "figures", label: "Abbildungen (Spektrum mit Banden, Suchtreffer, Mischung, Vergleich)" },
+      { id: "tables", label: "Tabellen (Banden mit Zuordnung, Gruppen, Treffer, Mischung, Flächen)" },
+      { id: "values", label: "Kennwerte als \\labval (stärkste Bande, bester Treffer, HQI, Flächen)" },
+      { id: "data", label: "Daten (Spektrum und Bandenliste als CSV, für pgfplots)" },
+      { id: "citations", label: "Quellen (Datei, Korrelationstabelle, Verfahren)" },
+      { id: "text", label: "Textbausteine (Methodik, Ergebnisse)" },
+    ],
+    build: ({ scope, lang, include, title }) => {
+      const list = scope === "all" ? S.sps : [o];
+      return api("api/bundle", { items: list.map(s => ({ id: s.id, state: stateOf(s) })), lang, include, title });
+    },
+  });
+}
+
+// ---------------------------------------------------------------- Menüs
+// A6: Peaktabelle und Gruppenhypothesen (nur Zahlen, nie das Spektrum) für den Elementrechner veröffentlichen.
+async function sharePeaks() {
+  const o = cur();
+  if (!o) return;
+  try {
+    const e = await withBusy(() => api("api/share/peaks", { id: o.id, ...stateOf(o, true) }));
+    if (e.error) throw new Error(e.error);
+    const n = e.outputs.filter(x => x.key.startsWith("peak")).length;
+    const cls = e.outputs.filter(x => x.key.startsWith("class-") && x.conditions.verdict !== "unwahrscheinlich").map(x => esc(x.label));
+    await dialog("Geteilt", `<p>Freigabe <b>${esc(e.id)}</b>, Version ${e.version}: ${n} Banden${cls.length ? ", Gruppen: " + cls.join(", ") : ""}.
+      Im Elementrechner unter „Geteilte Eingabe …“ mit einer Struktur vergleichbar. Erneutes Teilen erzeugt eine neue Version.</p>`,
+      [{ value: "ok", label: "OK", primary: true }]);
+  } catch (err) { toast(err.message, true); }
+}
+
+const MENUS = [
+  { label: "Datei", key: "ft.m_file", items: [
+    { label: "Öffnen …", key: "Strg+O", always: true, act: () => $("#file").click() },
+    { label: "Spektrum aus Datensatz …", tkey: "ft.ds_open", always: true, act: () => dsDialog() },
+    { label: "Aus Datensatz aktualisieren", tkey: "ft.ds_refresh", enabled: () => !!dsOf(cur()), act: () => dsRefresh(cur()) },
+    { label: "Beispiel: unbekannte Folie (ATR, %T)", always: true, act: () => loadSample("pet") },
+    { label: "Beispiel: gefüllter Kunststoff (Mischung)", always: true, act: () => loadSample("mix") },
+    { label: "Beispiel: Becherdeckel (Absorbanz)", always: true, act: () => loadSample("ps") },
+    "-",
+    { label: "Umgebungen …", always: true, act: envDialog },
+    { label: "Projektindex …", always: true, act: () => LabIndex.browse(api, toast) },
+    "-",
+    { label: "Spektrum als JCAMP-DX speichern", act: () => saveSpectrum("jdx") },
+    { label: "Spektrum als CSV speichern", act: () => saveSpectrum("csv") },
+    { label: "Ansicht als PNG speichern", act: savePng },
+    "-",
+    { label: "Exportieren (Ordner mit Abbildungen, Tabellen, Protokoll)", act: () => doExport() },
+    { label: "Zum Bericht …", enabled: () => !!window.Lab, act: sendToReport },
+    { label: "Peaktabelle teilen (Elementrechner) …", act: sharePeaks },
+    "-",
+    { label: "Schliessen", act: () => closeSp(S.sel) },
+    { label: "Alle schliessen", act: async () => { if (confirm("Alle Spektren schliessen?")) { while (S.sps.length) await closeSp(0); } } },
+  ] },
+  { label: "Bearbeiten", key: "ft.m_edit", items: [
+    { label: "Rückgängig", key: "Strg+Z", enabled: () => cur() && cur().pipeline.length, act: undo },
+    { label: "Wiederholen", key: "Strg+Y", enabled: () => cur() && cur().redo.length, act: redo },
+    { label: "Original wiederherstellen", enabled: () => cur() && cur().pipeline.length, act: () => $("#pReset").click() },
+    "-",
+    ...["to_abs", "to_trans", "km", "baseline", "smooth", "co2", "atr", "normalize", "cut", "interp", "offset", "scale", "deriv"].map(op => ({ op })),
+    "-",
+    { label: "Protokoll speichern …", act: saveProtocol },
+    { label: "Protokoll laden …", act: () => $("#protoFile").click() },
+    { label: "Protokoll auf alle Spektren anwenden", enabled: () => S.sps.length > 1, act: applyAll },
+  ] },
+  { label: "Analyse", key: "ft.m_analysis", items: [
+    { label: "Banden suchen", act: () => { const o = cur(); o.peaksOn = true; switchTab("banden"); analyse(o).then(() => { updatePeaks(); draw(); }); } },
+    { label: "Funktionelle Gruppen", act: () => { const o = cur(); o.groupsOn = true; switchTab("gruppen"); analyse(o).then(() => { updateGroups(); }); } },
+    { label: "Bibliothekssuche", key: "F3", act: () => { switchTab("suche"); runSearch(); } },
+    { label: "Mischungsanalyse", act: () => { switchTab("mischung"); runMixture(); } },
+    "-",
+    { label: "Bandenfläche (Werkzeug R)", act: () => { setTool("region"); switchTab("banden"); } },
+    { label: "Differenzspektrum …", enabled: () => S.sps.length > 1, act: () => switchTab("spektren") },
+    { label: "Korrelationstabelle", always: true, act: () => { switchTab("gruppen"); $("#ctDetails").open = true; updateCorrTable(); } },
+    { label: "Eigene Gleichungen …", always: true, act: () => switchTab("gleichungen") },
+  ] },
+  { label: "Ansicht", key: "ft.m_view", items: [
+    { label: "Ganzer Bereich", key: "0", act: resetView },
+    { label: "4000–400 cm⁻¹", act: () => setRange(4000, 400) },
+    { label: "Fingerprint 1800–400 cm⁻¹", act: () => setRange(1800, 400) },
+    { label: "Carbonyl 1900–1500 cm⁻¹", act: () => setRange(1900, 1500) },
+    { label: "C–H und O–H 3800–2600 cm⁻¹", act: () => setRange(3800, 2600) },
+    "-",
+    { label: "Bandenbeschriftung", check: () => S.labels, always: true, act: () => { S.labels = !S.labels; draw(); } },
+    { label: "Bandenflächen schattieren", check: () => S.regions, always: true, act: () => { S.regions = !S.regions; draw(); } },
+    "-",
+    { label: "Überlagert", check: () => S.ov === "over", always: true, act: () => { S.ov = "over"; updateOv(); S.view = keepX(); draw(); } },
+    { label: "Normiert überlagert", check: () => S.ov === "norm", always: true, act: () => { S.ov = "norm"; updateOv(); S.view = keepX(); draw(); } },
+    { label: "Gestapelt", check: () => S.ov === "stack", always: true, act: () => { S.ov = "stack"; updateOv(); S.view = keepX(); draw(); } },
+  ] },
+  { label: "Bibliothek", key: "ft.m_lib", items: [
+    { label: "Neue Bibliothek …", always: true, act: libNew },
+    { label: "Referenz aus Datei einblenden …", always: true, act: () => $("#refFile").click() },
+    { label: "Aktuelles Spektrum hinzufügen …", act: () => { switchTab("bibliotheken"); libAddCurrent(); } },
+    { label: "Referenzen importieren …", always: true, act: () => { switchTab("bibliotheken"); const l = S.libs.find(x => x.id === S.libSel); if (!l || l.readonly) return toast("Bitte erst eine eigene Bibliothek anlegen oder wählen.", true); $("#libFile").click(); } },
+    { label: "Bibliothek als JCAMP exportieren", always: true, act: () => { switchTab("bibliotheken"); libExport(); } },
+    { label: "Bibliotheken verwalten", always: true, act: () => switchTab("bibliotheken") },
+  ] },
+];
+let menusBound = false;
+function buildMenus() {                 // auch nach einem Sprachwechsel (UI-05): Leiste neu, Dokument-Klick nur einmal
+  const bar = $("#menubar");
+  closeMenus(); bar.innerHTML = "";
+  MENUS.forEach((m, mi) => {
+    const w = document.createElement("div");
+    w.className = "m";
+    const b = document.createElement("button");
+    b.textContent = m.key ? tr(m.key) : m.label;
+    b.addEventListener("click", (e) => { e.stopPropagation(); const open = b.classList.contains("open"); closeMenus(); if (!open) openMenu(mi, w, b); });
+    b.addEventListener("mouseenter", () => { if ($(".dd") && !b.classList.contains("open")) { closeMenus(); openMenu(mi, w, b); } });
+    w.appendChild(b);
+    bar.appendChild(w);
+  });
+  if (!menusBound) { document.addEventListener("click", closeMenus); menusBound = true; }
+}
+function closeMenus() { $$(".dd").forEach(d => d.remove()); $$("#menubar button.open").forEach(b => b.classList.remove("open")); }
+function openMenu(mi, w, b) {
+  b.classList.add("open");
+  const dd = document.createElement("div");
+  dd.className = "dd"; dd.setAttribute("role", "menu");
+  const o = cur();
+  for (const it of MENUS[mi].items) {
+    if (it === "-") { dd.appendChild(document.createElement("hr")); continue; }
+    const def = it.op ? META.ops[it.op] : null;
+    const label = it.tkey ? tr(it.tkey) : it.label || (def.de + (def.params.length ? " …" : ""));
+    let ok = it.always || !!(o && o.data);
+    if (ok && def && o) ok = opOk(it.op, o.data.yunit);
+    if (ok && it.enabled) ok = !!it.enabled();
+    const x = document.createElement("button");
+    x.type = "button"; x.disabled = !ok; x.setAttribute("role", "menuitem");
+    if (it.check && it.check()) x.classList.add("on");
+    x.innerHTML = `<span>${esc(label)}</span>${it.key ? `<span class="k">${esc(it.key)}</span>` : ""}`;
+    x.addEventListener("click", (e) => { e.stopPropagation(); closeMenus(); it.op ? (def.params.length ? startEdit(it.op) : pushStep({ op: it.op })) : it.act(); });
+    dd.appendChild(x);
+  }
+  w.appendChild(dd);
+}
+
+// ---------------------------------------------------------------- Tabs, Gesamtaktualisierung
+function switchTab(t) {
+  S.tab = t;
+  $$(".tabs button").forEach(b => b.classList.toggle("sel", b.dataset.tab === t));
+  $$(".pane").forEach(p => p.hidden = p.dataset.pane !== t);
+  const o = cur();
+  if (o && t === "suche" && o.search && o.search.hits.length) S.mode = "search";
+  else if (o && t === "mischung" && o.mix && o.mix.combos.length) S.mode = "mix";
+  else if (t !== "suche" && t !== "mischung") S.mode = "spec";
+  if (t === "bibliotheken") updateLibs();
+  renderTabs();
+  updateMode(); draw();
+}
+// UI-05: nur die Tabs der laufenden Aufgabe; der Rest unter „Mehr“ (ein gewählter Tab bleibt sichtbar, solange er offen ist)
+const TABS = ["bearbeiten", "banden", "gruppen", "suche", "mischung", "spektren", "bibliotheken", "gleichungen"];
+const TAB_MAIN = window.LabUI ? ["bearbeiten", "banden", "suche"] : TABS;
+const tabShown = (t) => TAB_MAIN.includes(t) || t === S.tab || (t === "spektren" && S.sps.length > 1);
+function renderTabs() {
+  $$(".tabs button[data-tab]").forEach(b => { b.hidden = !tabShown(b.dataset.tab); });
+  $("#tabMore").hidden = TABS.every(tabShown);
+}
+function openTabMenu() {
+  const rest = TABS.filter(t => !tabShown(t));
+  const p = LabUI.popover($("#tabMore"), `<div class="tabmenu" role="menu">${rest.map(t =>
+    `<button type="button" role="menuitem" data-go="${t}"><b>${esc(tr("ft.tab_" + t))}</b><small>${esc(tr("ft.tab_h_" + t))}</small></button>`).join("")}</div>`);
+  p.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) { LabUI.closePop(); switchTab(b.dataset.go); } });
+  p.querySelector("button")?.focus();
+}
+function openFold(id) { const d = $(`details[data-fold="${id}"]`); if (d && !d.open) d.open = true; }
+function updateFoldCounts() {
+  const o = cur(), nb = o && o.bands ? o.bands.length : 0, nr = o && o.ratios ? o.ratios.length : 0;
+  $("#bdCnt").textContent = nb ? `(${nb})` : "";
+  $("#raCnt").textContent = nr ? `(${nr})` : "";
+  const nl = S.searchLibs ? S.searchLibs.size : 0;
+  $("#sOptCnt").textContent = `(${tr(nl === 1 ? "ft.n_libs1" : "ft.n_libs", { n: nl })})`;
+}
+function updateAll() {
+  renderEdit(); updateProto(); updatePeaks(); updateGroups(); updateSearch(); updateMix(); updateCompare(); updateMode(); updateEq();
+  renderTabs(); updateFoldCounts();
+  $("#lAdd").disabled = !cur() || !(S.libs.find(l => l.id === S.libSel) || {}).id || (S.libs.find(l => l.id === S.libSel) || {}).readonly;
+  $("#stInfo").textContent = spInfoText(cur());
+  updateQuality();
+  envSave();
+  if (OV && OV.changed) OV.changed();                                 // ausgehende Verbindungen nachführen
+}
+function updateQuality() {
+  const o = cur(), q = o && o.data && o.data.quality;
+  const w = q ? q.warnings || [] : [];
+  $("#qNote").hidden = !w.length;
+  $("#qNote").innerHTML = w.map(x => `<div>${esc(x.de)}</div>`).join("");
+}
+
+// ---------------------------------------------------------------- Ereignisse
+function bind() {
+  cv.addEventListener("pointerdown", onDown);
+  cv.addEventListener("pointermove", onMove);
+  cv.addEventListener("pointerup", onUp);
+  cv.addEventListener("pointercancel", () => { S.drag = null; draw(); });
+  cv.addEventListener("pointerleave", () => { if (S.mouse) S.mouse.in = false; $("#stPos").textContent = "–"; draw(); });
+  cv.addEventListener("dblclick", () => { if (S.tool === "zoom" || S.tool === "pan" || S.tool === "cursor") resetView(); });
+  cv.addEventListener("wheel", (e) => {
+    if (!S.view) return;
+    e.preventDefault();
+    const [px] = evPos(e);
+    if (e.shiftKey) { const f = frame(), d = (e.deltaY || e.deltaX) / f.w * (S.view.x0 - S.view.x1) * 0.6; S.view.x0 += d; S.view.x1 += d; draw(); }
+    else zoomX(px, e.deltaY < 0 ? 1 / 1.25 : 1.25);
+  }, { passive: false });
+  new ResizeObserver(sizeCanvas).observe($("#stage"));
+  window.addEventListener("resize", sizeCanvas);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+
+  $("#file").addEventListener("change", (e) => { openFiles([...e.target.files]); e.target.value = ""; });
+  $("#libFile").addEventListener("change", (e) => { const f = [...e.target.files]; e.target.value = ""; if (f.length) libImport(f); });
+  $("#protoFile").addEventListener("change", (e) => { if (e.target.files[0]) loadProtocol(e.target.files[0]); e.target.value = ""; });
+  $("#emptyOpen").addEventListener("click", () => $("#file").click());
+  const stage = $("#stage");
+  stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.classList.add("drop"); });
+  stage.addEventListener("dragleave", () => stage.classList.remove("drop"));
+  stage.addEventListener("drop", (e) => { e.preventDefault(); stage.classList.remove("drop"); openFiles([...e.dataTransfer.files]); });
+
+  $$(".tabs button[data-tab]").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+  $("#tabMore").addEventListener("click", openTabMenu);
+  $$("#modeSeg button").forEach(b => b.addEventListener("click", () => { S.mode = b.dataset.mode; S.view = keepX(); updateMode(); draw(); }));
+  $("#yAuto").addEventListener("click", () => { if (S.view) { S.view.yAuto = true; draw(); } });
+  $("#viewAll").addEventListener("click", resetView);
+
+  // Bearbeiten
+  $("#eOp").addEventListener("change", (e) => e.target.value ? startEdit(e.target.value) : cancelEdit());
+  $("#eApply").addEventListener("click", applyEdit);
+  $("#eCancel").addEventListener("click", cancelEdit);
+  $("#ePrev").addEventListener("change", () => schedulePreview(0));
+  $("#pUndo").addEventListener("click", undo);
+  $("#pRedo").addEventListener("click", redo);
+  $("#pReset").addEventListener("click", async () => { const o = cur(); if (o && confirm("Alle Bearbeitungsschritte entfernen und zum Original zurück?")) { const old = o.pipeline; if (await setPipeline(o, []) === true) o.redo = [...old].reverse(); updateProto(); } });
+  $("#pSave").addEventListener("click", saveProtocol);
+  $("#pLoad").addEventListener("click", () => $("#protoFile").click());
+  $("#pAll").addEventListener("click", applyAll);
+
+  // Banden
+  $("#pkOn").addEventListener("change", async (e) => { const o = cur(); o.peaksOn = e.target.checked; await analyse(o); updatePeaks(); S.view = keepX(); draw(); });
+  $("#pkRun").addEventListener("click", async () => { const o = cur(); readPeakParams(); o.peaksOn = true; await analyse(o); updatePeaks(); S.view = keepX(); draw(); });
+  ["pkProm", "pkDist", "pkThr", "pkMax", "pkSnr"].forEach(id => $("#" + id).addEventListener("keydown", (e) => { if (e.key === "Enter") $("#pkRun").click(); }));
+  $("#pkDef").addEventListener("click", async () => { const o = cur(); o.peakParams = { ...META.peak_defaults }; await analyse(o); updatePeaks(); draw(); });
+  $("#pkManual").addEventListener("click", async () => { const o = cur(); o.peakAdd = []; o.peakRemove = []; await analyse(o); updatePeaks(); draw(); });
+  $("#pkCopy").addEventListener("click", async () => { const t = peakCsv(); if (!t) return; try { await navigator.clipboard.writeText(t.replace(/;/g, "\t")); toast("Bandenliste kopiert (für Excel)."); } catch (e) { toast("Kopieren nicht erlaubt; bitte CSV speichern.", true); } });
+  $("#pkCsv").addEventListener("click", () => { const t = peakCsv(); if (t) download(`${stem(cur().name)}_banden.csv`, t); });
+  $("#bdAdd").addEventListener("click", async () => {
+    const o = cur(), a = pnum($("#bdFrom").value), b = pnum($("#bdTo").value);
+    if (a === null || b === null || !isFinite(a) || !isFinite(b) || a === b) return toast("Bitte beide Grenzen angeben.", true);
+    const hi = Math.max(a, b), lo = Math.min(a, b);
+    o.bands.push({ name: uniqueBand(o, $("#bdName").value.trim() || suggestBandName(hi, lo)), lo, hi, base: $("#bdBase").value });
+    $("#bdName").value = "";
+    await analyse(o); updatePeaks(); draw();
+  });
+  $("#raAdd").addEventListener("click", async () => {
+    const o = cur(), n = $("#raNum").value, d = $("#raDen").value, k = $("#raKind").value;
+    if (!n || !d || n === d) return toast("Bitte zwei verschiedene Banden wählen.", true);
+    o.ratios.push({ name: `${n} / ${d}`, num: n, den: d, kind: k });
+    await analyse(o); updatePeaks();
+  });
+
+  // Gruppen
+  $("#grOn").addEventListener("change", async (e) => { const o = cur(); o.groupsOn = e.target.checked; await analyse(o); updateGroups(); });
+  $("#grAll").addEventListener("change", updateGroups);
+  $("#ctFilter").addEventListener("input", updateCorrTable);
+  $("#ctDetails").addEventListener("toggle", () => { if ($("#ctDetails").open) updateCorrTable(); });
+
+  // Suche / Mischung
+  $("#sRun").addEventListener("click", runSearch);
+  $("#sCO2").addEventListener("change", () => draw());
+  $("#sNoise").addEventListener("change", () => { updateSearch(); draw(); });
+  $("#sGroup").addEventListener("change", () => { const o = cur(); if (o && o.search) o.searchStale = true; updateSearch(); });
+  $("#sFrom").addEventListener("change", () => draw());
+  $("#sTo").addEventListener("change", () => draw());
+  $("#sRep").addEventListener("change", (e) => { const o = cur(); if (o) o.searchRep = e.target.checked; });
+  $("#mRun").addEventListener("click", runMixture);
+  $("#mRep").addEventListener("change", (e) => { const o = cur(); if (o) o.mixRep = e.target.checked; });
+
+  // Spektren
+  $$("#ovSeg button").forEach(b => b.addEventListener("click", () => { S.ov = b.dataset.ov; updateOv(); S.view = keepX(); draw(); }));
+  $("#dDiff").addEventListener("click", () => derive("diff"));
+  $("#dAvg").addEventListener("click", () => derive("avg"));
+  $("#dSum").addEventListener("click", () => derive("sum"));
+
+  // Bibliotheken
+  $("#lSel").addEventListener("change", (e) => { S.libSel = e.target.value; updateLibs(); });
+  $("#lNew").addEventListener("click", libNew);
+  $("#lDel").addEventListener("click", libDelete);
+  $("#lExp").addEventListener("click", libExport);
+  $("#lAdd").addEventListener("click", libAddCurrent);
+  $("#lImp").addEventListener("click", () => $("#libFile").click());
+  $("#lRef").addEventListener("click", () => $("#refFile").click());
+  $("#refFile").addEventListener("change", (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) refFromFile(f); });
+  $("#lFilter").addEventListener("input", renderLibEntries);
+
+  // Gleichungen
+  $("#eqNew").addEventListener("click", () => eqDialog(null));
+  $("#eqExp").addEventListener("click", async () => { const j = await api("api/equations/export", {}); if (j.error) return toast(j.error, true); download(j.filename, j.text, j.mime, false); });
+  $("#eqImp").addEventListener("click", () => $("#eqFile").click());
+  $("#eqFile").addEventListener("change", (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) eqImport(f); });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.matches("input, textarea, select") || $("#dlg").open) return;
+    const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+    if (mod && k === "o") { e.preventDefault(); $("#file").click(); }
+    else if (mod && k === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+    else if (mod && (k === "y" || (k === "z" && e.shiftKey))) { e.preventDefault(); redo(); }
+    else if (e.key === "F3") { e.preventDefault(); switchTab("suche"); runSearch(); }
+    else if (mod || e.altKey) return;
+    else if (k === "escape") { S.region = null; hideRegionMenu(); S.hlRange = null; S.hlPeak = null; if (S.edit) cancelEdit(); closeMenus(); draw(); }
+    else if (k === "0") resetView();
+    else if (k === "enter" && S.edit) applyEdit();
+    else { const t = TOOLS.find(t => t !== "-" && t[2] === k); if (t) setTool(t[0]); }
+  });
+}
+
+// ---------------------------------------------------------------- Start
+async function init() {
+  buildTools();
+  buildMenus();
+  bind();
+  setTool("cursor");
+  META = await api("api/meta");
+  if (META.error) { toast("Modul nicht erreichbar: " + META.error, true); return; }
+  $("#sAlgo").innerHTML = Object.entries(META.algos).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+  $("#emptySamples").innerHTML = Object.entries(META.samples).map(([k, v]) => `<button data-s="${k}">${esc(v)}</button>`).join("");
+  $$("#emptySamples button").forEach(b => b.addEventListener("click", () => loadSample(b.dataset.s)));
+  S.libs = META.libs;
+  const saved = store.get("libs", null);
+  S.searchLibs = new Set(Array.isArray(saved) && saved.length ? saved : S.libs.map(l => l.id));
+  for (const l of S.libs) if (!saved || !saved.length) S.searchLibs.add(l.id);
+  // neu mitgelieferte Bibliotheken einmalig mit auswählen, auch wenn schon eine Auswahl gespeichert ist
+  const known = new Set(store.get("libsKnown", []) || []);
+  for (const l of S.libs) if (l.readonly && !known.has(l.id)) S.searchLibs.add(l.id);
+  store.set("libsKnown", S.libs.filter(l => l.readonly).map(l => l.id)); store.set("libs", [...S.searchLibs]);
+  S.libSel = (S.libs.find(l => !l.readonly) || S.libs[0] || {}).id;
+  if (META.lib_errors && META.lib_errors.length) toast("Bibliotheken mit Fehlern:\n" + META.lib_errors.join("\n"), true);
+  const gt = await api("api/grouptable", {});
+  GTABLE = gt.table || [];
+  const eq = await api("api/equations/list", {});
+  S.eqs = eq.items || [];
+  S.eqOn = store.get("eqOn", null);
+  if (!Array.isArray(S.eqOn)) S.eqOn = S.eqs.map(e => e.id);
+  S.eqOn = S.eqOn.filter(id => S.eqs.some(e => e.id === id));
+  if (window.Lab) { $("#labBtn").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
+  renderChips();
+  sizeCanvas();
+  updateAll();
+  updateLibs();
+  await ENVS.open();                                  // speichert beim Verlassen und prüft beim Zurückkommen selbst
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("ftir"); LabUI.onLang(() => { buildMenus(); renderTabs(); updateFoldCounts(); }); }
+  // UI-05 (Q27): Startansicht Übersicht – Umgebungen, Projektindex, eigene Freigaben (Peaktabellen)
+  if (window.LabOverview) {
+    OV = LabOverview.create({
+      api: (p, b) => api(p, b), toast, module: "ftir", envs: () => window.ENVS,
+      detail: [$("#menubar"), $("main")], crumbs: $("#crumbs"),
+      values: { catalogue: valCatalogue, apply: applyExt, version: (META && META.version) || "" },
+      imports: FT_IMP,                                                         // I-03: Datensatz → Spektren
+      onView: (v) => { if (v === "detail") setTimeout(() => { sizeCanvas(); draw(); }, 0); },   // Canvas war verborgen
+    });
+    if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }
+  }
+  await takeInbox();
+  window.addEventListener("focus", () => takeInbox());
+}
+// Spektren, die andere Module übergeben (TGA-FTIR-Kopplung, TGA-04); gleiche Herkunft nur innerhalb von Folio Lab
+async function takeInbox() {
+  const k = "folio.ftir.inbox";
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(k) || "[]"); localStorage.removeItem(k); } catch (e) { return; }
+  if (!Array.isArray(list) || !list.length) return;
+  for (const it of list) {
+    if (!it || typeof it.jcamp !== "string" || it.jcamp.length > 5e6) continue;
+    const name = String(it.name || "Spektrum.jdx").slice(0, 160);
+    const j = await withBusy(() => api("api/load?name=" + encodeURIComponent(name), new TextEncoder().encode(it.jcamp), true));
+    if (j.error) { toast(`${name}: ${j.error}`, true); continue; }
+    await addSpectra(j.spectra);
+    if (OV && OV.view === "board") OV.showDetail();
+    toast(`Übernommen aus ${esc(String(it.from || "einem Modul"))}: ${name}`);
+  }
+}
+init();
+</script>
+</body>
+</html>

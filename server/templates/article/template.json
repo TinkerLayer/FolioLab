@@ -1,0 +1,8 @@
+{
+  "name": "Article with figures & tables",
+  "description": "Images, subfigures, booktabs tables, equations and cross-references.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 2,
+  "icon": "image"
+}

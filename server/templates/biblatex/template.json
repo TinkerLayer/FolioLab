@@ -1,0 +1,8 @@
+{
+  "name": "Paper with bibliography (biblatex)",
+  "description": "Citations with biblatex + Biber, a .bib database and an automatic reference list.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 3,
+  "icon": "book"
+}

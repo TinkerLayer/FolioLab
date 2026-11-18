@@ -1,0 +1,41 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage[backend=biber,style=authoryear,maxcitenames=2]{biblatex}
+\usepackage{hyperref}
+
+\addbibresource{references.bib}
+
+\title{Citing Sources with biblatex}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Folio detects that this document uses \texttt{biblatex} with the Biber
+backend and runs Biber automatically, followed by the extra LaTeX passes
+needed to resolve every citation.
+
+Donald Knuth created \TeX{} \autocite{knuth1984}, and Leslie Lamport built
+\LaTeX{} on top of it \autocite{lamport1994}. \textcite{mittelbach2004}
+describe the package ecosystem in depth. A good practical introduction is
+\citetitle{oetiker2023} \autocite{oetiker2023}.
+
+You can cite several works at once \autocite{knuth1984,lamport1994}, cite
+with a page number \autocite[42]{knuth1984}, or cite in parentheses
+\parencite{tantau2023}.
+
+\section{Adding your own sources}
+Open \texttt{references.bib} and add entries. Type \verb|\autocite{| in the
+editor to get autocomplete suggestions for every key in your \texttt{.bib}
+files.
+
+\printbibliography
+
+\end{document}

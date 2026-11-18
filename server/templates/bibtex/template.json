@@ -1,0 +1,8 @@
+{
+  "name": "Paper with BibTeX (natbib)",
+  "description": "Classic BibTeX workflow with natbib, \\citep / \\citet and a numbered reference list.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 4,
+  "icon": "quote"
+}

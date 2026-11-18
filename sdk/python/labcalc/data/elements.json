@@ -1,0 +1,1724 @@
+{
+"_source":"pubchem_pt",
+"_accessed":"2026-11-17",
+"_url":"https://pubchem.ncbi.nlm.nih.gov/rest/pug/periodictable/CSV",
+"_note":"Elektronegativität nach Pauling; Atomradius = Van-der-Waals-Radius; Ionisierungsenergie und Elektronenaffinität in eV; Schmelz-/Siedepunkt in K; Dichte in g/cm³ (Gase bei 0 °C, 1 atm). Oxidationsstufen: häufige Stufen laut PubChem.",
+"elements":{
+"H":{
+"electron_configuration":"1s1",
+"electronegativity":2.2,
+"oxidation_states":[
+1,
+-1
+],
+"ionization_energy_eV":13.598,
+"electron_affinity_eV":0.754,
+"atomic_radius_pm":120.0,
+"melting_point_K":13.81,
+"boiling_point_K":20.28,
+"density_g_cm3":8.988e-05,
+"standard_state":"Gas",
+"group_block":"Nonmetal"
+},
+"He":{
+"electron_configuration":"1s2",
+"oxidation_states":[
+0
+],
+"ionization_energy_eV":24.587,
+"atomic_radius_pm":140.0,
+"melting_point_K":0.95,
+"boiling_point_K":4.22,
+"density_g_cm3":0.0001785,
+"standard_state":"Gas",
+"group_block":"Noble gas"
+},
+"Li":{
+"electron_configuration":"[He]2s1",
+"electronegativity":0.98,
+"oxidation_states":[
+1
+],
+"ionization_energy_eV":5.392,
+"electron_affinity_eV":0.618,
+"atomic_radius_pm":182.0,
+"melting_point_K":453.65,
+"boiling_point_K":1615.0,
+"density_g_cm3":0.534,
+"standard_state":"Solid",
+"group_block":"Alkali metal"
+},
+"Be":{
+"electron_configuration":"[He]2s2",
+"electronegativity":1.57,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":9.323,
+"atomic_radius_pm":153.0,
+"melting_point_K":1560.0,
+"boiling_point_K":2744.0,
+"density_g_cm3":1.85,
+"standard_state":"Solid",
+"group_block":"Alkaline earth metal"
+},
+"B":{
+"electron_configuration":"[He]2s2 2p1",
+"electronegativity":2.04,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":8.298,
+"electron_affinity_eV":0.277,
+"atomic_radius_pm":192.0,
+"melting_point_K":2348.0,
+"boiling_point_K":4273.0,
+"density_g_cm3":2.37,
+"standard_state":"Solid",
+"group_block":"Metalloid"
+},
+"C":{
+"electron_configuration":"[He]2s2 2p2",
+"electronegativity":2.55,
+"oxidation_states":[
+4,
+2,
+-4
+],
+"ionization_energy_eV":11.26,
+"electron_affinity_eV":1.263,
+"atomic_radius_pm":170.0,
+"melting_point_K":3823.0,
+"boiling_point_K":4098.0,
+"density_g_cm3":2.267,
+"standard_state":"Solid",
+"group_block":"Nonmetal"
+},
+"N":{
+"electron_configuration":"[He] 2s2 2p3",
+"electronegativity":3.04,
+"oxidation_states":[
+5,
+4,
+3,
+2,
+1,
+-1,
+-2,
+-3
+],
+"ionization_energy_eV":14.534,
+"atomic_radius_pm":155.0,
+"melting_point_K":63.15,
+"boiling_point_K":77.36,
+"density_g_cm3":0.0012506,
+"standard_state":"Gas",
+"group_block":"Nonmetal"
+},
+"O":{
+"electron_configuration":"[He]2s2 2p4",
+"electronegativity":3.44,
+"oxidation_states":[
+-2
+],
+"ionization_energy_eV":13.618,
+"electron_affinity_eV":1.461,
+"atomic_radius_pm":152.0,
+"melting_point_K":54.36,
+"boiling_point_K":90.2,
+"density_g_cm3":0.001429,
+"standard_state":"Gas",
+"group_block":"Nonmetal"
+},
+"F":{
+"electron_configuration":"[He]2s2 2p5",
+"electronegativity":3.98,
+"oxidation_states":[
+-1
+],
+"ionization_energy_eV":17.423,
+"electron_affinity_eV":3.339,
+"atomic_radius_pm":135.0,
+"melting_point_K":53.53,
+"boiling_point_K":85.03,
+"density_g_cm3":0.001696,
+"standard_state":"Gas",
+"group_block":"Halogen"
+},
+"Ne":{
+"electron_configuration":"[He]2s2 2p6",
+"oxidation_states":[
+0
+],
+"ionization_energy_eV":21.565,
+"atomic_radius_pm":154.0,
+"melting_point_K":24.56,
+"boiling_point_K":27.07,
+"density_g_cm3":0.0008999,
+"standard_state":"Gas",
+"group_block":"Noble gas"
+},
+"Na":{
+"electron_configuration":"[Ne]3s1",
+"electronegativity":0.93,
+"oxidation_states":[
+1
+],
+"ionization_energy_eV":5.139,
+"electron_affinity_eV":0.548,
+"atomic_radius_pm":227.0,
+"melting_point_K":370.95,
+"boiling_point_K":1156.0,
+"density_g_cm3":0.97,
+"standard_state":"Solid",
+"group_block":"Alkali metal"
+},
+"Mg":{
+"electron_configuration":"[Ne]3s2",
+"electronegativity":1.31,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":7.646,
+"atomic_radius_pm":173.0,
+"melting_point_K":923.0,
+"boiling_point_K":1363.0,
+"density_g_cm3":1.74,
+"standard_state":"Solid",
+"group_block":"Alkaline earth metal"
+},
+"Al":{
+"electron_configuration":"[Ne]3s2 3p1",
+"electronegativity":1.61,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.986,
+"electron_affinity_eV":0.441,
+"atomic_radius_pm":184.0,
+"melting_point_K":933.437,
+"boiling_point_K":2792.0,
+"density_g_cm3":2.7,
+"standard_state":"Solid",
+"group_block":"Post-transition metal"
+},
+"Si":{
+"electron_configuration":"[Ne]3s2 3p2",
+"electronegativity":1.9,
+"oxidation_states":[
+4,
+2,
+-4
+],
+"ionization_energy_eV":8.152,
+"electron_affinity_eV":1.385,
+"atomic_radius_pm":210.0,
+"melting_point_K":1687.0,
+"boiling_point_K":3538.0,
+"density_g_cm3":2.3296,
+"standard_state":"Solid",
+"group_block":"Metalloid"
+},
+"P":{
+"electron_configuration":"[Ne]3s2 3p3",
+"electronegativity":2.19,
+"oxidation_states":[
+5,
+3,
+-3
+],
+"ionization_energy_eV":10.487,
+"electron_affinity_eV":0.746,
+"atomic_radius_pm":180.0,
+"melting_point_K":317.3,
+"boiling_point_K":553.65,
+"density_g_cm3":1.82,
+"standard_state":"Solid",
+"group_block":"Nonmetal"
+},
+"S":{
+"electron_configuration":"[Ne]3s2 3p4",
+"electronegativity":2.58,
+"oxidation_states":[
+6,
+4,
+-2
+],
+"ionization_energy_eV":10.36,
+"electron_affinity_eV":2.077,
+"atomic_radius_pm":180.0,
+"melting_point_K":388.36,
+"boiling_point_K":717.75,
+"density_g_cm3":2.067,
+"standard_state":"Solid",
+"group_block":"Nonmetal"
+},
+"Cl":{
+"electron_configuration":"[Ne]3s2 3p5",
+"electronegativity":3.16,
+"oxidation_states":[
+7,
+5,
+1,
+-1
+],
+"ionization_energy_eV":12.968,
+"electron_affinity_eV":3.617,
+"atomic_radius_pm":175.0,
+"melting_point_K":171.65,
+"boiling_point_K":239.11,
+"density_g_cm3":0.003214,
+"standard_state":"Gas",
+"group_block":"Halogen"
+},
+"Ar":{
+"electron_configuration":"[Ne]3s2 3p6",
+"oxidation_states":[
+0
+],
+"ionization_energy_eV":15.76,
+"atomic_radius_pm":188.0,
+"melting_point_K":83.8,
+"boiling_point_K":87.3,
+"density_g_cm3":0.0017837,
+"standard_state":"Gas",
+"group_block":"Noble gas"
+},
+"K":{
+"electron_configuration":"[Ar]4s1",
+"electronegativity":0.82,
+"oxidation_states":[
+1
+],
+"ionization_energy_eV":4.341,
+"electron_affinity_eV":0.501,
+"atomic_radius_pm":275.0,
+"melting_point_K":336.53,
+"boiling_point_K":1032.0,
+"density_g_cm3":0.89,
+"standard_state":"Solid",
+"group_block":"Alkali metal"
+},
+"Ca":{
+"electron_configuration":"[Ar]4s2",
+"electronegativity":1.0,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":6.113,
+"atomic_radius_pm":231.0,
+"melting_point_K":1115.0,
+"boiling_point_K":1757.0,
+"density_g_cm3":1.54,
+"standard_state":"Solid",
+"group_block":"Alkaline earth metal"
+},
+"Sc":{
+"electron_configuration":"[Ar]4s2 3d1",
+"electronegativity":1.36,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.561,
+"electron_affinity_eV":0.188,
+"atomic_radius_pm":211.0,
+"melting_point_K":1814.0,
+"boiling_point_K":3109.0,
+"density_g_cm3":2.99,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ti":{
+"electron_configuration":"[Ar]4s2 3d2",
+"electronegativity":1.54,
+"oxidation_states":[
+4,
+3,
+2
+],
+"ionization_energy_eV":6.828,
+"electron_affinity_eV":0.079,
+"atomic_radius_pm":187.0,
+"melting_point_K":1941.0,
+"boiling_point_K":3560.0,
+"density_g_cm3":4.5,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"V":{
+"electron_configuration":"[Ar]4s2 3d3",
+"electronegativity":1.63,
+"oxidation_states":[
+5,
+4,
+3,
+2
+],
+"ionization_energy_eV":6.746,
+"electron_affinity_eV":0.525,
+"atomic_radius_pm":179.0,
+"melting_point_K":2183.0,
+"boiling_point_K":3680.0,
+"density_g_cm3":6.0,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Cr":{
+"electron_configuration":"[Ar]3d5 4s1",
+"electronegativity":1.66,
+"oxidation_states":[
+6,
+3,
+2
+],
+"ionization_energy_eV":6.767,
+"electron_affinity_eV":0.666,
+"atomic_radius_pm":189.0,
+"melting_point_K":2180.0,
+"boiling_point_K":2944.0,
+"density_g_cm3":7.15,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Mn":{
+"electron_configuration":"[Ar]4s2 3d5",
+"electronegativity":1.55,
+"oxidation_states":[
+7,
+4,
+3,
+2
+],
+"ionization_energy_eV":7.434,
+"atomic_radius_pm":197.0,
+"melting_point_K":1519.0,
+"boiling_point_K":2334.0,
+"density_g_cm3":7.3,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Fe":{
+"electron_configuration":"[Ar]4s2 3d6",
+"electronegativity":1.83,
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":7.902,
+"electron_affinity_eV":0.163,
+"atomic_radius_pm":194.0,
+"melting_point_K":1811.0,
+"boiling_point_K":3134.0,
+"density_g_cm3":7.874,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Co":{
+"electron_configuration":"[Ar]4s2 3d7",
+"electronegativity":1.88,
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":7.881,
+"electron_affinity_eV":0.661,
+"atomic_radius_pm":192.0,
+"melting_point_K":1768.0,
+"boiling_point_K":3200.0,
+"density_g_cm3":8.86,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ni":{
+"electron_configuration":"[Ar]4s2 3d8",
+"electronegativity":1.91,
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":7.64,
+"electron_affinity_eV":1.156,
+"atomic_radius_pm":163.0,
+"melting_point_K":1728.0,
+"boiling_point_K":3186.0,
+"density_g_cm3":8.912,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Cu":{
+"electron_configuration":"[Ar]4s1 3d10",
+"electronegativity":1.9,
+"oxidation_states":[
+2,
+1
+],
+"ionization_energy_eV":7.726,
+"electron_affinity_eV":1.228,
+"atomic_radius_pm":140.0,
+"melting_point_K":1357.77,
+"boiling_point_K":2835.0,
+"density_g_cm3":8.933,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Zn":{
+"electron_configuration":"[Ar]4s2 3d10",
+"electronegativity":1.65,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":9.394,
+"atomic_radius_pm":139.0,
+"melting_point_K":692.68,
+"boiling_point_K":1180.0,
+"density_g_cm3":7.134,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ga":{
+"electron_configuration":"[Ar]4s2 3d10 4p1",
+"electronegativity":1.81,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.999,
+"electron_affinity_eV":0.3,
+"atomic_radius_pm":187.0,
+"melting_point_K":302.91,
+"boiling_point_K":2477.0,
+"density_g_cm3":5.91,
+"standard_state":"Solid",
+"group_block":"Post-transition metal"
+},
+"Ge":{
+"electron_configuration":"[Ar]4s2 3d10 4p2",
+"electronegativity":2.01,
+"oxidation_states":[
+4,
+2
+],
+"ionization_energy_eV":7.9,
+"electron_affinity_eV":1.35,
+"atomic_radius_pm":211.0,
+"melting_point_K":1211.4,
+"boiling_point_K":3106.0,
+"density_g_cm3":5.323,
+"standard_state":"Solid",
+"group_block":"Metalloid"
+},
+"As":{
+"electron_configuration":"[Ar]4s2 3d10 4p3",
+"electronegativity":2.18,
+"oxidation_states":[
+5,
+3,
+-3
+],
+"ionization_energy_eV":9.815,
+"electron_affinity_eV":0.81,
+"atomic_radius_pm":185.0,
+"melting_point_K":1090.0,
+"boiling_point_K":887.0,
+"density_g_cm3":5.776,
+"standard_state":"Solid",
+"group_block":"Metalloid"
+},
+"Se":{
+"electron_configuration":"[Ar]4s2 3d10 4p4",
+"electronegativity":2.55,
+"oxidation_states":[
+6,
+4,
+-2
+],
+"ionization_energy_eV":9.752,
+"electron_affinity_eV":2.021,
+"atomic_radius_pm":190.0,
+"melting_point_K":493.65,
+"boiling_point_K":958.0,
+"density_g_cm3":4.809,
+"standard_state":"Solid",
+"group_block":"Nonmetal"
+},
+"Br":{
+"electron_configuration":"[Ar]4s2 3d10 4p5",
+"electronegativity":2.96,
+"oxidation_states":[
+5,
+1,
+-1
+],
+"ionization_energy_eV":11.814,
+"electron_affinity_eV":3.365,
+"atomic_radius_pm":183.0,
+"melting_point_K":265.95,
+"boiling_point_K":331.95,
+"density_g_cm3":3.11,
+"standard_state":"Liquid",
+"group_block":"Halogen"
+},
+"Kr":{
+"electron_configuration":"[Ar]4s2 3d10 4p6",
+"electronegativity":3.0,
+"oxidation_states":[
+0
+],
+"ionization_energy_eV":14.0,
+"atomic_radius_pm":202.0,
+"melting_point_K":115.79,
+"boiling_point_K":119.93,
+"density_g_cm3":0.003733,
+"standard_state":"Gas",
+"group_block":"Noble gas"
+},
+"Rb":{
+"electron_configuration":"[Kr]5s1",
+"electronegativity":0.82,
+"oxidation_states":[
+1
+],
+"ionization_energy_eV":4.177,
+"electron_affinity_eV":0.468,
+"atomic_radius_pm":303.0,
+"melting_point_K":312.46,
+"boiling_point_K":961.0,
+"density_g_cm3":1.53,
+"standard_state":"Solid",
+"group_block":"Alkali metal"
+},
+"Sr":{
+"electron_configuration":"[Kr]5s2",
+"electronegativity":0.95,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":5.695,
+"atomic_radius_pm":249.0,
+"melting_point_K":1050.0,
+"boiling_point_K":1655.0,
+"density_g_cm3":2.64,
+"standard_state":"Solid",
+"group_block":"Alkaline earth metal"
+},
+"Y":{
+"electron_configuration":"[Kr]5s2 4d1",
+"electronegativity":1.22,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.217,
+"electron_affinity_eV":0.307,
+"atomic_radius_pm":219.0,
+"melting_point_K":1795.0,
+"boiling_point_K":3618.0,
+"density_g_cm3":4.47,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Zr":{
+"electron_configuration":"[Kr]5s2 4d2",
+"electronegativity":1.33,
+"oxidation_states":[
+4
+],
+"ionization_energy_eV":6.634,
+"electron_affinity_eV":0.426,
+"atomic_radius_pm":186.0,
+"melting_point_K":2128.0,
+"boiling_point_K":4682.0,
+"density_g_cm3":6.52,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Nb":{
+"electron_configuration":"[Kr]5s1 4d4",
+"electronegativity":1.6,
+"oxidation_states":[
+5,
+3
+],
+"ionization_energy_eV":6.759,
+"electron_affinity_eV":0.893,
+"atomic_radius_pm":207.0,
+"melting_point_K":2750.0,
+"boiling_point_K":5017.0,
+"density_g_cm3":8.57,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Mo":{
+"electron_configuration":"[Kr]5s1 4d5",
+"electronegativity":2.16,
+"oxidation_states":[
+6
+],
+"ionization_energy_eV":7.092,
+"electron_affinity_eV":0.746,
+"atomic_radius_pm":209.0,
+"melting_point_K":2896.0,
+"boiling_point_K":4912.0,
+"density_g_cm3":10.2,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Tc":{
+"electron_configuration":"[Kr]5s2 4d5",
+"electronegativity":1.9,
+"oxidation_states":[
+7,
+6,
+4
+],
+"ionization_energy_eV":7.28,
+"electron_affinity_eV":0.55,
+"atomic_radius_pm":209.0,
+"melting_point_K":2430.0,
+"boiling_point_K":4538.0,
+"density_g_cm3":11.0,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ru":{
+"electron_configuration":"[Kr]5s1 4d7",
+"electronegativity":2.2,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":7.361,
+"electron_affinity_eV":1.05,
+"atomic_radius_pm":207.0,
+"melting_point_K":2607.0,
+"boiling_point_K":4423.0,
+"density_g_cm3":12.1,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Rh":{
+"electron_configuration":"[Kr]5s1 4d8",
+"electronegativity":2.28,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":7.459,
+"electron_affinity_eV":1.137,
+"atomic_radius_pm":195.0,
+"melting_point_K":2237.0,
+"boiling_point_K":3968.0,
+"density_g_cm3":12.4,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Pd":{
+"electron_configuration":"[Kr]4d10",
+"electronegativity":2.2,
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":8.337,
+"electron_affinity_eV":0.557,
+"atomic_radius_pm":202.0,
+"melting_point_K":1828.05,
+"boiling_point_K":3236.0,
+"density_g_cm3":12.0,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ag":{
+"electron_configuration":"[Kr]5s1 4d10",
+"electronegativity":1.93,
+"oxidation_states":[
+1
+],
+"ionization_energy_eV":7.576,
+"electron_affinity_eV":1.302,
+"atomic_radius_pm":172.0,
+"melting_point_K":1234.93,
+"boiling_point_K":2435.0,
+"density_g_cm3":10.501,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Cd":{
+"electron_configuration":"[Kr]5s2 4d10",
+"electronegativity":1.69,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":8.994,
+"atomic_radius_pm":158.0,
+"melting_point_K":594.22,
+"boiling_point_K":1040.0,
+"density_g_cm3":8.69,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"In":{
+"electron_configuration":"[Kr]5s2 4d10 5p1",
+"electronegativity":1.78,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.786,
+"electron_affinity_eV":0.3,
+"atomic_radius_pm":193.0,
+"melting_point_K":429.75,
+"boiling_point_K":2345.0,
+"density_g_cm3":7.31,
+"standard_state":"Solid",
+"group_block":"Post-transition metal"
+},
+"Sn":{
+"electron_configuration":"[Kr]5s2 4d10 5p2",
+"electronegativity":1.96,
+"oxidation_states":[
+4,
+2
+],
+"ionization_energy_eV":7.344,
+"electron_affinity_eV":1.2,
+"atomic_radius_pm":217.0,
+"melting_point_K":505.08,
+"boiling_point_K":2875.0,
+"density_g_cm3":7.287,
+"standard_state":"Solid",
+"group_block":"Post-transition metal"
+},
+"Sb":{
+"electron_configuration":"[Kr]5s2 4d10 5p3",
+"electronegativity":2.05,
+"oxidation_states":[
+5,
+3,
+-3
+],
+"ionization_energy_eV":8.64,
+"electron_affinity_eV":1.07,
+"atomic_radius_pm":206.0,
+"melting_point_K":903.78,
+"boiling_point_K":1860.0,
+"density_g_cm3":6.685,
+"standard_state":"Solid",
+"group_block":"Metalloid"
+},
+"Te":{
+"electron_configuration":"[Kr]5s2 4d10 5p4",
+"electronegativity":2.1,
+"oxidation_states":[
+6,
+4,
+-2
+],
+"ionization_energy_eV":9.01,
+"electron_affinity_eV":1.971,
+"atomic_radius_pm":206.0,
+"melting_point_K":722.66,
+"boiling_point_K":1261.0,
+"density_g_cm3":6.232,
+"standard_state":"Solid",
+"group_block":"Metalloid"
+},
+"I":{
+"electron_configuration":"[Kr]5s2 4d10 5p5",
+"electronegativity":2.66,
+"oxidation_states":[
+7,
+5,
+1,
+-1
+],
+"ionization_energy_eV":10.451,
+"electron_affinity_eV":3.059,
+"atomic_radius_pm":198.0,
+"melting_point_K":386.85,
+"boiling_point_K":457.55,
+"density_g_cm3":4.93,
+"standard_state":"Solid",
+"group_block":"Halogen"
+},
+"Xe":{
+"electron_configuration":"[Kr]5s2 4d10 5p6",
+"electronegativity":2.6,
+"oxidation_states":[
+0
+],
+"ionization_energy_eV":12.13,
+"atomic_radius_pm":216.0,
+"melting_point_K":161.36,
+"boiling_point_K":165.03,
+"density_g_cm3":0.005887,
+"standard_state":"Gas",
+"group_block":"Noble gas"
+},
+"Cs":{
+"electron_configuration":"[Xe]6s1",
+"electronegativity":0.79,
+"oxidation_states":[
+1
+],
+"ionization_energy_eV":3.894,
+"electron_affinity_eV":0.472,
+"atomic_radius_pm":343.0,
+"melting_point_K":301.59,
+"boiling_point_K":944.0,
+"density_g_cm3":1.93,
+"standard_state":"Solid",
+"group_block":"Alkali metal"
+},
+"Ba":{
+"electron_configuration":"[Xe]6s2",
+"electronegativity":0.89,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":5.212,
+"atomic_radius_pm":268.0,
+"melting_point_K":1000.0,
+"boiling_point_K":2170.0,
+"density_g_cm3":3.62,
+"standard_state":"Solid",
+"group_block":"Alkaline earth metal"
+},
+"La":{
+"electron_configuration":"[Xe]6s2 5d1",
+"electronegativity":1.1,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.577,
+"electron_affinity_eV":0.5,
+"atomic_radius_pm":240.0,
+"melting_point_K":1191.0,
+"boiling_point_K":3737.0,
+"density_g_cm3":6.15,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Ce":{
+"electron_configuration":"[Xe]6s2 4f1 5d1",
+"electronegativity":1.12,
+"oxidation_states":[
+4,
+3
+],
+"ionization_energy_eV":5.539,
+"electron_affinity_eV":0.5,
+"atomic_radius_pm":235.0,
+"melting_point_K":1071.0,
+"boiling_point_K":3697.0,
+"density_g_cm3":6.77,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Pr":{
+"electron_configuration":"[Xe]6s2 4f3",
+"electronegativity":1.13,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.464,
+"atomic_radius_pm":239.0,
+"melting_point_K":1204.0,
+"boiling_point_K":3793.0,
+"density_g_cm3":6.77,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Nd":{
+"electron_configuration":"[Xe]6s2 4f4",
+"electronegativity":1.14,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.525,
+"atomic_radius_pm":229.0,
+"melting_point_K":1294.0,
+"boiling_point_K":3347.0,
+"density_g_cm3":7.01,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Pm":{
+"electron_configuration":"[Xe]6s2 4f5",
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.55,
+"atomic_radius_pm":236.0,
+"melting_point_K":1315.0,
+"boiling_point_K":3273.0,
+"density_g_cm3":7.26,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Sm":{
+"electron_configuration":"[Xe]6s2 4f6",
+"electronegativity":1.17,
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":5.644,
+"atomic_radius_pm":229.0,
+"melting_point_K":1347.0,
+"boiling_point_K":2067.0,
+"density_g_cm3":7.52,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Eu":{
+"electron_configuration":"[Xe]6s2 4f7",
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":5.67,
+"atomic_radius_pm":233.0,
+"melting_point_K":1095.0,
+"boiling_point_K":1802.0,
+"density_g_cm3":5.24,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Gd":{
+"electron_configuration":"[Xe]6s2 4f7 5d1",
+"electronegativity":1.2,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.15,
+"atomic_radius_pm":237.0,
+"melting_point_K":1586.0,
+"boiling_point_K":3546.0,
+"density_g_cm3":7.9,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Tb":{
+"electron_configuration":"[Xe]6s2 4f9",
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.864,
+"atomic_radius_pm":221.0,
+"melting_point_K":1629.0,
+"boiling_point_K":3503.0,
+"density_g_cm3":8.23,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Dy":{
+"electron_configuration":"[Xe]6s2 4f10",
+"electronegativity":1.22,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.939,
+"atomic_radius_pm":229.0,
+"melting_point_K":1685.0,
+"boiling_point_K":2840.0,
+"density_g_cm3":8.55,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Ho":{
+"electron_configuration":"[Xe]6s2 4f11",
+"electronegativity":1.23,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.022,
+"atomic_radius_pm":216.0,
+"melting_point_K":1747.0,
+"boiling_point_K":2973.0,
+"density_g_cm3":8.8,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Er":{
+"electron_configuration":"[Xe]6s2 4f12",
+"electronegativity":1.24,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.108,
+"atomic_radius_pm":235.0,
+"melting_point_K":1802.0,
+"boiling_point_K":3141.0,
+"density_g_cm3":9.07,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Tm":{
+"electron_configuration":"[Xe]6s2 4f13",
+"electronegativity":1.25,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.184,
+"atomic_radius_pm":227.0,
+"melting_point_K":1818.0,
+"boiling_point_K":2223.0,
+"density_g_cm3":9.32,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Yb":{
+"electron_configuration":"[Xe]6s2 4f14",
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":6.254,
+"atomic_radius_pm":242.0,
+"melting_point_K":1092.0,
+"boiling_point_K":1469.0,
+"density_g_cm3":6.9,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Lu":{
+"electron_configuration":"[Xe]6s2 4f14 5d1",
+"electronegativity":1.27,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.426,
+"atomic_radius_pm":221.0,
+"melting_point_K":1936.0,
+"boiling_point_K":3675.0,
+"density_g_cm3":9.84,
+"standard_state":"Solid",
+"group_block":"Lanthanide"
+},
+"Hf":{
+"electron_configuration":"[Xe]6s2 4f14 5d2",
+"electronegativity":1.3,
+"oxidation_states":[
+4
+],
+"ionization_energy_eV":6.825,
+"atomic_radius_pm":212.0,
+"melting_point_K":2506.0,
+"boiling_point_K":4876.0,
+"density_g_cm3":13.3,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ta":{
+"electron_configuration":"[Xe]6s2 4f14 5d3",
+"electronegativity":1.5,
+"oxidation_states":[
+5
+],
+"ionization_energy_eV":7.89,
+"electron_affinity_eV":0.322,
+"atomic_radius_pm":217.0,
+"melting_point_K":3290.0,
+"boiling_point_K":5731.0,
+"density_g_cm3":16.4,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"W":{
+"electron_configuration":"[Xe]6s2 4f14 5d4",
+"electronegativity":2.36,
+"oxidation_states":[
+6
+],
+"ionization_energy_eV":7.98,
+"electron_affinity_eV":0.815,
+"atomic_radius_pm":210.0,
+"melting_point_K":3695.0,
+"boiling_point_K":5828.0,
+"density_g_cm3":19.3,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Re":{
+"electron_configuration":"[Xe]6s2 4f14 5d5",
+"electronegativity":1.9,
+"oxidation_states":[
+7,
+6,
+4
+],
+"ionization_energy_eV":7.88,
+"electron_affinity_eV":0.15,
+"atomic_radius_pm":217.0,
+"melting_point_K":3459.0,
+"boiling_point_K":5869.0,
+"density_g_cm3":20.8,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Os":{
+"electron_configuration":"[Xe]6s2 4f14 5d6",
+"electronegativity":2.2,
+"oxidation_states":[
+4,
+3
+],
+"ionization_energy_eV":8.7,
+"electron_affinity_eV":1.1,
+"atomic_radius_pm":216.0,
+"melting_point_K":3306.0,
+"boiling_point_K":5285.0,
+"density_g_cm3":22.57,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ir":{
+"electron_configuration":"[Xe]6s2 4f14 5d7",
+"electronegativity":2.2,
+"oxidation_states":[
+4,
+3
+],
+"ionization_energy_eV":9.1,
+"electron_affinity_eV":1.565,
+"atomic_radius_pm":202.0,
+"melting_point_K":2719.0,
+"boiling_point_K":4701.0,
+"density_g_cm3":22.42,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Pt":{
+"electron_configuration":"[Xe]6s1 4f14 5d9",
+"electronegativity":2.28,
+"oxidation_states":[
+4,
+2
+],
+"ionization_energy_eV":9.0,
+"electron_affinity_eV":2.128,
+"atomic_radius_pm":209.0,
+"melting_point_K":2041.55,
+"boiling_point_K":4098.0,
+"density_g_cm3":21.46,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Au":{
+"electron_configuration":"[Xe]6s1 4f14 5d10",
+"electronegativity":2.54,
+"oxidation_states":[
+3,
+1
+],
+"ionization_energy_eV":9.226,
+"electron_affinity_eV":2.309,
+"atomic_radius_pm":166.0,
+"melting_point_K":1337.33,
+"boiling_point_K":3129.0,
+"density_g_cm3":19.282,
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Hg":{
+"electron_configuration":"[Xe]6s2 4f14 5d10",
+"electronegativity":2.0,
+"oxidation_states":[
+2,
+1
+],
+"ionization_energy_eV":10.438,
+"atomic_radius_pm":209.0,
+"melting_point_K":234.32,
+"boiling_point_K":629.88,
+"density_g_cm3":13.5336,
+"standard_state":"Liquid",
+"group_block":"Transition metal"
+},
+"Tl":{
+"electron_configuration":"[Xe]6s2 4f14 5d10 6p1",
+"electronegativity":1.62,
+"oxidation_states":[
+3,
+1
+],
+"ionization_energy_eV":6.108,
+"electron_affinity_eV":0.2,
+"atomic_radius_pm":196.0,
+"melting_point_K":577.0,
+"boiling_point_K":1746.0,
+"density_g_cm3":11.8,
+"standard_state":"Solid",
+"group_block":"Post-transition metal"
+},
+"Pb":{
+"electron_configuration":"[Xe]6s2 4f14 5d10 6p2",
+"electronegativity":2.33,
+"oxidation_states":[
+4,
+2
+],
+"ionization_energy_eV":7.417,
+"electron_affinity_eV":0.36,
+"atomic_radius_pm":202.0,
+"melting_point_K":600.61,
+"boiling_point_K":2022.0,
+"density_g_cm3":11.342,
+"standard_state":"Solid",
+"group_block":"Post-transition metal"
+},
+"Bi":{
+"electron_configuration":"[Xe]6s2 4f14 5d10 6p3",
+"electronegativity":2.02,
+"oxidation_states":[
+5,
+3
+],
+"ionization_energy_eV":7.289,
+"electron_affinity_eV":0.946,
+"atomic_radius_pm":207.0,
+"melting_point_K":544.55,
+"boiling_point_K":1837.0,
+"density_g_cm3":9.807,
+"standard_state":"Solid",
+"group_block":"Post-transition metal"
+},
+"Po":{
+"electron_configuration":"[Xe]6s2 4f14 5d10 6p4",
+"electronegativity":2.0,
+"oxidation_states":[
+4,
+2
+],
+"ionization_energy_eV":8.417,
+"electron_affinity_eV":1.9,
+"atomic_radius_pm":197.0,
+"melting_point_K":527.0,
+"boiling_point_K":1235.0,
+"density_g_cm3":9.32,
+"standard_state":"Solid",
+"group_block":"Metalloid"
+},
+"At":{
+"electron_configuration":"[Xe]6s2 4f14 5d10 6p5",
+"electronegativity":2.2,
+"oxidation_states":[
+7,
+5,
+3,
+1,
+-1
+],
+"ionization_energy_eV":9.5,
+"electron_affinity_eV":2.8,
+"atomic_radius_pm":202.0,
+"melting_point_K":575.0,
+"density_g_cm3":7.0,
+"standard_state":"Solid",
+"group_block":"Halogen"
+},
+"Rn":{
+"electron_configuration":"[Xe]6s2 4f14 5d10 6p6",
+"oxidation_states":[
+0
+],
+"ionization_energy_eV":10.745,
+"atomic_radius_pm":220.0,
+"melting_point_K":202.0,
+"boiling_point_K":211.45,
+"density_g_cm3":0.00973,
+"standard_state":"Gas",
+"group_block":"Noble gas"
+},
+"Fr":{
+"electron_configuration":"[Rn]7s1",
+"electronegativity":0.7,
+"oxidation_states":[
+1
+],
+"ionization_energy_eV":3.9,
+"electron_affinity_eV":0.47,
+"atomic_radius_pm":348.0,
+"melting_point_K":300.0,
+"standard_state":"Solid",
+"group_block":"Alkali metal"
+},
+"Ra":{
+"electron_configuration":"[Rn]7s2",
+"electronegativity":0.9,
+"oxidation_states":[
+2
+],
+"ionization_energy_eV":5.279,
+"atomic_radius_pm":283.0,
+"melting_point_K":973.0,
+"boiling_point_K":1413.0,
+"density_g_cm3":5.0,
+"standard_state":"Solid",
+"group_block":"Alkaline earth metal"
+},
+"Ac":{
+"electron_configuration":"[Rn]7s2 6d1",
+"electronegativity":1.1,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":5.17,
+"atomic_radius_pm":260.0,
+"melting_point_K":1324.0,
+"boiling_point_K":3471.0,
+"density_g_cm3":10.07,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Th":{
+"electron_configuration":"[Rn]7s2 6d2",
+"electronegativity":1.3,
+"oxidation_states":[
+4
+],
+"ionization_energy_eV":6.08,
+"atomic_radius_pm":237.0,
+"melting_point_K":2023.0,
+"boiling_point_K":5061.0,
+"density_g_cm3":11.72,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Pa":{
+"electron_configuration":"[Rn]7s2 5f2 6d1",
+"electronegativity":1.5,
+"oxidation_states":[
+5,
+4
+],
+"ionization_energy_eV":5.89,
+"atomic_radius_pm":243.0,
+"melting_point_K":1845.0,
+"density_g_cm3":15.37,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"U":{
+"electron_configuration":"[Rn]7s2 5f3 6d1",
+"electronegativity":1.38,
+"oxidation_states":[
+6,
+5,
+4,
+3
+],
+"ionization_energy_eV":6.194,
+"atomic_radius_pm":240.0,
+"melting_point_K":1408.0,
+"boiling_point_K":4404.0,
+"density_g_cm3":18.95,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Np":{
+"electron_configuration":"[Rn]7s2 5f4 6d1",
+"electronegativity":1.36,
+"oxidation_states":[
+6,
+5,
+4,
+3
+],
+"ionization_energy_eV":6.266,
+"atomic_radius_pm":221.0,
+"melting_point_K":917.0,
+"boiling_point_K":4175.0,
+"density_g_cm3":20.25,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Pu":{
+"electron_configuration":"[Rn]7s2 5f6",
+"electronegativity":1.28,
+"oxidation_states":[
+6,
+5,
+4,
+3
+],
+"ionization_energy_eV":6.06,
+"atomic_radius_pm":243.0,
+"melting_point_K":913.0,
+"boiling_point_K":3501.0,
+"density_g_cm3":19.84,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Am":{
+"electron_configuration":"[Rn]7s2 5f7",
+"electronegativity":1.3,
+"oxidation_states":[
+6,
+5,
+4,
+3
+],
+"ionization_energy_eV":5.993,
+"atomic_radius_pm":244.0,
+"melting_point_K":1449.0,
+"boiling_point_K":2284.0,
+"density_g_cm3":13.69,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Cm":{
+"electron_configuration":"[Rn]7s2 5f7 6d1",
+"electronegativity":1.3,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.02,
+"atomic_radius_pm":245.0,
+"melting_point_K":1618.0,
+"boiling_point_K":3400.0,
+"density_g_cm3":13.51,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Bk":{
+"electron_configuration":"[Rn]7s2 5f9",
+"electronegativity":1.3,
+"oxidation_states":[
+4,
+3
+],
+"ionization_energy_eV":6.23,
+"atomic_radius_pm":244.0,
+"melting_point_K":1323.0,
+"density_g_cm3":14.0,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Cf":{
+"electron_configuration":"[Rn]7s2 5f10",
+"electronegativity":1.3,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.3,
+"atomic_radius_pm":245.0,
+"melting_point_K":1173.0,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Es":{
+"electron_configuration":"[Rn]7s2 5f11",
+"electronegativity":1.3,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.42,
+"atomic_radius_pm":245.0,
+"melting_point_K":1133.0,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Fm":{
+"electron_configuration":"[Rn] 5f12 7s2",
+"electronegativity":1.3,
+"oxidation_states":[
+3
+],
+"ionization_energy_eV":6.5,
+"melting_point_K":1800.0,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Md":{
+"electron_configuration":"[Rn]7s2 5f13",
+"electronegativity":1.3,
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":6.58,
+"melting_point_K":1100.0,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"No":{
+"electron_configuration":"[Rn]7s2 5f14",
+"electronegativity":1.3,
+"oxidation_states":[
+3,
+2
+],
+"ionization_energy_eV":6.65,
+"melting_point_K":1100.0,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Lr":{
+"electron_configuration":"[Rn]7s2 5f14 6d1",
+"electronegativity":1.3,
+"oxidation_states":[
+3
+],
+"melting_point_K":1900.0,
+"standard_state":"Solid",
+"group_block":"Actinide"
+},
+"Rf":{
+"electron_configuration":"[Rn]7s2 5f14 6d2",
+"oxidation_states":[
+4
+],
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Db":{
+"electron_configuration":"[Rn]7s2 5f14 6d3",
+"oxidation_states":[
+5,
+4,
+3
+],
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Sg":{
+"electron_configuration":"[Rn]7s2 5f14 6d4",
+"oxidation_states":[
+6,
+5,
+4,
+3,
+0
+],
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Bh":{
+"electron_configuration":"[Rn]7s2 5f14 6d5",
+"oxidation_states":[
+7,
+5,
+4,
+3
+],
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Hs":{
+"electron_configuration":"[Rn]7s2 5f14 6d6",
+"oxidation_states":[
+8,
+6,
+5,
+4,
+3,
+2
+],
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Mt":{
+"electron_configuration":"[Rn]7s2 5f14 6d7 (calculated)",
+"oxidation_states":[
+9,
+8,
+6,
+4,
+3,
+1
+],
+"standard_state":"Solid",
+"group_block":"Transition metal"
+},
+"Ds":{
+"electron_configuration":"[Rn]7s2 5f14 6d8 (predicted)",
+"oxidation_states":[
+8,
+6,
+4,
+2,
+0
+],
+"standard_state":"Expected to be a Solid",
+"group_block":"Transition metal"
+},
+"Rg":{
+"electron_configuration":"[Rn]7s2 5f14 6d9 (predicted)",
+"oxidation_states":[
+5,
+3,
+1,
+-1
+],
+"standard_state":"Expected to be a Solid",
+"group_block":"Transition metal"
+},
+"Cn":{
+"electron_configuration":"[Rn]7s2 5f14 6d10 (predicted)",
+"oxidation_states":[
+2,
+1,
+0
+],
+"standard_state":"Expected to be a Solid",
+"group_block":"Transition metal"
+},
+"Nh":{
+"electron_configuration":"[Rn]5f14 6d10 7s2 7p1 (predicted)",
+"standard_state":"Expected to be a Solid",
+"group_block":"Post-transition metal"
+},
+"Fl":{
+"electron_configuration":"[Rn]7s2 7p2 5f14 6d10 (predicted)",
+"oxidation_states":[
+6,
+4,
+2,
+1,
+0
+],
+"standard_state":"Expected to be a Solid",
+"group_block":"Post-transition metal"
+},
+"Mc":{
+"electron_configuration":"[Rn]7s2 7p3 5f14 6d10 (predicted)",
+"oxidation_states":[
+3,
+1
+],
+"standard_state":"Expected to be a Solid",
+"group_block":"Post-transition metal"
+},
+"Lv":{
+"electron_configuration":"[Rn]7s2 7p4 5f14 6d10 (predicted)",
+"oxidation_states":[
+4,
+2,
+-2
+],
+"standard_state":"Expected to be a Solid",
+"group_block":"Post-transition metal"
+},
+"Ts":{
+"electron_configuration":"[Rn]7s2 7p5 5f14 6d10 (predicted)",
+"oxidation_states":[
+5,
+3,
+1,
+-1
+],
+"standard_state":"Expected to be a Solid",
+"group_block":"Halogen"
+},
+"Og":{
+"electron_configuration":"[Rn]7s2 7p6 5f14 6d10 (predicted)",
+"oxidation_states":[
+6,
+4,
+2,
+1,
+0,
+-1
+],
+"standard_state":"Expected to be a Gas",
+"group_block":"Noble gas"
+}
+}
+}

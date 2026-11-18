@@ -1,0 +1,508 @@
+"""Eine Zeile der Rechner-Konsole auswerten (zustandslos: Variablen und Funktionen schickt die Seite mit)."""
+from __future__ import annotations
+
+import ast
+import copy
+import math
+import re
+
+from fractions import Fraction
+
+import numpy as np
+from labcalc import solve as SV
+
+from . import expr as E
+from . import plots as P
+from . import render as R
+from . import units as U
+
+RESERVED = set(E.BUILTINS) | set(E.SPECIAL) | {"i", "j", "inf", "nan", "ans"}
+
+
+def _input_render(node, lang):
+    try:
+        return R.render(node, lang=lang)
+    except Exception:  # noqa: BLE001 - Darstellung darf nie die Rechnung verhindern
+        src = ast.unparse(node)
+        return src, src
+
+
+def _result_tex(v, lang):
+    a = np.asarray(v)
+    if isinstance(v, str):
+        return r"\mbox{%s}" % v
+    if a.ndim == 0:
+        z = complex(a)
+        if abs(z.imag) > 1e-14 * max(1, abs(z.real)):
+            sign = "+" if z.imag >= 0 else "-"
+            return f"{R.num_tex(z.real, lang, 8)} {sign} {R.num_tex(abs(z.imag), lang, 8)}\\,\\mathrm{{i}}"
+        return R.num_tex(z.real, lang, 8)
+    a = np.real(a)
+    if a.ndim == 1:
+        a = a.reshape(1, -1)
+    rows = [" & ".join(R.num_tex(float(x), lang, 6) for x in r) for r in a.tolist()]
+    return r"\left(\begin{array}{%s}" % ("c" * a.shape[1]) + r" \\ ".join(rows) + r"\end{array}\right)"
+
+
+def evaluate_line(req: dict) -> dict:
+    line = str(req.get("line", "")).strip()
+    lang = req.get("lang", "de")
+    if not line:
+        raise E.CalcError("Leere Eingabe")
+    ctx = P.make_ctx(req)
+    if "ans" in (req.get("vars") or {}):
+        ctx.names["ans"] = E.from_json(req["vars"]["ans"])
+    st = E.split_statement(line)
+    out = {"input": line}
+    callables = ctx.callables()
+    if st[0] == "system":                                    # S-02: x + y = 3; x − y = 1
+        pairs = [(E.parse(a, callables), E.parse(b, callables)) for a, b in st[1]]
+        return solve_system_line(pairs, ctx, req, lang, out)
+    if st[0] == "equation":                                  # S-01: x^2 − 3 + x = 0
+        _, ls, rs, extras, unit = st
+        return solve_line(E.parse(ls, callables), E.parse(rs, callables), extras, unit, ctx, req, lang, out, callables)
+    if st[0] == "assign":                                    # x = 2x − 3, x^2 = x: Gleichung, wenn sonst nichts ginge
+        _, name, body = st
+        try:
+            nm, bnode = E.norm_name(name), E.parse(body, callables)
+        except E.CalcError:
+            nm = bnode = None
+        if bnode is not None and SV.free_names(bnode, ctx):
+            nn = ast.Name(id=nm, ctx=ast.Load())
+            if len(SV.free_names(SV.residual(nn, bnode), ctx)) == 1:
+                s = line
+                for g, n in E.GREEK.items():
+                    s = s.replace(g, n)
+                L, Rn = (nn, bnode) if E.ASSIGN.match(s) else (bnode, nn)
+                return solve_line(L, Rn, [], None, ctx, req, lang, out, callables)
+    if st[0] == "func":
+        _, name, args, body = st
+        name = E.norm_name(name)
+        if name in E.BUILTINS or name in E.SPECIAL:
+            raise E.CalcError(f"„{name}“ ist eine eingebaute Funktion")
+        node = E.parse(body, callables | {name})
+        tex, html = _input_render(node, lang)
+        arg_html = ", ".join(R.sym_html(a) for a in args)
+        out.update(kind="func", name=name, args=args, body=body,
+                   html=f"{R.sym_html(name).replace('<i>', '').replace('</i>', '')}({arg_html}) = {html}",
+                   tex=f"\\mathrm{{{name}}}({', '.join(R.sym_tex(a) for a in args)}) = {tex}",
+                   text=f"Funktion {name}({', '.join(args)}) definiert")
+        return out
+    if st[0] == "assign":
+        _, name, body = st
+        name = E.norm_name(name)
+        if name in RESERVED or name in U.CONSTANTS:
+            raise E.CalcError(f"„{name}“ ist reserviert")
+        node = E.parse(body, callables)
+        val = E.evaluate(node, ctx)
+        d = E.describe(val, int(req.get("digits", 10)))
+        tex, html = _input_render(node, lang)
+        out.update(kind="assign", name=name, result=d, store=E.to_json(val),
+                   html=f"{R.sym_html(name)} = {html}", tex=f"{R.sym_tex(name)} = {tex}",
+                   result_tex=_result_tex(val, lang))
+        unit = _dims_unit(node, ctx)
+        if unit:
+            out["unit"] = unit
+            out["dims"] = list(node_dims(node, ctx))            # die Variable behält ihre Einheit in späteren Zeilen
+            out["result_tex"] += r"\," + R.unit_tex(unit_plain(unit))
+        _add_parts(out, node, ctx, val, lang)
+        return out
+    if st[0] == "convert":
+        _, body, unit = st
+        node = E.parse(body, callables)
+        val = E.evaluate(node, ctx)
+        f, d, off = U.parse_unit(unit)
+        dn = node_dims(node, ctx)
+        if dn is not None and not U.deq(dn, d):
+            raise E.CalcError(f"Ergebnis hat die Einheit {U.dims_text(dn) or '1'}, nicht {unit}")
+        conv = U.from_si(np.asarray(val, dtype=float), unit)
+        dd = E.describe(conv, int(req.get("digits", 10)))
+        tex, html = _input_render(node, lang)
+        out.update(kind="expr", result=dd, store=E.to_json(conv), unit=unit, html=html + " → " + R.unit_html(unit),
+                   tex=tex, result_tex=_result_tex(conv, lang) + r"\," + R.unit_tex(unit))
+        return out
+    node = E.parse(st[1], callables)
+    val = E.evaluate(node, ctx)
+    d = E.describe(val, int(req.get("digits", 10)))
+    tex, html = _input_render(node, lang)
+    out.update(kind="expr", result=d, store=E.to_json(val) if not isinstance(val, str) else None, html=html, tex=tex,
+               result_tex=_result_tex(val, lang))
+    unit = _dims_unit(node, ctx)
+    if unit:
+        out["unit"] = unit
+        out["result_tex"] += r"\," + R.unit_tex(unit_plain(unit))
+    _add_parts(out, node, ctx, val, lang)
+    return out
+
+
+# ----------------------------------------------------------------------------- Gleichungen lösen (S-01, S-02)
+def _fr_text(fr: Fraction) -> str:
+    s = str(abs(fr.numerator)) if fr.denominator == 1 else f"{abs(fr.numerator)}/{fr.denominator}"
+    return ("−" if fr < 0 else "") + s
+
+
+def _fr_tex(fr: Fraction) -> str:
+    s = str(abs(fr.numerator)) if fr.denominator == 1 else r"\frac{%d}{%d}" % (abs(fr.numerator), fr.denominator)
+    return ("-" if fr < 0 else "") + s
+
+
+def _surd(sd: dict, tex: bool, sign=None) -> str:
+    """p ± q·√m (·i) als gemeinsamer Bruch: (A ± B√m)/n. sign: −1, +1 oder None für ±."""
+    p, q, m, im = sd["p"], sd["q"], sd["m"], sd.get("i")
+    sign = sd.get("sign") if sign is None and "sign" in sd else sign
+    den = p.denominator * q.denominator // math.gcd(p.denominator, q.denominator)
+    A, B = int(p * den), int(q * den)
+    root = "" if m == 1 else (r"\sqrt{%d}" % m if tex else f"√{m}")
+    imag = (r"\mathrm{i}" if tex else "i") if im else ""
+    term = ("" if B == 1 and (root or imag) else str(B)) + root + imag
+    op = (r"\pm" if tex else "±") if sign is None else ("-" if tex else "−") if sign < 0 else "+"
+    if A == 0:
+        num = ("" if op == "+" else op) + term
+    else:
+        num = f"{'-' if tex and A < 0 else '−' if A < 0 else ''}{abs(A)} {op} {term}"
+    if den == 1:
+        return num
+    if tex:
+        return r"\frac{%s}{%d}" % (num, den)
+    return f"{num}/{den}" if A == 0 else f"({num})/{den}"
+
+
+def _exact_of(s: dict):
+    """(Text, TeX) der exakten Form einer Lösung oder (None, None), wenn sie nichts Neues zeigt."""
+    if s.get("surd"):
+        return _surd(s["surd"], False), _surd(s["surd"], True)
+    fr = s.get("exact")
+    if isinstance(fr, Fraction) and fr.denominator != 1:
+        return _fr_text(fr), _fr_tex(fr)
+    return None, None
+
+
+def _check(L, Rn, ctx, lang, out, digits):
+    """Gleichung ohne Unbekannte: stimmt sie?"""
+    a, b = E.evaluate(L, ctx), E.evaluate(Rn, ctx)
+    try:
+        A, B = np.asarray(a, dtype=complex), np.asarray(b, dtype=complex)
+        same = A.shape == B.shape and bool(np.allclose(A, B, rtol=1e-10, atol=1e-12))
+    except (TypeError, ValueError):
+        same = a == b
+    word = "wahr" if same else "falsch"
+    out.update(kind="check", truth=same, result={"type": "bool", "text": word, "value": float(same)}, store=None,
+               result_tex=r"\mbox{%s}" % word, notes=[])
+    if not same and np.ndim(a) == 0 and np.ndim(b) == 0:
+        out["notes"].append(f"links {E.describe(a, digits)['text']}, rechts {E.describe(b, digits)['text']}")
+        used = [n.id for side in (L, Rn) for n in ast.walk(side) if isinstance(n, ast.Name) and n.id in ctx.names]
+        if used:
+            out["notes"].append(f"{used[0]} hat schon einen Wert – zum Lösen nach {used[0]} „, {used[0]}“ anhängen")
+    return out
+
+
+def _sets_for(groups, unk, dims, pick):
+    """Zeilenvariablen: eine Lösung -> x (und y …); mehrere -> x_1, x_2 … und, wenn gewählt, x."""
+    sets = []
+    dl = {u: (list(dims[u]) if dims.get(u) is not None and not U.deq(dims[u], U.D0) else None) for u in unk}
+    if len(groups) == 1:
+        for u, v in zip(unk, groups[0]):
+            sets.append({"name": u, "store": E.to_json(v), "dims": dl[u]})
+        return sets, None
+    for k, g in enumerate(groups, 1):
+        for u, v in zip(unk, g):
+            sets.append({"name": f"{u}_{k}", "store": E.to_json(v), "dims": dl[u]})
+    try:
+        p = int(pick) if pick is not None else None
+    except (TypeError, ValueError):
+        p = None
+    if p is not None and 1 <= p <= len(groups):
+        for u, v in zip(unk, groups[p - 1]):
+            sets.append({"name": u, "store": E.to_json(v), "dims": dl[u]})
+        return sets, p
+    return sets, None
+
+
+def solve_line(L, Rn, extras, unit, ctx, req, lang, out, callables):
+    """S-01: Gleichung mit einer Unbekannten lösen; Zusätze nach Kommas: Bedingungen oder die gesuchte Grösse."""
+    conds, want = [], []
+    for x in extras:
+        n = E.parse(x, callables)
+        if isinstance(n, ast.Name):
+            want.append(n.id)
+        elif isinstance(n, (ast.Compare, ast.BoolOp)):
+            conds.append(n)
+        else:
+            raise E.CalcError("Nach dem Komma steht eine Bedingung (x > 0) oder die gesuchte Grösse (x)")
+    for w in want:                                           # „…, x“: nach x lösen, auch wenn x schon einen Wert hat
+        ctx.names.pop(w, None)
+        ctx.dims.pop(w, None)
+    free = SV.free_names(SV.residual(L, Rn), ctx)
+    if want:
+        rest = [f for f in free if f not in want]
+        if rest:
+            raise E.CalcError(f"Unbekannter Name „{rest[0]}“")
+        free = [w for w in want if w in free] or want
+    for c in conds:
+        bad = [f for f in SV.free_names(c, ctx) if f not in free]
+        if bad:
+            raise E.CalcError(f"Unbekannter Name „{bad[0]}“ in der Bedingung")
+    (tl, hl), (tr_, hr) = _input_render(L, lang), _input_render(Rn, lang)
+    cr = [_input_render(c, lang) for c in conds]
+    out["html"] = f"{hl} = {hr}" + "".join(f", {h}" for _, h in cr)
+    out["tex"] = f"{tl} = {tr_}" + "".join(r",\quad " + t for t, _ in cr)
+    digits = int(req.get("digits", 10))
+    if not free:
+        return _check(L, Rn, ctx, lang, out, digits)
+    if len(free) > 1:
+        raise E.CalcError(f"{len(free)} Unbekannte ({', '.join(free)}) in einer Gleichung – für ein Gleichungssystem "
+                          "die Gleichungen mit ; trennen, z. B. x + y = 3; x − y = 1")
+    x = free[0]
+    res = SV.solve_equation(L, Rn, x, ctx, conds)
+    dims = res.get("dims")
+    si_unit = U.dims_text(dims) if dims is not None and not U.deq(dims, U.D0) else ""
+    show = si_unit
+    conv = None
+    if unit:
+        _f, d, _off = U.parse_unit(unit)
+        if dims is not None and not U.deq(dims, d):
+            raise E.CalcError(f"Die Lösung hat die Einheit {si_unit or '1'}, nicht {unit}")
+        show = unit
+        conv = lambda v: float(U.from_si(np.asarray(v, dtype=float), unit))       # noqa: E731
+    sols = res["solutions"]
+    n = len(sols)
+    names = [x] if n == 1 else [f"{x}_{k}" for k in range(1, n + 1)]
+    items, vals = [], []
+    for nm, s in zip(names, sols):
+        v = s["value"]
+        vv = conv(v) if conv and not isinstance(v, complex) else v
+        d = E.describe(vv, digits)
+        ex_text, ex_tex = (None, None) if conv else _exact_of(s)
+        items.append({"name": nm, "text": d["text"], "value": E._jnum(vv) if not isinstance(vv, complex) else None,
+                      "exact": ex_text, "mult": s.get("mult", 1)})
+        num = (R.num_tex(vv, lang, 8) if not isinstance(vv, complex) else _result_tex(vv, lang)) + \
+            (r"\," + R.unit_tex(unit_plain(show)) if show else "")
+        items[-1]["tex"] = f"{R.sym_tex(nm)} = " + (f"{ex_tex} \\approx {num}" if ex_tex else num)
+        vals.append(v)
+    sets, picked = _sets_for([[v] for v in vals], [x], {x: dims}, req.get("pick"))
+    notes = list(res.get("notes") or [])
+    if any(it["mult"] > 1 for it in items):
+        notes.append("doppelte Lösung" if all(it["mult"] <= 2 for it in items) else "mehrfache Lösung")
+    if res["method"] == "numeric" and n:
+        notes.append("numerisch bestimmt")
+    if res["status"] == "identity":
+        result, rtex = {"type": "text", "text": "jede Zahl ist Lösung"}, r"\mbox{jede Zahl ist L\"osung}"
+    elif not n:
+        result, rtex = {"type": "text", "text": "keine Lösung"}, r"\mbox{keine L\"osung}"
+        if res.get("complex"):
+            cs = "; ".join(E.fmt_complex(complex(z), 6) for z in res["complex"][:6])
+            notes = [f"keine reelle Lösung; komplex: {cs} (Einstellung „komplex“)"] + \
+                [m for m in notes if "komplexe Lösung" not in m]
+    else:
+        conv_vals = [conv(v) if conv and not isinstance(v, complex) else v for v in vals]
+        result = E.describe(conv_vals[0] if n == 1 else np.array(conv_vals), digits)
+        rtex = r",\quad ".join(it["tex"] for it in items)
+    out.update(kind="solve", name=x, status=res["status"], method=res["method"], solutions=items, sets=sets,
+               picked=picked, result=result, result_tex=rtex, notes=notes,
+               store=(E.to_json(vals[0]) if n == 1 else E.to_json(np.array(vals))) if n else None)
+    if show:
+        out["unit"] = show
+    return out
+
+
+def _lin_text(const, terms, tex):
+    """const + Σ Faktor·Name als Text bzw. TeX (Brüche exakt)."""
+    def num(v):
+        if isinstance(v, Fraction):
+            return _fr_tex(v) if tex else _fr_text(v)
+        return E.fmt_num(float(v), 8).replace("-", "−") if not tex else R.num_tex(float(v), "de", 8)
+    parts = []
+    if const != 0 or not terms:
+        parts.append(num(const))
+    for name, k in terms.items():
+        neg = k < 0
+        a = abs(k)
+        coef = "" if a == 1 else num(a) + (r"\cdot " if tex else "·")
+        sym = R.sym_tex(name) if tex else name
+        if parts:
+            parts.append(("-" if tex else "−") if neg else "+")
+            parts.append(coef + sym)
+        else:
+            parts.append(("-" if tex else "−") * neg + coef + sym)
+    return " ".join(parts)
+
+
+def solve_system_line(pairs, ctx, req, lang, out):
+    """S-02: Gleichungssystem (Gleichungen mit ; getrennt)."""
+    digits = int(req.get("digits", 10))
+    res = SV.solve_system(pairs, ctx)
+    unk, dims = res["unknowns"], res["dims"]
+    rend = [(_input_render(a, lang), _input_render(b, lang)) for a, b in pairs]
+    out["html"] = ";&nbsp; ".join(f"{hl} = {hr}" for (tl, hl), (tr_, hr) in rend)
+    out["tex"] = r"\left\{\begin{array}{l}" + r" \\ ".join(f"{tl} = {tr_}" for (tl, hl), (tr_, hr) in rend) + \
+        r"\end{array}\right."
+    units = {u: (U.dims_text(dims[u]) if dims.get(u) is not None and not U.deq(dims[u], U.D0) else "") for u in unk}
+    notes = list(res.get("notes") or [])
+    groups, items = [], []
+    st = res["status"]
+    if st in ("unique", "ok") and res["solutions"]:
+        for k, (sol, ex) in enumerate(zip(res["solutions"], res.get("exact") or [[None] * len(unk)] * len(res["solutions"])), 1):
+            g = []
+            for u, v, fr in zip(unk, sol, ex):
+                exs = _fr_text(fr) if isinstance(fr, Fraction) and fr.denominator != 1 else None
+                ext = _fr_tex(fr) if exs else None
+                num = R.num_tex(v, lang, 8) + (r"\," + R.unit_tex(unit_plain(units[u])) if units[u] else "")
+                g.append({"name": u, "text": E.describe(v, digits)["text"], "value": E._jnum(v), "exact": exs,
+                          "unit": units[u], "tex": f"{R.sym_tex(u)} = " + (f"{ext} \\approx {num}" if ext else num)})
+            items.append({"k": k, "vals": g})
+            groups.append(sol)
+        if len(groups) == 1:
+            rtex = r",\quad ".join(v["tex"] for v in items[0]["vals"])
+        else:
+            rtex = r"\quad ".join(r"(%d)\ " % it["k"] + r",\ ".join(v["tex"] for v in it["vals"]) for it in items)
+        result = E.describe(np.array(groups[0]) if len(groups) == 1 else np.array(groups), digits)
+        store = E.to_json(np.array(groups[0])) if len(groups) == 1 else E.to_json(np.array(groups))
+    elif st == "infinite":
+        free = res["free"]
+        lines_t, lines_x = [], []
+        for u, (c, terms) in res["param"].items():
+            lines_t.append(f"{u} = {_lin_text(c, terms, False)}")
+            lines_x.append(f"{R.sym_tex(u)} = {_lin_text(c, terms, True)}")
+        lines_t.append(", ".join(free) + (" frei" if len(free) > 1 else " frei wählbar"))
+        lines_x.append(r",\ ".join(R.sym_tex(f) for f in free) + r"\ \mbox{frei}")
+        result = {"type": "text", "text": "unendlich viele Lösungen: " + "; ".join(lines_t)}
+        rtex, store = r",\quad ".join(lines_x), None
+        notes.append(f"Rang {res['rank']} bei {len(unk)} Unbekannten")
+    else:
+        result, rtex, store = {"type": "text", "text": "keine Lösung"}, r"\mbox{keine L\"osung}", None
+        if res.get("lsq"):
+            ls = ", ".join(f"{u} = {E.fmt_num(v, 6)}" for u, v in zip(unk, res["lsq"]))
+            notes.append(f"widersprüchlich (Rang {res.get('rank')}); Ausgleichslösung (kleinste Quadrate): {ls}")
+        used = [n.id for a, b in pairs for side in (a, b) for n in ast.walk(side)
+                if isinstance(n, ast.Name) and n.id in ctx.names and n.id != "ans"]
+        if used:
+            notes.append(f"{used[0]} hat schon einen Wert und zählt nicht als Unbekannte")
+    sets, picked = _sets_for(groups, unk, dims, req.get("pick")) if groups else ([], None)
+    out.update(kind="system", unknowns=unk, status=st, solutions=items, sets=sets, picked=picked, result=result,
+               result_tex=rtex, notes=notes, store=store,
+               system={k: res.get(k) for k in ("type", "A", "b", "rref", "rank", "free") if res.get(k) is not None})
+    return out
+
+
+def _dims_unit(node, ctx):
+    """SI-Einheit des Ergebnisses, wenn Groessen mit Einheit vorkommen."""
+    pd = getattr(ctx, "pdims", None) or {}
+    if not ctx.dims and not pd:
+        return None
+    used = {n.id for n in ast.walk(node) if isinstance(n, ast.Name)}
+    if not used & (set(ctx.dims) | set(pd)):
+        return None
+    d = node_dims(node, ctx)
+    if d is None or U.deq(d, U.D0):
+        return None
+    return U.dims_text(d)
+
+
+# ----------------------------------------------------------------------------- Einheiten von Listen (DP-11)
+# E.dims_of kennt mean, min, max …; hier dazu die Listenfunktionen, Elemente einer Liste (sigma[2]) und linreg:
+# linreg(x, y) = [k, d, R²] mit k in y/x, d in y. Teilausdrücke mit bekannter Einheit werden vorab durch einen
+# Platzhalter-Namen ersetzt, damit E.dims_of den Rest wie gewohnt rechnet (2*linreg(eps, sigma)[1] hat Pa).
+_SAME = {"std", "sort", "cumsum", "diff", "sum"}
+LINREG_PARTS = ("k", "d", "R2")
+
+
+def _index_of(sl):
+    try:
+        v = sl.value if isinstance(sl, ast.Constant) else None
+        return int(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and float(v) == int(v) else None
+    except (TypeError, ValueError):
+        return None
+
+
+def linreg_dims(dx, dy):
+    """[k, d, R²]-Dimensionen von linreg(x, y) aus den Dimensionen von x und y, oder None, wenn eine fehlt."""
+    if dx is None or dy is None:
+        return None
+    return [U.ddiv(dy, dx), dy, U.D0]
+
+
+class _DimRewrite(ast.NodeTransformer):
+    def __init__(self, dims, pdims):
+        self.dims, self.pdims, self.n = dims, pdims, 0
+
+    def _syn(self, d, node):
+        if d is None:
+            return node
+        self.n += 1
+        name = f"#d{self.n}"                     # kein gültiger Name einer Rechenzeile, also ohne Konflikt
+        self.dims[name] = tuple(d)
+        return ast.copy_location(ast.Name(id=name, ctx=ast.Load()), node)
+
+    def visit_Subscript(self, node):
+        base, idx = node.value, _index_of(node.slice)
+        if isinstance(base, ast.Call) and isinstance(base.func, ast.Name) and base.func.id == "linreg" and len(base.args) == 2:
+            base.args = [self.visit(a) for a in base.args]
+            pd = linreg_dims(E.dims_of(base.args[0], self.dims), E.dims_of(base.args[1], self.dims))
+            return self._syn(pd[idx - 1], node) if pd and idx in (1, 2, 3) else node
+        self.generic_visit(node)
+        if isinstance(node.value, ast.Name):
+            nm = node.value.id
+            if nm in self.pdims:                     # fit = linreg(…); fit[1]
+                ps = self.pdims[nm]
+                return self._syn(ps[idx - 1], node) if idx and 1 <= idx <= len(ps) else node
+            if nm in self.dims:                      # Element einer Liste behält deren Einheit
+                return self._syn(self.dims[nm], node)
+        return node
+
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if not isinstance(node.func, ast.Name):
+            return node
+        n, a = node.func.id, node.args
+        d = lambda k: E.dims_of(a[k], self.dims)        # noqa: E731
+        if n in _SAME and len(a) == 1:
+            return self._syn(d(0), node)
+        if n == "var" and len(a) == 1:
+            return self._syn(U.dpow(d(0), 2) if d(0) is not None else None, node)
+        if n in ("len", "size"):
+            return self._syn(U.D0, node)
+        if n == "trapz" and len(a) in (1, 2):
+            dy = d(0)
+            dx = d(1) if len(a) == 2 else U.D0
+            return self._syn(U.dmul(dy, dx) if dy is not None and dx is not None else None, node)
+        if n == "interp" and len(a) == 3:
+            return self._syn(d(2), node)
+        if n == "dot" and len(a) == 2:
+            return self._syn(U.dmul(d(0), d(1)) if d(0) is not None and d(1) is not None else None, node)
+        return node
+
+
+def node_dims(node, ctx):
+    """Dimension eines Ausdrucks wie E.dims_of, ergänzt um Listenfunktionen, Listenelemente und linreg (DP-11)."""
+    dims = dict(ctx.dims)
+    tree = _DimRewrite(dims, getattr(ctx, "pdims", None) or {}).visit(copy.deepcopy(node))
+    return E.dims_of(tree, dims)
+
+
+def _add_parts(out, node, ctx, val, lang):
+    """linreg(x, y) mit Einheiten: Teile k, d, R² je mit eigener Einheit (eine Liste hat sonst nur eine Einheit)."""
+    if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "linreg" and len(node.args) == 2):
+        return
+    if not ({n.id for n in ast.walk(node) if isinstance(n, ast.Name)} & set(ctx.dims)):
+        return
+    pd = linreg_dims(node_dims(node.args[0], ctx), node_dims(node.args[1], ctx))
+    if pd is None or all(U.deq(d, U.D0) for d in pd):
+        return
+    vals = np.real(np.asarray(val, dtype=complex)).ravel().tolist()
+    if len(vals) != 3:
+        return
+    units = [U.dims_text(d) for d in pd]
+    out["parts"] = [{"name": n, "unit": u, "value": E._jnum(v), "text": E.fmt_num(v, 6)}
+                    for n, u, v in zip(LINREG_PARTS, units, vals)]
+    out["pdims"] = [list(d) for d in pd]
+    cells = [R.num_tex(v, lang, 6) + (r"\," + R.unit_tex(unit_plain(u)) if u else "") for v, u in zip(vals, units)]
+    out["result_tex"] = r"\left(k,\ d,\ R^2\right) = \left(%s\right)" % r";\ ".join(cells)
+
+
+_SUP = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻", "0123456789-")
+
+
+def unit_plain(u: str) -> str:
+    # vor ")" den Exponenten klammern: R.unit_tex nähme sonst die schliessende Klammer mit (kg²/(m²·s⁴))
+    return re.sub(r"([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)(\)?)", lambda m: ("^(%s)" if m.group(2) else "^%s") % m.group(1).translate(_SUP) + m.group(2),
+                  u).replace("·", "*")

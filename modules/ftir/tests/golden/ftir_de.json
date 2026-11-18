@@ -1,0 +1,441 @@
+{
+ "bundle": {
+  "format": "folio-lab-bundle/1",
+  "lang": "de",
+  "module": "ftir",
+  "module_name": "FTIR",
+  "slug": "ftir-probe-folie-atr",
+  "summary": "Probe_Folie_ATR: 14 Banden, Polyethylenterephthalat (PET) (HQI 94.1)",
+  "title": "FTIR Probe_Folie_ATR"
+ },
+ "files": {
+  "data/peaks.csv": {
+   "first": "2969.47,0.0363601,27.2809",
+   "header": "wn_cm1,A,fwhm_cm1",
+   "last": "724.431,0.534237,11.0604",
+   "rows": 14,
+   "type": "csv"
+  },
+  "data/spektrum.csv": {
+   "first": "600,0.0174285",
+   "header": "wn_cm1,A",
+   "last": "3999.06,0.0235258",
+   "rows": 3527,
+   "type": "csv"
+  },
+  "fig/spektrum.pdf": {
+   "size": 40523,
+   "type": "pdf"
+  },
+  "fig/spektrum.png": {
+   "size": 52392,
+   "type": "png"
+  },
+  "fig/suche.pdf": {
+   "size": 31796,
+   "type": "pdf"
+  },
+  "fig/suche.png": {
+   "size": 74982,
+   "type": "png"
+  },
+  "flaechen.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{lrrrr}",
+    "\\toprule",
+    "Bande & Bereich [cm\\$\\textasciicircum{}\\{-1\\}\\$] & Fläche & Höhe & Lage [cm\\$\\textasciicircum{}\\{-1\\}\\$] \\\\",
+    "\\midrule",
+    "C=O & 1780--1650 & 8,733 & 0,373 & 1714 \\\\",
+    "Ring & 745--700 & 6,113 & 0,501 & 724 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "gruppen.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{llr}",
+    "\\toprule",
+    "Stoffklasse & Bewertung & Banden \\\\",
+    "\\midrule",
+    "Aromatischer Ring & wahrscheinlich & 2/2 \\\\",
+    "Ester & wahrscheinlich & 2/2 \\\\",
+    "Keton & möglich & 1/1 \\\\",
+    "Ether (C--O--C) & möglich & 1/1 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "peaks.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{rrrlrl}",
+    "\\toprule",
+    "Nr. & $\\tilde\\nu$ [cm$^{-1}$] & Absorbanz & Int. & FWHM [cm$^{-1}$] & Zuordnung \\\\",
+    "\\midrule",
+    "1 & 2969 & 0,036 & w & 27 & O--H Carbonsäure (sehr breit) \\\\",
+    "2 & 2360 & 0,033 & w & 14 & CO$_{2}$ (Luft im Strahlengang, kein Probenbestandteil) \\\\",
+    "3 & 1715 & 0,397 & s & 20 & C=O Ester, konjugiert (aromatisch) \\\\",
+    "4 & 1579 & 0,033 & w & 7 & COO$^{-}$ Carboxylat asymmetrisch \\\\",
+    "5 & 1506 & 0,038 & w & 7 & C=C aromatischer Ring (\\textasciitilde{}1500) \\\\",
+    "6 & 1455 & 0,047 & w & 10 & CH$_{3}$ Deformation asymmetrisch \\\\",
+    "7 & 1410 & 0,088 & w & 9 & COO$^{-}$ Carboxylat symmetrisch \\\\",
+    "8 & 1341 & 0,091 & w & 8 & S=O Sulfon/Sulfonat asymmetrisch \\\\",
+    "9 & 1242 & 0,469 & vs & 24 & P=O Phosphat-Ester, Phosphonat \\\\",
+    "10 & 1095 & 0,381 & s & 20 & SO$_{4}$$^{2-}$ Sulfat \\\\",
+    "11 & 1018 & 0,212 & m & 9 & P--O--C \\\\",
+    "12 & 972 & 0,088 & w & 9 & =C--H trans-Alken (z. B. Butadien in ABS, NBR) \\\\",
+    "13 & 873 & 0,091 & w & 9 & CO$_{3}$$^{2-}$ Carbonat (Deformation) \\\\",
+    "14 & 724 & 0,534 & vs & 11 & C--Cl \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "refs.bib": {
+   "lines": [
+    "@misc{data-ftir-probe-folie-atr,",
+    "  title = {Probe\\_Folie\\_ATR},",
+    "  howpublished = {Probe\\_Folie\\_ATR.csv},",
+    "  note = {CSV/TXT, 3999--600 cm-1, 3527 Punkte, 58 KiB}",
+    "}",
+    "",
+    "@book{socrates2001,",
+    "  author = {Socrates, George},",
+    "  title = {Infrared and Raman Characteristic Group Frequencies: Tables and Charts},",
+    "  edition = {3},",
+    "  publisher = {Wiley},",
+    "  address = {Chichester},",
+    "  year = {2001}",
+    "}",
+    "",
+    "@misc{astm-e1252,",
+    "  title = {ASTM E1252-98(2021): Standard Practice for General Techniques for Obtaining Infrared Spectra for Qualitative Analysis},",
+    "  howpublished = {ASTM International},",
+    "  year = {2021}",
+    "}",
+    "",
+    "@misc{folio-ftir-modell,",
+    "  title = {Modellbibliothek FTIR (Folio Lab): aus Literatur-Bandenlagen berechnete Referenzspektren},",
+    "  howpublished = {Folio Lab, Modul FTIR},",
+    "  note = {Keine gemessenen Spektren; Lage, relative Stärke und Halbwertsbreite der Hauptbanden nach gängigen Tabellenwerken (u. a. Socrates 2001)}",
+    "}"
+   ],
+   "type": "bib"
+  },
+  "text-ergebnisse.tex": {
+   "lines": [
+    "Das Spektrum von Probe\\_Folie\\_ATR zeigt \\labval{ftir-probe-folie-atr}{npeaks} Banden; die stärksten liegen bei 1715, 1242, 1095, 1018, 724~cm$^{-1}$. Die Bandenlagen sprechen für: Aromatischer Ring, Ester. Keine O--H/N--H-Bande: kein Alkohol, Wasser, primäres/sekundäres Amin oder Amid. Keine Dreifachbindung (C$\\equiv$N, C$\\equiv$C) und kein Isocyanat. Bester Bibliothekstreffer ist \\labval{ftir-probe-folie-atr}{hit1} mit einem HQI von \\labval{ftir-probe-folie-atr}{hqi1}."
+   ],
+   "type": "tex"
+  },
+  "text-methodik.tex": {
+   "lines": [
+    "Das Spektrum Probe\\_Folie\\_ATR~\\cite{data-ftir-probe-folie-atr} wurde im Bereich 3999--600~cm$^{-1}$ ausgewertet (3527 Datenpunkte).~\\cite{astm-e1252} Bearbeitung: In Absorbanz umrechnen. Banden wurden als lokale Maxima mit einer Prominenz von mindestens 2,0~\\% des Wertebereichs, mindestens dem 10-fachen Rauschen und einem Mindestabstand von 8~cm$^{-1}$ gesucht und anhand einer Korrelationstabelle der Gruppenfrequenzen zugeordnet~\\cite{socrates2001}. Das Signal-Rausch-Verhältnis (stärkste Bande zu Rauschen, Rauschen aus dem Rest einer Savitzky-Golay-Glättung) beträgt etwa 333. Die Bibliothekssuche (Korrelation) verglich das vorbehandelte Spektrum (Absorbanz, Basislinie, Maximum 1, Raster 2~cm$^{-1}$) mit Modellbibliothek (Folio Lab); die Trefferqualität HQI reicht von 0 bis 100. Die Modellbibliothek~\\cite{folio-ftir-modell} enthält aus Literatur-Bandenlagen berechnete, keine gemessenen Referenzspektren; Treffer daraus sind als Hinweis zu verstehen."
+   ],
+   "type": "tex"
+  },
+  "treffer.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{rllr}",
+    "\\toprule",
+    "Rang & Referenz & Bibliothek & HQI \\\\",
+    "\\midrule",
+    "1 & Polyethylenterephthalat (PET) & Modell~\\cite{folio-ftir-modell} & 94,1 \\\\",
+    "2 & Polyester-Melamin (Einbrennlack) & Modell~\\cite{folio-ftir-modell} & 29,4 \\\\",
+    "3 & Ethylacetat & Modell~\\cite{folio-ftir-modell} & 23,1 \\\\",
+    "4 & Aceton & Modell~\\cite{folio-ftir-modell} & 20,3 \\\\",
+    "5 & Polyurethan (Polyether-PU) & Modell~\\cite{folio-ftir-modell} & 19,7 \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "values.tex": {
+   "lines": [
+    "% Values of 'FTIR Probe_Folie_ATR' (FTIR). Generated by Folio Lab; do not edit.",
+    "% Use as \\labval{ftir-probe-folie-atr}{<key>}.",
+    "\\labset{ftir-probe-folie-atr}{npeaks}{14}% Anzahl Banden",
+    "\\labset{ftir-probe-folie-atr}{peak1}{724}% stärkste Bande",
+    "\\labset{ftir-probe-folie-atr}{hit1}{Polyethylenterephthalat (PET)}% Bester Treffer",
+    "\\labset{ftir-probe-folie-atr}{hqi1}{94,1}% HQI bester Treffer",
+    "\\labset{ftir-probe-folie-atr}{band1}{8,733}% C=O",
+    "\\labset{ftir-probe-folie-atr}{band2}{6,113}% Ring",
+    "\\labset{ftir-probe-folie-atr}{ratio1}{1,429}% Verhältnis C=O/Ring"
+   ],
+   "type": "tex"
+  }
+ },
+ "items": [
+  {
+   "key": "data-ftir-probe-folie-atr",
+   "kind": "citation",
+   "title": "Probe\\_Folie\\_ATR"
+  },
+  {
+   "key": "socrates2001",
+   "kind": "citation",
+   "title": "Infrared and Raman Characteristic Group Frequencies: Tables and Charts"
+  },
+  {
+   "key": "astm-e1252",
+   "kind": "citation",
+   "title": "ASTM E1252-98(2021): Standard Practice for General Techniques for Obtaining Infrared Spectra for Qualitative Analysis"
+  },
+  {
+   "key": "folio-ftir-modell",
+   "kind": "citation",
+   "title": "Modellbibliothek FTIR (Folio Lab): aus Literatur-Bandenlagen berechnete Referenzspektren"
+  },
+  {
+   "caption": "FTIR-Spektrum von Probe\\_Folie\\_ATR mit den gefundenen Banden (Wellenzahlen in cm$^{-1}$).",
+   "cites": [],
+   "file": "fig/spektrum.pdf",
+   "id": "spektrum",
+   "kind": "figure",
+   "label": "fig:ftir-probe-folie-atr-spektrum",
+   "preview": "fig/spektrum.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Bibliothekssuche für Probe\\_Folie\\_ATR: Probe (oben) und die besten Treffer (Korrelation)~\\cite{folio-ftir-modell}.",
+   "cites": [
+    "folio-ftir-modell"
+   ],
+   "file": "fig/suche.pdf",
+   "id": "suche",
+   "kind": "figure",
+   "label": "fig:ftir-probe-folie-atr-suche",
+   "preview": "fig/suche.png",
+   "width": "0.9"
+  },
+  {
+   "caption": "Banden von Probe\\_Folie\\_ATR mit möglichen Zuordnungen.",
+   "cites": [],
+   "file": "peaks.tex",
+   "id": "peaks",
+   "kind": "table",
+   "label": "tab:ftir-probe-folie-atr-peaks",
+   "notes": ""
+  },
+  {
+   "caption": "Funktionelle Gruppen in Probe\\_Folie\\_ATR (Hinweise aus der Korrelationstabelle).",
+   "cites": [],
+   "file": "gruppen.tex",
+   "id": "gruppen",
+   "kind": "table",
+   "label": "tab:ftir-probe-folie-atr-gruppen",
+   "notes": "Keine O--H/N--H-Bande: kein Alkohol, Wasser, primäres/sekundäres Amin oder Amid. Keine Dreifachbindung (C$\\equiv$N, C$\\equiv$C) und kein Isocyanat."
+  },
+  {
+   "caption": "Bibliothekssuche für Probe\\_Folie\\_ATR (Korrelation); HQI 100 = deckungsgleich~\\cite{folio-ftir-modell}.",
+   "cites": [
+    "folio-ftir-modell"
+   ],
+   "file": "treffer.tex",
+   "id": "treffer",
+   "kind": "table",
+   "label": "tab:ftir-probe-folie-atr-treffer",
+   "notes": ""
+  },
+  {
+   "caption": "Bandenflächen von Probe\\_Folie\\_ATR.",
+   "cites": [],
+   "file": "flaechen.tex",
+   "id": "flaechen",
+   "kind": "table",
+   "label": "tab:ftir-probe-folie-atr-flaechen",
+   "notes": "C=O/Ring: 1,429"
+  },
+  {
+   "columns": [
+    "wn_cm1",
+    "A"
+   ],
+   "description": "Spektrum Probe\\_Folie\\_ATR (Absorbanz).",
+   "file": "data/spektrum.csv",
+   "id": "spektrum",
+   "kind": "data",
+   "labels": {
+    "A": "Absorbanz",
+    "wn_cm1": "$\\tilde\\nu$ [cm$^{-1}$]"
+   },
+   "plot": {
+    "x": "wn_cm1",
+    "xdir": "reverse",
+    "y": "A"
+   },
+   "rows": 3527
+  },
+  {
+   "columns": [
+    "wn_cm1",
+    "A",
+    "fwhm_cm1"
+   ],
+   "description": "Banden von Probe\\_Folie\\_ATR.",
+   "file": "data/peaks.csv",
+   "id": "peaks",
+   "kind": "data",
+   "labels": {
+    "A": "Absorbanz",
+    "wn_cm1": "$\\tilde\\nu$ [cm$^{-1}$]"
+   },
+   "plot": {
+    "style": "marks",
+    "x": "wn_cm1",
+    "y": "A"
+   },
+   "rows": 14
+  },
+  {
+   "file": "text-methodik.tex",
+   "id": "methodik",
+   "kind": "text",
+   "title": "Methodik"
+  },
+  {
+   "file": "text-ergebnisse.tex",
+   "id": "ergebnisse",
+   "kind": "text",
+   "title": "Ergebnisse"
+  },
+  {
+   "file": "values.tex",
+   "kind": "values",
+   "values": [
+    [
+     "npeaks",
+     "14"
+    ],
+    [
+     "peak1",
+     "724 cm-1"
+    ],
+    [
+     "hit1",
+     "Polyethylenterephthalat (PET)"
+    ],
+    [
+     "hqi1",
+     "94.1"
+    ],
+    [
+     "band1",
+     "8.733"
+    ],
+    [
+     "band2",
+     "6.113"
+    ],
+    [
+     "ratio1",
+     "1.429"
+    ]
+   ]
+  }
+ ],
+ "source": {
+  "files": {
+   "Probe_Folie_ATR.csv": {
+    "size": 59565
+   }
+  },
+  "request": {
+   "items": [
+    {
+     "idx": 0,
+     "name": "Probe_Folie_ATR.csv",
+     "state": {
+      "bands": [
+       {
+        "hi": 1780,
+        "lo": 1650,
+        "name": "C=O"
+       },
+       {
+        "hi": 745,
+        "lo": 700,
+        "name": "Ring"
+       }
+      ],
+      "groups": true,
+      "peaks": {
+       "params": {}
+      },
+      "pipeline": [
+       {
+        "op": "to_abs"
+       }
+      ],
+      "ratios": [
+       {
+        "den": "Ring",
+        "name": "C=O/Ring",
+        "num": "C=O"
+       }
+      ],
+      "search": {
+       "algo": "corr",
+       "hits": [
+        {
+         "cas": "",
+         "category": "Kunststoff",
+         "hqi": 94.07,
+         "lib": "modell",
+         "lib_name": "Modellbibliothek (Folio Lab)",
+         "name": "Polyethylenterephthalat (PET)",
+         "rank": 1,
+         "y": "<1801 numbers>"
+        },
+        {
+         "cas": "",
+         "category": "Lack/Beschichtung",
+         "hqi": 29.38,
+         "lib": "modell",
+         "lib_name": "Modellbibliothek (Folio Lab)",
+         "name": "Polyester-Melamin (Einbrennlack)",
+         "rank": 2,
+         "y": "<1801 numbers>"
+        },
+        {
+         "cas": "",
+         "category": "Lösemittel",
+         "hqi": 23.05,
+         "lib": "modell",
+         "lib_name": "Modellbibliothek (Folio Lab)",
+         "name": "Ethylacetat",
+         "rank": 3,
+         "y": "<1801 numbers>"
+        },
+        {
+         "cas": "",
+         "category": "Lösemittel",
+         "hqi": 20.3,
+         "lib": "modell",
+         "lib_name": "Modellbibliothek (Folio Lab)",
+         "name": "Aceton",
+         "rank": 4
+        },
+        {
+         "cas": "",
+         "category": "Kunststoff",
+         "hqi": 19.73,
+         "lib": "modell",
+         "lib_name": "Modellbibliothek (Folio Lab)",
+         "name": "Polyurethan (Polyether-PU)",
+         "rank": 5
+        }
+       ],
+       "query": "<1801 numbers>"
+      }
+     }
+    }
+   ]
+  }
+ }
+}

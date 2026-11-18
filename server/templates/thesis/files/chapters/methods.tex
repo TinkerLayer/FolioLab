@@ -1,0 +1,27 @@
+\chapter{Methods}
+\label{ch:methods}
+
+We model the quantity of interest as
+\begin{equation}
+  y(t) = A\left(1 - e^{-t/\tau}\right) + \varepsilon,
+  \label{eq:model}
+\end{equation}
+where $\tau$ is a time constant and $\varepsilon$ is noise~\cite{mittelbach2004}.
+
+\section{Parameters}
+\Cref{tab:params} lists the parameters used.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Model parameters.}
+  \label{tab:params}
+  \begin{tabular}{llr}
+    \toprule
+    Symbol & Meaning & Value \\
+    \midrule
+    $A$    & Amplitude       & 5.0 \\
+    $\tau$ & Time constant   & 3.2\,s \\
+    $\sigma$ & Noise level   & 0.1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

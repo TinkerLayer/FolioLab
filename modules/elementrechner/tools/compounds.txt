@@ -1,0 +1,1929 @@
+# Auswahl der Molekülsammlung: ein englischer Name je Zeile (wird bei PubChem aufgelöst), Abschnitte = Stoffklasse.
+# "## Klasse | Class" setzt die Klasse für die folgenden Zeilen. Duplikate (gleiche CID) werden zusammengeführt.
+# "Anzeigename = PubChem-Suchname", wenn PubChem den üblichen Namen nicht kennt. Polymere stehen in polymers.json.
+
+## Gase | Gases
+hydrogen
+deuterium
+helium
+nitrogen
+oxygen
+ozone
+fluorine
+chlorine
+neon
+argon
+krypton
+xenon
+radon
+carbon monoxide
+carbon dioxide
+nitric oxide
+nitrogen dioxide
+nitrous oxide
+dinitrogen tetroxide
+sulfur dioxide
+sulfur trioxide
+hydrogen sulfide
+ammonia
+hydrogen chloride
+hydrogen bromide
+hydrogen iodide
+hydrogen fluoride
+hydrogen cyanide
+phosphine
+arsine
+silane
+diborane
+methane
+ethane
+propane
+butane
+isobutane
+ethylene
+propylene
+acetylene
+sulfur hexafluoride
+carbonyl sulfide
+phosgene
+nitrogen trifluoride
+chlorine dioxide
+dichlorodifluoromethane
+tetrafluoromethane
+
+## Anorganische Säuren | Inorganic acids
+water
+hydrogen peroxide
+sulfuric acid
+sulfurous acid
+nitric acid
+nitrous acid
+phosphoric acid
+phosphorous acid
+hypophosphorous acid
+pyrophosphoric acid
+hydrochloric acid
+hydrobromic acid
+hydroiodic acid
+hydrofluoric acid
+perchloric acid
+chloric acid
+hypochlorous acid
+chlorous acid
+carbonic acid
+boric acid
+silicic acid
+orthosilicic acid
+chromic acid
+permanganic acid
+selenic acid
+arsenic acid
+periodic acid
+iodic acid
+thiocyanic acid
+cyanic acid
+hexafluorosilicic acid
+tetrafluoroboric acid
+peroxymonosulfuric acid
+fluorosulfuric acid
+chlorosulfonic acid
+sulfamic acid
+hydrazoic acid
+disulfuric acid
+
+## Anorganische Basen | Inorganic bases
+sodium hydroxide
+potassium hydroxide
+lithium hydroxide
+calcium hydroxide
+magnesium hydroxide
+barium hydroxide
+strontium hydroxide
+aluminum hydroxide
+ammonium hydroxide
+hydrazine
+hydroxylamine
+cesium hydroxide
+iron(III) hydroxide = ferric hydroxide
+iron(II) hydroxide
+copper(II) hydroxide
+zinc hydroxide
+nickel(II) hydroxide
+
+## Oxide | Oxides
+calcium oxide
+magnesium oxide
+aluminum oxide
+silicon dioxide
+titanium dioxide
+iron(III) oxide = ferric oxide
+iron(II) oxide
+iron(II,III) oxide = ferrosoferric oxide
+copper(II) oxide
+copper(I) oxide
+zinc oxide
+lead(II) oxide
+lead(IV) oxide
+manganese dioxide
+chromium(III) oxide
+chromium trioxide
+sodium oxide
+potassium oxide
+lithium oxide
+barium oxide
+strontium oxide
+silver oxide = silver(I) oxide
+mercury(II) oxide
+nickel(II) oxide
+cobalt(II) oxide
+tin(IV) oxide
+tin(II) oxide
+vanadium pentoxide
+phosphorus pentoxide
+tetraphosphorus hexoxide = phosphorus trioxide
+boron trioxide
+zirconium dioxide
+cerium(IV) oxide = ceric oxide
+germanium dioxide
+arsenic trioxide
+antimony trioxide
+bismuth(III) oxide = bismuth trioxide
+tungsten trioxide
+molybdenum trioxide
+osmium tetroxide
+ruthenium tetroxide
+uranium dioxide
+yttrium oxide
+lanthanum oxide
+hafnium dioxide
+beryllium oxide
+dichlorine heptoxide
+sodium peroxide
+barium peroxide
+lithium peroxide
+calcium peroxide
+
+## Chloride, Bromide, Iodide, Fluoride | Halides
+sodium chloride
+potassium chloride
+lithium chloride
+calcium chloride
+magnesium chloride
+barium chloride
+strontium chloride
+ammonium chloride
+aluminum chloride
+iron(III) chloride
+iron(II) chloride
+copper(II) chloride
+copper(I) chloride
+zinc chloride
+silver chloride
+lead(II) chloride
+mercury(II) chloride
+mercury(I) chloride
+tin(II) chloride
+tin(IV) chloride
+nickel(II) chloride
+cobalt(II) chloride
+manganese(II) chloride = manganese chloride
+chromium(III) chloride
+titanium tetrachloride
+silicon tetrachloride
+phosphorus trichloride
+phosphorus pentachloride
+phosphoryl chloride
+thionyl chloride
+sulfuryl chloride
+cesium chloride
+rubidium chloride
+cadmium chloride
+gold(III) chloride
+platinum(IV) chloride
+palladium(II) chloride
+bismuth chloride
+antimony trichloride
+boron trichloride
+sodium bromide
+potassium bromide
+lithium bromide
+silver bromide
+ammonium bromide
+calcium bromide
+zinc bromide
+phosphorus tribromide
+aluminum bromide
+iron(III) bromide
+sodium iodide
+potassium iodide
+silver iodide
+lead(II) iodide
+lithium iodide
+ammonium iodide
+mercury(II) iodide
+copper(I) iodide
+sodium fluoride
+potassium fluoride
+calcium fluoride
+lithium fluoride
+ammonium fluoride
+magnesium fluoride
+aluminum fluoride
+silver fluoride
+boron trifluoride
+sodium hexafluorosilicate
+cryolite
+uranium hexafluoride
+xenon difluoride
+iodine monochloride
+
+## Sulfate, Sulfite, Sulfide | Sulfates, sulfites, sulfides
+sodium sulfate
+potassium sulfate
+magnesium sulfate
+calcium sulfate
+barium sulfate
+ammonium sulfate
+copper(II) sulfate
+iron(II) sulfate
+iron(III) sulfate
+zinc sulfate
+aluminum sulfate
+nickel(II) sulfate
+cobalt(II) sulfate
+manganese(II) sulfate
+silver sulfate
+lead(II) sulfate
+strontium sulfate
+lithium sulfate
+chromium(III) sulfate
+potassium aluminum sulfate
+ammonium iron(II) sulfate
+sodium bisulfate
+potassium bisulfate
+sodium sulfite
+sodium bisulfite
+potassium sulfite
+sodium metabisulfite
+potassium metabisulfite
+sodium thiosulfate
+ammonium thiosulfate
+sodium dithionite
+sodium persulfate
+potassium persulfate
+ammonium persulfate
+sodium sulfide = disodium sulfide
+potassium sulfide
+iron(II) sulfide
+iron disulfide
+zinc sulfide
+copper(II) sulfide
+lead(II) sulfide
+silver sulfide
+mercury(II) sulfide
+cadmium sulfide
+ammonium sulfide
+hydrogen disulfide
+carbon disulfide
+molybdenum disulfide
+sodium hydrosulfide
+
+## Nitrate, Nitrite, Nitride | Nitrates, nitrites
+sodium nitrate
+potassium nitrate
+ammonium nitrate
+calcium nitrate
+magnesium nitrate
+silver nitrate
+lead(II) nitrate
+copper(II) nitrate
+iron(III) nitrate
+zinc nitrate
+barium nitrate
+strontium nitrate
+aluminum nitrate
+nickel(II) nitrate
+cobalt(II) nitrate
+lithium nitrate
+cerium(IV) ammonium nitrate = ceric ammonium nitrate
+bismuth(III) nitrate = bismuth nitrate
+mercury(II) nitrate
+sodium nitrite
+potassium nitrite
+ammonium nitrite
+lithium nitride = trilithium nitride
+magnesium nitride = trimagnesium dinitride
+silicon nitride
+boron nitride
+aluminum nitride
+titanium nitride
+sodium azide
+lead(II) azide
+
+## Carbonate, Hydrogencarbonate | Carbonates
+sodium carbonate
+potassium carbonate
+calcium carbonate
+magnesium carbonate
+barium carbonate
+lithium carbonate
+ammonium carbonate
+sodium bicarbonate
+potassium bicarbonate
+ammonium bicarbonate
+calcium bicarbonate
+strontium carbonate
+iron(II) carbonate
+copper(II) carbonate
+zinc carbonate
+lead(II) carbonate
+silver carbonate
+manganese(II) carbonate
+cesium carbonate
+basic copper carbonate = copper(II) carbonate hydroxide
+sodium percarbonate
+
+## Phosphate | Phosphates
+sodium phosphate = trisodium phosphate
+disodium phosphate
+monosodium phosphate
+potassium phosphate
+dipotassium phosphate
+monopotassium phosphate
+calcium phosphate
+calcium hydrogen phosphate
+monocalcium phosphate
+ammonium phosphate
+diammonium phosphate
+monoammonium phosphate
+magnesium phosphate
+aluminum phosphate
+iron(III) phosphate
+lithium iron phosphate
+sodium pyrophosphate
+sodium tripolyphosphate = pentasodium triphosphate
+sodium hexametaphosphate
+hydroxyapatite
+magnesium ammonium phosphate
+sodium hypophosphite
+zinc phosphate
+silver phosphate
+
+## Weitere Salze | Further salts
+sodium acetate
+potassium acetate
+ammonium acetate
+calcium acetate
+magnesium acetate
+zinc acetate
+lead(II) acetate
+copper(II) acetate
+silver acetate
+sodium formate
+potassium formate
+calcium formate
+sodium oxalate
+potassium oxalate
+calcium oxalate
+ammonium oxalate
+sodium citrate
+trisodium citrate
+potassium citrate
+calcium citrate
+sodium tartrate
+potassium sodium tartrate
+potassium bitartrate
+sodium benzoate
+potassium sorbate
+sodium lactate
+calcium lactate
+monosodium glutamate
+sodium gluconate
+sodium cyanide
+potassium cyanide
+copper(I) cyanide
+potassium ferrocyanide
+potassium ferricyanide
+potassium thiocyanate
+ammonium thiocyanate
+sodium thiocyanate
+sodium cyanate
+potassium cyanate
+sodium silicate
+sodium metasilicate
+calcium silicate
+sodium borate
+sodium tetraborate
+borax
+sodium perborate
+sodium aluminate
+sodium chromate
+potassium chromate
+potassium dichromate
+sodium dichromate
+ammonium dichromate
+lead(II) chromate
+barium chromate
+silver chromate
+potassium permanganate
+sodium permanganate
+sodium hypochlorite
+calcium hypochlorite
+sodium chlorite
+sodium chlorate
+potassium chlorate
+sodium perchlorate
+potassium perchlorate
+ammonium perchlorate
+magnesium perchlorate
+lithium perchlorate
+potassium iodate
+sodium iodate
+potassium periodate
+sodium periodate
+potassium bromate
+sodium bromate
+sodium molybdate
+ammonium molybdate
+sodium tungstate
+sodium vanadate = sodium orthovanadate
+ammonium metavanadate
+sodium selenite
+sodium arsenate
+sodium stannate
+sodium zincate
+sodium hydride
+lithium hydride
+calcium hydride
+lithium aluminum hydride
+sodium borohydride
+sodium cyanoborohydride
+calcium carbide = calcium acetylide
+silicon carbide
+aluminum carbide
+tungsten carbide
+boron carbide
+sodium amide
+lithium diisopropylamide
+n-butyllithium
+methyllithium
+tert-butyllithium
+methylmagnesium bromide
+phenylmagnesium bromide
+sodium methoxide
+sodium ethoxide
+potassium tert-butoxide
+aluminum isopropoxide
+titanium isopropoxide
+tetraethyl orthosilicate
+hexaamminecobalt(III) chloride
+cisplatin
+sodium nitroprusside
+prussian blue
+potassium hexachloroplatinate
+nickel tetracarbonyl
+iron pentacarbonyl
+ferrocene
+tetraethyllead
+trimethylaluminum
+diethylzinc
+sodium tetraphenylborate
+tetrabutylammonium bromide
+tetramethylammonium hydroxide
+tetrabutylammonium hydroxide
+benzyltriethylammonium chloride
+cetyltrimethylammonium bromide
+sodium dodecyl sulfate
+sodium dodecylbenzenesulfonate
+sodium stearate
+magnesium stearate
+calcium stearate
+zinc stearate
+
+## Lösemittel | Solvents
+methanol
+ethanol
+1-propanol
+2-propanol
+1-butanol
+2-butanol
+tert-butanol
+isobutanol
+1-pentanol
+1-hexanol
+1-octanol
+cyclohexanol
+benzyl alcohol
+ethylene glycol
+propylene glycol
+diethylene glycol
+glycerol
+acetone
+2-butanone
+methyl isobutyl ketone
+cyclohexanone
+acetonitrile
+dimethyl sulfoxide
+N,N-dimethylformamide
+N,N-dimethylacetamide
+N-methyl-2-pyrrolidone
+tetrahydrofuran
+2-methyltetrahydrofuran
+1,4-dioxane
+diethyl ether
+diisopropyl ether
+methyl tert-butyl ether
+1,2-dimethoxyethane
+diglyme
+anisole
+dichloromethane
+chloroform
+carbon tetrachloride
+1,2-dichloroethane
+1,1,1-trichloroethane
+trichloroethylene
+tetrachloroethylene
+chlorobenzene
+1,2-dichlorobenzene
+benzene
+toluene
+o-xylene
+m-xylene
+p-xylene
+ethylbenzene
+mesitylene
+cumene
+pentane
+hexane
+heptane
+octane
+isooctane
+nonane
+decane
+dodecane
+cyclopentane
+cyclohexane
+methylcyclohexane
+ethyl acetate
+methyl acetate
+isopropyl acetate
+butyl acetate
+propylene carbonate
+ethylene carbonate
+dimethyl carbonate
+diethyl carbonate
+pyridine
+nitromethane
+nitrobenzene
+formamide
+sulfolane
+hexamethylphosphoramide
+carbon disulfide
+deuterated chloroform
+deuterium oxide
+dimethyl sulfoxide-d6
+triethylamine
+diisopropylethylamine
+morpholine
+piperidine
+acetic anhydride
+2-methoxyethanol
+2-ethoxyethanol
+2-butoxyethanol
+1-methoxy-2-propanol
+limonene
+gamma-butyrolactone
+ethyl lactate
+
+## Alkane und Cycloalkane | Alkanes
+2-methylbutane
+2,2-dimethylpropane
+2-methylpentane
+3-methylpentane
+2,2-dimethylbutane
+2,3-dimethylbutane
+2-methylhexane
+3-methylhexane
+undecane
+tridecane
+tetradecane
+pentadecane
+hexadecane
+heptadecane
+octadecane
+eicosane
+cyclopropane
+cyclobutane
+cycloheptane
+cyclooctane
+decalin
+norbornane
+adamantane
+spiropentane
+methylcyclopentane
+ethylcyclohexane
+squalane
+
+## Alkene, Alkine, Diene | Alkenes, alkynes, dienes
+1-butene
+cis-2-butene
+trans-2-butene
+isobutylene
+1-pentene
+2-methyl-2-butene
+1-hexene
+cyclohexene
+cyclopentene
+1-octene
+1-decene
+1,3-butadiene
+isoprene
+1,3-cyclopentadiene
+1,3-cyclohexadiene
+1,5-cyclooctadiene
+norbornene
+alpha-pinene
+beta-pinene
+squalene
+beta-carotene
+lycopene
+propyne
+1-butyne
+2-butyne
+1-hexyne
+phenylacetylene
+allene
+
+## Aromaten | Aromatics
+naphthalene
+anthracene
+phenanthrene
+pyrene
+biphenyl
+styrene
+alpha-methylstyrene
+indene
+fluorene
+azulene
+tetralin
+1-methylnaphthalene
+2-methylnaphthalene
+benzo[a]pyrene
+triphenylmethane
+diphenylmethane
+stilbene
+tert-butylbenzene
+1,2,4-trimethylbenzene
+hexamethylbenzene
+durene
+coronene
+acenaphthene
+chrysene
+fullerene C60
+
+## Alkohole und Phenole | Alcohols and phenols
+allyl alcohol
+propargyl alcohol
+2-methyl-2-butanol
+3-methyl-1-butanol
+neopentyl alcohol
+1-heptanol
+2-ethylhexanol
+1-decanol
+1-dodecanol
+cetyl alcohol
+stearyl alcohol
+menthol
+borneol
+geraniol
+linalool
+citronellol
+cholesterol
+phenol
+o-cresol
+m-cresol
+p-cresol
+catechol
+resorcinol
+hydroquinone
+pyrogallol
+phloroglucinol
+1-naphthol
+2-naphthol
+bisphenol A
+4-nitrophenol
+2-nitrophenol
+picric acid
+2,4-dinitrophenol
+4-chlorophenol
+pentachlorophenol
+thymol
+eugenol
+guaiacol
+vanillin
+butylated hydroxytoluene = 2,6-di-tert-butyl-4-methylphenol
+4-aminophenol
+2-phenylethanol
+1-phenylethanol
+1,3-propanediol
+1,4-butanediol
+1,6-hexanediol
+neopentyl glycol
+pentaerythritol
+trimethylolpropane
+sorbitol
+mannitol
+xylitol
+erythritol
+inositol
+triethylene glycol
+2,2,2-trifluoroethanol
+hexafluoroisopropanol
+ethanolamine
+diethanolamine
+triethanolamine
+2-mercaptoethanol
+2-chloroethanol
+cinnamyl alcohol
+furfuryl alcohol
+
+## Ether und Epoxide | Ethers and epoxides
+dimethyl ether
+ethyl methyl ether
+ethylene oxide
+propylene oxide
+epichlorohydrin
+1,2-epoxybutane
+styrene oxide
+furan
+tetrahydropyran
+1,3-dioxolane
+1,3,5-trioxane
+diphenyl ether
+dibenzofuran
+dibenzyl ether
+18-crown-6
+15-crown-5
+12-crown-4
+dimethoxymethane
+trimethyl orthoformate
+triethyl orthoformate
+dibutyl ether
+cyclopentyl methyl ether
+glycidol
+
+## Aldehyde und Ketone | Aldehydes and ketones
+formaldehyde
+acetaldehyde
+propionaldehyde
+butyraldehyde
+isobutyraldehyde
+valeraldehyde
+hexanal
+acrolein
+crotonaldehyde
+methacrolein
+glyoxal
+glutaraldehyde
+benzaldehyde
+salicylaldehyde
+cinnamaldehyde
+anisaldehyde
+4-nitrobenzaldehyde
+furfural
+5-hydroxymethylfurfural
+citral
+chloral
+chloral hydrate
+2-pentanone
+3-pentanone
+2-hexanone
+cyclopentanone
+cycloheptanone
+acetophenone
+benzophenone
+propiophenone
+mesityl oxide
+methyl vinyl ketone
+diacetone alcohol
+acetylacetone
+diacetyl
+2,3-pentanedione
+1,4-benzoquinone
+1,4-naphthoquinone
+anthraquinone
+camphor
+carvone
+menthone
+isophorone
+benzil
+dibenzylideneacetone
+fluorenone
+cyclohexane-1,3-dione
+dimedone
+ninhydrin
+4-methyl-2-pentanone
+
+## Carbonsäuren | Carboxylic acids
+formic acid
+acetic acid
+propionic acid
+butyric acid
+isobutyric acid
+valeric acid
+isovaleric acid
+caproic acid
+heptanoic acid
+caprylic acid
+pelargonic acid
+capric acid
+lauric acid
+myristic acid
+palmitic acid
+stearic acid
+arachidic acid
+behenic acid
+oleic acid
+elaidic acid
+linoleic acid
+alpha-linolenic acid
+arachidonic acid
+eicosapentaenoic acid
+docosahexaenoic acid = doconexent
+erucic acid
+ricinoleic acid
+palmitoleic acid
+acrylic acid
+methacrylic acid
+crotonic acid
+sorbic acid
+oxalic acid
+malonic acid
+succinic acid
+glutaric acid
+adipic acid
+pimelic acid
+suberic acid
+azelaic acid
+sebacic acid
+maleic acid
+fumaric acid
+itaconic acid
+citric acid
+isocitric acid
+malic acid
+tartaric acid
+meso-tartaric acid
+lactic acid
+glycolic acid
+glyoxylic acid
+pyruvic acid
+acetoacetic acid
+levulinic acid
+alpha-ketoglutaric acid
+oxaloacetic acid
+gluconic acid
+glucuronic acid
+ascorbic acid
+benzoic acid
+phenylacetic acid
+salicylic acid
+acetylsalicylic acid
+phthalic acid
+isophthalic acid
+terephthalic acid
+trimesic acid
+cinnamic acid
+p-coumaric acid
+caffeic acid
+ferulic acid
+gallic acid
+mandelic acid
+4-hydroxybenzoic acid
+4-aminobenzoic acid
+anthranilic acid
+nicotinic acid
+isonicotinic acid
+picolinic acid
+2-furoic acid
+chloroacetic acid
+dichloroacetic acid
+trichloroacetic acid
+trifluoroacetic acid
+bromoacetic acid
+fluoroacetic acid
+cyanoacetic acid
+thioglycolic acid
+3-mercaptopropionic acid
+ethylenediaminetetraacetic acid
+nitrilotriacetic acid
+diethylenetriaminepentaacetic acid
+iminodiacetic acid
+2-ethylhexanoic acid
+cyclohexanecarboxylic acid
+abietic acid
+cholic acid
+uric acid
+barbituric acid
+squaric acid
+oxamic acid
+carbamic acid
+peracetic acid
+meta-chloroperoxybenzoic acid
+1-naphthoic acid
+mellitic acid
+
+## Säurederivate: Ester, Anhydride, Halogenide | Esters, anhydrides, acyl halides
+methyl formate
+ethyl formate
+propyl acetate
+isoamyl acetate
+pentyl acetate
+hexyl acetate
+octyl acetate
+benzyl acetate
+vinyl acetate
+allyl acetate
+methyl propionate
+ethyl propionate
+ethyl butyrate
+methyl butyrate
+ethyl acetoacetate
+methyl acetoacetate
+diethyl malonate
+dimethyl malonate
+diethyl oxalate
+dimethyl oxalate
+diethyl succinate
+dimethyl terephthalate
+dimethyl phthalate
+diethyl phthalate
+dibutyl phthalate
+bis(2-ethylhexyl) phthalate
+diisononyl phthalate
+methyl benzoate
+ethyl benzoate
+benzyl benzoate
+methyl salicylate
+ethyl cinnamate
+methyl acrylate
+ethyl acrylate
+butyl acrylate
+2-ethylhexyl acrylate
+methyl methacrylate
+ethyl methacrylate
+butyl methacrylate
+2-hydroxyethyl methacrylate
+glycidyl methacrylate
+ethylene glycol dimethacrylate
+trimethylolpropane triacrylate
+methyl lactate
+butyl lactate
+triacetin
+tributyrin
+triolein
+tripalmitin
+tristearin
+trilaurin
+glyceryl monostearate
+methyl oleate
+methyl palmitate
+methyl stearate
+methyl linoleate
+ethyl oleate
+gamma-valerolactone
+delta-valerolactone
+epsilon-caprolactone
+beta-propiolactone
+lactide
+glycolide
+coumarin
+acetyl chloride
+propionyl chloride
+benzoyl chloride
+oxalyl chloride
+chloroacetyl chloride
+acryloyl chloride
+methacryloyl chloride
+phthaloyl chloride
+terephthaloyl chloride
+benzoyl peroxide
+lauroyl peroxide
+di-tert-butyl peroxide
+tert-butyl hydroperoxide
+cumene hydroperoxide
+maleic anhydride
+succinic anhydride
+phthalic anhydride
+propionic anhydride
+trifluoroacetic anhydride
+pyromellitic dianhydride
+diketene
+ethyl chloroformate
+methyl chloroformate
+di-tert-butyl dicarbonate
+dimethyl sulfate
+diethyl sulfate
+trimethyl phosphate
+triethyl phosphate
+tributyl phosphate
+triphenyl phosphate
+tricresyl phosphate = tri-o-cresyl phosphate
+trimethyl borate
+triethyl borate
+
+## Amine | Amines
+methylamine
+dimethylamine
+trimethylamine
+ethylamine
+diethylamine
+propylamine
+isopropylamine
+butylamine
+tert-butylamine
+dibutylamine
+tributylamine
+hexylamine
+octylamine
+dodecylamine
+cyclohexylamine
+dicyclohexylamine
+ethylenediamine
+1,3-diaminopropane
+putrescine
+cadaverine
+hexamethylenediamine
+diethylenetriamine
+triethylenetetramine
+spermidine
+spermine
+allylamine
+benzylamine
+aniline
+N-methylaniline
+N,N-dimethylaniline
+o-toluidine
+p-toluidine
+o-anisidine
+p-anisidine
+4-chloroaniline
+4-nitroaniline
+2-nitroaniline
+o-phenylenediamine
+m-phenylenediamine
+p-phenylenediamine
+4,4'-methylenedianiline
+benzidine
+diphenylamine
+triphenylamine
+1-naphthylamine
+2-naphthylamine
+hexamethylenetetramine
+1,4-diazabicyclo[2.2.2]octane
+1,8-diazabicyclo[5.4.0]undec-7-ene
+4-dimethylaminopyridine
+tetramethylethylenediamine
+N-methylmorpholine
+pyrrolidine
+piperazine
+N-methylpiperazine
+2-aminoethanol
+3-amino-1-propanol
+2-amino-2-methyl-1-propanol
+tris(hydroxymethyl)aminomethane
+dopamine
+histamine
+serotonin
+tyramine
+phenethylamine
+amphetamine
+ephedrine
+adrenaline
+noradrenaline
+choline
+choline chloride
+betaine
+guanidine
+guanidine hydrochloride
+methylammonium chloride
+hydroxylamine hydrochloride
+hydrazine hydrate
+phenylhydrazine
+2,4-dinitrophenylhydrazine
+semicarbazide
+aminoguanidine
+
+## Amide, Harnstoff, Imide | Amides, urea, imides
+urea
+thiourea
+N-methylurea
+biuret
+acetamide
+N-methylacetamide
+propionamide
+benzamide
+acrylamide
+methacrylamide
+N,N'-methylenebisacrylamide
+N-isopropylacrylamide
+caprolactam
+2-pyrrolidone
+N-vinylpyrrolidone
+succinimide
+phthalimide
+N-bromosuccinimide
+N-chlorosuccinimide
+N-iodosuccinimide
+maleimide
+N-ethylmaleimide
+saccharin
+acetanilide
+paracetamol
+oxamide
+dimethylurea
+tetramethylurea
+semicarbazide hydrochloride
+carbodiimide
+dicyclohexylcarbodiimide
+N,N'-diisopropylcarbodiimide
+1-ethyl-3-(3-dimethylaminopropyl)carbodiimide
+cyanamide
+dicyandiamide
+melamine
+cyanuric acid
+cyanuric chloride
+hydantoin
+allantoin
+creatine
+creatinine
+carnitine
+nicotinamide
+isoniazid
+formanilide
+ethyl carbamate
+methyl carbamate
+
+## Nitrile, Nitro-, Azoverbindungen | Nitriles, nitro and azo compounds
+propionitrile
+butyronitrile
+acrylonitrile
+methacrylonitrile
+benzonitrile
+malononitrile
+succinonitrile
+adiponitrile
+acetone cyanohydrin
+cyanogen
+cyanogen chloride
+cyanogen bromide
+trichloroacetonitrile
+nitroethane
+1-nitropropane
+2-nitropropane
+nitroglycerin
+2,4,6-trinitrotoluene
+1,3-dinitrobenzene
+2,4-dinitrotoluene
+4-nitrotoluene
+2-nitrotoluene
+RDX
+HMX
+pentaerythritol tetranitrate
+methyl nitrate
+ethyl nitrite
+isoamyl nitrite
+azobenzene
+azobisisobutyronitrile
+diazomethane
+ethyl diazoacetate
+methyl isocyanate
+phenyl isocyanate
+toluene diisocyanate = toluene 2,4-diisocyanate
+methylene diphenyl diisocyanate
+hexamethylene diisocyanate
+isophorone diisocyanate
+methyl isothiocyanate
+allyl isothiocyanate
+phenyl isothiocyanate
+
+## Halogenverbindungen | Organohalogen compounds
+chloromethane
+bromomethane
+iodomethane
+fluoromethane
+dibromomethane
+diiodomethane
+bromoform
+iodoform
+chloroethane
+bromoethane
+iodoethane
+1-chloropropane
+2-chloropropane
+1-bromopropane
+2-bromopropane
+1-chlorobutane
+1-bromobutane
+2-bromobutane
+tert-butyl chloride
+tert-butyl bromide
+1-iodobutane
+1-bromohexane
+1,2-dibromoethane
+1,1-dichloroethane
+1,1,2,2-tetrachloroethane
+hexachloroethane
+vinyl chloride
+vinylidene chloride
+vinyl bromide
+vinyl fluoride
+vinylidene fluoride
+tetrafluoroethylene
+hexafluoropropylene
+chlorotrifluoroethylene
+chloroprene
+allyl chloride
+allyl bromide
+benzyl chloride
+benzyl bromide
+benzal chloride
+benzotrichloride
+bromobenzene
+iodobenzene
+fluorobenzene
+1,4-dichlorobenzene
+1,2,4-trichlorobenzene
+hexachlorobenzene
+2-chlorotoluene
+4-chlorotoluene
+4-bromotoluene
+benzotrifluoride
+hexafluorobenzene
+pentafluorophenol
+1-chloronaphthalene
+DDT
+lindane
+2,4-dichlorophenoxyacetic acid
+trichlorofluoromethane
+chlorodifluoromethane
+1,1,1,2-tetrafluoroethane
+1,1-difluoroethane
+2,3,3,3-tetrafluoropropene
+trifluoroiodomethane
+bromochloromethane
+halothane
+sevoflurane
+isoflurane
+desflurane
+perfluorooctanoic acid
+perfluorooctanesulfonic acid
+perfluorohexane
+perfluorodecalin
+
+## Schwefel-, Phosphor-, Silicium- und Borverbindungen | S, P, Si, B compounds
+methanethiol
+ethanethiol
+1-propanethiol
+1-butanethiol
+tert-butyl mercaptan
+1-dodecanethiol
+thiophenol
+benzyl mercaptan
+dimethyl sulfide
+diethyl sulfide
+dimethyl disulfide
+diphenyl disulfide
+dimethyl sulfone
+sulfolene
+methanesulfonic acid
+trifluoromethanesulfonic acid
+benzenesulfonic acid
+p-toluenesulfonic acid
+camphorsulfonic acid
+sulfanilic acid
+taurine
+methanesulfonyl chloride
+p-toluenesulfonyl chloride
+trifluoromethanesulfonic anhydride
+thioacetamide
+thioacetic acid
+dimethyl sulfite
+lawesson's reagent
+thiophene
+2-methylthiophene
+benzothiophene
+thiazole
+benzothiazole
+2-mercaptobenzothiazole
+phenothiazine
+triphenylphosphine
+triphenylphosphine oxide
+tributylphosphine
+trimethylphosphine
+trimethyl phosphite
+triethyl phosphite
+triphenyl phosphite
+dimethyl methylphosphonate
+glyphosate
+phytic acid
+adenosine triphosphate
+adenosine diphosphate
+adenosine monophosphate
+nicotinamide adenine dinucleotide
+tetramethylsilane
+hexamethyldisiloxane
+hexamethyldisilazane
+trimethylsilyl chloride
+dichlorodimethylsilane
+trichlorosilane
+methyltrichlorosilane
+tetramethyl orthosilicate
+octamethylcyclotetrasiloxane
+decamethylcyclopentasiloxane
+triethylsilane
+(3-aminopropyl)triethoxysilane
+vinyltrimethoxysilane
+tert-butyldimethylsilyl chloride
+phenylboronic acid
+bis(pinacolato)diboron
+9-borabicyclo[3.3.1]nonane
+trimethylboroxine
+triphenylborane
+
+## Heterocyclen | Heterocycles
+pyrrole
+indole
+skatole
+carbazole
+imidazole
+1-methylimidazole
+benzimidazole
+pyrazole
+1,2,4-triazole
+1,2,3-triazole
+tetrazole
+oxazole
+isoxazole
+pyridine-N-oxide
+2-picoline
+3-picoline
+4-picoline
+2,6-lutidine
+2,2'-bipyridine
+4,4'-bipyridine
+1,10-phenanthroline
+quinoline
+isoquinoline
+acridine
+pyrimidine
+pyrazine
+pyridazine
+1,3,5-triazine
+purine
+pteridine
+quinoxaline
+phthalazine
+quinazoline
+aziridine
+azetidine
+oxetane
+thiirane
+tetrahydrothiophene
+1,4-oxathiane
+2,3-dihydrofuran
+3,4-dihydro-2H-pyran
+2-pyridone
+4-pyridone
+2-aminopyridine
+4-aminopyridine
+3-hydroxypyridine
+8-hydroxyquinoline
+pyrrolidinone
+indigo
+porphine
+phthalocyanine
+xanthine
+hypoxanthine
+caffeine
+theobromine
+theophylline
+nicotine
+cotinine
+cocaine
+morphine
+codeine
+quinine
+atropine
+strychnine
+reserpine
+lysergic acid
+tryptamine
+melatonin
+riboflavin
+thiamine
+pyridoxine
+folic acid
+biotin
+cyanocobalamin
+retinol
+tocopherol
+calciferol
+phylloquinone
+ubiquinone = coenzyme Q10
+heme
+chlorophyll a
+bilirubin
+
+## Aminosäuren | Amino acids
+glycine
+L-alanine
+L-valine
+L-leucine
+L-isoleucine
+L-proline
+L-phenylalanine
+L-tryptophan
+L-methionine
+L-serine
+L-threonine
+L-cysteine
+L-cystine
+L-tyrosine
+L-asparagine
+L-glutamine
+L-aspartic acid
+L-glutamic acid
+L-lysine
+L-arginine
+L-histidine
+L-ornithine
+L-citrulline
+L-selenocysteine
+L-pyrrolysine
+beta-alanine
+gamma-aminobutyric acid
+sarcosine
+L-DOPA
+L-hydroxyproline
+L-carnosine
+glutathione
+D-alanine
+DL-alanine
+6-aminohexanoic acid
+11-aminoundecanoic acid
+N-acetylcysteine
+aspartame
+
+## Zucker und Kohlenhydrate | Sugars and carbohydrates
+D-glucose
+D-fructose
+D-galactose
+D-mannose
+D-ribose
+2-deoxy-D-ribose
+D-xylose
+L-arabinose
+L-rhamnose
+L-fucose
+D-glucosamine
+N-acetylglucosamine
+sucrose
+lactose
+maltose
+cellobiose
+trehalose
+raffinose
+alpha-cyclodextrin
+beta-cyclodextrin
+gamma-cyclodextrin
+glyceraldehyde
+dihydroxyacetone
+erythrose
+D-glucose 6-phosphate
+fructose 1,6-bisphosphate
+D-sorbitol
+levoglucosan
+glycogen
+pectin
+
+## Nukleobasen und Nukleoside | Nucleobases and nucleosides
+adenine
+guanine
+cytosine
+thymine
+uracil
+adenosine
+guanosine
+cytidine
+uridine
+thymidine
+inosine
+cyclic adenosine monophosphate
+
+## Monomere und Polymere | Monomers and polymers
+ethylene glycol diacrylate
+1,6-hexanediol diacrylate
+vinyl acetate monomer
+N-vinylcaprolactam
+vinyl ether
+ethyl vinyl ether
+butyl vinyl ether
+4-vinylpyridine
+2-vinylpyridine
+N-vinylcarbazole
+vinyltoluene = 4-vinyltoluene
+p-divinylbenzene
+dicyclopentadiene
+5-ethylidene-2-norbornene
+1,3-propanediol dimethacrylate
+bisphenol A diglycidyl ether
+bisphenol A glycerolate dimethacrylate
+4,4'-diaminodiphenyl sulfone
+4,4'-oxydianiline
+11-aminoundecanoic acid
+laurolactam
+2,5-furandicarboxylic acid
+isosorbide
+dimethyl adipate
+
+## Indikatoren und Farbstoffe | Indicators and dyes
+phenolphthalein
+thymolphthalein
+methyl orange
+methyl red
+bromothymol blue
+bromophenol blue
+bromocresol green
+bromocresol purple
+phenol red
+cresol red
+thymol blue
+methyl violet
+crystal violet
+malachite green
+methylene blue
+congo red
+alizarin
+alizarin yellow R
+eriochrome black T
+murexide
+xylenol orange
+calcon
+fluorescein
+eosin Y
+rhodamine B
+neutral red
+litmus
+curcumin
+quercetin
+cyanidin
+indigo carmine
+Sudan III
+nile red
+ethidium bromide
+DAPI
+coomassie brilliant blue G-250
+safranin O
+diphenylcarbazide
+dimethylglyoxime
+1,10-phenanthroline monohydrate
+sodium diethyldithiocarbamate
+dithizone
+8-hydroxyquinoline sulfate
+
+## Puffer | Buffers
+HEPES
+MES
+MOPS
+PIPES
+TES
+tricine
+bicine
+CHES
+CAPS
+TAPS
+MOPSO
+bis-tris
+bis-tris propane
+ADA
+ACES
+glycylglycine
+imidazole hydrochloride
+tris hydrochloride
+sodium cacodylate
+barbital
+triethanolamine hydrochloride
+
+## Pharmazeutika und Naturstoffe | Drugs and natural products
+ibuprofen
+naproxen
+diclofenac
+ketoprofen
+indomethacin
+metamizole
+lidocaine
+procaine
+benzocaine
+penicillin G
+amoxicillin
+ampicillin
+tetracycline
+chloramphenicol
+erythromycin
+streptomycin
+vancomycin
+sulfanilamide
+sulfamethoxazole
+trimethoprim
+metformin
+glibenclamide
+insulin
+warfarin
+atenolol
+propranolol
+captopril
+enalapril
+losartan
+nifedipine
+amlodipine
+furosemide
+hydrochlorothiazide
+omeprazole
+ranitidine
+cimetidine
+loratadine
+cetirizine
+diphenhydramine
+diazepam
+lorazepam
+alprazolam
+haloperidol
+chlorpromazine
+fluoxetine
+sertraline
+amitriptyline
+lithium carbonate
+levothyroxine
+cortisol
+prednisone
+dexamethasone
+testosterone
+estradiol
+progesterone
+cholecalciferol
+methotrexate
+fluorouracil
+tamoxifen
+paclitaxel
+doxorubicin
+acyclovir
+oseltamivir
+zidovudine
+artemisinin
+chloroquine
+ivermectin = ivermectin B1a
+sildenafil
+nitroglycerin tablet
+digoxin
+capsaicin
+piperine
+resveratrol
+menthyl acetate
+limonene oxide
+nootkatone
+patchoulol
+cineole
+camphene
+myrcene
+ocimene
+farnesol
+gibberellic acid
+indole-3-acetic acid
+abscisic acid
+zeatin
+salicin
+amygdalin
+solanine
+tomatine
+tetrodotoxin
+muscarine
+nicotine tartrate
+ethyl vanillin
+maltol
+furaneol
+sotolon
+geosmin
+2-acetyl-1-pyrroline
+
+## Pflanzenschutz und Industriechemikalien | Agrochemicals and industrial chemicals
+atrazine
+simazine
+glufosinate
+paraquat
+diquat
+malathion
+parathion
+chlorpyrifos
+carbaryl
+imidacloprid
+pyrethrin I
+permethrin
+cypermethrin
+captan
+mancozeb
+metolachlor
+trifluralin
+dicamba
+MCPA
+2,4,5-trichlorophenoxyacetic acid
+dioxin
+nonylphenol
+octylphenol
+triclosan
+chlorhexidine
+benzalkonium chloride
+hexachlorophene
+formalin
+urotropin
+ethylene diamine tetraacetate disodium = edetate disodium
+sodium EDTA
+tetrasodium EDTA
+calcium disodium EDTA
+triton X-100
+nonoxynol-9
+sorbitan monooleate
+lecithin
+glycerol monooleate
+
+## Hydrate | Hydrates
+copper(II) sulfate pentahydrate
+magnesium sulfate heptahydrate
+calcium sulfate dihydrate
+calcium sulfate hemihydrate
+sodium carbonate decahydrate
+sodium sulfate decahydrate
+iron(II) sulfate heptahydrate
+iron(III) chloride hexahydrate
+cobalt(II) chloride hexahydrate
+nickel(II) chloride hexahydrate
+calcium chloride dihydrate
+calcium chloride hexahydrate
+magnesium chloride hexahydrate
+barium chloride dihydrate
+zinc sulfate heptahydrate
+aluminum sulfate octadecahydrate
+potassium alum dodecahydrate
+oxalic acid dihydrate
+sodium thiosulfate pentahydrate
+sodium acetate trihydrate
+sodium tetraborate decahydrate
+citric acid monohydrate
+glucose monohydrate
+lactose monohydrate
+calcium oxalate monohydrate
+manganese(II) chloride tetrahydrate
+copper(II) chloride dihydrate
+tin(II) chloride dihydrate = stannous chloride dihydrate
+ammonium iron(II) sulfate hexahydrate = ferrous ammonium sulfate hexahydrate
+sodium phosphate dibasic heptahydrate
+sodium dihydrogen phosphate dihydrate
+ammonium molybdate tetrahydrate = ammonium heptamolybdate tetrahydrate
+lithium hydroxide monohydrate
+barium hydroxide octahydrate
+chromium(III) chloride hexahydrate
+cadmium sulfate octahydrate
+uranyl acetate dihydrate
+lead(II) acetate trihydrate
+zinc acetate dihydrate
+copper(II) acetate monohydrate
+magnesium nitrate hexahydrate
+calcium nitrate tetrahydrate
+iron(III) nitrate nonahydrate
+nickel(II) nitrate hexahydrate
+cobalt(II) nitrate hexahydrate
+aluminum nitrate nonahydrate
+zinc nitrate hexahydrate
+strontium chloride hexahydrate
+sodium sulfide nonahydrate
+
+## Mineralien und Füllstoffe | Minerals and fillers
+calcite
+aragonite
+dolomite
+magnesite
+siderite
+malachite
+azurite
+quartz
+cristobalite
+corundum
+hematite
+goethite
+limonite
+rutile
+ilmenite
+cassiterite
+pyrolusite
+chromite
+spinel
+periclase
+brucite
+boehmite
+halite
+sylvite
+carnallite
+fluorite
+anhydrite
+barite
+celestine
+galena
+sphalerite
+pyrite
+chalcopyrite
+cinnabar
+stibnite
+fluorapatite
+zircon
+olivine
+forsterite
+fayalite
+wollastonite
+kaolinite
+montmorillonite
+talc
+mica
+muscovite
+biotite
+orthoclase
+albite
+anorthite
+nepheline
+zeolite
+beryl
+topaz
+tourmaline
+garnet
+graphite
+diamond
+sulfur
+red phosphorus
+white phosphorus
+iodine
+bromine
+silicon
+boron
+sodium
+potassium
+lithium
+calcium
+magnesium
+aluminum
+iron
+copper
+zinc
+silver
+gold
+platinum
+palladium
+nickel
+cobalt
+chromium
+manganese
+titanium
+tin
+lead
+mercury
+tungsten
+gallium
+germanium
+arsenic
+selenium
+tellurium
+antimony
+bismuth
+cesium
+barium
+uranium
+carbon black
+activated carbon
+fumed silica
+glass
+portland cement
+tricalcium silicate
+dicalcium silicate
+tricalcium aluminate
+ettringite
+hydrotalcite
+huntite
+hydromagnesite
+alunite
+jarosite
+trona
+natron
+borax decahydrate
+ulexite
+colemanite
+kernite
+saltpeter
+chile saltpeter

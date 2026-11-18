@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: >-
+  If you use Folio Lab for results you publish, please cite it as below, and state the Folio Lab version and the
+  version of each analysis module you used (shown in the module header and stored in every report bundle).
+type: software
+title: "Folio Lab: local data analysis and report writing for laboratory measurements"
+abstract: >-
+  Folio Lab is a local, browser-based suite that joins a LaTeX report editor with analysis modules for tensile
+  tests, microscopy images, FTIR spectra, thermogravimetry, data cleaning, scientific calculation with units, and
+  chemistry. Results go into reports with their figures, tables, values and citations, and every value can be traced
+  back to its raw file.
+authors:
+  - name: FolioLab-OP
+version: 0.1.0
+date-released: "2026-11-18"
+license: MIT
+repository-code: "https://github.com/FolioLab-OP/FolioLab"
+url: "https://github.com/FolioLab-OP/FolioLab"
+keywords:
+  - laboratory data analysis
+  - reproducibility
+  - LaTeX
+  - tensile testing
+  - microscopy
+  - FTIR spectroscopy
+  - thermogravimetric analysis
+  - scientific calculator

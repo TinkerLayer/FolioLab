@@ -1,0 +1,25 @@
+{
+  "id": "elementrechner",
+  "name": "Elementrechner",
+  "name_en": "Elemental Calculator",
+  "description": "Chemische Reaktionen auf dem Papier: Gleichungen nach Elementen ausgleichen, Reaktion charakterisieren (ΔH, ΔS, ΔG, Gleichgewichtskonstante, spontan ab welcher Temperatur), Molmassen und Stöchiometrie, Kernreaktionen, Zerfall und Halbwertszeit. Periodensystem zum Anklicken, eng mit dem Rechner verbunden, alle Daten mit Quelle. Phase 1 und 2 fertig (Ausgleichen, Molmassen, Stöchiometrie, Periodensystem, Isotope; Molekülsammlung mit Strukturen, deutsche und englische Namen, pKa/pKb/Ksp/lg K und Stoffeigenschaften, eigene Stoffe); weitere Teile laut modules/elementrechner/OUTLINE.md im Aufbau.",
+  "description_en": "Chemical reactions on paper: balance equations by element, characterise a reaction (ΔH, ΔS, ΔG, equilibrium constant, temperature where it becomes spontaneous), molar masses and stoichiometry, nuclear reactions, decay and half-life. Clickable periodic table, closely linked to the Calculator, every value sourced. Phases 1 and 2 ready (balancing, molar masses, stoichiometry, periodic table, isotopes; molecule collection with structures, German and English names, pKa/pKb/Ksp/log K and substance properties, own substances); further parts per modules/elementrechner/OUTLINE.md under construction.",
+  "icon": "flask",
+  "icon_svg": "<path d=\"M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3\"/><path d=\"M7.5 15h9\"/>",
+  "color": "#6d28d9",
+  "status": "ready",
+  "order": 13,
+  "version": "0.10.0",
+  "accepts": [".json"],
+  "produces": ["table", "values", "text", "citation"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "elementrechner.server", "--port", "{port}", "--out", "{outputs}", "--no-browser"],
+    "health": "/api/meta",
+    "requires": []
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

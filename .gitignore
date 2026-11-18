@@ -1,0 +1,35 @@
+# Installed by setup.ps1 / npm
+node_modules/
+tools/node/
+tools/miktex/
+tools/miktex-repo/
+tools/miktexsetup/
+tools/*.zip
+
+# Your work: reports, environments and module outputs stay on your computer
+projects/
+outputs/
+modules/*/Ausgaben/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Reference data downloaded by tools/fetch_optional_data.py: licensed for your own use only,
+# do not commit or redistribute (see THIRD_PARTY_NOTICES.md)
+sdk/python/labcalc/data/pka.json
+sdk/python/labcalc/data/stability.json
+sdk/python/labcalc/data/ionization.json
+sdk/python/labcalc/data/optional/
+modules/ftir/ftir/data/openspecy-restricted/
+tools/fetch_cache/
+
+# Measurement files used only for local tests
+*.flps
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

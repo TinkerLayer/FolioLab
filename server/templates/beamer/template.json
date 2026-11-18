@@ -1,0 +1,8 @@
+{
+  "name": "Presentation (Beamer)",
+  "description": "Slides with images, a plot, columns and overlays.",
+  "mainFile": "main.tex",
+  "engine": "pdflatex",
+  "order": 7,
+  "icon": "slides"
+}

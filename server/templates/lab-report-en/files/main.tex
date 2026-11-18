@@ -1,0 +1,46 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[ngerman,english]{babel}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage{hyperref}
+
+\addbibresource{references.bib}       % your own references
+\addbibresource{lab/references.bib}   % references from analyses (Folio Lab)
+
+% Values from analyses: \labval{<result>}{<key>}
+\input{lab/labdata}
+
+\title{Test Report}
+\author{Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Aim and background of the test.
+
+\section{Materials and Methods}
+Specimens, set-up and evaluation. The \emph{Lab} button in the toolbar inserts a
+methods paragraph from each analysis.
+
+\section{Results}
+% Open an analysis on the Folio Lab home page ("Analyses"), send the result to this
+% project with "Zum Bericht ..." / "Send to report", then insert it here with the Lab button:
+% figures, tables, single values (\labval), measurement data as a pgfplots chart.
+
+\section{Discussion}
+Interpretation of the results.
+
+\printbibliography
+
+\end{document}

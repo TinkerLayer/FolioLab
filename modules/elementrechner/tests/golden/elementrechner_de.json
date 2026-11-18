@@ -1,0 +1,744 @@
+{
+ "bundle": {
+  "format": "folio-lab-bundle/1",
+  "lang": "de",
+  "module": "elementrechner",
+  "module_name": "Elementrechner",
+  "slug": "reaktionsgleichung",
+  "summary": "Zn + CuSO₄ → ZnSO₄ + Cu",
+  "title": "Reaktionsgleichung"
+ },
+ "files": {
+  "bilanz.tex": {
+   "lines": [
+    "\\begin{tabular}{lrr}",
+    "\\toprule",
+    "Grösse & Edukte & Produkte \\\\",
+    "\\midrule",
+    "O & $4$ & $4$ \\\\",
+    "S & $1$ & $1$ \\\\",
+    "Cu & $1$ & $1$ \\\\",
+    "Zn & $1$ & $1$ \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "fig/dg-t.pdf": {
+   "size": 19597,
+   "type": "pdf"
+  },
+  "fig/dg-t.png": {
+   "size": 22936,
+   "type": "png"
+  },
+  "fig/titration.pdf": {
+   "size": 13208,
+   "type": "pdf"
+  },
+  "fig/titration.png": {
+   "size": 19889,
+   "type": "png"
+  },
+  "oxidationszahlen.tex": {
+   "lines": [
+    "\\begin{tabular}{ll}",
+    "\\toprule",
+    "Stoff & Oxidationszahlen \\\\",
+    "\\midrule",
+    "$\\mathrm{Zn}$ & \\textbf{Zn~$0$} \\\\",
+    "$\\mathrm{CuSO_{4}}$ & O~$-2$, S~$+6$, \\textbf{Cu~$+2$} \\\\",
+    "$\\mathrm{ZnSO_{4}}$ & O~$-2$, S~$+6$, \\textbf{Zn~$+2$} \\\\",
+    "$\\mathrm{Cu}$ & \\textbf{Cu~$0$} \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "refs.bib": {
+   "lines": [
+    "@online{er-ciaaw2024,",
+    "  author = {{CIAAW}},",
+    "  title = {Standard Atomic Weights 2024},",
+    "  organization = {IUPAC Commission on Isotopic Abundances and Atomic Weights, www.ciaaw.org},",
+    "  year = {2024},",
+    "  url = {https://www.ciaaw.org/atomic-weights.htm},",
+    "  urldate = {2026-11-17},",
+    "  note = {gekürzte und ungekürzte Werte; Änderungen 2024 für Gd, Lu, Zr}",
+    "}",
+    "",
+    "@article{er-ciaaw2021,",
+    "  author = {Prohaska, Thomas and Irrgeher, Johanna and Benefield, Jacqueline and Böhlke, John K. and Chesson, Lesley A. and Coplen, Tyler B. and Ding, Tiping and Dunn, Philip J. H. and Gröning, Manfred and Holden, Norman E. and Meijer, Harro A. J. and Moossen, Heiko and Possolo, Antonio and Takahashi, Yoshio and Vogl, Jochen and Walczyk, Thomas and Wang, Jun},",
+    "  title = {Standard atomic weights of the elements 2021 (IUPAC Technical Report)},",
+    "  journal = {Pure and Applied Chemistry},",
+    "  year = {2022},",
+    "  volume = {94},",
+    "  pages = {573--600},",
+    "  number = {5},",
+    "  doi = {10.1515/pac-2019-0603}",
+    "}",
+    "",
+    "@article{er-trost1991,",
+    "  author = {Trost, Barry M.},",
+    "  title = {The atom economy -- a search for synthetic efficiency},",
+    "  journal = {Science},",
+    "  year = {1991},",
+    "  volume = {254},",
+    "  pages = {1471--1477},",
+    "  number = {5037},",
+    "  doi = {10.1126/science.1962206}",
+    "}",
+    "",
+    "@book{er-cox1989,",
+    "  author = {Cox, J. D. and Wagman, D. D. and Medvedev, V. A.},",
+    "  title = {CODATA Key Values for Thermodynamics},",
+    "  publisher = {Hemisphere Publishing Corp.},",
+    "  year = {1989},",
+    "  url = {https://www.codata.info/resources/databases/key1.html},",
+    "  note = {$\\Delta$fH\\textdegree{}, S\\textdegree{}, H\\textdegree{}(298)$-$H\\textdegree{}(0) bei 298,15 K und 1 bar; Tabellenabruf 2026}",
+    "}",
+    "",
+    "@article{er-wagman1982,",
+    "  author = {Wagman, D. D. and Evans, W. H. and Parker, V. B. and Schumm, R. H. and Halow, I. and Bailey, S. M. and Churney, K. L. and Nuttall, R. L.},",
+    "  title = {The NBS tables of chemical thermodynamic properties. Selected values for inorganic and C1 and C2 organic substances in SI units},",
+    "  journal = {Journal of Physical and Chemical Reference Data},",
+    "  year = {1982},",
+    "  volume = {11},",
+    "  number = {Suppl. 2},",
+    "  note = {Erratum: J. Phys. Chem. Ref. Data 18 (1989) 1807, doi:10.1063/1.555845}",
+    "}",
+    "",
+    "@misc{er-reed2020,",
+    "  author = {Reed, Laura},",
+    "  title = {Digitized NBS Tables of Chemical Thermodynamic Properties},",
+    "  howpublished = {National Institute of Standards and Technology},",
+    "  year = {2020},",
+    "  doi = {10.18434/M32124},",
+    "  note = {digitalisierte Fassung von Wagman et al. 1982; offensichtliche Digitalisierungsfehler (Kommastelle, Grossschreibung der Elementsymbole) werden beim Einlesen mit der Beziehung $\\Delta$fG\\textdegree{} = $\\Delta$fH\\textdegree{} $-$ T$\\Delta$fS\\textdegree{} erkannt, korrigiert und beim Wert vermerkt}",
+    "}",
+    "",
+    "@book{er-atkins,",
+    "  author = {Atkins, P. and de Paula, J. and Keeler, J.},",
+    "  title = {Atkins' Physical Chemistry},",
+    "  publisher = {Oxford University Press},",
+    "  year = {2018},",
+    "  edition = {11. Auflage}",
+    "}",
+    "",
+    "@article{er-karen2016,",
+    "  author = {Karen, Pavel and McArdle, Patrick and Takats, Josef},",
+    "  title = {Comprehensive definition of oxidation state (IUPAC Recommendations 2016)},",
+    "  journal = {Pure and Applied Chemistry},",
+    "  year = {2016},",
+    "  volume = {88},",
+    "  pages = {831--839},",
+    "  number = {8},",
+    "  doi = {10.1515/pac-2015-1204},",
+    "  note = {Ionenzerlegung: Bindungselektronen gehen an den elektronegativeren Partner}",
+    "}",
+    "",
+    "@book{er-redbook2005,",
+    "  author = {Connelly, N. G. and Damhus, T. and Hartshorn, R. M. and Hutton, A. T.},",
+    "  title = {Nomenclature of Inorganic Chemistry -- IUPAC Recommendations 2005},",
+    "  publisher = {RSC Publishing},",
+    "  year = {2005},",
+    "  note = {Hrsg.; Oxidationszahl}",
+    "}",
+    "",
+    "@article{er-pubchem_pt,",
+    "  author = {Kim, Sunghwan and Gindulyte, Asta and Zhang, Jian and Thiessen, Paul A. and Bolton, Evan E.},",
+    "  title = {PubChem Periodic Table and Element pages: improving access to information on chemical elements from authoritative sources},",
+    "  journal = {Chemistry Teacher International},",
+    "  year = {2021},",
+    "  volume = {3},",
+    "  pages = {57--65},",
+    "  number = {1},",
+    "  doi = {10.1515/cti-2020-0006}",
+    "}",
+    "",
+    "@book{er-bard,",
+    "  author = {Bard, A. J. and Faulkner, L. R.},",
+    "  title = {Electrochemical Methods: Fundamentals and Applications},",
+    "  publisher = {Wiley},",
+    "  year = {2001},",
+    "  edition = {2. Auflage}",
+    "}",
+    "",
+    "@article{er-codata2022,",
+    "  author = {Mohr, P. J. and Newell, D. B. and Taylor, B. N. and Tiesinga, E.},",
+    "  title = {CODATA recommended values of the fundamental physical constants: 2022},",
+    "  journal = {Reviews of Modern Physics},",
+    "  year = {2025},",
+    "  volume = {97},",
+    "  pages = {025002},",
+    "  doi = {10.1103/RevModPhys.97.025002},",
+    "  url = {https://physics.nist.gov/cuu/Constants/},",
+    "  note = {Werte wie in der NIST-Tabelle (2022 CODATA adjustment)}",
+    "}",
+    "",
+    "@book{er-harris,",
+    "  author = {Harris, D. C.},",
+    "  title = {Quantitative Chemical Analysis},",
+    "  publisher = {W. H. Freeman},",
+    "  year = {2016},",
+    "  edition = {9. Auflage}",
+    "}",
+    "",
+    "@article{er-bandura2006,",
+    "  author = {Bandura, Andrei V. and Lvov, Serguei N.},",
+    "  title = {The Ionization Constant of Water over Wide Ranges of Temperature and Density},",
+    "  journal = {Journal of Physical and Chemical Reference Data},",
+    "  year = {2006},",
+    "  volume = {35},",
+    "  pages = {15--30},",
+    "  number = {1},",
+    "  doi = {10.1063/1.1928231},",
+    "  note = {pKw = 13,995 bei 25 \\textdegree{}C und 0,1 MPa}",
+    "}",
+    "",
+    "@misc{er-srd46,",
+    "  author = {Burgess, Donald R.},",
+    "  title = {NIST SRD 46. Critically Selected Stability Constants of Metal Complexes, Version 8.0},",
+    "  howpublished = {National Institute of Standards and Technology},",
+    "  year = {2004},",
+    "  doi = {10.18434/M32154},",
+    "  note = {nach Martell, A. E.; Smith, R. M.: Critical Stability Constants; Abruf 2026}",
+    "}"
+   ],
+   "type": "bib"
+  },
+  "speziesverteilung.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{llrr}",
+    "\\toprule",
+    "System & Form & Anteil & $c$ in mol/L \\\\",
+    "\\midrule",
+    "CH3COOH (p$K_{\\mathrm{a}} = 4{,}76$) & $\\mathrm{HA}$ & $98{,}7$\\,\\% & $0{,}0987$ \\\\",
+    " & $\\mathrm{A^{-}}$ & $1{,}31$\\,\\% & $0{,}00131$ \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "stoechiometrie.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{lrrrrrrr}",
+    "\\toprule",
+    "Stoff & $\\nu$ & $M$ in g/mol & $n_0$ in mol & $m_0$ in g & $n$ umgesetzt/gebildet in mol & $m$ in g & Rest in g \\\\",
+    "\\midrule",
+    "$\\mathrm{Zn}$ \\textsuperscript{*} & $1$ & $65{,}3800$ & $0{,}09942$ & $6{,}500$ & $0{,}09942$ & $6{,}500$ & $0$ \\\\",
+    "$\\mathrm{CuSO_{4}}$ & $1$ & $159{,}602$ &  &  & $0{,}09942$ & $15{,}87$ &  \\\\",
+    "$\\mathrm{ZnSO_{4}}$ & $1$ & $161{,}436$ &  &  & $0{,}09942$ & $16{,}05$ &  \\\\",
+    "$\\mathrm{Cu}$ & $1$ & $63{,}5460$ &  &  & $0{,}09942$ & $6{,}318$ &  \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "text-gleichung.tex": {
+   "lines": [
+    "\\[ \\mathrm{Zn} + \\mathrm{CuSO_{4}} \\longrightarrow \\mathrm{ZnSO_{4}} + \\mathrm{Cu} \\]",
+    "",
+    "Die Gleichung wurde über die Erhaltung der Atome jedes Elements ausgeglichen.",
+    "",
+    "Rechenweg: Jede Zeile der Stoffmatrix $\\mathbf{A}$ ist eine Erhaltungsgrösse (O, S, Cu, Zn), jede Spalte ein Stoff (Edukte negativ, Produkte positiv). Gesucht sind die kleinsten positiven ganzen Koeffizienten $\\nu$ mit $\\mathbf{A}\\,\\nu = \\mathbf{0}$ (Nullraum der Matrix).",
+    "",
+    "\\[ \\mathbf{A} = \\begin{array}{r|rrrr}  & \\mathrm{Zn} & \\mathrm{CuSO_{4}} & \\mathrm{ZnSO_{4}} & \\mathrm{Cu} \\\\ \\hline \\mathrm{O} & 0 & -4 & 4 & 0 \\\\ \\mathrm{S} & 0 & -1 & 1 & 0 \\\\ \\mathrm{Cu} & 0 & -1 & 0 & 1 \\\\ \\mathrm{Zn} & -1 & 0 & 1 & 0 \\end{array} \\]",
+    "",
+    "\\[ \\nu = (1,\\ 1,\\ 1,\\ 1) \\]"
+   ],
+   "type": "tex"
+  },
+  "text-molmasse-1.tex": {
+   "lines": [
+    "\\[ M(\\mathrm{NaCl}) = 58{,}440 \\pm 0{,}010\\ \\mathrm{g\\,mol^{-1}} \\]",
+    "",
+    "\\[ M = 1 \\cdot 22{,}9900 + 1 \\cdot 35{,}4500 = 58{,}4400\\ \\mathrm{g\\,mol^{-1}} \\]",
+    "",
+    "$M = \\sum_i N_i\\,A_{\\mathrm{r},i} \\cdot M_\\mathrm{u}$ mit $M_\\mathrm{u} \\approx 1$\\,g/mol (relative Abweichung unter $10^{-8}$). Die Unsicherheit ist aus den Unsicherheiten der gekürzten Atomgewichte kombiniert (gleiche Elemente voll korreliert, verschiedene unabhängig)~\\cite{er-ciaaw2024,er-ciaaw2021}."
+   ],
+   "type": "tex"
+  },
+  "text-ph.tex": {
+   "lines": [
+    "Für die Lösung 0,1 M CH3COOH ergibt die Protonenbilanz (Ladungs- und Massenbilanz, Konzentrationen statt Aktivitäten) bei 25\\,\\textdegree C $\\mathrm{pH} = 2{,}88$; $\\mathrm{p}K_\\mathrm{w} = 13{,}995$, neutral wäre $\\mathrm{pH} = 7{,}00$~\\cite{er-harris,er-atkins,er-bandura2006,er-srd46}."
+   ],
+   "type": "tex"
+  },
+  "text-redox.tex": {
+   "lines": [
+    "Die Oxidationszahlen folgen der IUPAC-Definition (Bindungselektronen zum elektronegativeren Partner; Elektronegativität nach Pauling)~\\cite{er-karen2016,er-redbook2005,er-pubchem_pt}.",
+    "",
+    "Oxidiert wird Zn ($0 \\rightarrow +2$), reduziert Cu ($+2 \\rightarrow 0$); übertragen werden $n = 2$ Elektronen je Formelumsatz.",
+    "",
+    "Ionengleichung (gelöste Salze, starke Säuren und Basen als Ionen, Zuschauerionen $\\mathrm{SO_{4}^{2-}}$ gekürzt):~\\cite{er-atkins}",
+    "",
+    "\\[ \\mathrm{Zn} + \\mathrm{Cu}^{2+} \\longrightarrow \\mathrm{Zn}^{2+} + \\mathrm{Cu} \\]",
+    "",
+    "Halbreaktionen (Ausgleich mit Elektronen, H$^+$ bzw. OH$^-$ und Wasser):",
+    "",
+    "Oxidation (Anode): \\[ \\mathrm{Zn} \\longrightarrow \\mathrm{Zn}^{2+} + 2\\,\\mathrm{e}^{-},\\quad E^\\circ(\\mathrm{Zn^{2+}/Zn}) = -0{,}763\\ \\mathrm{V} \\]",
+    "",
+    "Reduktion (Kathode): \\[ \\mathrm{Cu}^{2+} + 2\\,\\mathrm{e}^{-} \\longrightarrow \\mathrm{Cu},\\quad E^\\circ(\\mathrm{Cu^{2+}/Cu}) = 0{,}337\\ \\mathrm{V} \\]",
+    "",
+    "Die Standardpotenziale folgen aus den Freien Bildungsenthalpien, $E^\\circ = -\\Delta_\\mathrm{r}G^\\circ/(nF)$, gegen die Standardwasserstoffelektrode ($\\Delta_\\mathrm{f}G^\\circ(\\mathrm{H^+, aq}) = 0$, $\\Delta_\\mathrm{f}G^\\circ(\\mathrm{e^-}) = 0$)~\\cite{er-bard,er-atkins}.",
+    "",
+    "\\[ E^\\circ = E^\\circ_\\mathrm{Kathode} - E^\\circ_\\mathrm{Anode} = 0{,}337 - (-0{,}763) = 1{,}100\\ \\mathrm{V} \\]",
+    "",
+    "\\[ \\Delta_\\mathrm{r}G^\\circ = -nFE^\\circ = -2 \\cdot 96\\,485{,}33\\ \\mathrm{C\\,mol^{-1}} \\cdot 1{,}100\\ \\mathrm{V} = -212{,}2\\ \\mathrm{kJ\\,mol^{-1}} \\]",
+    "",
+    "Die Reaktion läuft unter Standardbedingungen freiwillig ab~\\cite{er-codata2022}.",
+    "",
+    "Aus $\\Delta_\\mathrm{r}G^\\circ$ der Gleichung wie geschrieben (Phasen wie in der Thermochemie) folgt $E^\\circ = 1{,}084$\\,V."
+   ],
+   "type": "tex"
+  },
+  "text-stoechiometrie.tex": {
+   "lines": [
+    "Limitierend ist $\\mathrm{Zn}$; der Umsatz beträgt $\\xi = 0{,}09942$\\,mol.",
+    "",
+    "Rechenweg: Für jedes gegebene Edukt ist $n = m/M$ (bzw. $n = c\\,V$ oder für Gase $n = pV/(RT)$); der mögliche Umsatz ist $\\xi_i = n_i/\\nu_i$. Das kleinste $\\xi$ bestimmt den limitierenden Stoff; gebildet werden $n_j = \\nu_j\\,\\xi$ und $m_j = n_j\\,M_j$.",
+    "",
+    "Atomökonomie nach Trost: Anteil der Masse eines Produkts an der Masse aller Edukte ($\\mathrm{AE} = \\nu_P M_P / \\sum \\nu_E M_E$)~\\cite{er-trost1991}: $\\mathrm{ZnSO_{4}}$: $71{,}8$\\,\\%, $\\mathrm{Cu}$: $28{,}2$\\,\\%."
+   ],
+   "type": "tex"
+  },
+  "text-thermochemie.tex": {
+   "lines": [
+    "Die Reaktionsgrössen folgen aus den Standardbildungsgrössen der Stoffe bei $T^\\circ = 298{,}15$\\,K und $p^\\circ = 1$\\,bar (Satz von Hess; $\\nu$ negativ für Edukte)~\\cite{er-cox1989,er-wagman1982,er-reed2020}.",
+    "",
+    "\\[ \\Delta_\\mathrm{r}H^\\circ = \\sum_i \\nu_i\\,\\Delta_\\mathrm{f}H^\\circ_i = (-1) \\cdot 0{,}00 + (-1) \\cdot (-771{,}40) + 1 \\cdot (-982{,}80) + 1 \\cdot 0{,}00 = -211{,}40\\ \\mathrm{kJ\\,mol^{-1}} \\]",
+    "",
+    "\\[ \\Delta_\\mathrm{r}S^\\circ = \\sum_i \\nu_i\\,S^\\circ_i = (-1) \\cdot 41{,}63 + (-1) \\cdot 109{,}20 + 1 \\cdot 110{,}50 + 1 \\cdot 33{,}15 = -7{,}18\\ \\mathrm{J\\,mol^{-1}\\,K^{-1}} \\]",
+    "",
+    "\\[ \\Delta_\\mathrm{r}G^\\circ = \\Delta_\\mathrm{r}H^\\circ - T^\\circ\\,\\Delta_\\mathrm{r}S^\\circ = -211{,}40 - 298{,}15 \\cdot (-0{,}00718) = -209{,}26\\ \\mathrm{kJ\\,mol^{-1}} \\]",
+    "",
+    "\\[ K = \\exp\\!\\left(-\\frac{\\Delta_\\mathrm{r}G^\\circ}{R\\,T^\\circ}\\right) = 4{,}58\\cdot 10^{36}, \\qquad \\lg K = 36{,}66 \\]",
+    "",
+    "Die Reaktion ist exotherm und unter Standardbedingungen exergonisch; $\\Delta_\\mathrm{r}H^\\circ < 0$, $\\Delta_\\mathrm{r}S^\\circ < 0$: enthalpiegetrieben, freiwillig unterhalb von $T^*$~\\cite{er-atkins}.",
+    "",
+    "Bei $T^* = \\Delta_\\mathrm{r}H^\\circ/\\Delta_\\mathrm{r}S^\\circ = 29442{,}9$\\,K wird $\\Delta_\\mathrm{r}G = 0$ (Näherung mit temperaturunabhängigem $\\Delta_\\mathrm{r}H^\\circ$ und $\\Delta_\\mathrm{r}S^\\circ$).",
+    "",
+    "$\\Delta_\\mathrm{r}G^\\circ < 0$ bedeutet nur, dass die Reaktion ablaufen kann; über ihre Geschwindigkeit sagt es nichts aus. Die Aktivierungsenergie folgt nicht aus der Gleichung und den Bildungsdaten, sondern aus kinetischen Messungen (Arrhenius-Auftragung).",
+    "",
+    "Wo die Tabelle kein $\\Delta_\\mathrm{f}G^\\circ$ angibt, ist es aus $\\Delta_\\mathrm{f}G^\\circ = \\Delta_\\mathrm{f}H^\\circ - T\\,\\Delta_\\mathrm{f}S^\\circ$ mit $\\Delta_\\mathrm{f}S^\\circ = S^\\circ - \\sum S^\\circ_\\mathrm{Elemente}$ (Elemente im Referenzzustand) berechnet.",
+    "",
+    "\\textit{Zn: Phase nicht angegeben: (cr) angenommen, die bei 298,15 K und 1 bar stabile Phase (kleinstes $\\Delta$fG\\textdegree{} unter (cr), (g))}",
+    "",
+    "\\textit{Cu: Phase nicht angegeben: (cr) angenommen, die bei 298,15 K und 1 bar stabile Phase (kleinstes $\\Delta$fG\\textdegree{} unter (cr), (g))}",
+    "",
+    "Für den Umsatz $\\xi = 0{,}09942$\\,mol beträgt die Reaktionswärme bei konstantem Druck $Q = \\xi\\,\\Delta_\\mathrm{r}H^\\circ = -21{,}02$\\,kJ."
+   ],
+   "type": "tex"
+  },
+  "text-titration.tex": {
+   "lines": [
+    "Titration von 25{,}0\\,mL der Lösung 0,1 M CH3COOH mit NaOH ($c = 0{,}100$\\,mol/L); Verdünnung berücksichtigt, ideal verdünnt~\\cite{er-harris,er-atkins,er-bandura2006}.",
+    "",
+    "Äquivalenzpunkt (grösste Steigung): $V = 25{,}00$\\,mL (pH $8{,}73$).",
+    "",
+    "Geeigneter Indikator am Äquivalenzpunkt: Thymolblau (Umschlag 8{,}0--9{,}6, gelb nach blau; Titrierfehler $0{,}00$\\,\\%); Phenolphthalein (Umschlag 8{,}0--9{,}6, farblos nach rot; Titrierfehler $0{,}00$\\,\\%). Titrierfehler = Volumen bei der Mitte des Umschlagbereichs minus Äquivalenzvolumen, bezogen auf das Äquivalenzvolumen~\\cite{er-harris}."
+   ],
+   "type": "tex"
+  },
+  "thermochemie.tex": {
+   "lines": [
+    "\\small",
+    "\\begin{tabular}{llcrrrrl}",
+    "\\toprule",
+    "Stoff & $\\nu$ & Phase & $\\Delta_\\mathrm{f}H^\\circ$ in kJ/mol & $\\Delta_\\mathrm{f}G^\\circ$ in kJ/mol & $S^\\circ$ in J/(mol\\,K) & $C_p^\\circ$ in J/(mol\\,K) & Quelle \\\\",
+    "\\midrule",
+    "$\\mathrm{Zn}$ & $-1$ & cr & $0{,}00$ & $0{,}00$\\,* & $41{,}63$ & $25{,}40$ & \\cite{er-cox1989,er-wagman1982,er-reed2020} \\\\",
+    "$\\mathrm{CuSO_{4}}$ & $-1$ & cr & $-771{,}40$ & $-662{,}18$\\,* & $109{,}20$ & $100{,}00$ & \\cite{er-cox1989,er-wagman1982,er-reed2020} \\\\",
+    "$\\mathrm{ZnSO_{4}}$ & $1$ & cr & $-982{,}80$ & $-871{,}50$ & $110{,}50$ & $99{,}20$ & \\cite{er-wagman1982,er-reed2020} \\\\",
+    "$\\mathrm{Cu}$ & $1$ & cr & $0{,}00$ & $0{,}00$\\,* & $33{,}15$ & $24{,}43$ & \\cite{er-cox1989,er-wagman1982,er-reed2020} \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  },
+  "values.tex": {
+   "lines": [
+    "% Values of 'Reaktionsgleichung' (Elementrechner). Generated by Folio Lab; do not edit.",
+    "% Use as \\labval{reaktionsgleichung}{<key>}.",
+    "\\labset{reaktionsgleichung}{gleichung}{$\\mathrm{Zn} + \\mathrm{CuSO_{4}} \\longrightarrow \\mathrm{ZnSO_{4}} + \\mathrm{Cu}$}% Ausgeglichene Gleichung",
+    "\\labset{reaktionsgleichung}{umsatz}{$0{,}09942\\,\\mathrm{mol}$}% Umsatz $\\xi$",
+    "\\labset{reaktionsgleichung}{limitierend}{$\\mathrm{Zn}$}% Limitierender Stoff",
+    "\\labset{reaktionsgleichung}{masse-znso4}{$16{,}05\\,\\mathrm{g}$}% Theoretische Masse $\\mathrm{ZnSO_{4}}$",
+    "\\labset{reaktionsgleichung}{stoffmenge-znso4}{$0{,}09942\\,\\mathrm{mol}$}% Theoretische Stoffmenge $\\mathrm{ZnSO_{4}}$",
+    "\\labset{reaktionsgleichung}{masse-cu}{$6{,}318\\,\\mathrm{g}$}% Theoretische Masse $\\mathrm{Cu}$",
+    "\\labset{reaktionsgleichung}{stoffmenge-cu}{$0{,}09942\\,\\mathrm{mol}$}% Theoretische Stoffmenge $\\mathrm{Cu}$",
+    "\\labset{reaktionsgleichung}{ae-znso4}{$71{,}8$\\,\\%}% Atomökonomie $\\mathrm{ZnSO_{4}}$",
+    "\\labset{reaktionsgleichung}{ae-cu}{$28{,}2$\\,\\%}% Atomökonomie $\\mathrm{Cu}$",
+    "\\labset{reaktionsgleichung}{Q-r}{$-21{,}02\\,\\mathrm{kJ}$}% Reaktionswärme $Q$",
+    "\\labset{reaktionsgleichung}{dH-r}{$-211{,}40\\,\\mathrm{kJ\\,mol^{-1}}$}% Reaktionsenthalpie $\\Delta_\\mathrm{r}H^\\circ$",
+    "\\labset{reaktionsgleichung}{dS-r}{$-7{,}18\\,\\mathrm{J\\,mol^{-1}\\,K^{-1}}$}% Reaktionsentropie $\\Delta_\\mathrm{r}S^\\circ$",
+    "\\labset{reaktionsgleichung}{dG-r}{$-209{,}26\\,\\mathrm{kJ\\,mol^{-1}}$}% Freie Reaktionsenthalpie $\\Delta_\\mathrm{r}G^\\circ$",
+    "\\labset{reaktionsgleichung}{K-298}{$4{,}58\\cdot 10^{36}$}% Gleichgewichtskonstante $K$ (298,15 K)",
+    "\\labset{reaktionsgleichung}{lgK-298}{$36{,}66$}% $\\lg K$ (298,15 K)",
+    "\\labset{reaktionsgleichung}{T-star}{$29442{,}9\\,\\mathrm{K}$}% Temperatur $T^*$ mit $\\Delta_\\mathrm{r}G = 0$",
+    "\\labset{reaktionsgleichung}{E0-r}{$1{,}100\\,\\mathrm{V}$}% Standard-Zellspannung $E^\\circ$",
+    "\\labset{reaktionsgleichung}{n-e}{$2$}% Übertragene Elektronen $n$",
+    "\\labset{reaktionsgleichung}{ph}{$2{,}88$}% pH der Lösung",
+    "\\labset{reaktionsgleichung}{V-eq1}{$25{,}00\\,\\mathrm{mL}$}% Äquivalenzvolumen 1",
+    "\\labset{reaktionsgleichung}{molmasse-nacl}{$58{,}440 \\pm 0{,}010\\ \\mathrm{g\\,mol^{-1}}$}% Molare Masse von $\\mathrm{NaCl}$"
+   ],
+   "type": "tex"
+  },
+  "zusammensetzung-1.tex": {
+   "lines": [
+    "\\begin{tabular}{lrrrr}",
+    "\\toprule",
+    "Element & Anzahl & $A_\\mathrm{r}$ & $N \\cdot A_\\mathrm{r}$ & Massenanteil \\\\",
+    "\\midrule",
+    "Na & $1$ & $22{,}9900$ & $22{,}9900$ & $39{,}34$\\,\\% \\\\",
+    "Cl & $1$ & $35{,}4500$ & $35{,}4500$ & $60{,}66$\\,\\% \\\\",
+    "\\bottomrule",
+    "\\end{tabular}"
+   ],
+   "type": "tex"
+  }
+ },
+ "items": [
+  {
+   "file": "text-gleichung.tex",
+   "id": "gleichung",
+   "kind": "text",
+   "title": "Reaktionsgleichung"
+  },
+  {
+   "caption": "Bilanz der ausgeglichenen Gleichung je Erhaltungsgrösse.",
+   "cites": [],
+   "file": "bilanz.tex",
+   "id": "bilanz",
+   "kind": "table",
+   "label": "tab:reaktionsgleichung-bilanz",
+   "notes": ""
+  },
+  {
+   "key": "er-ciaaw2024",
+   "kind": "citation",
+   "title": "Standard Atomic Weights 2024"
+  },
+  {
+   "key": "er-ciaaw2021",
+   "kind": "citation",
+   "title": "Standard atomic weights of the elements 2021 (IUPAC Technical Report)"
+  },
+  {
+   "caption": "Stoffmengen und Massen; molare Massen aus den Standard-Atomgewichten~\\cite{er-ciaaw2024,er-ciaaw2021}.",
+   "cites": [
+    "er-ciaaw2024",
+    "er-ciaaw2021"
+   ],
+   "file": "stoechiometrie.tex",
+   "id": "stoechiometrie",
+   "kind": "table",
+   "label": "tab:reaktionsgleichung-stoechiometrie",
+   "notes": "\\textsuperscript{*}\\,limitierend"
+  },
+  {
+   "key": "er-trost1991",
+   "kind": "citation",
+   "title": "The atom economy -- a search for synthetic efficiency"
+  },
+  {
+   "file": "text-stoechiometrie.tex",
+   "id": "stoechiometrie",
+   "kind": "text",
+   "title": "Stöchiometrie"
+  },
+  {
+   "key": "er-cox1989",
+   "kind": "citation",
+   "title": "CODATA Key Values for Thermodynamics"
+  },
+  {
+   "key": "er-wagman1982",
+   "kind": "citation",
+   "title": "The NBS tables of chemical thermodynamic properties. Selected values for inorganic and C1 and C2 organic substances in SI units"
+  },
+  {
+   "key": "er-reed2020",
+   "kind": "citation",
+   "title": "Digitized NBS Tables of Chemical Thermodynamic Properties"
+  },
+  {
+   "caption": "Standardbildungsgrössen bei 298,15 K und 1 bar; * $\\Delta_\\mathrm{f}G^\\circ$ berechnet aus $\\Delta_\\mathrm{f}H^\\circ$ und $S^\\circ$~\\cite{er-cox1989,er-wagman1982,er-reed2020}.",
+   "cites": [
+    "er-cox1989",
+    "er-wagman1982",
+    "er-reed2020"
+   ],
+   "file": "thermochemie.tex",
+   "id": "thermochemie",
+   "kind": "table",
+   "label": "tab:reaktionsgleichung-thermochemie",
+   "notes": ""
+  },
+  {
+   "key": "er-atkins",
+   "kind": "citation",
+   "title": "Atkins' Physical Chemistry"
+  },
+  {
+   "file": "text-thermochemie.tex",
+   "id": "thermochemie",
+   "kind": "text",
+   "title": "Thermochemie"
+  },
+  {
+   "caption": "Freie Reaktionsenthalpie in Abhängigkeit von der Temperatur: durchgezogen mit konstantem $C_p$ (Werte bei 298,15\\,K), gestrichelt Näherung mit konstantem $\\Delta_\\mathrm{r}H^\\circ$ und $\\Delta_\\mathrm{r}S^\\circ$; unter der Nulllinie läuft die Reaktion freiwillig~\\cite{er-cox1989,er-wagman1982,er-reed2020}.",
+   "cites": [
+    "er-cox1989",
+    "er-wagman1982",
+    "er-reed2020"
+   ],
+   "file": "fig/dg-t.pdf",
+   "id": "dg-t",
+   "kind": "figure",
+   "label": "fig:reaktionsgleichung-dg-t",
+   "preview": "fig/dg-t.png",
+   "width": "0.9"
+  },
+  {
+   "key": "er-karen2016",
+   "kind": "citation",
+   "title": "Comprehensive definition of oxidation state (IUPAC Recommendations 2016)"
+  },
+  {
+   "key": "er-redbook2005",
+   "kind": "citation",
+   "title": "Nomenclature of Inorganic Chemistry -- IUPAC Recommendations 2005"
+  },
+  {
+   "key": "er-pubchem_pt",
+   "kind": "citation",
+   "title": "PubChem Periodic Table and Element pages: improving access to information on chemical elements from authoritative sources"
+  },
+  {
+   "caption": "Oxidationszahlen der Stoffe; bei bekannter Struktur je Atom, sonst Mittelwert aus der Formel~\\cite{er-karen2016,er-redbook2005,er-pubchem_pt}.",
+   "cites": [
+    "er-karen2016",
+    "er-redbook2005",
+    "er-pubchem_pt"
+   ],
+   "file": "oxidationszahlen.tex",
+   "id": "oxidationszahlen",
+   "kind": "table",
+   "label": "tab:reaktionsgleichung-oxidationszahlen",
+   "notes": ""
+  },
+  {
+   "key": "er-bard",
+   "kind": "citation",
+   "title": "Electrochemical Methods: Fundamentals and Applications"
+  },
+  {
+   "key": "er-codata2022",
+   "kind": "citation",
+   "title": "CODATA recommended values of the fundamental physical constants: 2022"
+  },
+  {
+   "file": "text-redox.tex",
+   "id": "redox",
+   "kind": "text",
+   "title": "Redoxreaktion"
+  },
+  {
+   "key": "er-harris",
+   "kind": "citation",
+   "title": "Quantitative Chemical Analysis"
+  },
+  {
+   "key": "er-bandura2006",
+   "kind": "citation",
+   "title": "The Ionization Constant of Water over Wide Ranges of Temperature and Density"
+  },
+  {
+   "key": "er-srd46",
+   "kind": "citation",
+   "title": "NIST SRD 46. Critically Selected Stability Constants of Metal Complexes, Version 8.0"
+  },
+  {
+   "file": "text-ph.tex",
+   "id": "ph",
+   "kind": "text",
+   "title": "pH-Wert"
+  },
+  {
+   "caption": "Speziesverteilung; A = vollständig deprotonierte Form; p$K_\\mathrm{a}$ bei 25\\,\\textdegree C~\\cite{er-srd46}.",
+   "cites": [
+    "er-srd46"
+   ],
+   "file": "speziesverteilung.tex",
+   "id": "speziesverteilung",
+   "kind": "table",
+   "label": "tab:reaktionsgleichung-speziesverteilung",
+   "notes": ""
+  },
+  {
+   "file": "text-titration.tex",
+   "id": "titration",
+   "kind": "text",
+   "title": "Titration"
+  },
+  {
+   "caption": "Berechnete Titrationskurve; gestrichelt die Äquivalenzpunkte~\\cite{er-harris,er-atkins,er-bandura2006}.",
+   "cites": [
+    "er-harris",
+    "er-atkins",
+    "er-bandura2006"
+   ],
+   "file": "fig/titration.pdf",
+   "id": "titration",
+   "kind": "figure",
+   "label": "fig:reaktionsgleichung-titration",
+   "preview": "fig/titration.png",
+   "width": "0.9"
+  },
+  {
+   "file": "text-molmasse-1.tex",
+   "id": "molmasse-1",
+   "kind": "text",
+   "title": "Molare Masse NaCl"
+  },
+  {
+   "caption": "Zusammensetzung von $\\mathrm{NaCl}$; Atomgewichte gekürzt nach IUPAC/CIAAW~\\cite{er-ciaaw2024,er-ciaaw2021}.",
+   "cites": [
+    "er-ciaaw2024",
+    "er-ciaaw2021"
+   ],
+   "file": "zusammensetzung-1.tex",
+   "id": "zusammensetzung-1",
+   "kind": "table",
+   "label": "tab:reaktionsgleichung-zusammensetzung-1",
+   "notes": ""
+  },
+  {
+   "file": "values.tex",
+   "kind": "values",
+   "values": [
+    [
+     "gleichung",
+     "Zn + CuSO₄ → ZnSO₄ + Cu"
+    ],
+    [
+     "umsatz",
+     "0,09942 mol"
+    ],
+    [
+     "limitierend",
+     "Zn"
+    ],
+    [
+     "masse-znso4",
+     "16,05 g"
+    ],
+    [
+     "stoffmenge-znso4",
+     "0,09942 mol"
+    ],
+    [
+     "masse-cu",
+     "6,318 g"
+    ],
+    [
+     "stoffmenge-cu",
+     "0,09942 mol"
+    ],
+    [
+     "ae-znso4",
+     "71,8 %"
+    ],
+    [
+     "ae-cu",
+     "28,2 %"
+    ],
+    [
+     "Q-r",
+     "-21,02 kJ"
+    ],
+    [
+     "dH-r",
+     "-211,40 kJ/mol"
+    ],
+    [
+     "dS-r",
+     "-7,18 J/(mol·K)"
+    ],
+    [
+     "dG-r",
+     "-209,26 kJ/mol"
+    ],
+    [
+     "K-298",
+     "4,58·10^36"
+    ],
+    [
+     "lgK-298",
+     "36,66"
+    ],
+    [
+     "T-star",
+     "29442,9 K"
+    ],
+    [
+     "E0-r",
+     "1,100 V"
+    ],
+    [
+     "n-e",
+     "2"
+    ],
+    [
+     "ph",
+     "2,88"
+    ],
+    [
+     "V-eq1",
+     "25,00 mL"
+    ],
+    [
+     "molmasse-nacl",
+     "58,440 ± 0,010 g/mol"
+    ]
+   ]
+  }
+ ],
+ "source": {
+  "files": {},
+  "request": {
+   "include": {
+    "steps": true,
+    "tables": true
+   },
+   "lang": "de",
+   "slug": "reaktionsgleichung",
+   "state": {
+    "amounts": {
+     "0": {
+      "mass_g": 6.5
+     }
+    },
+    "equation": "Zn + CuSO4 -> ZnSO4 + Cu",
+    "ph": {
+     "mixture": "0,1 M CH3COOH"
+    },
+    "species": [
+     "NaCl"
+    ],
+    "titration": {
+     "V0": 25,
+     "Vmax": 50,
+     "analyte": "0,1 M CH3COOH",
+     "c": 0.1,
+     "titrant": "NaOH"
+    }
+   },
+   "title": "Reaktionsgleichung"
+  }
+ }
+}

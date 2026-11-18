@@ -1,0 +1,25 @@
+{
+  "id": "mikroskopie",
+  "name": "Mikroskopie",
+  "name_en": "Microscopy",
+  "description": "Mikroskopaufnahmen auswerten: TIFF (8/16/32-bit, Stapel, Kalibrierung), Filter, Hintergrund, 13 Schwellenmethoden, Binäroperationen, Auswahlen und Messungen, Partikelanalyse, Linienprofil, Massstab.",
+  "description_en": "Analyse micrographs: TIFF (8/16/32-bit, stacks, calibration), filters, background, 13 threshold methods, binary operations, selections and measurements, particle analysis, line profile, scale bar.",
+  "icon": "image",
+  "icon_svg": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><circle cx=\"9\" cy=\"10\" r=\"2.2\"/><circle cx=\"15\" cy=\"14.5\" r=\"1.6\"/><circle cx=\"15.5\" cy=\"8.5\" r=\"1\"/><circle cx=\"8.5\" cy=\"15.5\" r=\"0.9\"/>",
+  "color": "#7b1fa2",
+  "status": "ready",
+  "order": 15,
+  "version": "1.2.0",
+  "accepts": [".tif", ".tiff", ".png", ".jpg", ".jpeg", ".bmp", ".gif"],
+  "produces": ["figure", "table", "values", "data", "citation", "text"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "mikro.server", "--port", "{port}", "--aus", "{outputs}", "--kein-browser"],
+    "health": "/api/meta",
+    "requires": ["numpy", "matplotlib", "PIL"]
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

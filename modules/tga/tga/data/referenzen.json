@@ -1,0 +1,2743 @@
+{
+ "format": "folio-tga-bibliothek/1",
+ "name": "Modellbibliothek TGA",
+ "hinweis": "DTG-Kurven werden aus diesen veröffentlichten Stufenwerten berechnet (Fraser-Suzuki-Spitzen); keine gemessenen Kurven. Werte aus Text und Tabellen der genannten Quellen (Abruf 16.11.2026), nicht aus Abbildungen. Vor Gebrauch für belastbare Aussagen gegen die Quelle prüfen.",
+ "source": {
+  "type": "misc",
+  "title": "Modellbibliothek TGA (Folio Lab): Stufenwerte aus der Literatur",
+  "year": "2026",
+  "note": "Zusammenstellung; Quelle je Eintrag"
+ },
+ "entries": [
+  {
+   "name": "PE-HD (Md Saad u. a. 2021, N₂)",
+   "variant": "HDPE flakes, Regain Polymers Ltd (UK recycler); 0.38 % ash",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 487.0,
+     "T_onset": 464.0,
+     "T_end": 497.0,
+     "loss": 97.84
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Md Saad, J.; Williams, P.T.; Zhang, Y.S.; Yao, D.; Yang, H.; Zhou, H.",
+    "title": "Comparison of waste plastics pyrolysis under nitrogen and carbon dioxide atmospheres: A thermogravimetric and kinetic study",
+    "container": "Journal of Analytical and Applied Pyrolysis",
+    "year": "2021",
+    "volume": "156",
+    "pages": "105135",
+    "doi": "10.1016/j.jaap.2021.105135",
+    "url": "https://discovery.ucl.ac.uk/10130141/1/Reviewed-AS%20SUBMITTED%20CLEAN%2001.04.2021-jms.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2 (N2 column); conditions in Section 2.2",
+    "licence": "Accepted manuscript, green OA (UCL Discovery)"
+   },
+   "note": "HDPE flakes, Regain Polymers Ltd (UK recycler); 0.38 % ash; Atmosphäre: nitrogen; Shimadzu TGA-50, 8-9 mg, alumina pan, N2 50 mL/min, RT to 500 °C then 30 min hold. The residue is after that hold, not a high-temperature residue. Single step.; Onset: Ti = temperature where degradation started (method not specified); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 2.16,
+   "residue_at": 500.0,
+   "id": "pe-hd-1",
+   "group": "pe-hd"
+  },
+  {
+   "name": "PE-HD (Coura u. a. 2021, N₂)",
+   "variant": "Neat HDPE matrix (grade not extracted)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 466.8,
+     "T_onset": 444.0,
+     "T_end": 482.0,
+     "loss": 98.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Coura, I.R.; Carmignano, O.R.D.R.; Heitmann, A.P.; Lameiras, F.S.; Lago, R.M.; de O. Patricio, P.S.",
+    "title": "Use of iron mine tailing as fillers to polyethylene",
+    "container": "Scientific Reports",
+    "year": "2021",
+    "volume": "11",
+    "pages": "7091",
+    "doi": "10.1038/s41598-021-86456-z",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8007725/",
+    "accessed": "2026-11-16",
+    "note": "Werte: TGA results text (Fig. 2)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Neat HDPE matrix (grade not extracted); Atmosphäre: nitrogen; Shimadzu TG/DTA 60H, about 7 mg, to 900 °C. Text says 98 % mass loss by 600 °C, which implies about 2 % at 600 °C (my arithmetic, not stated). No DTG peak given.; Onset: start of degradation range stated in text ('from 444 to 482 °C'); DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "pe-hd-2",
+   "group": "pe-hd"
+  },
+  {
+   "name": "PE-LD (Md Saad u. a. 2021, N₂)",
+   "variant": "LDPE, Sigma-Aldrich (0.08 % ash)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 480.0,
+     "T_onset": 457.0,
+     "T_end": 495.0,
+     "loss": 98.75
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Md Saad, J.; others",
+    "title": "Comparison of waste plastics pyrolysis under nitrogen and carbon dioxide atmospheres: A thermogravimetric and kinetic study",
+    "container": "Journal of Analytical and Applied Pyrolysis",
+    "year": "2021",
+    "volume": "156",
+    "pages": "105135",
+    "doi": "10.1016/j.jaap.2021.105135",
+    "url": "https://discovery.ucl.ac.uk/10130141/1/Reviewed-AS%20SUBMITTED%20CLEAN%2001.04.2021-jms.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2",
+    "licence": "Accepted manuscript, green OA"
+   },
+   "note": "LDPE, Sigma-Aldrich (0.08 % ash); Atmosphäre: nitrogen; Same conditions as the PE-HD entry (Saad); residue after 30 min at 500 °C.; Onset: Ti = temperature where degradation started (method not specified); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 1.25,
+   "residue_at": 500.0,
+   "id": "pe-ld-1",
+   "group": "pe-ld"
+  },
+  {
+   "name": "PE-LD (Yuan u. a. 2020, N₂)",
+   "variant": "LLDPE powder, about 100 mesh (linear low-density, not LDPE)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 483.0,
+     "T_onset": 460.0,
+     "T_end": 505.0,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Yuan, Z.; Zhang, J.; Zhao, P.; Wang, Z.; Cui, X.; Gao, L.; Guo, Q.; Tian, H.",
+    "title": "Synergistic Effect and Chlorine-Release Behaviors During Co-pyrolysis of LLDPE, PP, and PVC",
+    "container": "ACS Omega",
+    "year": "2020",
+    "volume": "5",
+    "issue": "20",
+    "pages": "11291-11298",
+    "doi": "10.1021/acsomega.9b04116",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7254513/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 3 (10 K/min rows); conditions in Section 2.2 / Table 2",
+    "licence": "ACS AuthorChoice (non-commercial)"
+   },
+   "note": "LLDPE powder, about 100 mesh (linear low-density, not LDPE); Atmosphäre: nitrogen; Setaram LabsysEvo, about 20 mg, Al2O3 crucible, N2 20 mL/min, 30-800 °C. Ti/Tp/Tf at 30 K/min 482/505/534; at 40 K/min 490/511/544.; Onset: Ti = T at TG = 95 % (5 % mass loss); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "pe-ld-2",
+   "group": "pe-ld"
+  },
+  {
+   "name": "PP (Yuan u. a. 2020, N₂)",
+   "variant": "PP powder, about 100 mesh (0.04 % ash)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 467.0,
+     "T_onset": 434.0,
+     "T_end": 489.0,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Yuan, Z.; others",
+    "title": "Synergistic Effect and Chlorine-Release Behaviors During Co-pyrolysis of LLDPE, PP, and PVC",
+    "container": "ACS Omega",
+    "year": "2020",
+    "volume": "5",
+    "issue": "20",
+    "pages": "11291-11298",
+    "doi": "10.1021/acsomega.9b04116",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7254513/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 3",
+    "licence": "ACS AuthorChoice (non-commercial)"
+   },
+   "note": "PP powder, about 100 mesh (0.04 % ash); Atmosphäre: nitrogen; Same conditions as the LLDPE entry. At 30 K/min 451/487/521; at 40 K/min 463/492/529. Single stage.; Onset: Ti = T at TG = 95 % (5 % mass loss); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "pp-1",
+   "group": "pp"
+  },
+  {
+   "name": "PP (Md Saad u. a. 2021, N₂)",
+   "variant": "Recycled PP flakes, Regain Polymers (8.38 % O, 0.39 % ash)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 466.0,
+     "T_onset": 441.0,
+     "T_end": 483.0,
+     "loss": 88.09
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Md Saad, J.; others",
+    "title": "Comparison of waste plastics pyrolysis under nitrogen and carbon dioxide atmospheres: A thermogravimetric and kinetic study",
+    "container": "Journal of Analytical and Applied Pyrolysis",
+    "year": "2021",
+    "volume": "156",
+    "pages": "105135",
+    "doi": "10.1016/j.jaap.2021.105135",
+    "url": "https://discovery.ucl.ac.uk/10130141/1/Reviewed-AS%20SUBMITTED%20CLEAN%2001.04.2021-jms.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2",
+    "licence": "Accepted manuscript, green OA"
+   },
+   "note": "Recycled PP flakes, Regain Polymers (8.38 % O, 0.39 % ash); Atmosphäre: nitrogen; Secondary source. The residue is unusually high for PP, probably because the feedstock is recycled; residue after 30 min at 500 °C.; Onset: Ti = start of degradation (method not specified); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 11.91,
+   "residue_at": 500.0,
+   "id": "pp-2",
+   "group": "pp"
+  },
+  {
+   "name": "PS (Sun u. a. 2020, N₂)",
+   "variant": "PS homopolymer (control in a copolymer study; Mn 3.23e4, Mw 5.69e4)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 414.0,
+     "T_onset": 365.0,
+     "loss": 99.79
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Sun, Y.; Wang, Y.; Liu, L.; Xiao, T.",
+    "title": "The Preparation, Thermal Properties, and Fire Property of a Phosphorus-Containing Flame-Retardant Styrene Copolymer",
+    "container": "Materials (MDPI)",
+    "year": "2020",
+    "volume": "13",
+    "issue": "1",
+    "pages": "127",
+    "doi": "10.3390/ma13010127",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6981446/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2 (row PS)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "PS homopolymer (control in a copolymer study; Mn 3.23e4, Mw 5.69e4); Atmosphäre: nitrogen; TA Q5000 SA, RT to 700 °C. Sample mass, crucible and flow not stated. Rmax -2.75 %/°C.; Onset: T5% (5 % mass loss); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 0.21,
+   "residue_at": 700.0,
+   "id": "ps-1",
+   "group": "ps"
+  },
+  {
+   "name": "PS (Farha u. a. 2020, N₂)",
+   "variant": "PS pellets, Sigma-Aldrich",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 403.3,
+     "T_end": 440.0,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Farha, A.H.; Al Naim, A.F.; Mansour, S.A.",
+    "title": "Thermal Degradation of Polystyrene (PS) Nanocomposites Loaded with Sol Gel-Synthesized ZnO Nanorods",
+    "container": "Polymers (MDPI)",
+    "year": "2020",
+    "volume": "12",
+    "issue": "9",
+    "pages": "1935",
+    "doi": "10.3390/polym12091935",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7564630/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 1 (PS-0)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "PS pellets, Sigma-Aldrich; Atmosphäre: nitrogen; Shimadzu TGA-50H, about 2 mg, Pt pan, N2 30 mL/min, to 600 °C. End = T100. The peak is low compared with other PS sources.; Onset: not reported (T50 = 401 °C)",
+   "derived": [],
+   "id": "ps-2",
+   "group": "ps"
+  },
+  {
+   "name": "PS (Md Saad u. a. 2021, N₂)",
+   "variant": "Recycled PS flakes, Regain Polymers (5.23 % ash)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 435.0,
+     "T_onset": 420.0,
+     "T_end": 452.0,
+     "loss": 94.09
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Md Saad, J.; others",
+    "title": "Comparison of waste plastics pyrolysis under nitrogen and carbon dioxide atmospheres: A thermogravimetric and kinetic study",
+    "container": "Journal of Analytical and Applied Pyrolysis",
+    "year": "2021",
+    "volume": "156",
+    "pages": "105135",
+    "doi": "10.1016/j.jaap.2021.105135",
+    "url": "https://discovery.ucl.ac.uk/10130141/1/Reviewed-AS%20SUBMITTED%20CLEAN%2001.04.2021-jms.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2",
+    "licence": "Accepted manuscript, green OA"
+   },
+   "note": "Recycled PS flakes, Regain Polymers (5.23 % ash); Atmosphäre: nitrogen; Residue after 30 min at 500 °C, mostly filler/ash.; Onset: Ti = start of degradation (method not specified); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 5.91,
+   "residue_at": 500.0,
+   "id": "ps-3",
+   "group": "ps"
+  },
+  {
+   "name": "PET (Wei u. a. 2021, N₂)",
+   "variant": "Neat PET (matrix of a flame-retardant study)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 428.7,
+     "T_onset": 381.9,
+     "loss": 91.7
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Wei, L.; Wang, R.; Zhu, Z.; Wang, W.; Wu, H.",
+    "title": "Functionalization of PET with Phosphazene Grafted Graphene Oxide for Synthesis, Flammability, and Mechanism",
+    "container": "Materials (MDPI)",
+    "year": "2021",
+    "volume": "14",
+    "issue": "6",
+    "pages": "1470",
+    "doi": "10.3390/ma14061470",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8002576/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2 (PET); Section 2.4",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Neat PET (matrix of a flame-retardant study); Atmosphäre: nitrogen; Netzsch TG 209, 5-10 mg, N2 100 mL/min, 30-700 °C. Air data is only in the supplement, which I could not access.; Onset: T5 wt% (T30 412.8, T50 425.7 °C); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 8.3,
+   "residue_at": 700.0,
+   "id": "pet-1",
+   "group": "pet"
+  },
+  {
+   "name": "PET (Md Saad u. a. 2021, N₂)",
+   "variant": "PET, Sigma-Aldrich",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 436.0,
+     "T_onset": 414.0,
+     "T_end": 456.0,
+     "loss": 80.34
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Md Saad, J.; others",
+    "title": "Comparison of waste plastics pyrolysis under nitrogen and carbon dioxide atmospheres: A thermogravimetric and kinetic study",
+    "container": "Journal of Analytical and Applied Pyrolysis",
+    "year": "2021",
+    "volume": "156",
+    "pages": "105135",
+    "doi": "10.1016/j.jaap.2021.105135",
+    "url": "https://discovery.ucl.ac.uk/10130141/1/Reviewed-AS%20SUBMITTED%20CLEAN%2001.04.2021-jms.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2",
+    "licence": "Accepted manuscript, green OA"
+   },
+   "note": "PET, Sigma-Aldrich; Atmosphäre: nitrogen; Residue after 30 min at 500 °C.; Onset: Ti = start of degradation (method not specified); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 19.66,
+   "residue_at": 500.0,
+   "id": "pet-2",
+   "group": "pet"
+  },
+  {
+   "name": "PBT",
+   "variant": "Neat PBT (matrix of a flame-retardant study)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 407.0,
+     "T_onset": 372.0,
+     "T_end": 430.0,
+     "loss": 91.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Niu, L.; Xu, J.; Yang, W.; Ma, J.; Zhao, J.; Kang, C.; Su, J.",
+    "title": "Study on the Synergetic Fire-Retardant Effect of Nano-Sb2O3 in PBT Matrix",
+    "container": "Materials (MDPI)",
+    "year": "2018",
+    "volume": "11",
+    "issue": "7",
+    "pages": "1060",
+    "doi": "10.3390/ma11071060",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6073396/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4 (Neat PBT); TGA text",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Neat PBT (matrix of a flame-retardant study); Atmosphäre: nitrogen; 5-10 mg, open alumina crucible, N2, RT to 600 °C. Main stage given as 330-430 °C with 91 % loss.; Onset: T10%",
+   "derived": [],
+   "residue": 1.1,
+   "residue_at": 600.0,
+   "id": "pbt-1",
+   "group": "pbt"
+  },
+  {
+   "name": "PA6 (Vothi u. a. 2023, N₂)",
+   "variant": "PA6 pellets, Taekwang (grade not stated)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 456.0,
+     "T_onset": 374.0,
+     "loss": 99.95
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Vothi, H.; Kim, C.; Nguyen, T.; Lee, J.; Nguyen, L.-A.T.; Suhr, J.",
+    "title": "Thermal degradation and flame retardancy of nylon 6/aluminum methylmethoxy phosphonate composites",
+    "container": "RSC Advances",
+    "year": "2023",
+    "volume": "13",
+    "issue": "8",
+    "pages": "5219-5227",
+    "doi": "10.1039/d2ra07297a",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9910282/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 3; Sections 2.4, 3.5",
+    "licence": "Open access (licence not seen)"
+   },
+   "note": "PA6 pellets, Taekwang (grade not stated); Atmosphäre: nitrogen; EXSTAR TG/DTA7300, 35-700 °C. Sample mass, crucible and flow not reported. Single step.; Onset: T5%; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 0.05,
+   "residue_at": 700.0,
+   "id": "pa6-1",
+   "group": "pa6"
+  },
+  {
+   "name": "PA6 (Liu u. a. 2018, Luft)",
+   "variant": "Neat PA6 (control in a fibre flame-retardant study)",
+   "category": "Kunststoff",
+   "atmosphere": "Luft",
+   "rate": 15.0,
+   "steps": [
+    {
+     "T_peak": 452.5,
+     "T_onset": 388.46,
+     "loss": 99.89
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Liu, K.; Li, Y.; Tao, L.; Xiao, R.",
+    "title": "Preparation and characterization of polyamide 6 fibre based on a phosphorus-containing flame retardant",
+    "container": "RSC Advances",
+    "year": "2018",
+    "volume": "8",
+    "issue": "17",
+    "pages": "9261-9271",
+    "doi": "10.1039/c7ra13228j",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9078688/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 3; Section 2.3",
+    "licence": "Open access (licence not seen)"
+   },
+   "note": "Neat PA6 (control in a fibre flame-retardant study); Atmosphäre: air; 15 K/min, not 10. Netzsch TG 209F1, open alumina, 5-10 mg, air 20 mL/min. T50% 447.06 °C; residue 0.34 % at 600 °C.; Onset: T5%; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 0.11,
+   "residue_at": 700.0,
+   "id": "pa6-2",
+   "group": "pa6"
+  },
+  {
+   "name": "PA66 (Zhang u. a. 2025, N₂)",
+   "variant": "Neat PA66, Shen Ma Industry",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 446.1,
+     "T_onset": 403.4,
+     "loss": 99.21
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Zhang, H.; He, J.; Li, X.",
+    "title": "Effect of Multiple Phosphorus-Nitrogen Flame Retardant on the Properties of PA66",
+    "container": "Polymers (MDPI)",
+    "year": "2025",
+    "volume": "17",
+    "issue": "11",
+    "pages": "1537",
+    "doi": "10.3390/polym17111537",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12157930/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2; Sections 2.4, 3.2",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Neat PA66, Shen Ma Industry; Atmosphäre: nitrogen; Netzsch STA2500, 25-800 °C. Flow, sample mass and crucible not reported.; Onset: T5%; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 0.79,
+   "residue_at": 800.0,
+   "id": "pa66-1",
+   "group": "pa66"
+  },
+  {
+   "name": "PA66 (Yao u. a. 2023, Luft)",
+   "variant": "Zytel 70G33L, 33 % glass fibre (not neat)",
+   "category": "Kunststoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 438.0,
+     "T_onset": 377.0,
+     "loss": 68.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Yao, Q.; Cao, W.; Zhao, Y.; Tang, T.",
+    "title": "Synthesis and Application of Hybrid Aluminum Dialkylphosphinates as Highly Efficient Flame Retardants for Polyamides",
+    "container": "Polymers (MDPI)",
+    "year": "2023",
+    "volume": "15",
+    "issue": "23",
+    "pages": "4612",
+    "doi": "10.3390/polym15234612",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10708692/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2 (PA66)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Zytel 70G33L, 33 % glass fibre (not neat); Atmosphäre: air; The residue is mostly glass fibre; use only the temperatures. The same row in N2 gives T5% 401 °C, Tmax 448 °C. TA TGA 50, 3-5 mg, 60 mL/min, 50-600 °C.; Onset: T5%; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 32.0,
+   "residue_at": 600.0,
+   "id": "pa66-2",
+   "group": "pa66"
+  },
+  {
+   "name": "PC",
+   "variant": "Bisphenol-A PC, Bayer AG, MI 10",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 515.9,
+     "T_onset": 480.27,
+     "loss": 74.77
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Mu, X.; Zhan, J.; Liu, L.; Yao, Z.; Zhu, Y.; Yu, B.; Song, L.",
+    "title": "Highly Efficient Phosphazene-Derivative-Based Flame Retardant with Comprehensive and Enhanced Fire Safety and Mechanical Performance for Polycarbonate",
+    "container": "Materials (MDPI)",
+    "year": "2024",
+    "volume": "17",
+    "issue": "13",
+    "pages": "3206",
+    "doi": "10.3390/ma17133206",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11242893/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4 (PC-0)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Bisphenol-A PC, Bayer AG, MI 10; Atmosphäre: nitrogen; Single DTG peak. Residue temperature not stated. T5%/peak/char: 447.65/490.19/24.77 at 5, 484.60/528.44/24.70 at 20, 507.80/546.34/24.70 at 40 K/min.; Onset: T5% (T10% 490.89, T50% 519.09 °C); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 25.23,
+   "id": "pc-1",
+   "group": "pc"
+  },
+  {
+   "name": "ABS",
+   "variant": "Terluran HI-10 natural (Ineos Styrolution)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 428.2,
+     "T_onset": 386.4,
+     "loss": 98.5
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Oliwa, R.; Bulanda, K.; Oleksy, M.",
+    "title": "Thermal Degradation and Flame Resistance Mechanism of Phosphorous-Based Flame Retardant of ABS Composites Used in 3D Printing Technology",
+    "container": "Materials (MDPI)",
+    "year": "2025",
+    "volume": "18",
+    "issue": "13",
+    "pages": "3202",
+    "doi": "10.3390/ma18133202",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12251474/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 7 (ABS)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Terluran HI-10 natural (Ineos Styrolution); Atmosphäre: nitrogen; Mettler TGA/DSC, 25-700 °C. Mass loss and residue as tabulated (they do not sum to 100).; Onset: T5%",
+   "derived": [],
+   "residue": 0.0,
+   "residue_at": 700.0,
+   "id": "abs-1",
+   "group": "abs"
+  },
+  {
+   "name": "POM (Zhang u. a. 2023, N₂)",
+   "variant": "DuPont POM, ≥99 % (homopolymer or copolymer not stated)",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 373.0,
+     "T_onset": 354.0,
+     "T_end": 430.0,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Zhang, D.; Zhou, S.; Li, M.",
+    "title": "Analysis of Thermal Degradation Kinetics of POM under Inert and Oxidizing Atmospheres and Combustion Characteristics with Flame Retardant Effects",
+    "container": "Polymers (MDPI)",
+    "year": "2023",
+    "volume": "15",
+    "issue": "10",
+    "pages": "2286",
+    "doi": "10.3390/polym15102286",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10221971/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2",
+    "licence": "CC BY 4.0"
+   },
+   "note": "DuPont POM, ≥99 % (homopolymer or copolymer not stated); Atmosphäre: nitrogen; TA SDT-Q600, 2 mg, 100 mL/min. Values at 5, 15 and 20 K/min are also in Table 2.; Onset: T_onset (not defined in paper); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "pom-1",
+   "group": "pom"
+  },
+  {
+   "name": "POM (Zhang u. a. 2023, Luft)",
+   "variant": "DuPont POM (same sample)",
+   "category": "Kunststoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 288.0,
+     "T_onset": 277.0,
+     "T_end": 312.0,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Zhang, D.; Zhou, S.; Li, M.",
+    "title": "Analysis of Thermal Degradation Kinetics of POM under Inert and Oxidizing Atmospheres and Combustion Characteristics with Flame Retardant Effects",
+    "container": "Polymers (MDPI)",
+    "year": "2023",
+    "volume": "15",
+    "issue": "10",
+    "pages": "2286",
+    "doi": "10.3390/polym15102286",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10221971/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2",
+    "licence": "CC BY 4.0"
+   },
+   "note": "DuPont POM (same sample); Atmosphäre: air; Single step.; Onset: T_onset (not defined); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "pom-2",
+   "group": "pom"
+  },
+  {
+   "name": "PTFE",
+   "variant": "KT-300M virgin powder (Kitamaru), additive-free",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 597.4,
+     "T_onset": 509.4,
+     "T_end": 610.4,
+     "loss": 99.92
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Eigenschink, L.; Mastalir, M.; Harasek, M.; Paulik, C.",
+    "title": "Thermal Depolymerization Challenges of PTFE:Silicone Rubber Mixtures and Composite Materials",
+    "container": "Polymers (MDPI)",
+    "year": "2026",
+    "volume": "18",
+    "issue": "15",
+    "pages": "1929",
+    "doi": "10.3390/polym18151929",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13468768/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 1 (PTFE-V)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "KT-300M virgin powder (Kitamaru), additive-free; Atmosphäre: nitrogen; PerkinElmer TGA 8000, 25-800 °C. End = rate back to 1 % of max. Second source (Cai et al., RSC Adv 2018, 8:11367, doi 10.1039/c8ra01047a, Table 1, N2, 10 K/min): T5% 537.3 °C, T30% 568.8 °C, range 500-615 °C.; Onset: T where rate = 1 % of max rate, before the peak; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 0.08,
+   "residue_at": 800.0,
+   "id": "ptfe-1",
+   "group": "ptfe"
+  },
+  {
+   "name": "PLA",
+   "variant": "Ingeo 2003D (NatureWorks), 3D-printed, unfilled",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 372.0,
+     "T_onset": 335.0,
+     "T_end": 387.0,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Pavon, C.; Aldas, M.; Samper, M.D.; Motoc, D.L.; Ferrandiz, S.; Lopez-Martinez, J.",
+    "title": "Mechanical, Dynamic-Mechanical, Thermal and Decomposition Behavior of 3D-Printed PLA Reinforced with CaCO3 Fillers from Natural Resources",
+    "container": "Polymers (MDPI)",
+    "year": "2022",
+    "volume": "14",
+    "issue": "13",
+    "pages": "2646",
+    "doi": "10.3390/polym14132646",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9268811/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4 (PLA-0%)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Ingeo 2003D (NatureWorks), 3D-printed, unfilled; Atmosphäre: nitrogen; End = T95%. Linseis PT1000, 15-20 mg, N2 30 mL/min, 35-700 °C. Second source (Cao et al., Polymers 2020, 12:1106, doi 10.3390/polym12051106, Table 3, Ingeo 4032D, N2, 10 K/min): T10% 335.6, Tmax 364.9 °C, residue 0.03 % at 700 °C.; Onset: T5%; Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "pla-1",
+   "group": "pla"
+  },
+  {
+   "name": "PVA",
+   "variant": "Aldrich PVA, Mw 30-70 kDa, 87-89 % hydrolysed, dried film",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 298.0,
+     "T_onset": 214.0,
+     "loss": 78.0
+    },
+    {
+     "T_peak": 427.0,
+     "T_onset": 362.0,
+     "loss": 12.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Dluga, A.; Bajer, D.; Kaczmarek, H.",
+    "title": "Photochemical and Thermal Stability of Bionanocellulose/Poly(Vinyl Alcohol) Blends",
+    "container": "Polymers (MDPI)",
+    "year": "2022",
+    "volume": "14",
+    "issue": "20",
+    "pages": "4364",
+    "doi": "10.3390/polym14204364",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9609272/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Tables 5, 6; Section 3.5",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Aldrich PVA, Mw 30-70 kDa, 87-89 % hydrolysed, dried film; Atmosphäre: nitrogen; Moisture step at 62-110 °C, about 3 %. T20/T50/T80 = 287/304/343 °C. TA SDT 2960, 20-600 °C. Residue not reported (about 7-10 % by difference, my arithmetic). Fully hydrolysed PVA will differ.; Onset: T0 = decomposition onset (method not specified) / start of final stage (text)",
+   "derived": [],
+   "id": "pva-1",
+   "group": "pva"
+  },
+  {
+   "name": "EVA",
+   "variant": "EVA 25 wt% VA (MI 19), neat 'PEVAc (IM)'",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 345.9,
+     "loss": 19.08
+    },
+    {
+     "T_peak": 465.8,
+     "loss": 77.6
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Ahmad Fauzi, A.A.; Osman, A.F.; Alosime, E.M.; Abdul Halim, K.A.; Abdullah, M.A.A.",
+    "title": "Structure and Properties of Poly(Ethylene-co-vinyl Acetate) Nanocomposites with Dual-Functionalized Dolomite Nanoparticles",
+    "container": "International Journal of Molecular Sciences (MDPI)",
+    "year": "2024",
+    "volume": "25",
+    "issue": "23",
+    "pages": "12519",
+    "doi": "10.3390/ijms252312519",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11641816/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 5; Section 3.4.7; TGA text",
+    "licence": "CC BY 4.0"
+   },
+   "note": "EVA 25 wt% VA (MI 19), neat 'PEVAc (IM)'; Atmosphäre: nitrogen; PerkinElmer Pyris Diamond, ambient to 700 °C. 100 - 19.08 - 77.6 = 3.3 % is implied, not stated. Step-1 loss (19 %) is consistent with 25 % VA (theoretical acetic acid about 17.4 %).; Onset: not given; text: step 1 about 300-400 °C (acetic acid loss) / not given; text: step 2 about 420-500 °C (backbone)",
+   "derived": [],
+   "id": "eva-1",
+   "group": "eva"
+  },
+  {
+   "name": "PU",
+   "variant": "Rigid PU foam, ground (polyether polyol + polymeric MDI, BASF), isocyanate index 1.10 (P110)",
+   "category": "Kunststoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 319.3,
+     "T_onset": 162.88,
+     "loss": 51.95
+    },
+    {
+     "T_peak": 526.7,
+     "T_onset": 398.23,
+     "loss": 48.05
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Jiang, L.; Berto, F.; Zhang, D.",
+    "title": "Pyrolysis Kinetics and Flammability Evaluation of Rigid Polyurethane with Different Isocyanate Content",
+    "container": "Molecules (MDPI)",
+    "year": "2021",
+    "volume": "26",
+    "issue": "8",
+    "pages": "2386",
+    "doi": "10.3390/molecules26082386",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8073025/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Rigid PU foam, ground (polyether polyol + polymeric MDI, BASF), isocyanate index 1.10 (P110); Atmosphäre: air; TA SDT Q600, 6.0 mg, Al2O3 crucible, air 100 mL/min, 25-800 °C. The two losses sum to 100 %. Second foam source (Yang et al., Polymers 2019, 11:668, doi 10.3390/polym11040668, Table 2, RPUF30, air, 20 K/min): T5% 274.14 °C, peaks 330/562 °C, losses 41.99/54.83 %, residue 3.18 % at 700 °C.; Onset: T0 = stage start (as tabulated) / T0 = stage start (oxidative stage)",
+   "derived": [],
+   "id": "pu-1",
+   "group": "pu"
+  },
+  {
+   "name": "Epoxidharz (gehärtet)",
+   "variant": "DGEBA E-51 + DDM (4,4'-diaminodiphenylmethane), 80 °C/2 h + 150 °C/2 h; EP-0",
+   "category": "Kunststoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 385.0,
+     "T_onset": 355.0,
+     "loss": 80.78
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Li, P.; Wang, J.; Wang, C.; Xu, C.; Ni, A.",
+    "title": "The Flame Retardant and Mechanical Properties of the Epoxy Modified by an Efficient DOPO-Based Flame Retardant",
+    "container": "Polymers (MDPI)",
+    "year": "2024",
+    "volume": "16",
+    "issue": "5",
+    "pages": "631",
+    "doi": "10.3390/polym16050631",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10933929/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 5; Section 2.4",
+    "licence": "CC BY 4.0"
+   },
+   "note": "DGEBA E-51 + DDM (4,4'-diaminodiphenylmethane), 80 °C/2 h + 150 °C/2 h; EP-0; Atmosphäre: nitrogen; NETZSCH STA449F3, 30-1000 °C. Rmax -13.68 %/min. Second source (Lee et al., Polymers 2021, 13:3310, doi 10.3390/polym13193310, Table 1, YD-128 + DDM, N2, 10 K/min): PDT 364.1, Tmax 379.9 °C, IPDT 399.5 °C. Third source (Zhao et al., Polymers 2023, 15:1655, Table 4, E-44 + DDS, N2, 10 K/min): T5% 377.5 °C, char 13.4 % at 700 °C. Aliphatic-amine cure (Tikhani et al., Polymers 2020, 12:644, EPON 828 + Epikure F205, N2, 10 K/min): T5% 319, T10% 351 °C, residue 9.8 % at 550 °C.; Onset: Td5%; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 19.22,
+   "residue_at": 700.0,
+   "id": "epoxidharz-gehartet-1",
+   "group": "epoxidharz-gehartet"
+  },
+  {
+   "name": "NR",
+   "variant": "RSS1 unfilled sulfur vulcanizate (NR 100, ZnO 5, stearic acid 1, S 2, MBT 2 phr)",
+   "category": "Elastomer",
+   "atmosphere": "Ar → Luft",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 398.0,
+     "T_onset": 317.0,
+     "T_end": 600.0,
+     "loss": 94.7
+    },
+    {
+     "T_peak": 720.0,
+     "T_onset": 600.0,
+     "T_end": 800.0,
+     "loss": 1.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Juszkiewicz, A.; Maciejewska, M.",
+    "title": "Tea Grounds as a Waste Biofiller for Natural Rubber",
+    "container": "Materials (MDPI)",
+    "year": "2024",
+    "volume": "17",
+    "issue": "7",
+    "pages": "1516",
+    "doi": "10.3390/ma17071516",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11012830/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 7 (Unfilled NR); Table 1 (recipe)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "RSS1 unfilled sulfur vulcanizate (NR 100, ZnO 5, stearic acid 1, S 2, MBT 2 phr); Atmosphäre: argon to 600 °C, then air to 800 °C; Mettler TGA/DSC1, about 10 mg, 70 µL alumina, 50 mL/min. Residue = ash + ZnO. Nitrogen at 10 K/min (Luo et al., IJMS 2025, 26:3410, doi 10.3390/ijms26073410, text): unfilled NR vulcanizate DTG peak 378 °C, no other values.; Onset: T5% / gas switched to air (residue combustion); DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "residue": 4.3,
+   "residue_at": 800.0,
+   "id": "nr-1",
+   "group": "nr"
+  },
+  {
+   "name": "SBR",
+   "variant": "KER 1500 (23.5 % styrene) + 30 phr carbon black N550, sulfur cure (ZnO reference)",
+   "category": "Elastomer",
+   "atmosphere": "Ar → Luft",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 469.0,
+     "T_onset": 325.0,
+     "T_end": 600.0,
+     "loss": 74.4
+    },
+    {
+     "T_peak": 780.0,
+     "T_onset": 600.0,
+     "T_end": 900.0,
+     "loss": 22.3
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Maciejewska, M.; Sowińska, A.; Kucharska, J.",
+    "title": "Organic Zinc Salts as Pro-Ecological Activators for Sulfur Vulcanization of Styrene-Butadiene Rubber",
+    "container": "Polymers (MDPI)",
+    "year": "2019",
+    "volume": "11",
+    "issue": "10",
+    "pages": "1723",
+    "doi": "10.3390/polym11101723",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6836100/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 7 (ZnO row)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "KER 1500 (23.5 % styrene) + 30 phr carbon black N550, sulfur cure (ZnO reference); Atmosphäre: argon to 600 °C, then air to 900 °C; Filled compound: use T5% and the DTG peak, not the mass split.; Onset: T5% / gas switched to air (carbon black and char burn-off); DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "residue": 3.3,
+   "residue_at": 900.0,
+   "id": "sbr-1",
+   "group": "sbr"
+  },
+  {
+   "name": "NBR",
+   "variant": "SKN3365E (31-35 % ACN), unfilled sulfur vulcanizate (0HAP)",
+   "category": "Elastomer",
+   "atmosphere": "Ar → Luft",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 476.0,
+     "T_onset": 365.0,
+     "T_end": 600.0,
+     "loss": 90.6
+    },
+    {
+     "T_peak": 720.0,
+     "T_onset": 600.0,
+     "T_end": 800.0,
+     "loss": 4.8
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Maciejewska, M.; Rybiński, P.; Sowińska-Baranowska, A.",
+    "title": "Hydroxyapatite-Filled Acrylonitrile-Butadiene Rubber Composites with Improved Cure Characteristics and Reduced Flammability",
+    "container": "Materials (MDPI)",
+    "year": "2024",
+    "volume": "17",
+    "issue": "15",
+    "pages": "3718",
+    "doi": "10.3390/ma17153718",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11313012/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 7 (0HAP)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "SKN3365E (31-35 % ACN), unfilled sulfur vulcanizate (0HAP); Atmosphäre: argon to 600 °C, then air to 800 °C; Mettler TGA/DSC1, about 10 mg. About 5 % char under inert gas, unlike NR.; Onset: T5% / gas switched to air (char combustion); DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "residue": 4.6,
+   "residue_at": 800.0,
+   "id": "nbr-1",
+   "group": "nbr"
+  },
+  {
+   "name": "EPDM",
+   "variant": "EPDM compound EPDM0L: EPDM 100, N220 carbon black 50, paraffin oil 50, sulfur cure",
+   "category": "Elastomer",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 477.5,
+     "T_onset": 455.8,
+     "loss": 75.4
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Alfannakh, H.; Alnaim, N.; Ibrahim, S.S.",
+    "title": "Thermal Stability and Non-Isothermal Kinetic Analysis of Ethylene-Propylene-Diene Rubber Composite",
+    "container": "Polymers (MDPI)",
+    "year": "2023",
+    "volume": "15",
+    "issue": "8",
+    "pages": "1890",
+    "doi": "10.3390/polym15081890",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10147005/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 2 (EPDM0L); Table 1",
+    "licence": "CC BY 4.0"
+   },
+   "note": "EPDM compound EPDM0L: EPDM 100, N220 carbon black 50, paraffin oil 50, sulfur cure; Atmosphäre: nitrogen; TA Q50, about 10 mg, N2 20 mL/min, 50-650 °C. 10 K/min is taken from the Fig. 1 caption. Residue is mostly carbon black; residue temperature not stated. Second source (Sowińska et al., Polymers 2020, 12:1220, Table 9, Vistalon 8600, heavily filled, argon then air, 20 K/min): T5% 369, DTG 473 °C, 51.8 % inert loss, 36.9 % in air, residue 11.6 % at 900 °C.; Onset: Tonset1 (not defined); oil and volatiles / Tonset2 (not defined); EPDM pyrolysis; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 24.6,
+   "id": "epdm-1",
+   "group": "epdm"
+  },
+  {
+   "name": "Silikonkautschuk (PDMS) (Vasilakos & Tarantili 2025, N₂)",
+   "variant": "Unfilled PDMS network (DMS-S35 + 10 phr TPOS, tin cure)",
+   "category": "Elastomer",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 455.4,
+     "T_onset": 420.0,
+     "loss": 90.55
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Vasilakos, S.P.; Tarantili, P.A.",
+    "title": "Evaluation of Thermal Stability and Thermal Transitions of Hydroxyl-Terminated Polysiloxane/Montmorillonite Nanocomposites",
+    "container": "Materials (MDPI)",
+    "year": "2025",
+    "volume": "18",
+    "issue": "6",
+    "pages": "1226",
+    "doi": "10.3390/ma18061226",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11944204/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Tables 7-9 (0 phr)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Unfilled PDMS network (DMS-S35 + 10 phr TPOS, tin cure); Atmosphäre: nitrogen; Mettler TGA-DTA, 8-10 mg, 25-800 °C. Residue temperature not stated (probably 800 °C).; Onset: Tonset (not defined); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 9.45,
+   "id": "silikonkautschuk-pdms-1",
+   "group": "silikonkautschuk-pdms"
+  },
+  {
+   "name": "Silikonkautschuk (PDMS) (Eigenschink u. a. 2026, N₂)",
+   "variant": "Virgin silicone rubber 'SR-V' (commercial; filler not checked)",
+   "category": "Elastomer",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 588.8,
+     "T_onset": 308.1,
+     "T_end": 723.3,
+     "loss": 65.18
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Eigenschink, L.; Mastalir, M.; Harasek, M.; Paulik, C.",
+    "title": "Thermal Depolymerization Challenges of PTFE:Silicone Rubber Mixtures and Composite Materials",
+    "container": "Polymers (MDPI)",
+    "year": "2026",
+    "volume": "18",
+    "issue": "15",
+    "pages": "1929",
+    "doi": "10.3390/polym18151929",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13468768/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 1 (SR-V)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Virgin silicone rubber 'SR-V' (commercial; filler not checked); Atmosphäre: nitrogen; Residue temperature inferred from the 800 °C run end. Filler likely raises the residue.; Onset: T where rate = 1 % of max rate, before the peak; Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 34.82,
+   "residue_at": 800.0,
+   "id": "silikonkautschuk-pdms-2",
+   "group": "silikonkautschuk-pdms"
+  },
+  {
+   "name": "Cellulose (mikrokristallin) (de Carvalho u. a. 2026, N₂)",
+   "variant": "Microcrystalline cellulose P.A., Labsynth (Brazil); 4.1133 mg",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 376.2,
+     "T_onset": 347.09,
+     "T_end": 397.75,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "de Carvalho, N.R.; Correia, A.J.B.; Nakashima, G.T.; Hansted, A.L.S.; Pires, A.A.F.; Kugimiya, T.; Yamamoto, H.; Yamaji, F.M.",
+    "title": "Linking Chemical Composition to Thermal Decomposition of Lignocellulosic Biomass and Its Structural Fractions: Insights from Eucalyptus and Sugarcane Bagasse",
+    "container": "ACS Omega",
+    "year": "2026",
+    "volume": "11",
+    "issue": "39",
+    "pages": "59064-59077",
+    "doi": "10.1021/acsomega.6c04390",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13647918/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 1 (materials, masses), Table 4 (TG/DTG parameters)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Microcrystalline cellulose P.A., Labsynth (Brazil); 4.1133 mg; Atmosphäre: nitrogen; PerkinElmer Pyris 1, Pt crucible, N2 20 mL/min, 30-950 °C. Remaining mass is 95.07 % at Tonset, 44.64 % at Tmax and 3.71 % at Toffset (397.75 °C). Total loss ΔY 97.50 %, which implies about 2.5 % residue at 950 °C (my arithmetic, not printed). 20 K/min: expect peaks roughly 10-20 °C lower at 10 K/min (estimate).; Onset: Tonset (onset temperature as tabulated; Ti = 50.81 °C is the start of moisture loss); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "cellulose-mikrokristallin-1",
+   "group": "cellulose-mikrokristallin"
+  },
+  {
+   "name": "Cellulose (mikrokristallin) (Kuznetsov u. a. 2023, Ar)",
+   "variant": "MCC prepared from aspen wood (lab-made)",
+   "category": "Biomasse",
+   "atmosphere": "Ar",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 336.0,
+     "T_onset": 283.0,
+     "T_end": 438.0,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Kuznetsov, B.N.; Chudina, A.I.; Kazachenko, A.S.; Fetisova, O.Yu.; Borovkova, V.S.; Vorobyev, S.A.; Karacharov, A.A.; Gnidan, E.V.; Mazurova, E.V.; Skripnikov, A.M.; Taran, O.P.",
+    "title": "Fractionation of Aspen Wood to Produce Microcrystalline, Microfibrillated and Nanofibrillated Celluloses, Xylan and Ethanollignin",
+    "container": "Polymers (MDPI)",
+    "year": "2023",
+    "volume": "15",
+    "issue": "12",
+    "pages": "2671",
+    "doi": "10.3390/polym15122671",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10303657/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Section 3.6 text (Table 7 holds the ranges)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "MCC prepared from aspen wood (lab-made); Atmosphäre: argon; NETZSCH STA 449 F1 Jupiter, argon, 30-800 °C. Sample mass and flow not stated. One stage plus minor water loss below 100 °C. No residue given. Not a commercial MCC grade.; Onset: start of main decomposition range (text: starts 'above 280 °C'; range 283-438 °C); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "cellulose-mikrokristallin-2",
+   "group": "cellulose-mikrokristallin"
+  },
+  {
+   "name": "Cellulose (mikrokristallin) (Apaydın Varol & Mutlu 2023, N₂)",
+   "variant": "Cellulose, Sigma-Aldrich (grade/type not stated; not explicitly MCC)",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 88.0,
+     "T_onset": 25.0,
+     "T_end": 130.0,
+     "loss": 3.17
+    },
+    {
+     "T_peak": 353.4,
+     "T_onset": 291.0,
+     "T_end": 395.0,
+     "loss": 80.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Apaydın Varol, E.; Mutlu, Ü.",
+    "title": "TGA-FTIR Analysis of Biomass Samples Based on the Thermal Decomposition Behavior of Hemicellulose, Cellulose, and Lignin",
+    "container": "Energies (MDPI)",
+    "year": "2023",
+    "volume": "16",
+    "pages": "3674",
+    "doi": "10.3390/en16093674",
+    "url": "https://www.mdpi.com/1996-1073/16/9/3674",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4 (p. 8); conditions in Table 5 caption (10 °C/min, N2 20 mL/min)",
+    "licence": "CC BY 4.0 (MDPI)"
+   },
+   "note": "Cellulose, Sigma-Aldrich (grade/type not stated; not explicitly MCC); Atmosphäre: nitrogen; Read directly from text I extracted from the PDF (file apaydin_energies2023.txt in tga_dl). No DTG peak is tabulated. The residue is high for cellulose; treat with caution. The DOI was formed from the volume/article number and not separately checked. A further Sigma 'cellulose powder' (Kumagai et al., ACS Omega 2021, 6:12022, doi 10.1021/acsomega.1c00622, PMC8154023, CC BY-NC-ND; 10 mg, Pt pan, N2 200 mL/min, 10 K/min) gives in the text: DTG max 343 °C, charring above 370 °C, char 8.9 wt% at 650 °C.; Onset: range start: moisture 25-130 °C / start of stated main-stage temperature range; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "residue": 16.83,
+   "residue_at": 1000.0,
+   "id": "cellulose-mikrokristallin-3",
+   "group": "cellulose-mikrokristallin"
+  },
+  {
+   "name": "Lignin (de Carvalho u. a. 2026, N₂) – Kraft lignin from sugarcane bagasse (not",
+   "variant": "Kraft lignin from sugarcane bagasse (not wood); 4.5948 mg",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 399.4,
+     "T_onset": 328.71,
+     "T_end": 558.91,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "de Carvalho, N.R.; others",
+    "title": "Linking Chemical Composition to Thermal Decomposition of Lignocellulosic Biomass and Its Structural Fractions: Insights from Eucalyptus and Sugarcane Bagasse",
+    "container": "ACS Omega",
+    "year": "2026",
+    "volume": "11",
+    "issue": "39",
+    "pages": "59064-59077",
+    "doi": "10.1021/acsomega.6c04390",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13647918/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Tables 1 and 4",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Kraft lignin from sugarcane bagasse (not wood); 4.5948 mg; Atmosphäre: nitrogen; Pt crucible, N2 20 mL/min, 30-950 °C. Remaining mass is 90.78 % at Tonset, 64.85 % at Tmax and 39.00 % at Toffset. ΔY 75.10 % implies about 24.9 % residue at 950 °C (my arithmetic). The shoulder is tabulated below the onset, as in the source. Secondary 10 K/min data: Wang et al. 2019 (next-but-two entry) Sigma alkali lignin.; Onset: Tonset as tabulated (Ti 58.31 °C = start of moisture loss; a shoulder Tsh is tabulated at 194.33 °C); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "lignin-1",
+   "group": "lignin"
+  },
+  {
+   "name": "Lignin (de Carvalho u. a. 2026, N₂) – Organosolv lignin from eucalyptus chips",
+   "variant": "Organosolv lignin from eucalyptus chips (hardwood); 4.4114 mg",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 405.5,
+     "T_onset": 278.31,
+     "T_end": 468.91,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "de Carvalho, N.R.; others",
+    "title": "Linking Chemical Composition to Thermal Decomposition of Lignocellulosic Biomass and Its Structural Fractions: Insights from Eucalyptus and Sugarcane Bagasse",
+    "container": "ACS Omega",
+    "year": "2026",
+    "volume": "11",
+    "issue": "39",
+    "pages": "59064-59077",
+    "doi": "10.1021/acsomega.6c04390",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13647918/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Tables 1 and 4 (the text gives Tsh as 306.76 °C)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Organosolv lignin from eucalyptus chips (hardwood); 4.4114 mg; Atmosphäre: nitrogen; Remaining mass is 93.89 % at Tonset, 67.26 % at Tmax and 50.30 % at Toffset. ΔY 64.77 % implies about 35.2 % residue at 950 °C (my arithmetic). Same table, eucalyptus Klason lignin: Tonset 354.97, Tmax 420.84, Toffset 540.30 °C, ΔY 52.34 %.; Onset: Tonset as tabulated (Ti 62.69 °C = moisture start); shoulder Tsh 306.79 °C; Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "lignin-2",
+   "group": "lignin"
+  },
+  {
+   "name": "Lignin (Wang u. a. 2019, N₂)",
+   "variant": "Alkali lignin, Sigma (Germany) (catalogue no. not given; Sigma 'alkali lignin' is a kraft-type lignin)",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 320.0,
+     "T_onset": 170.0,
+     "loss": 34.56
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Wang, F.; Zhang, D.; Chen, M.; Yi, W.; Wang, L.",
+    "title": "Characteristics of Corn Stover Components Pyrolysis at Low Temperature Based on Detergent Fibers",
+    "container": "Frontiers in Bioengineering and Biotechnology",
+    "year": "2019",
+    "volume": "7",
+    "pages": "188",
+    "doi": "10.3389/fbioe.2019.00188",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6688388/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4; text",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Alkali lignin, Sigma (Germany) (catalogue no. not given; Sigma 'alkali lignin' is a kraft-type lignin); Atmosphäre: nitrogen; STA449C, about 8 mg, N2 30 mL/min, 30-400 °C only. The run ends at 400 °C, so the residue is not a final char. The text gives 65.42 %. Davg -0.87 %/min; Dmax printed incompletely.; Onset: Ts = 'initial temperature of volatiles releasing' (method not stated); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 65.44,
+   "residue_at": 400.0,
+   "id": "lignin-3",
+   "group": "lignin"
+  },
+  {
+   "name": "Lignin (Apaydın Varol & Mutlu 2023, N₂)",
+   "variant": "Lignin, Sigma-Aldrich (type not stated)",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 70.0,
+     "T_onset": 25.0,
+     "T_end": 100.0,
+     "loss": 7.12
+    },
+    {
+     "T_peak": 320.0,
+     "T_onset": 170.0,
+     "T_end": 420.0,
+     "loss": 25.96
+    },
+    {
+     "T_peak": 465.0,
+     "T_onset": 420.0,
+     "T_end": 495.0,
+     "loss": 4.35
+    },
+    {
+     "T_peak": 699.0,
+     "T_onset": 495.0,
+     "T_end": 835.0,
+     "loss": 12.05
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Apaydın Varol, E.; Mutlu, Ü.",
+    "title": "TGA-FTIR Analysis of Biomass Samples Based on the Thermal Decomposition Behavior of Hemicellulose, Cellulose, and Lignin",
+    "container": "Energies (MDPI)",
+    "year": "2023",
+    "volume": "16",
+    "pages": "3674",
+    "doi": "10.3390/en16093674",
+    "url": "https://www.mdpi.com/1996-1073/16/9/3674",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4 (p. 8)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Lignin, Sigma-Aldrich (type not stated); Atmosphäre: nitrogen; N2 20 mL/min. Read from text I extracted from the PDF. The lignin type is unknown, so use only as a generic lignin reference.; Onset: moisture range start / stated range start; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "residue": 50.52,
+   "residue_at": 1000.0,
+   "id": "lignin-4",
+   "group": "lignin"
+  },
+  {
+   "name": "Hemicellulose / Xylan (Wang u. a. 2019, N₂)",
+   "variant": "Xylan, Sigma (Germany) (botanical origin not stated)",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 278.0,
+     "T_onset": 185.0,
+     "loss": 76.85
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Wang, F.; Zhang, D.; Chen, M.; Yi, W.; Wang, L.",
+    "title": "Characteristics of Corn Stover Components Pyrolysis at Low Temperature Based on Detergent Fibers",
+    "container": "Frontiers in Bioengineering and Biotechnology",
+    "year": "2019",
+    "volume": "7",
+    "pages": "188",
+    "doi": "10.3389/fbioe.2019.00188",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6688388/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Xylan, Sigma (Germany) (botanical origin not stated); Atmosphäre: nitrogen; About 8 mg, N2 30 mL/min, 30-400 °C only, so the residue is at 400 °C, not a final char. Dmax -10.17 %/min. Same table, Sigma α-cellulose (not MCC): Ts 296, Tmax 340 (text: 345) °C, residue 6.82 % at 400 °C.; Onset: Ts = initial temperature of volatiles release (method not stated); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 23.15,
+   "residue_at": 400.0,
+   "id": "hemicellulose-xylan-1",
+   "group": "hemicellulose-xylan"
+  },
+  {
+   "name": "Hemicellulose / Xylan (Sharma u. a. 2020, Ar)",
+   "variant": "Xylan extracted in the lab from acacia sawdust (hardwood)",
+   "category": "Biomasse",
+   "atmosphere": "Ar",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 122.0,
+     "T_onset": 65.0,
+     "T_end": 160.0,
+     "loss": 8.0
+    },
+    {
+     "T_peak": 266.0,
+     "T_onset": 170.0,
+     "loss": 57.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Sharma, K.; Khaire, K.C.; Thakur, A.; Moholkar, V.S.; Goyal, A.",
+    "title": "Acacia Xylan as a Substitute for Commercially Available Xylan and Its Application in the Production of Xylooligosaccharides",
+    "container": "ACS Omega",
+    "year": "2020",
+    "volume": "5",
+    "issue": "23",
+    "pages": "13729-13738",
+    "doi": "10.1021/acsomega.0c00896",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7301597/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Section 2.5 text; Section 4.10 (method); Fig. 4",
+    "licence": "ACS AuthorChoice (non-commercial)"
+   },
+   "note": "Xylan extracted in the lab from acacia sawdust (hardwood); Atmosphäre: argon; Netzsch STA449F3, about 6 mg, alumina crucible, argon 60 mL/min, 25-500 °C. The text says 40 % mass loss had occurred at 266 °C. The 35 % retained weight is stated without a temperature; 500 °C (run end) is my inference.; Onset: moisture range start (65-160 °C) / text: 'sudden weight loss started at 170 °C'; DTG-Spitze aus Onset/Ende abgeleitet, Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet",
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 35.0,
+   "residue_at": 500.0,
+   "id": "hemicellulose-xylan-2",
+   "group": "hemicellulose-xylan"
+  },
+  {
+   "name": "Holz (Fischer u. a. 2026, N₂)",
+   "variant": "Softwood: spruce wood (SW), ground <125 µm, dried 24 h at 105 °C (Fischer et al. 2026 entry)",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 366.3,
+     "T_onset": 293.2,
+     "loss": 77.5
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Fischer, O.; Lemaire, R.; Bensakhria, A.",
+    "title": "Pyrolysis of spruce wood, wheat straw, switchgrass, miscanthus and swine manure using catalysts containing alkali and alkaline earth metals: thermogravimetric analysis and kinetic modeling",
+    "container": "Journal of Thermal Analysis and Calorimetry",
+    "year": "2026",
+    "volume": "151",
+    "issue": "4",
+    "pages": "3009-3030",
+    "doi": "10.1007/s10973-025-14738-z",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13018083/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Appendix Table A1 (raw SW); TGA results text (peak 'around 639 K', residue 22.5 % at 1223 K)",
+    "licence": "CC BY-NC-ND 4.0"
+   },
+   "note": "Softwood: spruce wood (SW), ground <125 µm, dried 24 h at 105 °C (Fischer et al. 2026 entry); Atmosphäre: nitrogen; Published in kelvin; converted to °C by subtracting 273.15. SETARAM SETSYS Evolution, N2 60 mL/min, 15 min drying at 378 K, then to 1223 K with a 30 min hold (the residue is after the hold). Tmax 639.4 ± 0.97 K; dTGmax -0.96 %/K. Composition: cellulose 54.5, hemicellulose 11.8, lignin 26.5 %. At 5 K/min: T10/T50/T90/Tmax = 276.4/336.4/427.6/349.7 °C, residue 24.9 %. Single DTG peak with no hemicellulose shoulder.; Onset: T10% conversion (566.3 K); T50% = 353.8 °C (626.9 K); T90% = 456.9 °C (730.0 K); Stufenverlust aus Rückstand abgeleitet",
+   "derived": [
+    "Stufenverlust aus Rückstand abgeleitet"
+   ],
+   "residue": 22.5,
+   "residue_at": 950.0,
+   "id": "holz-1",
+   "group": "holz"
+  },
+  {
+   "name": "Holz (de Carvalho u. a. 2026, N₂)",
+   "variant": "Hardwood: eucalyptus residue from a wood-panel mill, in natura (species not stated); 4.3223 mg",
+   "category": "Biomasse",
+   "atmosphere": "N₂",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 397.7,
+     "T_onset": 303.54,
+     "T_end": 427.14,
+     "loss": 100.0
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "de Carvalho, N.R.; others",
+    "title": "Linking Chemical Composition to Thermal Decomposition of Lignocellulosic Biomass and Its Structural Fractions: Insights from Eucalyptus and Sugarcane Bagasse",
+    "container": "ACS Omega",
+    "year": "2026",
+    "volume": "11",
+    "issue": "39",
+    "pages": "59064-59077",
+    "doi": "10.1021/acsomega.6c04390",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13647918/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 4 (TG/DTG); Table 5 (Gaussian deconvolution)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Hardwood: eucalyptus residue from a wood-panel mill, in natura (species not stated); 4.3223 mg; Atmosphäre: nitrogen; Pt crucible, N2 20 mL/min, 30-950 °C. Remaining mass is 94.76 % at Tonset, 83.87 % at Tsh, 45.02 % at Tmax and 20.06 % at Toffset. ΔY 89.41 % implies about 10.6 % at 950 °C (my arithmetic; the paper does not reconcile this with 20.06 % at Toffset). Deconvolved DTG peaks 355 °C (50.2 %) and 407 °C (49.8 %). Extractive-free: Tonset 310.62, Tsh 339.43, Tmax 415.05 °C.; Onset: Tonset as tabulated (Ti 51.51 °C = moisture start); shoulder Tsh 331.10 °C (hemicellulose); Stufenverlust nicht angegeben, vollständige Zersetzung angenommen",
+   "derived": [
+    "Stufenverlust nicht angegeben, vollständige Zersetzung angenommen"
+   ],
+   "id": "holz-2",
+   "group": "holz"
+  },
+  {
+   "name": "Calciumoxalat-Monohydrat CaC₂O₄·H₂O (Suzanne u. a. 2026, N₂)",
+   "variant": "Sigma-Aldrich C0350000, CAS 5794-28-5, one batch sent to all labs; inter-lab mean of 7 non-outlier datasets out of 14 (13 labs)",
+   "category": "Kalibrierstandard",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 160.9,
+     "T_onset": 131.9,
+     "T_end": 170.9,
+     "loss": 12.1,
+     "label": "CaC2O4·H2O -> CaC2O4 + H2O"
+    },
+    {
+     "T_peak": 490.9,
+     "T_onset": 454.9,
+     "T_end": 509.9,
+     "loss": 18.4,
+     "label": "CaC2O4 -> CaCO3 + CO"
+    },
+    {
+     "T_peak": 721.9,
+     "T_onset": 656.9,
+     "T_end": 736.9,
+     "loss": 30.1,
+     "label": "CaCO3 -> CaO + CO2"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Suzanne, M.; Bourbigot, S.; Carlotti, P.; Coker, E.; Dumazert, L.; Duquesne, S.; Fateh, T.; Guillaume, E.; Hakkarainen, T.; Lazaro-Urrutia, D.; Leventon, I.; Rein, G.; Richter, F.; Rinta-Paavola, A.; Rogaume, T.; Schartel, B.; Sjöström, J.; Stoliarov, S.; Thiry, A.; Witkowski, A.",
+    "title": "A Round-Robin Study on Decomposition of Calcium Oxalate Monohydrate by Thermogravimetry",
+    "container": "Fire Technology (values taken from the NIST-hosted submitted manuscript)",
+    "year": "2026",
+    "volume": "62",
+    "issue": "3",
+    "pages": "76",
+    "doi": "10.1007/s10694-026-01873-8",
+    "url": "https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=935144",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 9 (min/mean/max/SD, outliers excluded); Tables 4-5 (protocol); Tables 6-8 (all data and statistics)",
+    "licence": "free manuscript at NIST; licence of the published version unknown"
+   },
+   "note": "Sigma-Aldrich C0350000, CAS 5794-28-5, one batch sent to all labs; inter-lab mean of 7 non-outlier datasets out of 14 (13 labs); Atmosphäre: N2 (one dataset Ar), 20-100 mL/min depending on instrument; Converted from K. Mean ± SD in K: step 1 T_O 405 ± 8.1, T_P 434 ± 1.5, T_E 444 ± 1.2; step 2 728 ± 15 / 764 ± 7 / 783 ± 9; step 3 930 ± 19 / 995 ± 11 / 1010 ± 11. Mass losses ± SD: 12.1 ± 0.34, 18.4 ± 0.34, 30.1 ± 0.24 %. Protocol: 5 mg (actual 5.12 ± 0.19 mg); mostly alumina crucibles; 300-1180 K; 300 s isotherms; 20-30 min inert purge before heating. Peak temperatures are the most transferable values, because labs used different onset/endset constructions. The paper's acceptance criterion: every value within mean ± 2 SD. The paper's own theoretical values: 12.3/19.2/30.1 %. The NIST record shows year 2022 (manuscript upload); Crossref gives Fire Technology 2026. Values may differ slightly",
+   "derived": [],
+   "id": "calciumoxalat-monohydrat-cac2o-1",
+   "group": "calciumoxalat-monohydrat-cac2o"
+  },
+  {
+   "name": "Calciumoxalat-Monohydrat CaC₂O₄·H₂O (Harvey 2023, ?)",
+   "variant": "teaching example (worked thermogram), 17.61 mg",
+   "category": "Kalibrierstandard",
+   "atmosphere": "",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 190.0,
+     "T_onset": 100.0,
+     "T_end": 250.0,
+     "loss": 12.3,
+     "label": "CaC2O4·H2O -> CaC2O4 + H2O"
+    },
+    {
+     "T_peak": 470.0,
+     "T_onset": 350.0,
+     "T_end": 550.0,
+     "loss": 19.2,
+     "label": "CaC2O4 -> CaCO3 + CO"
+    },
+    {
+     "T_peak": 720.0,
+     "T_onset": 600.0,
+     "T_end": 800.0,
+     "loss": 30.1,
+     "label": "CaCO3 -> CaO + CO2"
+    }
+   ],
+   "source": {
+    "type": "web",
+    "authors": "Harvey, D.",
+    "title": "31.1: Thermogravimetry (Instrumental Analysis, Ch. 31 Thermal Methods)",
+    "container": "Chemistry LibreTexts",
+    "year": "2023",
+    "url": "https://chem.libretexts.org/Bookshelves/Analytical_Chemistry/Instrumental_Analysis_(LibreTexts)/31:_Thermal_Methods/31.01:_Thermogravimetric_Methods",
+    "accessed": "2026-11-16",
+    "note": "Werte: Example 31.1.1; Example 31.1.1",
+    "licence": "CC BY-NC-SA 4.0"
+   },
+   "note": "teaching example (worked thermogram), 17.61 mg; Atmosphäre: not stated; Mass losses as mg: 2.17, 3.38 and 5.30 mg. The source derives the molar-mass decreases 18.0, 28.1 and 44.0 g/mol. This is the didactic origin of the 12.3/19.2/30.1 % values; it is not a metrological reference. Use the round robin for temperatures.; Onset: range stated; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "calciumoxalat-monohydrat-cac2o-2",
+   "group": "calciumoxalat-monohydrat-cac2o"
+  },
+  {
+   "name": "Calciumoxalat-Monohydrat CaC₂O₄·H₂O (Földvári 2011, Luft)",
+   "variant": "99 % whewellite, 100.0 mg",
+   "category": "Kalibrierstandard",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 226.0,
+     "T_onset": 220.0,
+     "T_end": 230.0,
+     "loss": 12.2,
+     "label": "CaC2O4·H2O -> CaC2O4 + H2O"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §11.1, Fig. 11.1 (about p. 134); vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "99 % whewellite, 100.0 mg; Atmosphäre: not stated; static air implied (CO burns to CO2) (Atmosphäre in der Quelle nicht angegeben); Factors 8.11/5.22/3.31; each step gives 99 %.; Onset: 'at about 500 °C' / 'at about 900 °C' / interval 'at 220-230 °C'; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "calciumoxalat-monohydrat-cac2o-3",
+   "group": "calciumoxalat-monohydrat-cac2o"
+  },
+  {
+   "name": "Calciumcarbonat CaCO₃ (Calcit) (Seesanong u. a. 2024, N₂)",
+   "variant": "biogenic calcite from oyster shells, sieved through mesh 50 (about 95.5 % CaCO3, calculated as 42/43.97)",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 846.0,
+     "T_onset": 630.0,
+     "T_end": 880.0,
+     "loss": 42.0,
+     "label": "CaCO3 -> CaO + CO2"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Seesanong, S.; Seangarun, C.; Boonchom, B.; Laohavisuti, N.; Boonmee, W.; Thompho, S.; Rungrojchaipon, P.",
+    "title": "Low-Cost and Eco-Friendly Calcium Oxide Prepared via Thermal Decompositions of Calcium Carbonate and Calcium Acetate Precursors Derived from Waste Oyster Shells",
+    "container": "Materials (Basel)",
+    "year": "2024",
+    "volume": "17",
+    "issue": "15",
+    "pages": "3875",
+    "doi": "10.3390/ma17153875",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11313493/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.2 method; §3.2 text and Fig. 1a",
+    "licence": "CC BY 4.0"
+   },
+   "note": "biogenic calcite from oyster shells, sieved through mesh 50 (about 95.5 % CaCO3, calculated as 42/43.97); Atmosphäre: N2 50 mL/min; PerkinElmer Pyris Diamond TG/DTA, 30-900 °C. Sample mass not given. 900 °C is the end of the run. Not reagent grade. The same paper's calcium acetate run gives a CaCO3 DTG peak at 694 °C, which illustrates how strongly sample and texture shift this step.; Onset: start of stated range (not an extrapolated onset)",
+   "derived": [],
+   "residue": 58.0,
+   "residue_at": 900.0,
+   "id": "calciumcarbonat-caco3-calcit-1",
+   "group": "calciumcarbonat-caco3-calcit"
+  },
+  {
+   "name": "Calciumcarbonat CaCO₃ (Calcit) (Zhuang u. a. 2025, N₂)",
+   "variant": "reagent calcite >99 % (Sinopharm), about 10 mg, 200 mesh — NOT RECOMMENDED",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 560.0,
+     "T_onset": 456.0,
+     "loss": 43.97,
+     "label": "CaCO3 -> CaO + CO2"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Zhuang, D.; Chen, Z.; Sun, B.",
+    "title": "Thermal Decomposition of Calcium Carbonate at Multiple Heating Rates in Different Atmospheres Using the Techniques of TG, DTG, and DSC",
+    "container": "Crystals",
+    "year": "2025",
+    "volume": "15",
+    "issue": "2",
+    "pages": "108",
+    "doi": "10.3390/cryst15020108",
+    "url": "https://www.mdpi.com/2073-4352/15/2/108",
+    "accessed": "2026-11-16",
+    "note": "Werte: §3.2 text; Table 1",
+    "licence": "CC BY 4.0"
+   },
+   "note": "reagent calcite >99 % (Sinopharm), about 10 mg, 200 mesh — NOT RECOMMENDED; Atmosphäre: N2 80 mL/min (identical curve in 70 % N2/30 % O2); Internally inconsistent. The 10 K/min peak is given as both 560 °C and 585 °C. The 'final mass loss of 58 %, 55 %, 45 %, 42 %' (10-40 K/min) is impossible, since 58 % exceeds the 43.97 % maximum. Temperatures are about 250 °C below other calcite data. Listed only to warn against using it.; Onset: T at conversion α = 0.1 (Table 1); Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen",
+   "derived": [
+    "Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen"
+   ],
+   "id": "calciumcarbonat-caco3-calcit-2",
+   "group": "calciumcarbonat-caco3-calcit"
+  },
+  {
+   "name": "Calciumhydroxid Ca(OH)₂ (Portlandit) (Maruyama u. a. 2020, Ar)",
+   "variant": "reagent Ca(OH)2 99.9 % (Wako), wetted and dried at 120 °C ('Ca(OH)2-w'); XRD shows some CaCO3 present",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Ar",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 459.0,
+     "loss": 24.31,
+     "label": "Ca(OH)2 -> CaO + H2O"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Maruyama, A.; Kurosawa, R.; Ryu, J.",
+    "title": "Effect of Lithium Compound Addition on the Dehydration and Hydration of Calcium Hydroxide as a Chemical Heat Storage Material",
+    "container": "ACS Omega",
+    "year": "2020",
+    "volume": "5",
+    "issue": "17",
+    "pages": "9820-9829",
+    "doi": "10.1021/acsomega.9b04444",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC7203692/fullTextXML",
+    "accessed": "2026-11-16",
+    "note": "Werte: Table 1 (peak temperature = maximum dehydration rate); §4.2 method",
+    "licence": "ACS AuthorChoice"
+   },
+   "note": "reagent Ca(OH)2 99.9 % (Wako), wetted and dried at 120 °C ('Ca(OH)2-w'); XRD shows some CaCO3 present; Atmosphäre: Ar 100 mL/min; ADVANCE RIKO TGD-9600, Pt cell. Only the DTG peak is given; there is no onset or loss in the text.; Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen",
+   "derived": [
+    "Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen"
+   ],
+   "id": "calciumhydroxid-ca-oh-2-portla-1",
+   "group": "calciumhydroxid-ca-oh-2-portla"
+  },
+  {
+   "name": "Calciumhydroxid Ca(OH)₂ (Portlandit) (Földvári 2011, Luft)",
+   "variant": "natural, 38 % portlandite with brucite and calcite, 1000 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 564.0,
+     "T_onset": 480.0,
+     "T_end": 620.0,
+     "loss": 9.3,
+     "label": "Ca(OH)2 -> CaO + H2O"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §4.1.4 (about p. 63); vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "natural, 38 % portlandite with brucite and calcite, 1000 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); Factor 4.12 (9.3 × 4.12 = 38 %). Impure; useful only for the temperature window and the factor.; Onset: interval 480-620 °C; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "calciumhydroxid-ca-oh-2-portla-2",
+   "group": "calciumhydroxid-ca-oh-2-portla"
+  },
+  {
+   "name": "Magnesiumhydroxid Mg(OH)₂ (MDH)",
+   "variant": "lab-synthesised hexagonal Mg(OH)2, unmodified, D50 about 1.5 µm",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 376.2,
+     "T_onset": 302.5,
+     "loss": 31.8,
+     "label": "Mg(OH)2 -> MgO + H2O"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Liu, X.; Xu, H.; Chen, J.",
+    "title": "One-Pot Preparation of Easily Dispersible Hexagonal Mg(OH)2 Modified with THPS and Its Flame-Retardant EVA Copolymer",
+    "container": "Materials (Basel)",
+    "year": "2025",
+    "volume": "18",
+    "issue": "21",
+    "pages": "4847",
+    "doi": "10.3390/ma18214847",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12611054/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §3.3 text; Table 2; §2.5 (Hitachi STA200)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "lab-synthesised hexagonal Mg(OH)2, unmodified, D50 about 1.5 µm; Atmosphäre: N2; Flow, mass and crucible not given. The loss is above theoretical (moisture). Commercial coarse MDH grades typically peak higher; no open N2 source with numbers was found for them.; Onset: 'decomposition started at about' (undefined); T5% = 353.0 °C",
+   "derived": [],
+   "residue": 68.2,
+   "residue_at": 800.0,
+   "id": "magnesiumhydroxid-mg-oh-2-mdh-1",
+   "group": "magnesiumhydroxid-mg-oh-2-mdh"
+  },
+  {
+   "name": "Aluminiumhydroxid Al(OH)₃ (ATH) (Lou u. a. 2019, N₂)",
+   "variant": "reagent ATH (Sinopharm)",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 305.0,
+     "T_onset": 275.0,
+     "loss": 23.1,
+     "label": "Al(OH)3 -> AlOOH/transition alumina + H2O (main)"
+    },
+    {
+     "T_peak": 520.0,
+     "loss": 11.55,
+     "label": "2AlOOH -> Al2O3 + H2O (boehmite)"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Lou, F.; Wu, K.; Wang, Q.; Qian, Z.; Li, S.; Guo, W.",
+    "title": "Improved Flame-Retardant and Ceramifiable Properties of EVA Composites by Combination of Ammonium Polyphosphate and Aluminum Hydroxide",
+    "container": "Polymers (Basel)",
+    "year": "2019",
+    "volume": "11",
+    "issue": "1",
+    "pages": "125",
+    "doi": "10.3390/polym11010125",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6401787/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §3.4 text; Fig. 7; §2.4 (NETZSCH STA 449F3, RT-800 °C)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "reagent ATH (Sinopharm); Atmosphäre: N2; Total loss 34.1 % (calculated, theoretical 34.64 %). The text says only 'final residue'; the run ends at 800 °C. In air, T5% = 251 °C.; Onset: 'initial decomposition temperature' (T5%); Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen",
+   "derived": [
+    "Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen"
+   ],
+   "residue": 65.9,
+   "residue_at": 800.0,
+   "id": "aluminiumhydroxid-al-oh-3-ath-1",
+   "group": "aluminiumhydroxid-al-oh-3-ath"
+  },
+  {
+   "name": "Aluminiumhydroxid Al(OH)₃ (ATH) (Alsayed u. a. 2025, N₂)",
+   "variant": "APYRAL 40CD (Nabaltec), median about 1.5 µm",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 260.0,
+     "T_onset": 200.0,
+     "T_end": 300.0,
+     "loss": 23.1,
+     "label": "gibbsite -> boehmite + 2H2O"
+    },
+    {
+     "T_peak": 450.0,
+     "T_onset": 300.0,
+     "T_end": 550.0,
+     "loss": 11.55,
+     "label": "boehmite -> Al2O3 + H2O"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Alsayed, D.A.; Sonnier, R.; Otazaghine, B.; Jean, P.; Brocheton, Y.; Ferry, L.",
+    "title": "Phosphate Low-Melting Glasses as Synergist in Flame-Retardant Cable Sheath Composition: Performance and Mode of Action",
+    "container": "Polymers (Basel)",
+    "year": "2025",
+    "volume": "17",
+    "issue": "19",
+    "pages": "2679",
+    "doi": "10.3390/polym17192679",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12526736/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.1, §2.3 (PerkinElmer Pyris 1, 30-900 °C); §3.3.2, Fig. 15",
+    "licence": "CC BY 4.0"
+   },
+   "note": "APYRAL 40CD (Nabaltec), median about 1.5 µm; Atmosphäre: N2; Total measured loss 34 %, so the residue is about 66 % (calculated). A named commercial FR grade.; Onset: 'starts to decompose at about 200 °C' / range boundary; DTG-Spitze aus Onset/Ende abgeleitet, Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet",
+    "Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen"
+   ],
+   "id": "aluminiumhydroxid-al-oh-3-ath-2",
+   "group": "aluminiumhydroxid-al-oh-3-ath"
+  },
+  {
+   "name": "Aluminiumhydroxid Al(OH)₃ (Gibbsit)",
+   "variant": "commercial gibbsite (65 % Al2O3, 0.15 % Na)",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Ar",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 246.0,
+     "loss": 5.0,
+     "label": "partial gibbsite -> boehmite"
+    },
+    {
+     "T_peak": 312.0,
+     "loss": 25.0,
+     "label": "gibbsite -> chi-Al2O3 (+ more boehmite)"
+    },
+    {
+     "T_peak": 542.0,
+     "loss": 3.0,
+     "label": "boehmite -> gamma-Al2O3"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Redaoui, D.; Sahnoune, F.; Heraiz, M.; Raghdi, A.",
+    "title": "Mechanism and Kinetic Parameters of the Thermal Decomposition of Gibbsite Al(OH)3 by Thermogravimetric Analysis",
+    "container": "Acta Physica Polonica A",
+    "year": "2017",
+    "volume": "131",
+    "issue": "3",
+    "pages": "562-565",
+    "doi": "10.12693/APhysPolA.131.562",
+    "url": "https://przyrbwn.icm.edu.pl/APP/PDF/131/a131z3p62.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §3, Fig. 1 (DTG peaks 519/585/815 K)",
+    "licence": "free access"
+   },
+   "note": "commercial gibbsite (65 % Al2O3, 0.15 % Na); Atmosphäre: Ar; Losses are 'about' values, total 33 %. This is the only open source with the three-step split; it is at 20 K/min, not 10. The second peak also appears once as 580 K.",
+   "derived": [],
+   "id": "aluminiumhydroxid-al-oh-3-gibb-1",
+   "group": "aluminiumhydroxid-al-oh-3-gibb"
+  },
+  {
+   "name": "Hydromagnesit Mg₅(CO₃)₄(OH)₂·4H₂O",
+   "variant": "natural hydromagnesite, Bangor Lake (Tibet); contains CaCO3, Fe2O3, SiO2 impurities; about 15 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 240.0,
+     "T_onset": 150.0,
+     "T_end": 350.0,
+     "loss": 12.69,
+     "label": "loss of crystal water (4H2O)"
+    },
+    {
+     "T_peak": 450.0,
+     "T_onset": 350.0,
+     "T_end": 520.0,
+     "loss": 37.65,
+     "label": "dehydroxylation + main decarbonation"
+    },
+    {
+     "T_peak": 618.0,
+     "T_onset": 520.0,
+     "T_end": 680.0,
+     "loss": 2.48,
+     "label": "residual MgCO3 -> MgO + CO2"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Jiao, L.-L.; Zhao, P.-C.; Liu, Z.-Q.; Wu, Q.-S.; Yan, D.-Q.; Li, Y.-L.; Chen, Y.-N.; Li, J.-S.",
+    "title": "Preparation of Magnesium Hydroxide Flame Retardant from Hydromagnesite and Enhance the Flame Retardant Performance of EVA",
+    "container": "Polymers (Basel)",
+    "year": "2022",
+    "volume": "14",
+    "issue": "8",
+    "pages": "1567",
+    "doi": "10.3390/polym14081567",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9030901/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.3 method (Labsys Evo, alumina crucible); §3.1 text; Table 2",
+    "licence": "CC BY 4.0"
+   },
+   "note": "natural hydromagnesite, Bangor Lake (Tibet); contains CaCO3, Fe2O3, SiO2 impurities; about 15 mg; Atmosphäre: N2 30 mL/min; Source inconsistency: the step losses sum to 52.82 %, which equals the stated 'residue of 52.82 %'. 52.82 % is evidently the total loss, so the true residue is about 47.2 % (calculated). Theoretical: total loss 56.91 % (H2O 19.26 % + CO2 37.64 %), residue 43.09 %. The paper's reaction equations use a wrong formula (Mg5(CO3)3...). The paper's intro says two stages (water, then CO2) at 220-550 °C. Huntite/hydromagnesite reviews (Hollingbery & Hull, UCLan repository) could not be text-extracted.; Onset: interval / interval 150-350 °C; T5% = 233 °C",
+   "derived": [],
+   "residue": 52.82,
+   "residue_at": 800.0,
+   "id": "hydromagnesit-mg5-co3-4-oh-24h-1",
+   "group": "hydromagnesit-mg5-co3-4-oh-24h"
+  },
+  {
+   "name": "Magnesiumcarbonat MgCO₃ (Magnesit)",
+   "variant": "natural, 95 %, Hnusta (SK), 900 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 638.0,
+     "T_onset": 620.0,
+     "T_end": 650.0,
+     "loss": 49.2,
+     "label": "MgCO3 -> MgO + CO2"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §6.1.2 (about p. 108); vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "natural, 95 %, Hnusta (SK), 900 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); Factor 1.92. Fe substitution lowers the decomposition temperature markedly.; Onset: interval 620-650 °C; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "magnesiumcarbonat-mgco3-magnes-1",
+   "group": "magnesiumcarbonat-mgco3-magnes"
+  },
+  {
+   "name": "Huntit Mg₃Ca(CO₃)₄",
+   "variant": "natural, 73 % huntite, 500 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 17.0,
+   "steps": [
+    {
+     "T_peak": 610.0,
+     "T_onset": 550.0,
+     "T_end": 650.0,
+     "loss": 27.4,
+     "label": "Mg3Ca(CO3)4 -> 3MgO + CaCO3 + 3CO2"
+    },
+    {
+     "T_peak": 860.0,
+     "T_onset": 800.0,
+     "T_end": 900.0,
+     "loss": 12.47,
+     "label": "CaCO3 -> CaO + CO2"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §6.2.2 (about p. 112); vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "natural, 73 % huntite, 500 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); Included because huntite usually accompanies hydromagnesite in FR fillers.; Onset: interval 550-650 °C / interval 800-900 °C; DTG-Spitze aus Onset/Ende abgeleitet, Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet",
+    "Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen"
+   ],
+   "id": "huntit-mg3ca-co3-4-1",
+   "group": "huntit-mg3ca-co3-4"
+  },
+  {
+   "name": "Dolomit CaMg(CO₃)₂ (Huang u. a. 2024, N₂)",
+   "variant": "natural dolomite, Hebei (CN), purity 98.45 %, ball-milled; 20 ± 2 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 20.0,
+   "steps": [
+    {
+     "T_peak": 817.9,
+     "T_onset": 626.9,
+     "T_end": 841.9,
+     "loss": 47.73,
+     "label": "CaMg(CO3)2 -> CaO + MgO + 2CO2 (single step in N2)"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Huang, J.; Liu, Z.; Cui, Y.; Yuan, Q.; Deng, D.",
+    "title": "Half-decomposition of salt-bearing dolomite",
+    "container": "RSC Advances",
+    "year": "2024",
+    "volume": "14",
+    "issue": "16",
+    "pages": "11358-11367",
+    "doi": "10.1039/D4RA01341G",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11002726/fullTextXML",
+    "accessed": "2026-11-16",
+    "note": "Werte: Experimental (Mettler TGA 2); Results and Table 1, row 'Nat.' (900-1115 K, DTG 1091 K); Conclusion 1",
+    "licence": "open access (Europe PMC); full-text XML shows '© RSC'"
+   },
+   "note": "natural dolomite, Hebei (CN), purity 98.45 %, ball-milled; 20 ± 2 mg; Atmosphäre: N2 20 mL/min; Converted from K. Pure dolomite gives one step in N2. Two steps (MgCO3, then CaCO3) appear with salts, higher CO2 partial pressure or large samples. Mass loss appears only in a figure.; Onset: start of stated range (900 K); Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen",
+   "derived": [
+    "Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen"
+   ],
+   "id": "dolomit-camg-co3-2-1",
+   "group": "dolomit-camg-co3-2"
+  },
+  {
+   "name": "Dolomit CaMg(CO₃)₂ (Földvári 2011, Luft)",
+   "variant": "natural, 92 % dolomite + 3 % calcite, Budapest, 267.9 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 780.0,
+     "T_onset": 750.0,
+     "T_end": 800.0,
+     "loss": 21.85,
+     "label": "CaMg(CO3)2 -> CaCO3 + MgO + CO2"
+    },
+    {
+     "T_peak": 906.0,
+     "T_onset": 840.0,
+     "T_end": 950.0,
+     "loss": 23.22,
+     "label": "CaCO3 -> CaO + CO2"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §6.2.1, Fig. 6.2.1a; Table T6.2; vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "natural, 92 % dolomite + 3 % calcite, Budapest, 267.9 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); Factor 4.2 per step. The handbook notes the two steps separate only with a large sample mass; small samples merge them, and even 0.1 % NaCl lowers the first peak.; Onset: interval 750-800 °C / interval 840-950 °C; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "dolomit-camg-co3-2-2",
+   "group": "dolomit-camg-co3-2"
+  },
+  {
+   "name": "Gips CaSO₄·2H₂O",
+   "variant": "CaSO4·2H2O purified and recrystallised from phosphogypsum ('Product C')",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": null,
+   "steps": [
+    {
+     "T_peak": 144.0,
+     "T_onset": 136.74,
+     "T_end": 160.0,
+     "loss": 20.93,
+     "label": "CaSO4·2H2O -> CaSO4 + 2H2O (hemihydrate step not resolved in TG)"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Lei, Y.; Gong, Y.-J.; He, M.; Li, L.; Qin, J.; Liu, Y.",
+    "title": "High-Efficiency Purification and Morphology Regulation of CaSO4·2H2O Crystals from Phosphogypsum",
+    "container": "Molecules",
+    "year": "2024",
+    "volume": "29",
+    "issue": "16",
+    "pages": "3910",
+    "doi": "10.3390/molecules29163910",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11357588/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2 text and Fig. 4; §3.3 (TA TGA55)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "CaSO4·2H2O purified and recrystallised from phosphogypsum ('Product C'); Atmosphäre: N2 ('nitrogen protection'); Heating rate and mass are not reported. Range 100-160 °C. Product A: T5% 124.35, TMax 131.12 °C, loss 20.63 %. DSC shows two overlapped endotherms.; Onset: T5%; T10% = 139.79 °C",
+   "derived": [],
+   "id": "gips-caso42h2o-1",
+   "group": "gips-caso42h2o"
+  },
+  {
+   "name": "Kaolinit (Földvári 2011, Luft)",
+   "variant": "Georgia kaolinite, Clay Minerals Society reference (KGa series), 95 %, 130 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 566.0,
+     "T_onset": 530.0,
+     "T_end": 590.0,
+     "loss": 13.28,
+     "label": "Al2Si2O5(OH)4 -> Al2Si2O7 + 2H2O"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §5.1.1.1.1, Fig. 5.1.1.1.1a, Table T5.1.1 (about p. 68); vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "Georgia kaolinite, Clay Minerals Society reference (KGa series), 95 %, 130 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); Factor 7.17. The text's equation says '+H2O', a typo for 2H2O.; Onset: interval 530-590 °C; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "kaolinit-1",
+   "group": "kaolinit"
+  },
+  {
+   "name": "Kaolinit (Valášková u. a. 2019, Ar)",
+   "variant": "Sedlec kaolin 'Se' (CZ), 85.0 % kaolinite, <0.04 mm, 21.40 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Ar",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 104.0,
+     "T_onset": 20.0,
+     "T_end": 160.0,
+     "loss": 0.23,
+     "label": "adsorbed water"
+    },
+    {
+     "T_peak": 528.0,
+     "T_onset": 403.0,
+     "T_end": 720.0,
+     "loss": 11.26,
+     "label": "dehydroxylation -> metakaolinite"
+    },
+    {
+     "T_peak": 855.6,
+     "T_onset": 720.0,
+     "T_end": 946.0,
+     "loss": 0.61,
+     "label": "residual dehydroxylation"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Valášková, M.; Klika, Z.; Novosad, B.; Smetana, B.",
+    "title": "Crystallization and Quantification of Crystalline and Non-Crystalline Phases in Kaolin-Based Cordierites",
+    "container": "Materials (Basel)",
+    "year": "2019",
+    "volume": "12",
+    "issue": "19",
+    "pages": "3104",
+    "doi": "10.3390/ma12193104",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6811749/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.3 (SETARAM SETSYS 18, Pt crucibles); Table 2; Table 5",
+    "licence": "CC BY 4.0"
+   },
+   "note": "Sedlec kaolin 'Se' (CZ), 85.0 % kaolinite, <0.04 mm, 21.40 mg; Atmosphäre: Ar (6N); Table 2 gives masses in mg (0.05/2.41/0.13 mg). The step % values are calculated from these. The paper's total is 12.1 %, so residue = 100 − 12.1. 11.26/13.96 = 81 % kaolinite (calculated), vs 85 % by the paper's own phase analysis. A DTA exotherm at 990 °C (spinel/mullite) has no mass change.; Onset: step interval / step interval (Table 2) / step interval; peak is the DTA minimum, not DTG; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "residue": 87.9,
+   "residue_at": 1100.0,
+   "id": "kaolinit-2",
+   "group": "kaolinit"
+  },
+  {
+   "name": "Talk",
+   "variant": "natural, 90 % talc + calcite, 1000 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 17.0,
+   "steps": [
+    {
+     "T_peak": 940.0,
+     "T_onset": 850.0,
+     "T_end": 1000.0,
+     "loss": 4.3,
+     "label": "Mg3Si4O10(OH)2 -> 3MgSiO3 + SiO2 + H2O"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §5.1.2.1.2, Fig. 5.1.2.1.2; vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "natural, 90 % talc + calcite, 1000 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); Weak reference: impure, and calcite decomposition overlaps. Talc is stable up to about 800 °C, which is itself diagnostic.; Onset: interval 850-1000 °C; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "talk-1",
+   "group": "talk"
+  },
+  {
+   "name": "Montmorillonit (Bentonit)",
+   "variant": "Ca-bentonite, 52-62 % montmorillonite, 158.1 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 160.0,
+     "T_onset": 100.0,
+     "T_end": 200.0,
+     "loss": 7.6,
+     "label": "adsorbed + interlayer water"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §5.1.2.2.1.1, Fig. 5.1.2.2.1a; vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "Ca-bentonite, 52-62 % montmorillonite, 158.1 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); 4.9 % is the handbook's own OH content for the ideal water-free formula, not my calculation.; Onset: 'about 700 °C' / interval 100-200 °C; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "montmorillonit-bentonit-1",
+   "group": "montmorillonit-bentonit"
+  },
+  {
+   "name": "Kupfersulfat-Pentahydrat CuSO₄·5H₂O (Jiao u. a. 2026, N₂)",
+   "variant": "reagent >99.0 %, sieved 40-60 µm, about 10 mg",
+   "category": "Kalibrierstandard",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 186.0,
+     "T_onset": 150.0,
+     "T_end": 210.0,
+     "loss": 27.82,
+     "label": "'four water molecules released' 150-210 °C (as stated)"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Jiao, Y.; Li, X.; Zhang, Y.; Xie, Q.; Xia, Y.",
+    "title": "High-Sensitivity Terahertz Time-Domain Spectroscopic Characterization of the Thermal Evolution of Hydrated Copper Sulfate",
+    "container": "Molecules",
+    "year": "2026",
+    "volume": "31",
+    "issue": "8",
+    "pages": "1342",
+    "doi": "10.3390/molecules31081342",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13119230/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.3 (Fig. 4a); §3.1, §3.5 (Mettler TGA 2)",
+    "licence": "CC BY 4.0"
+   },
+   "note": "reagent >99.0 %, sieved 40-60 µm, about 10 mg; Atmosphäre: N2 50 mL/min; Internally inconsistent: the 3-hydrate and monohydrate are said to dehydrate at about 110 °C and 210 °C, but 4 H2O are said to be lost in 150-210 °C. No DTG peaks and no SO3 step in the text. Use with caution.; Onset: range stated; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "kupfersulfat-pentahydrat-cuso4-1",
+   "group": "kupfersulfat-pentahydrat-cuso4"
+  },
+  {
+   "name": "Kupfersulfat-Pentahydrat CuSO₄·5H₂O (Duan u. a. 2022, Luft)",
+   "variant": "'pure chalcanthite', 9.6 mg (also 5.2 and 28.7 mg), alumina crucible",
+   "category": "Kalibrierstandard",
+   "atmosphere": "Luft",
+   "rate": 5.0,
+   "steps": [
+    {
+     "T_peak": 61.6,
+     "T_onset": 46.09,
+     "loss": 5.7,
+     "label": "dehydration step 1 (source numbering)"
+    },
+    {
+     "T_peak": 80.3,
+     "T_onset": 71.14,
+     "loss": 7.04,
+     "label": "step 2"
+    },
+    {
+     "T_peak": 100.0,
+     "T_onset": 90.91,
+     "loss": 7.01,
+     "label": "step 3"
+    },
+    {
+     "T_peak": 111.1,
+     "T_onset": 107.32,
+     "loss": 6.05,
+     "label": "step 4"
+    },
+    {
+     "T_peak": 230.3,
+     "T_onset": 213.64,
+     "loss": 6.39,
+     "label": "step 5 (last H2O: CuSO4·H2O -> CuSO4)"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Duan, X.; Li, N.; Wang, Y.; Tang, Z.",
+    "title": "Systematical Study on the Influencing Factors of Synchronous Thermal Analyses of Samples-Taking the Chalcanthite as an Example",
+    "container": "Frontiers in Chemistry",
+    "year": "2022",
+    "volume": "10",
+    "pages": "863083",
+    "doi": "10.3389/fchem.2022.863083",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9043515/",
+    "accessed": "2026-11-16",
+    "note": "Werte: Tables 1-3; Figs. 1-4",
+    "licence": "CC BY"
+   },
+   "note": "'pure chalcanthite', 9.6 mg (also 5.2 and 28.7 mg), alumina crucible; Atmosphäre: air; Peaks and losses are for 9.6 mg at 5 K/min (Tables 1-2). Te at 10 K/min, 9.6 mg (Table 3): 55.63, 80.20, 101.26, 116.31 and 226.91 °C. The paper's steps (dehydration only, run to 400 °C) are tabulated without assigning which H2O each one is. A 28.7 mg sample merges the steps into 3 (peaks 85.63, 113.87, 237.09 °C). Measured totals of 28.8-34.6 % are below the theoretical 36.08 %, suggesting partial efflorescence. Good evidence for the effect of mass and heating rate.; Onset: Te / extrapolated initial temperature Te at 5 K/min (Table 3)",
+   "derived": [],
+   "id": "kupfersulfat-pentahydrat-cuso4-2",
+   "group": "kupfersulfat-pentahydrat-cuso4"
+  },
+  {
+   "name": "Kupfersulfat-Pentahydrat CuSO₄·5H₂O (Földvári 2011, Luft)",
+   "variant": "natural, 83-85 %, 85.6 mg",
+   "category": "Kalibrierstandard",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 160.0,
+     "T_onset": 100.0,
+     "T_end": 200.0,
+     "loss": 30.01,
+     "label": "-> CuSO4·H2O + 4H2O (2+2)"
+    },
+    {
+     "T_peak": 790.0,
+     "T_onset": 700.0,
+     "T_end": 850.0,
+     "loss": 26.53,
+     "label": "CuSO4 -> CuO + SO3 (double peak)"
+    }
+   ],
+   "source": {
+    "type": "book",
+    "authors": "Földvári, M.",
+    "title": "Handbook of thermogravimetric system of minerals and its use in geological practice",
+    "container": "Occasional Papers of the Geological Institute of Hungary, vol. 213, Budapest",
+    "year": "2011",
+    "url": "https://www.mek.oszk.hu/18000/18031/18031.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: §7.2.1, Fig. 7.2.1 (about p. 122); vol. 213, 180 pp.",
+    "licence": "frei lesbar (MEK), urheberrechtlich geschützt"
+   },
+   "note": "natural, 83-85 %, 85.6 mg; Atmosphäre: not stated; static air implied (Atmosphäre in der Quelle nicht angegeben); The 30.01 % step-1 value conflicts with the stated purity: by its factor it gives 104 % content. It is probably a misprint. Steps 2 and 3 are consistent. This is the only source found that includes the SO3 step.; Onset: 'about 250 °C' / interval 100-200 °C / interval 700-850 °C; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "id": "kupfersulfat-pentahydrat-cuso4-3",
+   "group": "kupfersulfat-pentahydrat-cuso4"
+  },
+  {
+   "name": "Natriumhydrogencarbonat NaHCO₃",
+   "variant": "high-purity NaHCO3, 4.76 mg, alumina crucible",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 96.6,
+     "loss": 0.7,
+     "label": "adsorbed water / minor"
+    },
+    {
+     "T_peak": 170.5,
+     "T_onset": 135.0,
+     "loss": 36.25,
+     "label": "2NaHCO3 -> Na2CO3 + H2O + CO2"
+    }
+   ],
+   "source": {
+    "type": "datasheet",
+    "authors": "NETZSCH-Gerätebau GmbH",
+    "title": "NaHCO3 — TG-FTIR application sheet (2007-141)",
+    "container": "NETZSCH Analyzing & Testing",
+    "year": "2021",
+    "url": "https://analyzing-testing.netzsch.com/_Resources/Persistent/7/8/2/b/782bd5fcce32d3806264bce9e898a895b163701b/2007-141_NaHCO3.pdf",
+    "accessed": "2026-11-16",
+    "note": "Werte: Test-results text; Fig. 2 annotations",
+    "licence": "manufacturer note"
+   },
+   "note": "high-purity NaHCO3, 4.76 mg, alumina crucible; Atmosphäre: N2 40 mL/min; TG 209 F1 Iris + FTIR. Total loss 36.95 %, so the residue is about 63.05 % (calculated). The 170.5 °C coincides with the stated maximum of H2O/CO2 release but is not labelled 'DTG'.; Onset: 'started at approximately 135 °C' (visual)",
+   "derived": [],
+   "id": "natriumhydrogencarbonat-nahco3-1",
+   "group": "natriumhydrogencarbonat-nahco3"
+  },
+  {
+   "name": "Zinkborat 2ZnO·3B₂O₃·3,5H₂O",
+   "variant": "hydrated ZB (Shanghai Jingchun), 5 µm",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "Luft",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 385.4,
+     "T_onset": 383.0,
+     "T_end": 450.0,
+     "loss": 14.0,
+     "label": "-> 2ZnO·3B2O3 + 3.5H2O (320-450 °C)"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Song, J.; Huang, Z.; Qin, Y.; Li, X.",
+    "title": "Thermal Decomposition and Ceramifying Process of Ceramifiable Silicone Rubber Composite with Hydrated Zinc Borate",
+    "container": "Materials (Basel)",
+    "year": "2019",
+    "volume": "12",
+    "issue": "10",
+    "pages": "1591",
+    "doi": "10.3390/ma12101591",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6566511/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.1 (about 14 % water, 320-450 °C); §2.4.3 (NETZSCH STA449C, RT-1300 °C); Table 2",
+    "licence": "CC BY 4.0"
+   },
+   "note": "hydrated ZB (Shanghai Jingchun), 5 µm; Atmosphäre: air; Air, not N2. The 78.04 % residue at 1300 °C is below the 85.5 % expected after dehydration, probably from B2O3 volatilisation above about 1000 °C; use the about 14 % step for identification. Manufacturer data (U.S. Borax Firebrake ZB data sheet): 'stable up to 290 °C'; H2O 14.51 %; median 9 µm / 2.1 µm (Fine); no TGA conditions given.; Onset: T5 (5 % loss)",
+   "derived": [],
+   "residue": 78.04,
+   "residue_at": 1300.0,
+   "id": "zinkborat-2zno3b2o33-5h2o-1",
+   "group": "zinkborat-2zno3b2o33-5h2o"
+  },
+  {
+   "name": "Russ (Carbon Black)",
+   "variant": "Printex U (Degussa), 25 nm, BET 92 m2/g, ash 0.02 %; 3 mg in alumina crucible",
+   "category": "Kohlenstoff",
+   "atmosphere": "O₂ 10 %",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 648.0,
+     "T_onset": 577.0,
+     "T_end": 697.0,
+     "loss": 100.0,
+     "label": "C + O2 -> CO2/CO"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Zhang, Q.; Fang, J.; Meng, Z.; Chen, C.; Qin, Z.",
+    "title": "Thermogravimetric analysis of soot combustion in the presence of ash and soluble organic fraction",
+    "container": "RSC Advances",
+    "year": "2020",
+    "volume": "10",
+    "issue": "55",
+    "pages": "33436-33443",
+    "doi": "10.1039/d0ra06384c",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9056668/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.2-2.3; Tables 1, 3 (cases 1-2)",
+    "licence": "open access; licence not stated on the PMC page"
+   },
+   "note": "Printex U (Degussa), 25 nm, BET 92 m2/g, ash 0.02 %; 3 mg in alumina crucible; Atmosphäre: 10 % O2 / 90 % N2, 100 mL/min (NOT air); NETZSCH TG209F3. Peak ± 3 °C, end ± 1 °C; Wmax 10.25 %/min. In 21 % O2 all temperatures will be lower. Oxidation temperatures of carbon black depend strongly on surface area, grade and sample mass.; Onset: Ts, 'point where the sample begins to burn' (± 2); Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen",
+   "derived": [
+    "Stufenverlust = theoretischer Wert (Stöchiometrie), nicht gemessen"
+   ],
+   "id": "russ-carbon-black-1",
+   "group": "russ-carbon-black"
+  },
+  {
+   "name": "Kieselsäure (pyrogen)",
+   "variant": "AEROSIL 200 (Evonik), BET 174 m2/g measured, 5 mg",
+   "category": "Mineral / Füllstoff",
+   "atmosphere": "N₂",
+   "rate": 10.0,
+   "steps": [
+    {
+     "T_peak": 520.0,
+     "T_onset": 100.0,
+     "T_end": 800.0,
+     "loss": 1.4,
+     "label": "surface dehydration + dehydroxylation (combined)"
+    }
+   ],
+   "source": {
+    "type": "article",
+    "authors": "Ruiz-Cañas, M.C.; Corredor, L.M.; Quintero, H.I.; Manrique, E.; Romero Bohórquez, A.R.",
+    "title": "Morphological and Structural Properties of Amino-Functionalized Fumed Nanosilica and Its Comparison with Nanoparticles Obtained by Modified Stöber Method",
+    "container": "Molecules",
+    "year": "2020",
+    "volume": "25",
+    "issue": "12",
+    "pages": "2868",
+    "doi": "10.3390/molecules25122868",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7355829/",
+    "accessed": "2026-11-16",
+    "note": "Werte: §2.6 (TA 2050); §3.1, 3.7-3.8",
+    "licence": "CC BY 4.0"
+   },
+   "note": "AEROSIL 200 (Evonik), BET 174 m2/g measured, 5 mg; Atmosphäre: N2 25 mL/min; Water below 100 °C is not reported separately. Helper-agent reading; I did not re-check this one.; Onset: range stated; DTG-Spitze aus Onset/Ende abgeleitet",
+   "derived": [
+    "DTG-Spitze aus Onset/Ende abgeleitet"
+   ],
+   "residue": 98.6,
+   "residue_at": 800.0,
+   "id": "kieselsaure-pyrogen-1",
+   "group": "kieselsaure-pyrogen"
+  }
+ ]
+}
