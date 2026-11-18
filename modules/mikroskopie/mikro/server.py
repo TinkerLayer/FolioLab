@@ -277,15 +277,22 @@ def export(iid, req) -> dict:
         from .bundle import _overlay
         ov = _overlay(a)
         if ov:                                          # I-04: Vergleichsverteilung aus einem Datensatz
-            fig(C.fig_sizes_overlay(ov["ecd"], ov["vals"], a.calib.unit, "de", ("Partikel", ov["cmp"].get("name") or "Datensatz")),
+            fig(C.fig_sizes_overlay(ov["ecd"], ov["vals"], a.calib.unit, "de", ("Partikel", ov["cmp"].get("name") or "Datensatz"),
+                                    weights=ov["w"]),
                 "vergleichsverteilung.png")
+            names = {"D10": "D10 (Q0)", "D50": "D50 (Q0)", "D90": "D90 (Q0)", "Dv10": "Dv10 (Q3)", "Dv50": "Dv50 (Q3)",
+                     "Dv90": "Dv90 (Q3)", "mean": "Mittelwert (Q0)", "sd": "Std.-Abw. (Q0)"}
             _write_csv(folder / "vergleichsverteilung.csv",
-                       [{"Grösse": k, "Partikel": ov["s_img"][k], "Datensatz": ov["s_ds"][k]} for k in ("n", "D10", "D50", "D90", "mean", "sd")])
+                       [{"Grösse": names.get(k, k), "Partikel": ov["s_img"][k], "Datensatz": ov["s_ds"][k]}
+                        for k in ("n", "D10", "D50", "D90", "Dv10", "Dv50", "Dv90", "mean", "sd")])
             files.append("vergleichsverteilung.csv")
     if a.intensity.ndim == 2:
         fig(C.fig_hist(a.intensity, "de", a.proc.thr), "histogramm.png")
     lines = [f"Bild: {st.name}  ({st.width}×{st.height} px, {st.type_label()}, {st.slices} Ebene(n))",
-             f"Kalibrierung: {a.calib.pw:g} {a.calib.unit}/px" if a.calib.calibrated else "Kalibrierung: keine",
+             ("Kalibrierung: " + (f"{a.calib.pw:g} {a.calib.unit}/px (quadratische Pixel"
+                                  + (", angenommen" if a.calib.square_assumed else "") + ")" if a.calib.square
+                                  else f"Pixelbreite {a.calib.pw:g} {a.calib.unit}, Pixelhöhe {a.calib.ph:g} {a.calib.unit}")
+              if a.calib.calibrated else "Kalibrierung: keine"),
              "", "Protokoll:"]
     lines += [f"  {i}. {s}" for i, s in enumerate(a.proc.steps, 1)] or ["  (keine Bearbeitung)"]
     lines += ["", "Protokoll als JSON (in der Oberfläche unter Protokoll ▸ Laden wieder einlesbar):",
@@ -423,7 +430,8 @@ class Handler(BaseHTTPRequestHandler):
             a = run(st, {**state_of(req), "rois": [], "particles": None}, "de", with_particles=False)
             r = req.get("roi") or {}
             d, v = M.sample_line(a.intensity, r["x1"], r["y1"], r["x2"], r["y2"], int(r.get("width") or 1))
-            return self._json({"d": d * a.calib.pw, "v": v, "unit": a.calib.unit if a.calib.calibrated else "px"})
+            k = M.line_scale(a.calib, r["x2"] - r["x1"], r["y2"] - r["y1"])     # pw und ph je nach Richtung
+            return self._json({"d": d * k, "v": v, "unit": a.calib.unit if a.calib.calibrated else "px"})
         if p == "/api/particles":
             req = self._req()
             st = get_image(req.get("id"))

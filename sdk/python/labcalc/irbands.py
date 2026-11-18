@@ -1,7 +1,8 @@
 """IR-Gruppenfrequenzen (Korrelationstabelle), gemeinsam für FTIR und Elementrechner (A6).
 
 Bereiche nach den gängigen Tabellenwerken: G. Socrates, Infrared and Raman Characteristic Group Frequencies, 3. Aufl.,
-Wiley 2001; R. M. Silverstein, F. X. Webster, D. J. Kiemle, Spectrometric Identification of Organic Compounds.
+Wiley 2001; R. M. Silverstein, F. X. Webster, D. J. Kiemle, D. L. Bryce, Spectrometric Identification of Organic
+Compounds, 8. Aufl., Wiley 2014. Die Bereiche wurden nicht Zeile für Zeile gegen diese Ausgaben geprüft.
 Vorher in modules/ftir/ftir/groups.py; dort unverändert weiter verwendet.
 """
 from __future__ import annotations

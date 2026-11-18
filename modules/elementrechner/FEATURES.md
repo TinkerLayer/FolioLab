@@ -190,7 +190,7 @@ estimates and calculated values are always labelled.
 ### More look-ups (smaller items, 0.8.0)
 - Mean bond enthalpies and lengths (34 bonds, Atkins) with a labelled bond-enthalpy estimate of ΔrH next to the
   tabulated value.
-- Successive ionisation energies from NIST ASD (110 elements, licence and DOI in the data file; Rechner `IE("Na", 1)`)
+- Successive ionisation energies from NIST ASD (110 elements, licence and DOI in the data file; Rechner `IE("Na", 1)` as an energy, `-> eV` to show it in eV; `IE_eV` gives the plain number)
   and 37 Shannon ionic radii (marked "please check").
 - Antoine coefficients for 9 solvents with validity range (warning outside it), K_f/K_b for 8 solvents; Rechner
   `pvap`, `Kf`, `Kb`.

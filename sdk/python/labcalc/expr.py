@@ -257,6 +257,11 @@ class Ctx:
         self.complex_ok = complex_ok
         self.dims = dict(dims or {})
         self.depth = 0
+        self.notes = []                       # Hinweise der Analysis-Funktionen (Integral-/Ableitungsgenauigkeit)
+
+    def note(self, text):
+        if text not in self.notes:
+            self.notes.append(text)
 
     @property
     def aconv(self):
@@ -548,11 +553,13 @@ def _seq(c, a, b, step=1.0):
 def _convert(c, v, a, b):
     if not isinstance(a, str) or not isinstance(b, str):
         raise CalcError('convert(Wert, "von", "nach") – Einheiten in Anführungszeichen')
+    (a, da), (b, db) = U.split_delta(a), U.split_delta(b)
+    diff = da or db                                # "Δ°C": Temperaturdifferenz, ohne Nullpunktverschiebung
     U.parse_unit(a)
     U.parse_unit(b)
     if not U.compatible(a, b):                     # auch: Skalen wie pH, dB, NTU nur in sich selbst
         raise CalcError(f"{a} und {b} passen nicht zusammen")
-    return U.from_si(U.to_si(np.asarray(v, float), a), b)
+    return U.from_si(U.to_si(np.asarray(v, float), a, diff), b, diff)
 
 
 def _size(c, A):
@@ -667,41 +674,139 @@ def _vectorized(f, X):
     return np.array([float(np.real(f(float(x)))) for x in np.ravel(X)]).reshape(np.shape(X))
 
 
-_GL = np.polynomial.legendre.leggauss(16)
+# Gauss–Kronrod 7/15 (Knoten und Gewichte wie QUADPACK qk15; Piessens et al. 1983). Geprüft im Test: K15 exakt
+# für Polynome bis Grad 22, G7 sind die Gauss-Legendre-Knoten n = 7.
+_XK = [0.991455371120812639206854697526329, 0.949107912342758524526189684047851, 0.864864423359769072789712788640926,
+       0.741531185599394439863864773280788, 0.586087235467691130294144845693013, 0.405845151377397166906606412076961,
+       0.207784955007898467600689403773245]
+_WK = [0.022935322010529224963732008058970, 0.063092092629978553290700663189204, 0.104790010322250183839876322541518,
+       0.140653259715525918745189590510238, 0.169004726639267902826583426598550, 0.190350578064785409913256402421014,
+       0.204432940075298892414161999234649]
+_WK0 = 0.209482141084727828012999174891714
+_WG = [0.129484966168869693270611432679082, 0.279705391489276667901467771423780, 0.381830050505118944950369775488975]
+_WG0 = 0.417959183673469387755102040816327
+GK_X = np.array([-x for x in _XK] + [0.0] + _XK[::-1])
+GK_W = np.array(_WK + [_WK0] + _WK[::-1])
+G7_W = np.array([0.0, _WG[0], 0.0, _WG[1], 0.0, _WG[2], 0.0, _WG0, 0.0, _WG[2], 0.0, _WG[1], 0.0, _WG[0], 0.0])
+
+QUAD_RTOL = 1e-10            # Ziel: geschätzter Fehler ≤ 1e-10·|I| (bzw. 50·eps·∫|f|)
+QUAD_ACCEPT = 1e-6           # darüber wird kein Wert ausgegeben, sondern ein Fehler gemeldet
+QUAD_LIMIT = 2000            # höchstens so viele Teilintervalle
+QUAD_START = 16              # gleich breite Startintervalle
 
 
-def quad(f, a, b):
-    """Integral von f ueber [a, b] (auch unendliche Grenzen), zusammengesetzte Gauss-Legendre-Regel."""
+class QuadResult(float):
+    """Integralwert mit Fehlerschätzung (.err) und Konvergenzangabe (.converged)."""
+    err = 0.0
+    converged = True
+
+
+def _eval_points(f, X):
+    """f an den Stellen X (beliebige Form); nicht berechenbare Stellen werden NaN."""
+    X = np.asarray(X, dtype=float)
+    try:
+        with np.errstate(all="ignore"):
+            Y = np.asarray(f(X.ravel()))                  # eindimensional: kein Matrixprodukt in _mul
+        if Y.shape == (X.size,) and not np.iscomplexobj(Y) and Y.dtype.kind in "fiub":
+            return Y.astype(float).reshape(X.shape)
+        if Y.ndim == 0 and not np.iscomplexobj(Y) and Y.dtype.kind in "fiub":
+            return np.full(X.shape, float(Y))
+    except (CalcError, TypeError, ValueError, ZeroDivisionError, OverflowError, IndexError):
+        pass
+    out = np.empty(X.size)
+    for i, x in enumerate(X.ravel()):
+        try:
+            with np.errstate(all="ignore"):
+                z = complex(np.asarray(f(float(x))))
+            out[i] = z.real if abs(z.imag) <= 1e-12 * max(1.0, abs(z.real)) else math.nan
+        except (CalcError, TypeError, ValueError, ZeroDivisionError, OverflowError, IndexError):
+            out[i] = math.nan
+    return out.reshape(X.shape)
+
+
+def _gk15(f, lo, hi):
+    """Gauss–Kronrod auf den Intervallen [lo_i, hi_i]: (K15-Werte, |K15 − G7|, ∫|f| nach K15)."""
+    c, h = (lo + hi) / 2, (hi - lo) / 2
+    X = c[:, None] + h[:, None] * GK_X[None, :]
+    Y = _eval_points(f, X)
+    if not np.all(np.isfinite(Y)):
+        raise CalcError("Integral: der Integrand ist im Intervall nicht endlich (oder nicht definiert)")
+    k = h * (Y @ GK_W)
+    g = h * (Y @ G7_W)
+    return k, np.abs(k - g), np.abs(h) * (np.abs(Y) @ GK_W)
+
+
+def _adapt(f, a, b):
+    """Global adaptive Unterteilung (Halbierung der Intervalle mit dem grössten Fehler, wie QUADPACK QAG, ohne
+    Extrapolation). -> (Wert, Fehlerschätzung, konvergiert?)."""
+    edges = np.linspace(a, b, QUAD_START + 1)
+    lo, hi = edges[:-1], edges[1:]
+    val, err, absv = _gk15(f, lo, hi)
+    while True:
+        tot, etot, rabs = float(np.sum(val)), float(np.sum(err)), float(np.sum(absv))
+        goal = max(QUAD_RTOL * abs(tot), 50 * np.finfo(float).eps * rabs)
+        if etot <= goal:
+            return tot, etot, True
+        if lo.size >= QUAD_LIMIT:
+            return tot, etot, False
+        width = hi - lo
+        can = width > 64 * np.finfo(float).eps * np.maximum(np.abs(lo), np.abs(hi))
+        order = np.argsort(-np.where(can, err, -1.0))
+        pick = [i for i in order[:min(64, QUAD_LIMIT - lo.size)] if can[i] and err[i] > goal / lo.size]
+        if not pick:
+            pick = [i for i in order[:1] if can[i]]
+        if not pick:                                       # nichts mehr teilbar (Intervalle auf Rundungsbreite)
+            return tot, etot, False
+        pick = np.array(pick)
+        mid = (lo[pick] + hi[pick]) / 2
+        nlo = np.concatenate([lo[pick], mid])
+        nhi = np.concatenate([mid, hi[pick]])
+        nv, ne, na = _gk15(f, nlo, nhi)
+        keep = np.ones(lo.size, dtype=bool)
+        keep[pick] = False
+        lo, hi = np.concatenate([lo[keep], nlo]), np.concatenate([hi[keep], nhi])
+        val, err, absv = np.concatenate([val[keep], nv]), np.concatenate([err[keep], ne]), np.concatenate([absv[keep], na])
+
+
+def quad_est(f, a, b):
+    """Integral von f über [a, b] (auch unendliche Grenzen): adaptives Gauss–Kronrod 7/15 mit Fehlerschätzung.
+    -> (Wert, Fehlerschätzung, konvergiert?). Unendliche Grenzen: x = a + t/(1 − t), dx = dt/(1 − t)², t in [0, 1]."""
     a, b = float(a), float(b)
     if a == b:
-        return 0.0
+        return 0.0, 0.0, True
     if a > b:
-        return -quad(f, b, a)
+        v, e, ok = quad_est(f, b, a)
+        return -v, e, ok
     if math.isinf(a) and math.isinf(b):
-        return quad(f, -math.inf, 0) + quad(f, 0, math.inf)
-    if math.isinf(b):
-        g = lambda t: f(a + t / (1 - t)) / (1 - t) ** 2        # noqa: E731
-        return _gl(g, 0.0, 1.0 - 1e-12)
-    if math.isinf(a):
-        g = lambda t: f(b - t / (1 - t)) / (1 - t) ** 2        # noqa: E731
-        return _gl(g, 0.0, 1.0 - 1e-12)
-    return _gl(f, a, b)
+        v1, e1, ok1 = quad_est(f, -math.inf, 0.0)
+        v2, e2, ok2 = quad_est(f, 0.0, math.inf)
+        return v1 + v2, e1 + e2, ok1 and ok2
+    with np.errstate(all="ignore"):
+        if math.isinf(b):
+            return _adapt(lambda t: f(a + t / (1 - t)) / (1 - t) ** 2, 0.0, 1.0)
+        if math.isinf(a):
+            return _adapt(lambda t: f(b - t / (1 - t)) / (1 - t) ** 2, 0.0, 1.0)
+        return _adapt(f, a, b)
 
 
-def _gl(f, a, b):
-    xg, wg = _GL
-
-    def comp(n):
-        e = np.linspace(a, b, n + 1)
-        mid, half = (e[:-1] + e[1:]) / 2, (e[1:] - e[:-1]) / 2
-        X = (mid[:, None] + half[:, None] * xg[None, :])
-        Y = _vectorized(f, X.ravel()).reshape(X.shape)
-        return float(np.sum(half[:, None] * wg[None, :] * Y))
-
-    i1, i2 = comp(24), comp(96)
-    if not math.isfinite(i2):
+def quad(f, a, b, ctx=None):
+    """Integralwert (QuadResult mit .err). Ist der geschätzte Fehler grösser als QUAD_ACCEPT·|I| (bzw.
+    QUAD_ACCEPT·∫|f| bei I ≈ 0), wird kein Wert ausgegeben (CalcError); liegt er zwischen dem Ziel und dieser Grenze,
+    gibt es einen Hinweis in ctx.notes."""
+    v, e, ok = quad_est(f, a, b)
+    if not math.isfinite(v):
         raise CalcError("Integral: der Integrand ist im Intervall nicht endlich")
-    return i2
+    scale = max(abs(v), 1e-300)
+    if not ok and not e <= QUAD_ACCEPT * scale:
+        raise CalcError(f"Integral konvergiert numerisch nicht (Schätzwert {fmt_num(v, 6)}, geschätzter Fehler "
+                        f"{fmt_num(e, 2)}): der Integrand oszilliert oder ist singulär. Bei unendlichen Grenzen eine "
+                        "endliche Grenze wählen, bei Singularitäten das Intervall teilen.")
+    if not ok and ctx is not None:
+        ctx.note(f"Integral: geschätzter relativer Fehler {fmt_num(e / scale, 2)} (Ziel {fmt_num(QUAD_RTOL, 1)} "
+                 "nicht erreicht)")
+    r = QuadResult(v)
+    r.err, r.converged = e, ok
+    return r
 
 
 def _sp_integral(args, ctx, local):
@@ -712,20 +817,101 @@ def _sp_integral(args, ctx, local):
     a, b = evaluate(args[2], ctx, local), evaluate(args[3], ctx, local)
     if np.ndim(a) or np.ndim(b):
         A, B = np.broadcast_arrays(np.asarray(a, float), np.asarray(b, float))
-        return np.vectorize(lambda x, y: quad(f, x, y))(A, B)
-    return quad(f, a, b)
+        return np.vectorize(lambda x, y: float(quad(f, x, y, ctx)))(A, B)
+    return float(quad(f, a, b, ctx))
+
+
+# Numerische Ableitung: Stufenleiter h_k = h_max·10^(−k/2) von h_max = 0,1·max(|x0|, 1) bis 1e-9·min(|x0|, 1)
+# (relativer Schritt, auch für kleine |x0|). Je Stufe zentraler Differenzenquotient mit einem Richardson-Schritt,
+# (4·D(h/2) − D(h))/3. Gewählt wird die Stufe, an der zwei benachbarte Schätzwerte am besten übereinstimmen (die
+# Differenz ist die Fehlerschätzung; Prinzip wie Ridders' Verfahren, Press et al. 2007, Abschn. 5.7). Liegt eine Stelle
+# des zentralen Schemas ausserhalb des Definitionsbereichs (NaN), wird für diese Stufe die einseitige Formel zweiter
+# Ordnung (vorwärts, sonst rückwärts) genommen, ebenfalls mit Richardson-Schritt.
+_DOFF = np.array([-3.0, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 3.0])
+
+
+def deriv_est(f, x0, n=1):
+    """Ableitung n-ter Ordnung (1 oder 2) an x0 (Zahl oder Feld). -> (Wert, Fehlerschätzung)."""
+    if n not in (1, 2):
+        raise CalcError("deriv: nur 1. oder 2. Ableitung")
+    x0 = np.asarray(x0, dtype=float)
+    shape = x0.shape
+    xv = x0.ravel()
+    ax = np.abs(xv)
+    hmax = 0.1 * np.maximum(ax, 1.0)
+    hmin = 1e-9 * np.where(ax > 0, np.minimum(ax, 1.0), 1.0)
+    hmin = np.maximum(hmin, 1e-300)
+    K = int(min(80, np.ceil(2 * np.max(np.log10(hmax / hmin))) + 1))
+    H = hmax[None, :] * 10.0 ** (-np.arange(K) / 2.0)[:, None]                  # (K, N)
+    H = np.maximum(H, hmin[None, :])
+    X = xv[None, None, :] + _DOFF[None, :, None] * H[:, None, :]               # (K, 11, N)
+    Y = _eval_points(f, X)
+    F = {o: Y[:, i, :] for i, o in enumerate(_DOFF)}
+    f0 = F[0.0]
+    with np.errstate(all="ignore"):
+        if n == 1:
+            def cen(a):
+                return (F[a] - F[-a]) / (2 * a * H)
+
+            def one(s, a):                       # s = +1 vorwärts, −1 rückwärts; Schritt a·h
+                return s * (-3 * f0 + 4 * F[s * a] - F[s * 2 * a]) / (2 * a * H)
+        else:
+            def cen(a):
+                return (F[a] - 2 * f0 + F[-a]) / (a * H) ** 2
+
+            def one(s, a):
+                return (2 * f0 - 5 * F[s * a] + 4 * F[s * 2 * a] - F[s * 3 * a]) / (a * H) ** 2
+        cands = []
+        if n == 1:
+            cands.append((4 * cen(0.5) - cen(1.0)) / 3)
+            for s in (1.0, -1.0):
+                cands.append((4 * one(s, 0.5) - one(s, 1.0)) / 3)
+        else:
+            cands.append((4 * cen(0.5) - cen(1.0)) / 3)
+            for s in (1.0, -1.0):                # einseitig: halber Schritt (0,5 h; 1 h; 1,5 h) und ganzer (1; 2; 3 h)
+                cands.append((4 * one(s, 0.5) - one(s, 1.0)) / 3)
+    C = np.full(H.shape, np.nan)
+    kind = np.full(H.shape, -1)
+    for t, c in enumerate(cands):
+        use = (kind < 0) & np.isfinite(c)
+        C = np.where(use, c, C)
+        kind = np.where(use, t, kind)
+    # Rundungsfehler je Stufe (Auslöschung in f(x+h) − f(x−h)): etwa 10·ε·max|f|/h bzw. 60·ε·max|f|/h²; er ist eine
+    # untere Grenze der Fehlerschätzung, sonst sähen gleiche (ausgelöschte) Werte bei winzigem h wie Übereinstimmung aus.
+    with np.errstate(all="ignore"):
+        fmax = np.max(np.where(np.isfinite(Y), np.abs(Y), 0.0), axis=1)
+        rnd = (10.0 if n == 1 else 60.0) * np.finfo(float).eps * fmax / H ** n
+    if K > 1:
+        same = (kind[:-1] == kind[1:]) & (kind[:-1] >= 0)
+        diff = np.where(same, np.maximum(np.abs(C[:-1] - C[1:]), np.maximum(rnd[:-1], rnd[1:])), np.inf)
+        k = np.argmin(diff, axis=0)
+        cols = np.arange(xv.size)
+        best, err = C[k, cols], diff[k, cols]
+        # Knick: das zentrale Schema mittelt links- und rechtsseitige Steigung (|x| bei 0 ergäbe 0 ohne Warnung).
+        # Weichen die einseitigen Schätzwerte an der gewählten Stufe deutlich voneinander ab, gilt ihr Abstand als
+        # Fehlerschätzung.
+        with np.errstate(all="ignore"):
+            fw, bw = cands[1][k, cols], cands[2][k, cols]
+            jump = np.abs(fw - bw)
+            kink = (kind[k, cols] == 0) & np.isfinite(jump) \
+                & (jump > 1e-3 * np.maximum(np.maximum(np.abs(fw), np.abs(bw)), np.abs(best))) & (jump > 100 * err)
+        err = np.where(kink, jump, err)
+    else:
+        best, err = C[0], np.full(xv.size, np.inf)
+    lone = ~np.isfinite(err)                          # keine zwei vergleichbaren Stufen: kleinster brauchbarer Schritt
+    if np.any(lone):
+        for j in np.nonzero(lone)[0]:
+            ok = np.nonzero(np.isfinite(C[:, j]))[0]
+            best[j] = C[ok[-1], j] if ok.size else math.nan
+            err[j] = math.inf if ok.size else math.nan
+    best, err = best.reshape(shape), err.reshape(shape)
+    if not shape:
+        return float(best), float(err)
+    return best, err
 
 
 def deriv_at(f, x0, n=1):
-    x0 = np.asarray(x0, dtype=float)
-    h = 1e-3 * np.maximum(1.0, np.abs(x0))
-    if n == 1:
-        d = lambda h: (np.asarray(f(x0 + h), float) - np.asarray(f(x0 - h), float)) / (2 * h)   # noqa: E731
-    elif n == 2:
-        d = lambda h: (np.asarray(f(x0 + h), float) - 2 * np.asarray(f(x0), float) + np.asarray(f(x0 - h), float)) / h ** 2  # noqa: E731
-    else:
-        raise CalcError("deriv: nur 1. oder 2. Ableitung")
-    return (4 * d(h / 2) - d(h)) / 3
+    return deriv_est(f, x0, n)[0]
 
 
 def _sp_deriv(args, ctx, local):
@@ -734,7 +920,16 @@ def _sp_deriv(args, ctx, local):
     var = _var_name(args[1], "deriv")
     f = _fn_of(args[0], var, ctx, local)
     n = int(evaluate(args[3], ctx, local)) if len(args) == 4 else 1
-    return deriv_at(f, evaluate(args[2], ctx, local), n)
+    v, e = deriv_est(f, evaluate(args[2], ctx, local), n)
+    va, ea = np.abs(np.atleast_1d(np.asarray(v, float))), np.abs(np.atleast_1d(np.asarray(e, float)))
+    fin = np.isfinite(va)
+    with np.errstate(all="ignore"):
+        rel = np.where(va > 0, ea / va, np.where(ea <= 1e-12, 0.0, np.inf))[fin]
+    if rel.size and not np.all(np.isfinite(rel)):
+        ctx.note("Ableitung: keine verlässliche Fehlerschätzung (Funktion an der Stelle nicht glatt?)")
+    elif rel.size and float(np.max(rel)) > 1e-6:
+        ctx.note(f"Ableitung: geschätzter relativer Fehler {fmt_num(float(np.max(rel)), 2)}")
+    return v
 
 
 def find_root(f, x0, x1=None, tol=1e-12):
@@ -869,7 +1064,95 @@ class DimError(ValueError):
 
 
 _DIMLESS_FUNCS = {"sin", "cos", "tan", "cot", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "exp", "ln",
-                  "log", "log10", "log2", "asinh", "acosh", "atanh", "fact", "gamma"}
+                  "log", "log10", "log2", "asinh", "acosh", "atanh", "fact", "gamma", "eigvec"}
+# Ergebnis hat die Einheit des ersten Arguments
+_SAME_DIMS = {"std", "sort", "cumsum", "diff", "transpose", "trace", "eig", "svd", "norm", "diag", "row", "col",
+              "re", "im", "conj"}
+
+
+def _bare(node) -> bool:
+    """Zahl ohne Namen (0, 2.5, −1, inf, pi): als Grenze oder Startwert passt sie zu jeder Einheit."""
+    calls = [c for c in ast.walk(node) if isinstance(c, ast.Call)]
+    if any(isinstance(c.func, ast.Name) and c.func.id in STRFUNCS for c in calls):
+        return False
+    fn = {id(c.func) for c in calls}
+    return all(not isinstance(n, ast.Name) or id(n) in fn or n.id in ("inf", "nan", "pi") for n in ast.walk(node))
+
+
+def _special_dims(node, dims, strict, consts):
+    """Einheit von integral, deriv, nsolve, sum, prod, if: ∫f dx -> [f]·[x], df/dx -> [f]/[x]ⁿ, nsolve -> [x]
+    (aus dem Startwert, sonst dimensionslos, wenn die Gleichung nur dimensionslose Grössen enthält), Summe -> [Glied].
+    None = unbekannt."""
+    n, args = node.func.id, node.args
+
+    def dd(a, extra=None):
+        return dims_of(a, {**dims, **(extra or {})}, strict, consts)
+
+    def same(ds, what):
+        if any(d is None for d in ds):
+            return None
+        if ds and not all(U.deq(d, ds[0]) for d in ds[1:]):
+            if strict:
+                raise DimError(f"{what}: Grenzen mit verschiedenen Einheiten")
+            return None
+        return ds[0] if ds else U.D0
+
+    if n == "integral" and len(args) == 4 and isinstance(args[1], ast.Name):
+        dx = same([dd(a) for a in args[2:] if not _bare(a)], "integral")
+        if dx is None:
+            return None
+        inner = dd(args[0], {args[1].id: dx})
+        return U.dmul(inner, dx) if inner is not None else None
+    if n == "deriv" and len(args) in (3, 4) and isinstance(args[1], ast.Name):
+        dx = U.D0 if _bare(args[2]) else dd(args[2])
+        if dx is None:
+            return None
+        try:
+            order = int(float(evaluate(args[3], Ctx()))) if len(args) == 4 else 1
+        except (CalcError, TypeError, ValueError):
+            return None
+        inner = dd(args[0], {args[1].id: dx})
+        return U.ddiv(inner, U.dpow(dx, order)) if inner is not None else None
+    if n == "nsolve" and len(args) in (3, 4) and isinstance(args[1], ast.Name):
+        given = [a for a in args[2:] if not _bare(a)]
+        if given:
+            return same([dd(a) for a in given], "nsolve")
+        var = args[1].id
+        e = args[0]
+        pair = (e.left, e.comparators[0]) if isinstance(e, ast.Compare) and len(e.ops) == 1 else (e, e)
+        from . import solve as SV                         # Einheit der Unbekannten wie beim Lösen von Gleichungen
+        try:
+            got, bad = SV.infer_dims([pair], Ctx(names={}, dims={k: v for k, v in dims.items() if k != var}), [var])
+        except (CalcError, ValueError, TypeError):
+            return None
+        if got.get(var) is not None and not bad:
+            return got[var]
+        fnames = {c.func.id for c in ast.walk(e) if isinstance(c, ast.Call) and isinstance(c.func, ast.Name)}
+        others = {m.id for m in ast.walk(e) if isinstance(m, ast.Name) and m.id != var and m.id not in fnames}
+        ds = [dd(ast.Name(id=m, ctx=ast.Load())) for m in others if m not in ("inf", "nan", "pi")]
+        return U.D0 if not bad and all(d is not None and U.deq(d, U.D0) for d in ds) else None
+    if n in ("sum", "prod"):
+        if len(args) == 1:
+            d = dd(args[0])
+            if n == "sum" or d is None:
+                return d
+            return U.D0 if U.deq(d, U.D0) else None
+        if len(args) == 4 and isinstance(args[1], ast.Name):
+            inner = dd(args[0], {args[1].id: U.D0})
+            if inner is None or n == "sum":
+                return inner
+            if U.deq(inner, U.D0):
+                return U.D0
+            try:
+                cnt = int(round(float(evaluate(args[3], Ctx())))) - int(round(float(evaluate(args[2], Ctx())))) + 1
+            except (CalcError, TypeError, ValueError):
+                return None
+            return U.dpow(inner, max(cnt, 0))
+        return None
+    if n in ("if", "if_") and len(args) == 3:
+        a, b = dd(args[1]), dd(args[2])
+        return a if a is not None and b is not None and U.deq(a, b) else None
+    return None
 
 
 def dims_of(node, dims: dict, strict=False, consts=True):
@@ -919,9 +1202,50 @@ def dims_of(node, dims: dict, strict=False, consts=True):
         if op is ast.Div:
             return U.ddiv(a, b)
         return None
+    if t in (ast.List, ast.Tuple):                    # Liste/Matrix: Einheit, wenn alle Einträge dieselbe haben
+        ds = [dims_of(e, dims, strict, consts) for e in node.elts]
+        if not ds:
+            return U.D0
+        if any(d is None for d in ds):
+            return None
+        return ds[0] if all(U.deq(d, ds[0]) for d in ds[1:]) else None
+    if t is ast.Subscript:
+        return dims_of(node.value, dims, strict, consts)
+    if t is ast.IfExp:
+        a, b = dims_of(node.body, dims, strict, consts), dims_of(node.orelse, dims, strict, consts)
+        return a if a is not None and b is not None and U.deq(a, b) else None
+    if t is ast.Call and isinstance(node.func, ast.Name) and node.func.id in SPECIAL:
+        return _special_dims(node, dims, strict, consts)
     if t is ast.Call and isinstance(node.func, ast.Name):
         n = node.func.id
         ds = [dims_of(a, dims, strict, consts) for a in node.args]
+        if n in _SAME_DIMS and ds:
+            return ds[0]
+        if n == "inv" and ds and ds[0] is not None:
+            return U.dpow(ds[0], -1)
+        if n in ("len", "size", "rank", "cond", "eye", "identity", "zeros", "ones", "binom", "nCr", "nPr",
+                 "rand", "gcd", "lcm"):
+            return U.D0
+        if n == "det" and ds and ds[0] is not None:
+            return U.D0 if U.deq(ds[0], U.D0) else None          # Einheit^n, n = Grösse der Matrix: unbekannt
+        if n == "var" and ds and ds[0] is not None:
+            return U.dpow(ds[0], 2)
+        if n in ("dot", "kron", "cross") and len(ds) == 2 and ds[0] is not None and ds[1] is not None:
+            return U.dmul(ds[0], ds[1])
+        if n == "linsolve" and len(ds) == 2 and ds[0] is not None and ds[1] is not None:
+            return U.ddiv(ds[1], ds[0])
+        if n == "trapz" and ds and ds[0] is not None:
+            dx = ds[1] if len(ds) == 2 else U.D0
+            return U.dmul(ds[0], dx) if dx is not None else None
+        if n == "interp" and len(ds) == 3:
+            return ds[2]
+        if n == "convert" and len(node.args) == 3 and isinstance(node.args[2], ast.Constant) \
+                and isinstance(node.args[2].value, str):
+            return U.D0                                   # Zahlenwert in der Zieleinheit
+        if n in ("polyfit", "polyval", "roots", "linreg"):
+            if all(d is not None and U.deq(d, U.D0) for d in ds):
+                return U.D0
+            return None                                   # Koeffizienten mit verschiedenen Einheiten
         if n == "sqrt":
             return U.dpow(ds[0], 0.5) if ds[0] is not None else None
         if n == "cbrt":

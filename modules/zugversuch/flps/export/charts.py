@@ -295,7 +295,7 @@ def chart3(r: Result, ax=None, title: bool = True, key: str = "right"):
         ok = np.where(np.isfinite(c))[0]
         if len(ok):
             ends.append((nr, eps[ok[-1]] * 100, c[ok[-1]]))
-    kind = "Kurven aus Quellen" if group and all(getattr(a, "curve", None) for a in group) else "idealisiert"
+    kind = "Kurven aus Quellen" if group and all(getattr(a, "curve", None) for a in group) else "idealisiert, zur Orientierung"
     ax.fill_between(eps * 100, lo, up, color="#1a73e8", alpha=0.12, lw=0, label=f"Feld {r.group} ({kind})")
     ax.plot(eps * 100, up, "-", color="#1a73e8", lw=1.4, label="obere Grenze")
     ax.plot(eps * 100, lo, "--", color="#1a73e8", lw=1.4, label="untere Grenze")

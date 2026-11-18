@@ -51,7 +51,8 @@ OPS: dict[str, dict] = {
     "unsharp": {"de": "Unscharf maskieren", "en": "Unsharp mask", "needs": "any",
                 "params": [{"key": "sigma", "label": "Sigma [Pixel]", "type": "number", "default": 1, "min": 0.1, "max": 50, "step": 0.1},
                            {"key": "weight", "label": "Gewicht (0,1–0,9)", "type": "number", "default": 0.6, "min": 0.1, "max": 0.9, "step": 0.05}]},
-    "background": {"de": "Hintergrund abziehen", "en": "Subtract background", "needs": "gray",
+    # Kein Rolling-Ball (Sternberg 1983): flache Graustufen-Öffnung mit quadratischem Fenster, siehe background()
+    "background": {"de": "Hintergrund abziehen (Graustufen-Öffnung)", "en": "Subtract background (grey-scale opening)", "needs": "gray",
                    "params": [{"key": "radius", "label": "Radius [Pixel] (grösser als die Objekte)", "type": "number", "default": 50, "min": 2, "max": 1000, "step": 1},
                               {"key": "light", "label": "Heller Hintergrund", "type": "bool", "default": False}]},
     "math": {"de": "Rechnen", "en": "Math", "needs": "gray",
@@ -107,7 +108,9 @@ def describe(step: dict, lang: str = "de") -> str:
     if op == "background":
         light = step.get("light")
         bg = ("heller" if light else "dunkler") if de else ("light" if light else "dark")
-        return f"{name} (r = {int(step.get('radius', 50))} px, {bg} {'Hintergrund' if de else 'background'})"
+        head = ("Hintergrund abziehen (Graustufen-Öffnung, quadratisches Fenster" if de
+                else "Subtract background (grey-scale opening, square window")
+        return f"{head}, r = {int(step.get('radius', 50))} px, {bg} {'Hintergrund' if de else 'background'})"
     if op == "contrast":
         return f"{name} ({_f(step.get('saturated', 0.35), 2, lang)} % {'gesättigt' if de else 'saturated'})"
     if op == "to8bit" and step.get("min") is not None:
@@ -231,8 +234,11 @@ def sobel(a: np.ndarray) -> np.ndarray:
 
 
 def background(a: np.ndarray, radius: float, light: bool, maxv: float) -> np.ndarray:
-    """Hintergrund als grauwertmorphologische Oeffnung (Minimum, dann Maximum) mit Radius r schaetzen und
-    abziehen. Fuer Geschwindigkeit auf einem verkleinerten Bild gerechnet und bilinear vergroessert."""
+    """Hintergrund als flache grauwertmorphologische Oeffnung (Minimum-, dann Maximumfilter, quadratisches Fenster
+    mit Radius r) schaetzen und abziehen. Fuer Geschwindigkeit auf einem durch Block-Minima verkleinerten Bild
+    gerechnet, bilinear vergroessert und mit einem Mittelwertfilter geglaettet. Das ist KEIN Rolling-Ball-Verfahren
+    (Sternberg 1983: Oeffnung mit einem kugelfoermigen, nicht flachen Strukturelement); Name in Oberflaeche und
+    Bericht daher „Graustufen-Oeffnung“."""
     b = (maxv - a) if light else a
     H, W = b.shape
     shrink = max(1, int(radius // 10))
@@ -402,7 +408,7 @@ def apply_step(st: Stack, step: dict, proc: Proc) -> Stack:
         return replace(st, data=d[:, y:y2, x:x2].copy())
     if op == "rotate":
         k = -1 if step.get("dir", "right") == "right" else 1
-        cal = Calib(st.calib.ph, st.calib.pw, st.calib.unit)
+        cal = Calib(st.calib.ph, st.calib.pw, st.calib.unit, st.calib.square_assumed)
         return replace(st, data=np.ascontiguousarray(np.rot90(d, k=k, axes=(1, 2))), calib=cal)
     if op == "flip":
         ax = 2 if step.get("axis", "h") == "h" else 1

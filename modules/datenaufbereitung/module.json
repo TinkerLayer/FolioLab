@@ -9,7 +9,7 @@
   "color": "#0f766e",
   "status": "ready",
   "order": 14,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "accepts": [".xlsx", ".xlsm", ".xls", ".ods", ".csv", ".txt", ".tsv", ".dat", ".asc", ".prn", ".json", ".parquet"],
   "produces": ["figure", "table", "data", "values", "citation", "text"],
   "runtime": {

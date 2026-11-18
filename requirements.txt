@@ -9,3 +9,9 @@ matplotlib>=3.7
 pillow
 openpyxl
 reportlab
+
+# Optional, only for the formats named (without them those formats are refused with a message, everything else works):
+#   pyarrow   Parquet import/export in the Datenaufbereitung
+#   xlrd      legacy .xls import in the Datenaufbereitung
+#   pyngb     native NETZSCH .ngb files in the TGA module (brings polars, pyarrow, scipy)
+# Tests only: scipy (independent reference values)

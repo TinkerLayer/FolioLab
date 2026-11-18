@@ -9,7 +9,10 @@ from functools import lru_cache
 
 from . import chem as C
 
-EV_KJMOL = 96.48533212         # 1 eV je Teilchen in kJ/mol (CODATA 2022, F/1000)
+from .units import E_CHARGE, FARADAY
+
+EV_J = E_CHARGE                # 1 eV in J, exakt (SI 2019: e·1 V)
+EV_KJMOL = FARADAY / 1000      # 1 eV je Teilchen in kJ/mol = N_A·e·1 V/1000, exakt aus den definierenden Konstanten
 REFS = ["nistasd"]
 
 
@@ -28,9 +31,14 @@ def z_of(symbol: str) -> int:
 
 def register_calc_functions():
     from . import expr as E
-    from .units import D0
-    E.register_string_function("IE", lambda ctx, el, n=1: ie(z_of(str(el)), int(n))["eV"], 1, 2, D0,
-                               'IE("Na", 1) – n-te Ionisierungsenergie in eV (NIST ASD)')
+    from .units import D0, kind_dims
+    # IE trägt die Dimension Energie (Wert intern in J); „IE("Na") -> eV“ zeigt eV.
+    E.register_string_function("IE", lambda ctx, el, n=1: ie(z_of(str(el)), int(n))["eV"] * EV_J, 1, 2,
+                               kind_dims("energy"),
+                               'IE("Na", 1) – n-te Ionisierungsenergie als Energie (NIST ASD); „-> eV“ zeigt eV')
+    # bisheriges Verhalten: reine Zahl in eV (dimensionslos)
+    E.register_string_function("IE_eV", lambda ctx, el, n=1: ie(z_of(str(el)), int(n))["eV"], 1, 2, D0,
+                               'IE_eV("Na", 1) – n-te Ionisierungsenergie als Zahl in eV (dimensionslos)')
 
 
 def series(Z: int) -> list[dict]:

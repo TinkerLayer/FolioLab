@@ -44,7 +44,7 @@
     "\\small",
     "\\begin{tabular}{lrrrr}",
     "\\toprule",
-    "Bande & Bereich [cm\\$\\textasciicircum{}\\{-1\\}\\$] & Fläche & Höhe & Lage [cm\\$\\textasciicircum{}\\{-1\\}\\$] \\\\",
+    "Bande & Bereich [cm$^{-1}$] & Fläche & Höhe & Lage [cm$^{-1}$] \\\\",
     "\\midrule",
     "C=O & 1780--1650 & 8,733 & 0,373 & 1714 \\\\",
     "Ring & 745--700 & 6,113 & 0,501 & 724 \\\\",
@@ -76,20 +76,20 @@
     "\\toprule",
     "Nr. & $\\tilde\\nu$ [cm$^{-1}$] & Absorbanz & Int. & FWHM [cm$^{-1}$] & Zuordnung \\\\",
     "\\midrule",
-    "1 & 2969 & 0,036 & w & 27 & O--H Carbonsäure (sehr breit) \\\\",
+    "1 & 2969 & 0,036 & w & 27 & C--H CH$_{3}$ asymmetrisch \\\\",
     "2 & 2360 & 0,033 & w & 14 & CO$_{2}$ (Luft im Strahlengang, kein Probenbestandteil) \\\\",
     "3 & 1715 & 0,397 & s & 20 & C=O Ester, konjugiert (aromatisch) \\\\",
-    "4 & 1579 & 0,033 & w & 7 & COO$^{-}$ Carboxylat asymmetrisch \\\\",
+    "4 & 1579 & 0,033 & w & 7 & C=C aromatischer Ring (\\textasciitilde{}1600) \\\\",
     "5 & 1506 & 0,038 & w & 7 & C=C aromatischer Ring (\\textasciitilde{}1500) \\\\",
     "6 & 1455 & 0,047 & w & 10 & CH$_{3}$ Deformation asymmetrisch \\\\",
-    "7 & 1410 & 0,088 & w & 9 & COO$^{-}$ Carboxylat symmetrisch \\\\",
+    "7 & 1410 & 0,088 & w & 9 & NH$_{4}$$^{+}$ Ammonium \\\\",
     "8 & 1341 & 0,091 & w & 8 & S=O Sulfon/Sulfonat asymmetrisch \\\\",
-    "9 & 1242 & 0,469 & vs & 24 & P=O Phosphat-Ester, Phosphonat \\\\",
-    "10 & 1095 & 0,381 & s & 20 & SO$_{4}$$^{2-}$ Sulfat \\\\",
-    "11 & 1018 & 0,212 & m & 9 & P--O--C \\\\",
+    "9 & 1242 & 0,469 & vs & 24 & C--O--C Ester (asymmetrisch) \\\\",
+    "10 & 1095 & 0,381 & s & 20 & C--O--C Ester (symmetrisch) \\\\",
+    "11 & 1018 & 0,212 & m & 9 & C--O--C Ester (symmetrisch) \\\\",
     "12 & 972 & 0,088 & w & 9 & =C--H trans-Alken (z. B. Butadien in ABS, NBR) \\\\",
     "13 & 873 & 0,091 & w & 9 & CO$_{3}$$^{2-}$ Carbonat (Deformation) \\\\",
-    "14 & 724 & 0,534 & vs & 11 & C--Cl \\\\",
+    "14 & 724 & 0,534 & vs & 11 & CH$_{2}$ Pendelschwingung ($\\geq$ 4 CH$_{2}$ in Kette, Doppelbande bei Kristallinität) \\\\",
     "\\bottomrule",
     "\\end{tabular}"
    ],
@@ -112,10 +112,22 @@
     "  year = {2001}",
     "}",
     "",
-    "@misc{astm-e1252,",
-    "  title = {ASTM E1252-98(2021): Standard Practice for General Techniques for Obtaining Infrared Spectra for Qualitative Analysis},",
-    "  howpublished = {ASTM International},",
-    "  year = {2021}",
+    "@book{silverstein2014,",
+    "  author = {Silverstein, Robert M. and Webster, Francis X. and Kiemle, David J. and Bryce, David L.},",
+    "  title = {Spectrometric Identification of Organic Compounds},",
+    "  edition = {8},",
+    "  publisher = {Wiley},",
+    "  year = {2014}",
+    "}",
+    "",
+    "@article{savitzky1964,",
+    "  author = {Savitzky, Abraham and Golay, Marcel J. E.},",
+    "  title = {Smoothing and Differentiation of Data by Simplified Least Squares Procedures},",
+    "  journal = {Analytical Chemistry},",
+    "  volume = {36},",
+    "  number = {8},",
+    "  pages = {1627--1639},",
+    "  year = {1964}",
     "}",
     "",
     "@misc{folio-ftir-modell,",
@@ -134,7 +146,7 @@
   },
   "text-methodik.tex": {
    "lines": [
-    "Das Spektrum Probe\\_Folie\\_ATR~\\cite{data-ftir-probe-folie-atr} wurde im Bereich 3999--600~cm$^{-1}$ ausgewertet (3527 Datenpunkte).~\\cite{astm-e1252} Bearbeitung: In Absorbanz umrechnen. Banden wurden als lokale Maxima mit einer Prominenz von mindestens 2,0~\\% des Wertebereichs, mindestens dem 10-fachen Rauschen und einem Mindestabstand von 8~cm$^{-1}$ gesucht und anhand einer Korrelationstabelle der Gruppenfrequenzen zugeordnet~\\cite{socrates2001}. Das Signal-Rausch-Verhältnis (stärkste Bande zu Rauschen, Rauschen aus dem Rest einer Savitzky-Golay-Glättung) beträgt etwa 333. Die Bibliothekssuche (Korrelation) verglich das vorbehandelte Spektrum (Absorbanz, Basislinie, Maximum 1, Raster 2~cm$^{-1}$) mit Modellbibliothek (Folio Lab); die Trefferqualität HQI reicht von 0 bis 100. Die Modellbibliothek~\\cite{folio-ftir-modell} enthält aus Literatur-Bandenlagen berechnete, keine gemessenen Referenzspektren; Treffer daraus sind als Hinweis zu verstehen."
+    "Das Spektrum Probe\\_Folie\\_ATR~\\cite{data-ftir-probe-folie-atr} wurde im Bereich 3999--600~cm$^{-1}$ ausgewertet (3527 Datenpunkte). Bearbeitung: In Absorbanz umrechnen. Banden wurden als lokale Maxima mit einer Prominenz von mindestens 2,0~\\% des Wertebereichs, mindestens dem 10-fachen Rauschen und einem Mindestabstand von 8~cm$^{-1}$ gesucht und anhand einer Korrelationstabelle der Gruppenfrequenzen zugeordnet~\\cite{socrates2001,silverstein2014}; unter den passenden Tabelleneinträgen stehen solche voran, deren Form zur Bande passt und deren Gruppe die Gruppenbewertung des ganzen Spektrums stützt. Die Zuordnungen sind Vorschläge. Das Signal-Rausch-Verhältnis beträgt etwa 353: Höhe der stärksten Bande (Maximum des über 12~cm$^{-1}$ gleitend gemittelten Spektrums über einer Gummiband-Basislinie) geteilt durch die Standardabweichung des Rauschens, geschätzt aus dem Rest einer Savitzky-Golay-Glättung (7 Punkte, kubisch)~\\cite{savitzky1964} als robuste Standardabweichung (1,4826 $\\cdot$ Median der Beträge) über die ruhigen Abschnitte. Die Bibliothekssuche (Korrelation) verglich das Spektrum mit Modellbibliothek (Folio Lab); Probe und Referenzen wurden dafür gleich vorbereitet (Absorbanz, Raster 2~cm$^{-1}$, Gummiband-Basislinie, Maximum 1), die Bearbeitungsschritte oben gelten nur für die Probe. Die Trefferqualität HQI reicht von 0 bis 100. Die Modellbibliothek~\\cite{folio-ftir-modell} enthält aus Literatur-Bandenlagen berechnete, keine gemessenen Referenzspektren; Treffer daraus sind als Hinweis zu verstehen."
    ],
    "type": "tex"
   },
@@ -182,9 +194,14 @@
    "title": "Infrared and Raman Characteristic Group Frequencies: Tables and Charts"
   },
   {
-   "key": "astm-e1252",
+   "key": "silverstein2014",
    "kind": "citation",
-   "title": "ASTM E1252-98(2021): Standard Practice for General Techniques for Obtaining Infrared Spectra for Qualitative Analysis"
+   "title": "Spectrometric Identification of Organic Compounds"
+  },
+  {
+   "key": "savitzky1964",
+   "kind": "citation",
+   "title": "Smoothing and Differentiation of Data by Simplified Least Squares Procedures"
   },
   {
    "key": "folio-ftir-modell",

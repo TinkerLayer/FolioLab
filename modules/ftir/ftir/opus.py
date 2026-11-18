@@ -23,7 +23,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .readers import ReadError, Spectrum, _check, guess_yunit
+from .readers import ReadError, Spectrum, _check, y_values
 
 MAGIC = b"\x0a\x0a\xfe\xfe"
 NOTE = "nach öffentlicher Formatbeschreibung, noch nicht mit echten OPUS-Dateien geprüft"
@@ -83,7 +83,7 @@ def params(data: bytes, off: int, words: int, name: str = "") -> dict:
     return out
 
 
-def read(data: bytes, name: str) -> list[Spectrum]:
+def read(data: bytes, name: str, opts=None) -> list[Spectrum]:
     if not is_opus(data):
         raise ReadError(f"{name}: keine OPUS-Datei (Kennung fehlt)")
     blocks = _directory(data, name)
@@ -123,12 +123,12 @@ def read(data: bytes, name: str) -> list[Spectrum]:
         elif xu != "WN":
             problems.append(f"{LABEL[kind]}: x-Einheit {xu} nicht unterstützt")
             continue
+        meta = {"format": f"Bruker OPUS ({NOTE})", "opus_block": kind, "x_unit": "cm-1"}
         if kind == "AB":
             plf = str(info.get("PLF", "")).upper()
-            unit, y = guess_yunit(y, {"AB": "abs", "TR": "trans", "RF": "refl", "KM": "kubelka"}.get(plf, ""))
+            unit, y = y_values(y, {"AB": "A", "TR": "T", "RF": "R", "KM": "KM"}.get(plf), "", meta, opts)
         else:
             unit = "au"
-        meta = {"format": f"Bruker OPUS ({NOTE})", "opus_block": kind}
         for k, lab in (("INS", "instrument"), ("RES", "resolution"), ("NSS", "scans"), ("DAT", "date"),
                        ("TIM", "time"), ("SFM", "sample_form")):
             v = info.get(k, p.get(k))

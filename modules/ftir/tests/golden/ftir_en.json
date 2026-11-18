@@ -44,7 +44,7 @@
     "\\small",
     "\\begin{tabular}{lrrrr}",
     "\\toprule",
-    "Band & Range [cm\\$\\textasciicircum{}\\{-1\\}\\$] & Area & Height & Position [cm\\$\\textasciicircum{}\\{-1\\}\\$] \\\\",
+    "Band & Range [cm$^{-1}$] & Area & Height & Position [cm$^{-1}$] \\\\",
     "\\midrule",
     "C=O & 1780--1650 & 8.733 & 0.373 & 1714 \\\\",
     "Ring & 745--700 & 6.113 & 0.501 & 724 \\\\",
@@ -76,20 +76,20 @@
     "\\toprule",
     "No. & $\\tilde\\nu$ [cm$^{-1}$] & Absorbance & Int. & FWHM [cm$^{-1}$] & Assignment \\\\",
     "\\midrule",
-    "1 & 2969 & 0.036 & w & 27 & O--H carboxylic acid (very broad) \\\\",
+    "1 & 2969 & 0.036 & w & 27 & C--H CH$_{3}$ asymmetric \\\\",
     "2 & 2360 & 0.033 & w & 14 & CO$_{2}$ (atmosphere, artefact) \\\\",
     "3 & 1715 & 0.397 & s & 20 & C=O ester, conjugated \\\\",
-    "4 & 1579 & 0.033 & w & 7 & COO$^{-}$ carboxylate asymmetric \\\\",
+    "4 & 1579 & 0.033 & w & 7 & C=C aromatic ring (\\textasciitilde{}1600) \\\\",
     "5 & 1506 & 0.038 & w & 7 & C=C aromatic ring (\\textasciitilde{}1500) \\\\",
     "6 & 1455 & 0.047 & w & 10 & CH$_{3}$ asymmetric bending \\\\",
-    "7 & 1410 & 0.088 & w & 9 & COO$^{-}$ carboxylate symmetric \\\\",
+    "7 & 1410 & 0.088 & w & 9 & NH$_{4}$$^{+}$ ammonium \\\\",
     "8 & 1341 & 0.091 & w & 8 & S=O sulfone asymmetric \\\\",
-    "9 & 1242 & 0.469 & vs & 24 & P=O phosphate ester \\\\",
-    "10 & 1095 & 0.381 & s & 20 & SO$_{4}$$^{2-}$ sulfate \\\\",
-    "11 & 1018 & 0.212 & m & 9 & P--O--C \\\\",
+    "9 & 1242 & 0.469 & vs & 24 & C--O--C ester (asymmetric) \\\\",
+    "10 & 1095 & 0.381 & s & 20 & C--O--C ester (symmetric) \\\\",
+    "11 & 1018 & 0.212 & m & 9 & C--O--C ester (symmetric) \\\\",
     "12 & 972 & 0.088 & w & 9 & =C--H trans alkene \\\\",
     "13 & 873 & 0.091 & w & 9 & CO$_{3}$$^{2-}$ carbonate (out of plane) \\\\",
-    "14 & 724 & 0.534 & vs & 11 & C--Cl \\\\",
+    "14 & 724 & 0.534 & vs & 11 & CH$_{2}$ rocking ($\\geq$ 4 CH$_{2}$) \\\\",
     "\\bottomrule",
     "\\end{tabular}"
    ],
@@ -112,10 +112,22 @@
     "  year = {2001}",
     "}",
     "",
-    "@misc{astm-e1252,",
-    "  title = {ASTM E1252-98(2021): Standard Practice for General Techniques for Obtaining Infrared Spectra for Qualitative Analysis},",
-    "  howpublished = {ASTM International},",
-    "  year = {2021}",
+    "@book{silverstein2014,",
+    "  author = {Silverstein, Robert M. and Webster, Francis X. and Kiemle, David J. and Bryce, David L.},",
+    "  title = {Spectrometric Identification of Organic Compounds},",
+    "  edition = {8},",
+    "  publisher = {Wiley},",
+    "  year = {2014}",
+    "}",
+    "",
+    "@article{savitzky1964,",
+    "  author = {Savitzky, Abraham and Golay, Marcel J. E.},",
+    "  title = {Smoothing and Differentiation of Data by Simplified Least Squares Procedures},",
+    "  journal = {Analytical Chemistry},",
+    "  volume = {36},",
+    "  number = {8},",
+    "  pages = {1627--1639},",
+    "  year = {1964}",
     "}",
     "",
     "@misc{folio-ftir-modell,",
@@ -134,7 +146,7 @@
   },
   "text-methodik.tex": {
    "lines": [
-    "Spectrum Probe\\_Folie\\_ATR~\\cite{data-ftir-probe-folie-atr} was evaluated between 3999 and 600~cm$^{-1}$ (3527 data points).~\\cite{astm-e1252} Processing: Convert to absorbance. Bands were picked as local maxima with a prominence of at least 2.0~\\% of the data range, at least 10 times the noise and a minimum distance of 8~cm$^{-1}$, and assigned using a correlation table of group frequencies~\\cite{socrates2001}. The signal-to-noise ratio (strongest band to noise, noise from the residual of a Savitzky-Golay smooth) is about 333. The library search (Correlation) compared the pre-processed spectrum (absorbance, baseline, maximum 1, 2~cm$^{-1}$ grid) with Modellbibliothek (Folio Lab); the hit quality index HQI ranges from 0 to 100. The model library~\\cite{folio-ftir-modell} contains references calculated from literature band positions, not measured spectra; its hits are indications."
+    "Spectrum Probe\\_Folie\\_ATR~\\cite{data-ftir-probe-folie-atr} was evaluated between 3999 and 600~cm$^{-1}$ (3527 data points). Processing: Convert to absorbance. Bands were picked as local maxima with a prominence of at least 2.0~\\% of the data range, at least 10 times the noise and a minimum distance of 8~cm$^{-1}$, and assigned using a correlation table of group frequencies~\\cite{socrates2001,silverstein2014}; among the matching table entries, those whose shape fits the band and whose group is supported by the functional-group rating of the whole spectrum come first. The assignments are suggestions. The signal-to-noise ratio is about 353: height of the strongest band (maximum of the spectrum after a 12~cm$^{-1}$ moving mean, above a rubber-band baseline) divided by the standard deviation of the noise, estimated from the residual of a Savitzky-Golay smooth (7 points, cubic)~\\cite{savitzky1964} as a robust standard deviation (1.4826 $\\cdot$ median of the absolute values) over the quiet sections. The library search (Correlation) compared the spectrum with Modellbibliothek (Folio Lab); sample and references were prepared the same way (absorbance, 2~cm$^{-1}$ grid, rubber-band baseline, maximum 1), the processing steps above apply to the sample only. The hit quality index HQI ranges from 0 to 100. The model library~\\cite{folio-ftir-modell} contains references calculated from literature band positions, not measured spectra; its hits are indications."
    ],
    "type": "tex"
   },
@@ -182,9 +194,14 @@
    "title": "Infrared and Raman Characteristic Group Frequencies: Tables and Charts"
   },
   {
-   "key": "astm-e1252",
+   "key": "silverstein2014",
    "kind": "citation",
-   "title": "ASTM E1252-98(2021): Standard Practice for General Techniques for Obtaining Infrared Spectra for Qualitative Analysis"
+   "title": "Spectrometric Identification of Organic Compounds"
+  },
+  {
+   "key": "savitzky1964",
+   "kind": "citation",
+   "title": "Smoothing and Differentiation of Data by Simplified Least Squares Procedures"
   },
   {
    "key": "folio-ftir-modell",

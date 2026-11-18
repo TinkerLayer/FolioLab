@@ -324,5 +324,234 @@ class OutlierTest(unittest.TestCase):
         self.assertEqual(ch["groups:g"]["level"], "warn")
 
 
+class ScientificFixesTest(unittest.TestCase):
+    """Module 0.3.0: known answers for the corrected outlier rules, flags of means, signed quantities, ± type."""
+
+    def test_dixon_untabulated_alpha_refused_and_sides(self):
+        x = [0.189, 0.167, 0.187, 0.183, 0.186, 0.182, 0.181, 0.184, 0.181, 0.177]
+        for a in (0.02, 0.2, 0.001):                                   # was: silently the 0.05 column
+            with self.assertRaisesRegex(C.CleanError, "nicht tabelliert"):
+                C.dixon(x, a)
+        with self.assertRaisesRegex(C.CleanError, "nicht tabelliert"):
+            C.dixon(x, 0.01, "max")                                    # one-sided: 0.05, 0.025, 0.005 only
+        # two-sided: only the end with the larger ratio (low end, Q = 0.455); high end Q = 0.002/0.022 = 0.091
+        self.assertEqual([d["i"] for d in C.dixon(x, 0.10)], [1])
+        self.assertEqual(C.dixon(x, 0.05, "max"), [])
+        # one-sided min at α = 0.05 uses the two-sided 0.10 column: Q = 0.4545 > 0.412
+        r = C.dixon(x, 0.05, "min")
+        self.assertEqual(([d["i"] for d in r], r[0]["crit"]), ([1], 0.412))
+        self.assertEqual(C.dixon(x, 0.025, "min"), [])                 # 0.05 column: 0.466
+        # both ends beyond Q_crit (n = 10, α = 0.10: 0.412): Q_low = 4.5/10 = 0.45, Q_high = 4.6/10 = 0.46. Before 0.3.0
+        # both ends were tested at the two-sided α and both flagged; now only the end with the larger ratio
+        y = [0.0, 4.5, 4.7, 4.9, 5.0, 5.1, 5.2, 5.3, 5.4, 10.0]
+        r = C.dixon(y, 0.10)
+        self.assertEqual([d["i"] for d in r], [9])
+        self.assertAlmostEqual(r[0]["Q"], 0.46)
+        with self.assertRaises(C.CleanError):
+            C.dixon(x, 0.05, "beide")
+
+    def test_dixon_table_matches_null_distribution(self):
+        """Independent check of DIXON_Q (not of the publication): for normal data
+        P(Q_high > c) = n(n−1) ∫∫_{a<b} φ(a) φ(b) [Φ(b − c(b − a)) − Φ(a)]^(n−2) da db, two-sided α ≈ 2 P (the overlap
+        of both ends is below 1e-4 here). The true critical value lies within ±0.003 of every table value, except
+        n = 4, α = 0.01 where it is ≈ 0.921 (table 0.926; noted in clean.py and on the methods page)."""
+        try:
+            from scipy.special import ndtr
+        except ImportError:
+            self.skipTest("scipy nicht installiert")
+        g = np.linspace(-7, 7, 1001)
+        h = g[1] - g[0]
+        A, B = np.meshgrid(g, g, indexing="ij")
+        phi = np.exp(-g * g / 2) / math.sqrt(2 * math.pi)
+        W = np.outer(phi, phi) * (B > A) * h * h
+        PA = ndtr(A)
+
+        def alpha2(c, n):
+            return 2 * n * (n - 1) * float((W * np.clip(ndtr(B - c * (B - A)) - PA, 0, None) ** (n - 2)).sum())
+        for a, col in C.DIXON_Q.items():
+            for n, crit in zip(range(3, 11), col):
+                if (n, a) == (4, 0.01):
+                    self.assertGreater(alpha2(0.918, n), a)                # true value between 0.918 and 0.924
+                    self.assertLess(alpha2(0.924, n), a)
+                    continue
+                self.assertGreater(alpha2(crit - 0.003, n), a, (n, a))
+                self.assertLess(alpha2(crit + 0.003, n), a, (n, a))
+
+    def test_grubbs_sequential_and_single_pass(self):
+        x = [199.31, 199.53, 200.19, 200.82, 201.92, 201.95, 202.18, 245.57]       # NIST example (see above)
+        self.assertEqual([d["i"] for d in C.grubbs(x, 0.05, "max", iterate=False)], [7])
+        self.assertEqual([d["i"] for d in C.grubbs(x, 0.05, "max")], [7])          # 2nd step not significant
+        d0 = DS.from_columns("g", [{"key": "x", "name": "x", "unit": "mg", "values": x}])
+        ds = D.derive(d0, [{"op": "outliers", "method": "grubbs", "col": "x", "sided": "max"}], "g")
+        self.assertIn("je Schritt", ds.header["flags"][0]["rule"])
+        self.assertIn("sequenziell", ds.header["flags"][0]["rule"])
+        ds = D.derive(d0, [{"op": "outliers", "method": "grubbs", "col": "x", "sided": "max", "iterate": False}], "g")
+        self.assertIn("ein Durchgang", ds.header["flags"][0]["rule"])
+        self.assertEqual(len(ds.header["flags"]), 1)
+
+    def test_iqr_quartiles_are_hyndman_fan_type_7(self):
+        # x = 1 … 8 and 30: type 7 quartiles Q1 = 3, Q3 = 7 (h = (n − 1) p + 1 → positions 3 and 7);
+        # fences 3 − 1.5·4 = −3 and 7 + 6 = 13 → only 30 flagged. Tukey's hinges would give 3 and 7 here too, but for
+        # n = 8 (1 … 8) type 7 gives 2.75 / 6.25 while the hinges are 2.5 / 6.5.
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 30]
+        res, lo, hi = C.iqr(x)
+        self.assertEqual(([d["i"] for d in res], lo, hi), ([8], -3.0, 13.0))
+        _, lo8, hi8 = C.iqr(list(range(1, 9)), 1.0)
+        self.assertAlmostEqual(lo8, 2.75 - 3.5)
+        self.assertAlmostEqual(hi8, 6.25 + 3.5)
+        d0 = DS.from_columns("i", [{"key": "x", "name": "x", "unit": "mg", "values": x}])
+        ds = D.derive(d0, [{"op": "outliers", "method": "iqr", "col": "x"}], "i")
+        self.assertIn("Hyndman", ds.header["flags"][0]["rule"])
+
+    def test_hampel_window_in_x_units(self):
+        """Uneven spacing: a window of ±1.5 x-units holds other neighbours than ±1 position."""
+        xs = np.array([0, 1, 2, 3, 10, 11, 12, 13, 14.0])
+        y = np.array([1.0, 1.1, 0.9, 1.0, 5.0, 5.1, 4.9, 5.0, 9.0])
+        # by x (±2): the last point (x = 14) sees x = 12, 13, 14 → y 4.9, 5.0, 9.0: median 5.0,
+        # MAD = 1.4826 · median(0.1, 0, 4.0) = 0.148; |9.0 − 5.0| = 4.0 > 3 · 0.148 → flagged; no other point is
+        r = C.hampel(y, 3.0, 2.0, xs)
+        self.assertEqual([d["i"] for d in r], [8])
+        self.assertAlmostEqual(r[0]["med"], 5.0)
+        self.assertAlmostEqual(r[0]["mad"], 1.4826 * 0.1)
+        self.assertEqual(r[0]["n"], 3)
+        # by x (±1.5): the last point sees only x = 13, 14 → median 7.0, MAD 2.97 → not flagged
+        self.assertEqual(C.hampel(y, 3.0, 1.5, xs), [])
+        d0 = DS.from_columns("h", [{"key": "t", "name": "t", "unit": "s", "role": "x", "values": xs},
+                                   {"key": "y", "name": "y", "unit": "V", "values": y}])
+        ds = D.derive(d0, [{"op": "outliers", "method": "hampel", "col": "y", "k": 3, "window": 2.0, "x": "t"}], "h")
+        self.assertEqual([f["row"] for f in ds.header["flags"]], [8])
+        self.assertIn("in „t“", ds.header["flags"][0]["rule"])
+        ds = D.derive(d0, [{"op": "outliers", "method": "hampel", "col": "y", "window": 1}], "h")
+        self.assertIn("x-Abstand nicht berücksichtigt", ds.header["provenance"]["steps"][0]["text"])
+
+    def test_residual_rule_text(self):
+        t = np.arange(10.0)
+        y = 2 * t + 1 + np.array([0.1, -0.1, 0.05, -0.05, 6, 0.1, -0.1, 0.05, -0.05, 0])
+        d0 = DS.from_columns("r", [{"key": "t", "name": "t", "unit": "s", "role": "x", "values": t},
+                                   {"key": "y", "name": "y", "unit": "V", "values": y}])
+        ds = D.derive(d0, [{"op": "outliers", "method": "residual", "col": "y", "x": "t", "k": 2.5}], "r")
+        rule = ds.header["flags"][0]["rule"]
+        self.assertIn("extern studentisiertes Residuum", rule)
+        self.assertIn("Faustregel", rule)
+        with self.assertRaises(D.DeriveError):
+            D.derive(d0, [{"op": "outliers", "method": "iqr", "col": "y", "k": -1}], "r")
+
+    def test_replicate_means_keep_flags(self):
+        d0 = DS.from_columns("r", [{"key": "T", "name": "T", "unit": "°C", "kind": "temperature", "role": "x",
+                                    "values": [25, 25, 25, 35, 35, 45]},
+                                   {"key": "k", "name": "k", "unit": "1/s", "role": "y", "values": [1.0, 1.2, 1.4, 2.0, None, 3.0]}],
+                             flags=[{"row": 1, "col": "k", "code": "outlier", "rule": "Grubbs (α = 0,05)"},
+                                    {"row": 2, "code": "excluded", "excluded": True, "reason": "Fehlmessung"},
+                                    {"row": 4, "col": "k", "code": "missing"},
+                                    {"row": 5, "col": "k", "code": "below_lod"}])
+        ds = D.derive(d0, [{"op": "replicates", "by": ["T"], "cols": ["k"]}], "r")
+        np.testing.assert_allclose(ds.data["k"], [1.1, 2.0, 3.0])
+        fl = [(f["row"], f.get("col"), f["code"], f["reason"]) for f in ds.header["flags"]]
+        self.assertEqual(fl, [(0, "k", "outlier", "aus Zeile(n) 2"), (2, "k", "below_lod", "aus Zeile(n) 6")])
+        self.assertIn("Grubbs", ds.header["flags"][0]["rule"])
+        self.assertEqual(ds.col("k_se")["u_type"], "se")
+        self.assertIn("2 Markierung(en) auf die Mittelwerte übertragen", ds.header["provenance"]["steps"][0]["text"])
+
+    def test_signed_quantities_not_impossible(self):
+        d0 = DS.from_columns("s", [
+            {"key": "dL", "name": "ΔL", "unit": "mm", "values": [0.1, -0.2]},
+            {"key": "x", "name": "Position", "unit": "mm", "values": [-5, 3]},
+            {"key": "dm", "name": "Massenänderung", "unit": "mg", "kind": "mass", "values": [-0.5, 0.2]},
+            {"key": "m", "name": "Masse", "unit": "mg", "kind": "mass", "values": [-1, 2]},
+            {"key": "rho", "name": "Dichte", "unit": "g/cm³", "kind": "density", "values": [-1, 2]}])
+        ch = {c["key"] for c in C.checks(d0)}
+        self.assertNotIn("impossible:dL", ch)                          # length: signed (positions, ΔL)
+        self.assertNotIn("impossible:x", ch)
+        self.assertNotIn("impossible:dm", ch)                          # a change of a mass
+        self.assertIn("impossible:m", ch)
+        self.assertIn("impossible:rho", ch)                            # "Dichte" is not a "d…" difference
+        self.assertTrue(C.signed_name({"name": "dT"}) and C.signed_name({"name": "Delta T"}))
+        self.assertFalse(C.signed_name({"name": "dichte"}) or C.signed_name({"name": "Druck"}))
+
+    def test_uncertainty_type_chip(self):
+        d0 = DS.from_columns("u", [{"key": "m", "name": "m", "unit": "g", "u": "um", "values": [1.0]},
+                                   {"key": "um", "name": "U(m)", "unit": "g", "role": "uncertainty", "values": [0.1],
+                                    "u_type": "U", "u_k": 2}])
+        ch = {c["key"]: c for c in C.checks(d0)}
+        self.assertEqual(ch["utype:um"]["level"], "info")
+        self.assertIn("k = 2", ch["utype:um"]["text"])
+        d1 = DS.from_columns("u", [{"key": "m", "name": "m", "unit": "g", "u": "um", "values": [1.0]},
+                                   {"key": "um", "name": "u(m)", "unit": "g", "role": "uncertainty", "values": [0.1]}])
+        ch = {c["key"]: c for c in C.checks(d1)}
+        self.assertEqual((ch["utype:um"]["level"], ch["utype:um"]["text"]), ("warn", "„u(m)“: nicht angegeben"))
+
+
+def csv_sheet(text):
+    return R.load_bytes(text.encode("utf-8"), "t.csv")[0]
+
+
+class TimesAndReadingTest(unittest.TestCase):
+    """Time zones and daylight saving, truncations reported, ± type from the recipe."""
+
+    def test_offsets_are_converted_to_utc(self):
+        utc = (dt.datetime(2024, 3, 30, 23, 30) - dt.datetime(1970, 1, 1)).total_seconds()
+        self.assertEqual(P.time_of("2024-03-31T00:30+01:00"), (utc, False))
+        self.assertEqual(P.time_of("2024-03-30T23:30Z"), (utc, False))
+        self.assertEqual(P.time_of("2024-03-30 23:30:00 +0000")[0], utc)
+        self.assertEqual(P.time_of("2024-03-31 00:30")[0], utc + 3600)          # no zone: wall-clock time as written
+        vals, only, tz = P.time_column(["2024-03-31T01:30+01:00", "2024-03-31T03:00+02:00", "2024-03-31T03:30+02:00"])
+        self.assertEqual(tz, "utc")
+        np.testing.assert_allclose(np.diff(vals), [1800, 1800])                 # across the change: 30 min steps
+        self.assertEqual(P.time_column(["2024-03-31T01:30+01:00", "2024-03-31 03:00"])[2], "mixed")
+        self.assertEqual(P.dst_dates(2024)[0][0], dt.date(2024, 3, 31))          # EU: last Sunday of March
+
+    def test_dst_jump_in_local_times_is_warned(self):
+        text = "Zeit;c\n2024-03-31 01:00;1\n2024-03-31 01:30;2\n2024-03-31 03:00;3\n2024-03-31 03:30;4\n2024-03-31 04:00;5\n"
+        sh = csv_sheet(text)
+        steps = RC.guess(sh)
+        t = RC.extract(sh, steps)
+        z = col(t, "Zeit")
+        self.assertTrue(any("1 h" in w for w in z["tz_warn"]), z["tz_warn"])
+        self.assertTrue(any("31.03.2024" in w for w in z["tz_warn"]))
+        self.assertTrue(any("ACHTUNG" in n for n in t["notes"]))
+        ds = RC.to_dataset(t, "DST", [], steps, "x")
+        self.assertTrue(ds.header["provenance"]["warnings"])
+        self.assertIn("Ortszeit", ds.col("Zeit")["note"] if ds.col("Zeit").get("note") else " ".join(t["notes"]))
+        # the same instants with offsets: UTC, steps of 30 min, no warning
+        text2 = ("Zeit;c\n2024-03-31T01:00+01:00;1\n2024-03-31T01:30+01:00;2\n2024-03-31T03:00+02:00;3\n"
+                 "2024-03-31T03:30+02:00;4\n")
+        sh2 = csv_sheet(text2)
+        t2 = RC.extract(sh2, RC.guess(sh2))
+        z2 = col(t2, "Zeit")
+        self.assertEqual(z2["tz_warn"], [])
+        np.testing.assert_allclose(z2["values"], [0, 30, 60, 90])
+        self.assertTrue(z2["elapsed"].endswith("UTC"))
+
+    def test_flag_truncation_is_reported(self):
+        text = "x;y\n" + "".join(f"{i};n.d.\n" if i % 2 else f"{i};{i},5\n" for i in range(12))   # 6 × n.d.
+        sh = csv_sheet(text)
+        steps = RC.guess(sh)
+        old = RC.MAX_CELL_FLAGS
+        RC.MAX_CELL_FLAGS = 3
+        try:
+            t = RC.extract(sh, steps)
+            ds = RC.to_dataset(t, "kurz", [], steps, "x")
+        finally:
+            RC.MAX_CELL_FLAGS = old
+        cut = ds.header["provenance"]["truncations"]
+        self.assertEqual((cut[0]["kept"], cut[0]["total"], cut[0]["from_row"]), (3, 6, 8))
+        self.assertTrue(any("GEKÜRZT" in n for n in t["notes"]))
+        self.assertEqual(sum(1 for f in ds.header["flags"] if f["code"] == "missing"), 3)
+        self.assertEqual(ds.rows, 12)                                         # the values themselves stay
+
+    def test_uncertainty_type_from_recipe(self):
+        sh = csv_sheet("t;T;m\r\n;°C;g\r\n08:00;25;1,5 ± 0,2\r\n08:30;25;2,5 ± 0,2\r\n09:00;26;3,5\r\n09:30;26;4,0 ± 0,3\r\n")
+        steps = RC.guess(sh) + [{"op": "colprop", "series": 2, "u_type": "U", "u_k": 2}]
+        t = RC.extract(sh, steps)
+        ds = RC.to_dataset(t, "U", [], steps, "x")
+        u = ds.col(ds.col("m")["u"])
+        self.assertEqual((u["u_type"], u["u_k"]), ("U", 2.0))
+        self.assertIn("k = 2", " ".join(x["text"] for x in C.checks(ds)))
+        with self.assertRaises(RC.RecipeError):
+            RC.extract(sh, RC.guess(sh) + [{"op": "colprop", "series": 2, "u_type": "U"}])          # k missing
+        with self.assertRaises(RC.RecipeError):
+            RC.extract(sh, RC.guess(sh) + [{"op": "colprop", "series": 2, "u_type": "2s"}])
+
+
 if __name__ == "__main__":
     unittest.main()

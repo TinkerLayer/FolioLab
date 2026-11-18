@@ -18,27 +18,38 @@ UNITS = {"micron": "µm", "microns": "µm", "um": "µm", "µm": "µm", "\\u00B5m
 
 @dataclass
 class Calib:
+    """Pixelgroesse. pw (x) und ph (y) getrennt; alle Laengen, Flaechen, Umfaenge, Feret- und Momentgroessen rechnen
+    mit beiden. ``square_assumed``: nur eine Pixelgroesse war bekannt, ph = pw wurde angenommen."""
     pw: float = 1.0       # Pixelbreite in unit
     ph: float = 1.0       # Pixelhoehe in unit
     unit: str = "px"
+    square_assumed: bool = False
 
     @property
     def calibrated(self) -> bool:
         return self.unit != "px"
 
+    @property
+    def square(self) -> bool:
+        return abs(self.pw - self.ph) <= 1e-9 * max(abs(self.pw), abs(self.ph))
+
     def to_dict(self):
-        return {"pw": self.pw, "ph": self.ph, "unit": self.unit}
+        d = {"pw": self.pw, "ph": self.ph, "unit": self.unit}
+        if self.square_assumed:
+            d["square_assumed"] = True
+        return d
 
     @staticmethod
     def from_dict(d) -> "Calib":
         if not d:
             return Calib()
         pw = float(d.get("pw") or 1.0)
+        assumed = not d.get("ph") or bool(d.get("square_assumed"))
         ph = float(d.get("ph") or pw)
         unit = str(d.get("unit") or "px")
         if pw <= 0 or ph <= 0:
             return Calib()
-        return Calib(pw, ph, unit)
+        return Calib(pw, ph, unit, assumed and abs(pw - ph) <= 1e-9 * pw)
 
 
 @dataclass
@@ -110,24 +121,63 @@ def _frame_array(fr: Image.Image):
     return rgb, "rgb", 24
 
 
+# TIFF 6.0, Tag 296 ResolutionUnit: 1 = keine absolute Einheit, 2 = Zoll (Vorgabe, wenn der Tag fehlt), 3 = Zentimeter.
+# Umrechnung der Pixelgroesse 1/Resolution in µm.
+RES_UNIT_UM = {2: 25400.0, 3: 10000.0}
+# Zoll-Aufloesungen, die Kameras, Bildprogramme und Betriebssysteme als Druckvorgabe schreiben. Sie sagen nichts ueber
+# die Groesse im Praeparat; 72 dpi ergaebe 352,8 µm/px. Solche Dateien bleiben unkalibriert (wie vor 1.3.0).
+PRINT_DPI = {72.0, 96.0, 150.0, 200.0, 240.0, 300.0, 350.0, 400.0, 600.0, 1200.0}
+
+
+def _pos(v) -> float | None:
+    try:
+        f = float(v)
+    except (TypeError, ValueError, ZeroDivisionError):
+        return None
+    return f if f > 0 and f == f and f != float("inf") else None
+
+
 def _calibration(im: Image.Image) -> tuple[Calib, str]:
-    """Kalibrierung aus TIFF-Tags. Verlaesslich nur mit ImageJ-artiger Beschreibung (unit=...)."""
+    """Kalibrierung aus TIFF-Tags (XResolution 282, YResolution 283, ResolutionUnit 296, ImageDescription 270).
+
+    1. ImageJ-Beschreibung mit ``unit=…``: Resolution = Pixel je dieser Einheit (ImageJ schreibt dann meist
+       ResolutionUnit 1); Pixelbreite 1/XResolution, Pixelhoehe 1/YResolution.
+    2. Sonst ResolutionUnit: 2 (Zoll, auch wenn der Tag fehlt) oder 3 (cm) ergibt eine absolute Pixelgroesse, in µm
+       umgerechnet; 1 (keine Einheit) ist kein Massstab. Zoll mit einer typischen Druckaufloesung (PRINT_DPI, gleich in
+       x und y) ist ebenfalls kein Massstab.
+    Fehlt YResolution, wird ph = pw angenommen (``square_assumed``) und die Quelle sagt es."""
     try:
         tags = im.tag_v2 if hasattr(im, "tag_v2") else {}
     except Exception:  # noqa: BLE001
         tags = {}
     desc = str(tags.get(270, "") or "")
     m = re.search(r"(?m)^unit=(.+)$", desc)
-    xr, yr = tags.get(282), tags.get(283)
-    if m and xr:
+    xr, yr = _pos(tags.get(282)), _pos(tags.get(283))
+    if not xr:
+        return Calib(), ""
+    sq = yr is None
+    yr = yr or xr
+    sq_note = "; nur XResolution vorhanden, quadratische Pixel angenommen" if sq else ""
+    if m:
         unit = UNITS.get(m.group(1).strip().lower(), m.group(1).strip())
-        try:
-            xr, yr = float(xr), float(yr or xr)
-            if xr > 0 and yr > 0 and unit != "px":
-                return Calib(1.0 / xr, 1.0 / yr, unit), "Datei (TIFF, unit=…)"
-        except (TypeError, ValueError, ZeroDivisionError):
-            pass
-    return Calib(), ""
+        if unit == "px":
+            return Calib(), ""
+        return Calib(1.0 / xr, 1.0 / yr, unit, sq), "Datei (TIFF, unit=…" + sq_note + ")"
+    try:
+        ru = int(tags.get(296)) if tags.get(296) is not None else 2
+    except (TypeError, ValueError):
+        ru = 1
+    if ru not in RES_UNIT_UM:
+        return Calib(), ""
+    if ru == 2 and xr == yr and round(xr, 6) in PRINT_DPI:
+        return Calib(), ""                                     # Druckvorgabe (72 dpi …), kein Messmassstab
+    f = RES_UNIT_UM[ru]
+    ytxt = "" if sq or yr == xr else f" × {yr:g}"
+    src = (f"Datei (TIFF-Auflösung {xr:g}{ytxt} px/{'cm' if ru == 3 else 'Zoll'}"
+           + ("" if tags.get(296) is not None else ", ResolutionUnit fehlt: Zoll nach TIFF 6.0")
+           + sq_note
+           + ("; Zoll-Auflösungen wie 72/96/300 dpi sind oft nur Druckangaben – bitte prüfen" if ru == 2 else "") + ")")
+    return Calib(f / xr, f / yr, "µm", sq), src
 
 
 def load_bytes(data: bytes, name: str) -> Stack:

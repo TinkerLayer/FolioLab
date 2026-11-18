@@ -9,7 +9,7 @@
   "color": "#6d28d9",
   "status": "ready",
   "order": 13,
-  "version": "0.10.0",
+  "version": "0.11.0",
   "accepts": [".json"],
   "produces": ["table", "values", "text", "citation"],
   "runtime": {

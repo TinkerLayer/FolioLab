@@ -338,6 +338,9 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label for="sShift" title="Erlaubte Verschiebung der Referenz entlang der Temperatur (Heizrate, Einwaage)">Verschiebung bis ± [K]</label><input type="number" id="sShift" min="0" max="80" step="5" value="20"></div>
         <div><label>&nbsp;</label><label class="chk" style="margin:4px 0"><input type="checkbox" id="sAtm"> nur gleiche Atmosphäre</label></div>
       </div>
+      <div class="row2">
+        <div><label for="sWc" title="Nur bei „DTG-Kurve und Stufen“: Trefferwert = w·Kurve + (1 − w)·Stufen">Gewicht DTG-Kurve [%]</label><input type="number" id="sWc" min="0" max="100" step="5" value="60"></div>
+      </div>
       </details>
       <div class="tw" id="sWrap"></div>
       <div class="detail" id="sDetail" hidden></div>
@@ -670,7 +673,7 @@ function stateOf(o, report = false) {
   if (o.dsc && ((o.dsc.peaks || []).length || (o.dsc.tg || []).length)) st.dsc = o.dsc;
   if (report) {
     if (o.search && o.searchRep && !o.searchStale) {
-      st.search = { hits: o.search.hits.slice(0, 10).map(h => slimHit(h)), query: arr(o.search.query), mode: o.search.mode, shift: o.search.shift };
+      st.search = { hits: o.search.hits.slice(0, 10).map(h => slimHit(h)), query: arr(o.search.query), mode: o.search.mode, shift: o.search.shift, w_curve: o.search.w_curve };
     }
     const c = o.mix && o.mixRep && !o.mixStale && o.mix.combos[o.mixSel];
     if (c) st.mixture = { ...c, fit: arr(c.fit), tg: arr(c.tg), residual: arr(c.residual), query: arr(o.mix.query), components: c.components.map(x => ({ ...x, y: arr(x.y) })) };
@@ -698,7 +701,7 @@ async function mapDialog(o) {
   cols.forEach((c, i) => { if (c.role) cur_[c.role] = i; });
   const sel = (r) => `<select data-role="${r}"><option value="">–</option>${cols.map((c, i) => `<option value="${i}"${cur_[r] === i ? " selected" : ""}>${i + 1}: ${esc(c.name || "Spalte " + (i + 1))}${c.unit ? " [" + esc(c.unit) + "]" : ""}</option>`).join("")}</select>`;
   const unitSel = (r, opts) => `<select data-unit="${r}"><option value="">aus Datei</option>${opts.map(u => `<option>${u}</option>`).join("")}</select>`;
-  const html = `<div class="small">Datei <b>${esc(o.file)}</b> (${esc(o.info.meta.format)}). ${o.info.meta.guessed ? "Die Spalten wurden geraten; bitte prüfen." : ""}</div>
+  const html = `<div class="small">Datei <b>${esc(o.file)}</b> (${esc(o.info.meta.format)}). ${o.info.meta.guessed ? "Die Spalten wurden geraten; bitte prüfen." : ""}</div>${(o.info.meta.read_notes || []).map(t => `<div class="note warn">${esc(t)}</div>`).join("")}
     <div class="row2">${roles.map(([r, lab]) => `<div><label>${esc(lab)}</label>${sel(r)}</div>`).join("")}</div>
     <div class="row3"><div><label>Einheit Masse</label>${unitSel("m", ["mg", "%", "g", "µg"])}</div><div><label>Einheit Zeit</label>${unitSel("t", ["min", "s", "h"])}</div><div><label>Einheit Temperatur</label>${unitSel("T", ["°C", "K"])}</div></div>
     <details><summary>Kopfzeilen der Datei</summary><pre class="small" style="white-space:pre-wrap">${esc((o.info.meta.header || []).join("\n"))}</pre></details>`;
@@ -748,7 +751,7 @@ function readParams() {
 }
 function updateEdit() {
   const o = cur();
-  $("#runInfo").innerHTML = o ? runInfoHtml(o) : "Kein Lauf geladen.";
+  $("#runInfo").innerHTML = o ? runInfoHtml(o) + readNotesHtml(o) : "Kein Lauf geladen.";
   const ds = dsOf(o), lat = o && o.info ? o.info.ds_latest : null;      // DP-13: neuere Datensatz-Version
   $("#dsUp").hidden = !(ds && lat && lat > ds.version);
   if (!$("#dsUp").hidden) $("#dsUp").innerHTML = ds.mode === "pin" ? `${esc(tr("tg.ds_newer", { v: lat }))} · <a href="#" data-dsup="1">${esc(tr("tg.ds_upd", { v: lat }))}</a>`
@@ -770,6 +773,10 @@ function runInfoHtml(o) {
     `${d.n} Punkte`, d.m0 ? `Einwaage ${fmt(d.m0, 4)} mg` : "Einwaage unbekannt (Masse in %)",
     m.rate ? `${fmt(m.rate, 2)} K/min` : "", m.gas ? `Gas ${esc(m.gases ? m.gases.join(" → ") : m.gas)}` : "", d.has_T ? `${fmt(d.Tmin, 0)}–${fmt(d.Tmax, 0)} °C` : "ohne Temperatur"];
   return bits.filter(Boolean).join(" · ");
+}
+function readNotesHtml(o) {                                              // Hinweise des Einlesens (Einheit, Massenspalte, Zeitversatz)
+  const d = o.data ? o.data.orig : o.info, m = (d && d.meta) || {};
+  return (m.read_notes || []).map(t => `<div class="note warn">${esc(t)}</div>`).join("");
 }
 
 // ---------------------------------------------------------------- DP-13: Lauf aus Datensatz (Datenaufbereitung)
@@ -1007,7 +1014,7 @@ function updateValues() {
   $("#segWrap").innerHTML = `<table class="res"><thead><tr><th>Nr</th><th class="l">Art</th><th>von</th><th>bis</th><th class="l">Gas</th></tr></thead><tbody>${(d.segments || []).map(s => `<tr><td>${s.no}</td><td class="l">${esc(s.label)}</td><td>${fx(s.T0, 0)} °C</td><td>${fx(s.T1, 0)} °C</td><td class="l">${esc(s.gas || "")}</td></tr>`).join("")}</tbody></table>`;
   const m = d.orig.meta || {};
   const cols = (m.columns || []).map(c => `${esc(c.name || "?")}${c.unit ? " [" + esc(c.unit) + "]" : ""} → ${esc(META.roles[c.role] || "–")}`).join("<br>");
-  $("#fileInfo").innerHTML = `${runInfoHtml(o)}<br>${m.crucible ? "Tiegel: " + esc(m.crucible) + "<br>" : ""}${m.instrument ? "Gerät: " + esc(m.instrument) + "<br>" : ""}${m.date ? "Datum: " + esc(m.date) + "<br>" : ""}<div style="margin-top:6px">${cols}</div><div class="row"><button id="fiMap">Spalten zuordnen …</button></div>`;
+  $("#fileInfo").innerHTML = `${runInfoHtml(o)}<br>${m.crucible ? "Tiegel: " + esc(m.crucible) + "<br>" : ""}${m.instrument ? "Gerät: " + esc(m.instrument) + "<br>" : ""}${m.date ? "Datum: " + esc(m.date) + "<br>" : ""}<div style="margin-top:6px">${cols}</div>${m.m_column ? `<div class="small">Massenspalte: ${esc(m.m_column)}</div>` : ""}${readNotesHtml(o)}<div class="row"><button id="fiMap">Spalten zuordnen …</button></div>`;
   $("#fiMap").addEventListener("click", () => mapDialog());
 }
 
@@ -1021,7 +1028,8 @@ function updateComp() {
   $("#cpParams").innerHTML = def ? Object.entries(params).map(([k, v]) => `<div><label>${k === "T1" ? "Grenze 1 [°C]" : k === "T2" ? "Grenze 2 [°C]" : "Grenzen [°C], Komma"}</label><input data-cp="${k}" value="${Array.isArray(v) ? v.join("; ") : v}"></div>`).join("") : "";
   const c = d && d.comp;
   $("#cpOut").innerHTML = !c ? "" : c.error ? `<div class="note err">${esc(c.error)}</div>` :
-    `<div class="tw"><table class="res"><thead><tr><th class="l">Anteil</th><th class="l">Bereich</th><th>%</th></tr></thead><tbody>${c.rows.map(r => `<tr><td class="l">${esc(r.name)}</td><td class="l small">${esc([r.from, r.to].filter(x => x !== "" && x != null).map(x => typeof x === "number" ? fmt(x, 0) + " °C" : x).join(" – "))}</td><td><b>${fx(r.pct, 2)}</b></td></tr>`).join("")}</tbody></table></div>` +
+    `<div class="tw"><table class="res"><thead><tr><th class="l">Anteil</th><th class="l">Bereich</th><th>%</th>${c.basis ? "<th>% trocken</th>" : ""}</tr></thead><tbody>${c.rows.map(r => `<tr><td class="l">${esc(r.name)}</td><td class="l small">${esc([r.from, r.to].filter(x => x !== "" && x != null).map(x => typeof x === "number" ? fmt(x, 0) + " °C" : x).join(" – "))}</td><td><b>${fx(r.pct, 2)}</b></td>${c.basis ? `<td>${r.dry != null ? fx(r.dry, 2) : "–"}</td>` : ""}</tr>`).join("")}</tbody></table></div>` +
+    (c.basis ? `<div class="small">${esc(c.basis.de)}</div>` : "") +
     (c.warnings || []).map(w => `<div class="note warn">${esc(w)}</div>`).join("") + (c.ref ? `<div class="small">Verfahren: ${esc(META.refs[c.ref] ? META.refs[c.ref].text : c.ref)}</div>` : "");
   // Reaktionen
   $("#rxStep").innerHTML = d ? d.steps.map(s => `<option value="${s.no}">Stufe ${s.no}: ${fx(s.loss, 2)} % bei ${fx(stepX(s, "peak"), 0)}</option>`).join("") : "";
@@ -1096,7 +1104,7 @@ async function runSearch() {
   const o = cur(); if (!o) return;
   const libs = libsForSearch();
   if (!libs.length) return toast("Bitte mindestens eine Bibliothek wählen.", true);
-  const j = await withBusy(() => api("api/search", { id: o.id, state: stateOf(o), libs, mode: $("#sMode").value, shift: pnum($("#sShift").value) ?? 20, category: $("#sCat").value, same_atm: $("#sAtm").checked }));
+  const j = await withBusy(() => api("api/search", { id: o.id, state: stateOf(o), libs, mode: $("#sMode").value, shift: pnum($("#sShift").value) ?? 20, category: $("#sCat").value, same_atm: $("#sAtm").checked, w_curve: Math.min(100, Math.max(0, pnum($("#sWc").value) ?? 60)) / 100 }));
   if (j.error) return toast(j.error, true);
   o.search = j; o.hitSel = 0; o.searchStale = false;
   S.mode = "search"; updateMode(); updateSearch(); draw();
@@ -1196,14 +1204,14 @@ function updateKin() {
   $$("#kView button").forEach(b => b.classList.toggle("sel", b.dataset.kv === S.kinView));
   const k = S.kin && S.kin.res;
   if (!k) { $("#kOut").innerHTML = ""; return; }
-  const names = { friedman: "Friedman", ofw: "Ozawa-Flynn-Wall", kas: "Kissinger-Akahira-Sunose", starink: "Starink", vyazovkin: "Vyazovkin" };
+  const names = { friedman: "Friedman", ofw: k.iso.ofw === "doyle" ? "Ozawa-Flynn-Wall (Doyle 1,052, unkorrigiert)" : "Ozawa-Flynn-Wall (iteriert wie ASTM E1641)", kas: "Kissinger-Akahira-Sunose", starink: "Starink", vyazovkin: "Vyazovkin (1997, Integral ab 0)" };
   let h = (k.iso.warnings || []).map(w => `<div class="note warn">${esc(w)}</div>`).join("");
   h += `<table class="res" style="margin-top:6px"><thead><tr><th class="l">Verfahren</th><th>Eₐ [kJ/mol]</th><th>min–max</th></tr></thead><tbody>${Object.entries(k.iso.summary).map(([m, s]) => `<tr><td class="l">${names[m] || m}</td><td><b>${fx(s.mean, 1)}</b> ± ${fx(s.sd, 1)}</td><td>${fx(s.min, 0)}–${fx(s.max, 0)}</td></tr>`).join("")}` +
     (k.kissinger && !k.kissinger.error ? `<tr><td class="l">Kissinger</td><td><b>${fx(k.kissinger.E, 1)}</b>${k.kissinger.ci != null ? " ± " + fx(k.kissinger.ci, 1) : ""}</td><td>ln A ${fx(k.kissinger.lnA, 1)}</td></tr>` : "") + `</tbody></table>`;
   h += `<div class="small" style="margin-top:4px">Mittel über α = 0,1…0,9; ± Standardabweichung über α (Kissinger: 95-%-Vertrauensbereich).</div>`;
   if (k.master) h += `<h4 class="sub">Reaktionsmodell</h4><div class="small">Masterplot (beste zuerst): ${k.master.ranking.slice(0, 4).map(r => `${esc(r.model)} (${fx(r.rms, 3)})`).join(", ")}. Gewählt: <b>${esc(k.model)}</b>.</div>`;
   if (k.coats_redfern) h += `<details><summary>Coats-Redfern (${esc(k.coats_redfern.run)})</summary><table class="res"><thead><tr><th class="l">Modell</th><th>Eₐ</th><th>ln A</th><th>R²</th></tr></thead><tbody>${k.coats_redfern.models.slice(0, 14).map(m => `<tr><td class="l">${esc(m.model)} <span class="small">${esc(m.label)}</span></td><td>${fx(m.E, 1)}</td><td>${fx(m.lnA, 1)}</td><td>${fx(m.r2, 4)}</td></tr>`).join("")}</tbody></table><div class="small">Einzelheizraten-Verfahren geben oft scheinbar gute Geraden mit falschem Eₐ (ICTAC 2011); nur zur Modellwahl verwenden.</div></details>`;
-  if (k.lifetime) h += `<h4 class="sub">Lebensdauer (ASTM E1877)</h4><table class="res"><thead><tr><th>T [°C]</th><th>Zeit bis α = ${fx(k.lifetime.alpha_f, 2)}</th></tr></thead><tbody>${k.lifetime.rows.map(r => `<tr><td>${fx(r.T, 0)}</td><td>${r.t_h > 87600 ? fx(r.t_h / 8760, 1) + " Jahre" : fx(r.t_h, 1) + " h"}</td></tr>`).join("")}</tbody></table>${k.lifetime.T_index != null ? `<div class="small">Temperaturindex für ${fmt(k.lifetime.t_target_h, 0)} h: <b>${fx(k.lifetime.T_index, 1)} °C</b></div>` : ""}<div class="small">Extrapolation weit unter den Messtemperaturen ist unsicher; Eₐ und Modell gelten nur, wenn der Mechanismus gleich bleibt.</div>`;
+  if (k.lifetime) h += `<h4 class="sub">Lebensdauer (${k.lifetime.method === "model" ? "Arrhenius mit Modell " + esc(k.lifetime.model || "") : "Toop-Beziehung, Grundlage von ASTM E1877"})</h4><div class="note warn">Nicht gegen den Text von ASTM E1877 geprüft. ${k.lifetime.method === "model" ? "" : `Eₐ = ${fx(k.lifetime.E, 1)} kJ/mol (OFW bei α = ${fx(k.lifetime.alpha_f, 2)}, iteriert); kein Reaktionsmodell nötig.`}</div><table class="res"><thead><tr><th>T [°C]</th><th>Zeit bis α = ${fx(k.lifetime.alpha_f, 2)}</th></tr></thead><tbody>${k.lifetime.rows.map(r => `<tr><td>${fx(r.T, 0)}</td><td>${r.t_h > 87600 ? fx(r.t_h / 8760, 1) + " Jahre" : fx(r.t_h, 1) + " h"}</td></tr>`).join("")}</tbody></table>${k.lifetime.T_index != null ? `<div class="small">Temperaturindex für ${fmt(k.lifetime.t_target_h, 0)} h: <b>${fx(k.lifetime.T_index, 1)} °C</b></div>` : ""}<div class="small">Extrapolation weit unter den Messtemperaturen ist unsicher; Eₐ und Modell gelten nur, wenn der Mechanismus gleich bleibt.</div>`;
   $("#kOut").innerHTML = h;
 }
 async function runKin() {

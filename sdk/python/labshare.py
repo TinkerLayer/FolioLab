@@ -2,8 +2,11 @@
 
 Ein Modul veröffentlicht *ausgewählte* Ergebnisse einer Umgebung (nie Rohdaten) für genannte Empfänger-Module.
 Jede Veröffentlichung bekommt eine neue Version; alte Versionen bleiben lesbar (Architektur §3, Regeln 1–4).
+Versionsnummern werden nie zweimal vergeben: share.json hält die höchste je vergebene Nummer (`issued`) und je
+gelöschter Version einen Grabstein (`deleted`: Nummer, Zeit, Prüfsumme). Löschen wird verweigert, solange ein
+Bericht die Version (oder einen daraus abgeleiteten Datensatz) benutzt (`labprov.guard_share_delete`).
 
-Ablage im Projekt:  sharebox/<share-id>/share.json    Erzeuger, Titel, Empfänger, Art
+Ablage im Projekt:  sharebox/<share-id>/share.json    Erzeuger, Titel, Empfänger, Art, issued, deleted
                     sharebox/<share-id>/v<n>.json       Umschlag der Version n (unveränderlich)
 
 Umschlag:
@@ -132,7 +135,10 @@ class Sharebox:
             share_id = "s-" + secrets.token_hex(4)
             d = self.base / share_id
             meta = {"id": share_id, "created": _now()}
-        n = 1 + max((int(p.stem[1:]) for p in d.glob("v*.json") if p.stem[1:].isdigit()), default=0)
+        # A8: a version number is never given twice, also after a version was deleted (share.json keeps the highest
+        # number ever issued and a tombstone per deleted version)
+        n = 1 + max([int(p.stem[1:]) for p in d.glob("v*.json") if p.stem[1:].isdigit()]
+                    + [int(meta.get("issued") or 0)] + [int(t.get("version") or 0) for t in meta.get("deleted") or []])
         env = {"schema": SCHEMA, "id": share_id, "version": n, "created": _now(),
                "producer": {k: producer.get(k) for k in ("module", "env", "env_name", "item", "item_name", "module_version", "raw")},
                "kind": str(kind)[:40], "title": str(title)[:160], "outputs": outs,
@@ -141,7 +147,7 @@ class Sharebox:
             d.mkdir(parents=True, exist_ok=True)
             env.update(write(d, n))
         meta.update({"producer": env["producer"], "kind": env["kind"], "title": env["title"], "recipients": rec,
-                     "latest": n, "modified": env["created"]})
+                     "latest": n, "issued": n, "modified": env["created"]})
         _write(d / f"v{n}.json", env)
         _write(d / "share.json", meta)
         return env
@@ -163,7 +169,10 @@ class Sharebox:
         return out
 
     def delete(self, share_id: str, version: int | None = None) -> None:
-        """A8: eine Version (oder die ganze Freigabe) entfernen – verweigert, wenn ein Bericht sie benutzt."""
+        """A8: eine Version (oder die ganze Freigabe) entfernen – verweigert, wenn ein Bericht sie (oder einen daraus
+        abgeleiteten Datensatz) benutzt. Eine gelöschte Version hinterlässt einen Grabstein in share.json (Nummer,
+        Zeit, Prüfsumme); ihre Nummer wird nie wieder vergeben. Die ganze Freigabe zu löschen entfernt den Ordner;
+        eine neue Freigabe bekommt immer eine neue Kennung."""
         from labprov import guard_share_delete
         d = self.base / _check_id(share_id, "Freigabe")
         meta = _read(d / "share.json")
@@ -177,6 +186,7 @@ class Sharebox:
         p = d / f"v{int(version)}.json"
         if not p.exists():
             raise EnvError(f"Version {version} nicht gefunden")
+        old = _read(p) or {}
         p.unlink()
         side = d / f"v{int(version)}.npz"
         if side.exists():
@@ -186,6 +196,9 @@ class Sharebox:
             import shutil
             shutil.rmtree(d)
             return
+        meta["issued"] = max(int(meta.get("issued") or 0), int(meta.get("latest") or 0), int(version))
+        meta["deleted"] = (meta.get("deleted") or []) + [{"version": int(version), "deleted": _now(),
+                                                          "hash": old.get("hash"), "created": old.get("created")}]
         meta["latest"] = left[-1]
         _write(d / "share.json", meta)
 
@@ -234,7 +247,8 @@ class Sharebox:
         v = int(version or m["latest"])
         env = _read(d / f"v{v}.json")
         if not env:
-            raise EnvError(f"Version {v} nicht gefunden")
+            t = next((t for t in m.get("deleted") or [] if t.get("version") == v), None)
+            raise EnvError(f"Version {v} wurde am {str(t.get('deleted'))[:10]} gelöscht" if t else f"Version {v} nicht gefunden")
         return env
 
     def dataset(self, share_id: str, version: int | None = None, recipient: str | None = None):
@@ -269,4 +283,7 @@ def dataset_of(env: dict, folder: Path):
         raise EnvError(f"Datensatz unlesbar: {e}") from e
     if ds.header["data_hash"] != env.get("hash"):
         raise EnvError("Datensatz passt nicht zur Prüfsumme der Freigabe")
+    fh = env["dataset"].get("flags_hash")
+    if fh and ds.header["flags_hash"] != fh:
+        raise EnvError("Markierungen passen nicht zur Prüfsumme der Freigabe")
     return ds

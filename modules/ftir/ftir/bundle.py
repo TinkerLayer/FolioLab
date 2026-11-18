@@ -17,6 +17,7 @@ import labcite  # noqa: E402
 from . import charts as C
 from . import peaks as PK
 from . import quality as QA
+from . import search as SR
 from .analysis import Analysis, arr, run
 from .library import GRID, MODEL_ID
 from .readers import load_bytes, ylabel
@@ -55,12 +56,14 @@ T = {
         "tab_peaks": "Banden von {n} mit möglichen Zuordnungen.",
         "tab_groups": "Funktionelle Gruppen in {n} (Hinweise aus der Korrelationstabelle).",
         "tab_hits": "Bibliothekssuche für {n} ({a}); HQI 100 = deckungsgleich.",
-        "tab_mix": "Mischungsanalyse für {n} (HQI {h}); Anteile an der Absorbanz, keine Massenanteile.",
+        "tab_mix": "Mischungsanalyse für {n} (HQI {h}); Flächenanteile am angepassten, normierten Absorbanzspektrum "
+                   "(spektraler Beitrag), keine Massen- oder Volumenanteile.",
         "tab_bands": "Bandenflächen von {n}.", "tab_cmp": "FTIR-Proben im Vergleich.",
+        "bands_basis": "Flächen und Höhen in {u} (aus {f} umgerechnet).",
         "h_peaks": ["Nr.", r"$\tilde\nu$ [" + CM + "]", "{y}", "Int.", "FWHM [" + CM + "]", "Zuordnung"],
         "h_groups": ["Stoffklasse", "Bewertung", "Banden"],
         "h_hits": ["Rang", "Referenz", "Bibliothek", "HQI"],
-        "h_mix": ["Komponente", "Bibliothek", r"Anteil [\%]"],
+        "h_mix": ["Komponente", "Bibliothek", r"Flächenanteil [\%]"],
         "h_bands": ["Bande", "Bereich [" + CM + "]", "Fläche", "Höhe", "Lage [" + CM + "]"],
         "h_cmp": ["Probe", "Bester Treffer", "HQI", "Stärkste Bande [" + CM + "]", "Banden"],
         "verdict": {"wahrscheinlich": "wahrscheinlich", "möglich": "möglich", "unwahrscheinlich": "unwahrscheinlich"},
@@ -77,12 +80,14 @@ T = {
         "tab_peaks": "Bands of {n} with possible assignments.",
         "tab_groups": "Functional groups in {n} (indications from the correlation table).",
         "tab_hits": "Library search for {n} ({a}); HQI 100 = identical.",
-        "tab_mix": "Mixture analysis for {n} (HQI {h}); contributions to absorbance, not mass fractions.",
+        "tab_mix": "Mixture analysis for {n} (HQI {h}); area shares of the fitted, normalised absorbance spectrum "
+                   "(spectral contribution), not mass or volume fractions.",
         "tab_bands": "Band areas of {n}.", "tab_cmp": "FTIR samples compared.",
+        "bands_basis": "Areas and heights in {u} (converted from {f}).",
         "h_peaks": ["No.", r"$\tilde\nu$ [" + CM + "]", "{y}", "Int.", "FWHM [" + CM + "]", "Assignment"],
         "h_groups": ["Compound class", "Assessment", "Bands"],
         "h_hits": ["Rank", "Reference", "Library", "HQI"],
-        "h_mix": ["Component", "Library", r"Contribution [\%]"],
+        "h_mix": ["Component", "Library", r"Area share [\%]"],
         "h_bands": ["Band", "Range [" + CM + "]", "Area", "Height", "Position [" + CM + "]"],
         "h_cmp": ["Sample", "Best hit", "HQI", "Strongest band [" + CM + "]", "Bands"],
         "verdict": {"wahrscheinlich": "likely", "möglich": "possible", "unwahrscheinlich": "unlikely"},
@@ -95,19 +100,30 @@ T = {
 REFS = {
     "socrates2001": ("book", dict(author="Socrates, George", title="Infrared and Raman Characteristic Group Frequencies: Tables and Charts",
                                   edition="3", publisher="Wiley", address="Chichester", year="2001")),
-    "astm-e1252": ("misc", dict(title="ASTM E1252-98(2021): Standard Practice for General Techniques for Obtaining Infrared Spectra for Qualitative Analysis",
-                                howpublished="ASTM International", year="2021")),
+    "silverstein2014": ("book", dict(author="Silverstein, Robert M. and Webster, Francis X. and Kiemle, David J. and Bryce, David L.",
+                                     title="Spectrometric Identification of Organic Compounds", edition="8",
+                                     publisher="Wiley", year="2014")),
     "savitzky1964": ("article", dict(author="Savitzky, Abraham and Golay, Marcel J. E.",
                                      title="Smoothing and Differentiation of Data by Simplified Least Squares Procedures",
                                      journal="Analytical Chemistry", volume="36", number="8", pages="1627--1639", year="1964")),
     "eilers2005": ("techreport", dict(author="Eilers, Paul H. C. and Boelens, Hans F. M.",
                                       title="Baseline Correction with Asymmetric Least Squares Smoothing",
                                       institution="Leiden University Medical Centre", year="2005")),
+    "lieber2003": ("article", dict(author="Lieber, Chad A. and Mahadevan-Jansen, Anita",
+                                   title="Automated method for subtraction of fluorescence from biological Raman spectra",
+                                   journal="Applied Spectroscopy", volume="57", number="11", pages="1363--1367", year="2003")),
+    "harrick1967": ("book", dict(author="Harrick, N. J.", title="Internal Reflection Spectroscopy",
+                                 publisher="Interscience Publishers", address="New York", year="1967")),
     "lawson1974": ("book", dict(author="Lawson, Charles L. and Hanson, Richard J.", title="Solving Least Squares Problems",
                                 publisher="Prentice-Hall", address="Englewood Cliffs", year="1974")),
+    "cowger2021": ("article", dict(author="Cowger, Win and others",
+                                   title="Microplastic spectral classification needs an open source community: Open Specy to the rescue!",
+                                   journal="Analytical Chemistry", volume="93", pages="7543--7548", year="2021",
+                                   doi="10.1021/acs.analchem.1c00123")),
     "openspecy2025": ("article", dict(author="Cowger, Win and others", title="Open Specy 1.0: Automated (Hyper)spectroscopy "
                                       "for Microplastics", journal="Analytical Chemistry", year="2025",
-                                      doi="10.1021/acs.analchem.5c00962")),
+                                      doi="10.1021/acs.analchem.5c00962",
+                                      note="Angaben nicht geprüft / details not verified")),
 }
 
 
@@ -142,7 +158,7 @@ def _structured(rec):
 def ref_keys(b: Bundle, refs, lang: str) -> list[str]:
     """Literaturangaben für Referenzspektren (Treffer, Mischungskomponenten, geöffnete Referenzen).
 
-    Open Specy: Sammlung (Cowger et al. 2025) und das ursprüngliche Labor/die ursprüngliche Datenbank des Spektrums.
+    Open Specy: Sammlung (Cowger et al. 2021 und 2025) und das ursprüngliche Labor/die ursprüngliche Datenbank des Spektrums.
     Modellbibliothek: eigener Eintrag mit dem Hinweis, dass es keine Messungen sind. Eigene Bibliotheken: die Bibliothek
     und, falls angegeben, die Quelle des Eintrags."""
     de = lang == "de"
@@ -151,6 +167,7 @@ def ref_keys(b: Bundle, refs, lang: str) -> list[str]:
         lib = h.get("lib") or ""
         src = (h.get("source") or "").strip()
         if str(lib).startswith("openspecy"):
+            keys.append(_cite(b, "cowger2021"))
             keys.append(_cite(b, "openspecy2025"))
             if ":" in src:
                 short, full = src.split(":", 1)
@@ -218,6 +235,16 @@ def _uses(a: Analysis, op, **kw):
     return False
 
 
+def _uses_sg(a: Analysis) -> bool:
+    """Savitzky-Golay im Protokoll: Glätten mit Verfahren "sg" (Standard, wenn nichts angegeben) oder eine Ableitung."""
+    return any(st.get("op") == "deriv" or (st.get("op") == "smooth" and st.get("method", "sg") == "sg")
+               for st in a.state.get("pipeline") or [])
+
+
+def _uses_mean(a: Analysis) -> bool:
+    return any(st.get("op") == "smooth" and st.get("method") == "mean" for st in a.state.get("pipeline") or [])
+
+
 def _data_cite(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, key: str):
     sp = a.orig
     fmt = sp.meta.get("format", "")
@@ -240,13 +267,13 @@ def _ds_sentence(a: Analysis, lang: str, named: bool = False) -> str:
     col = ((d.get("columns") or {}).get("y") or {}).get("name")
     if lang == "de":
         s = (f"Das Spektrum{' ' + a.name if named else ''} stammt aus dem Datensatz „{d.get('title') or d['share']}“ "
-             f"(ID {d['share']}, Version {d.get('version')}{', Spalte ' + col if col else ''}) der Datenaufbereitung")
+             f"(ID {d['share']}, Version {d.get('version')}{', Spalte ' + col if col else ''}) des Moduls Datenaufbereitung")
         if d.get("x_note"):
             s += "; die Wellenzahlen wurden aus Wellenlängen berechnet (1/λ)"
         s += f"; {n} als ausgeschlossen markierte Zeile{'n' if n != 1 else ''} blieb{'en' if n != 1 else ''} unberücksichtigt." if n else "."
     else:
         s = (f"The spectrum{' ' + a.name if named else ''} comes from dataset “{d.get('title') or d['share']}” "
-             f"(ID {d['share']}, version {d.get('version')}{', column ' + col if col else ''}) of the data preparation module")
+             f"(ID {d['share']}, version {d.get('version')}{', column ' + col if col else ''}) of the Data Purification module")
         if d.get("x_note"):
             s += "; wavenumbers were calculated from wavelengths (1/λ)"
         s += f"; {n} row{'s' if n != 1 else ''} marked as excluded {'were' if n != 1 else 'was'} left out." if n else "."
@@ -294,12 +321,18 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
     cites = {}
     if inc.get("citations", True):
         cites["data"] = _data_cite(b, a, fname, raw_len, lang, f"data-{b.slug}{('-' + prefix) if prefix else ''}")
-        cites["tab"] = _cite(b, "socrates2001")
-        cites["astm"] = _cite(b, "astm-e1252")
-        if _uses(a, "smooth", method="sg") or _uses(a, "deriv") or _uses(a, "smooth"):
+        if a.peaks or a.groups:
+            cites["tab"] = ",".join([_cite(b, "socrates2001"), _cite(b, "silverstein2014")])
+        # Savitzky-Golay nur, wo es verwendet wird: Glätten mit SG (auch ohne Angabe: Standard), Ableitung, und die
+        # Rauschschätzung für S/N (Rest einer SG-Glättung); der gleitende Mittelwert hat keine Quelle
+        if _uses_sg(a) or QA.assess(a.sp.x, a.sp.y, a.sp.yunit)["snr"] is not None:
             cites["sg"] = _cite(b, "savitzky1964")
         if _uses(a, "baseline", method="als"):
             cites["als"] = _cite(b, "eilers2005")
+        if _uses(a, "baseline", method="poly"):
+            cites["poly"] = _cite(b, "lieber2003")
+        if _uses(a, "atr"):
+            cites["atr"] = _cite(b, "harrick1967")
     s, hits, q = _search_parts(a)
     mix = _mix_parts(a)
     if mix and inc.get("citations", True):
@@ -314,8 +347,8 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
         used = list(hits[:10]) + comps + list(self_refs)
         os_keys = [k for h in used if str(h.get("lib")).startswith("openspecy") for k in ref_keys(b, [h], lang)]
         if os_keys:
-            cites["openspecy"] = "openspecy2025"
-            origins = [k for k in cite_keys(os_keys) if k != "openspecy2025"]
+            cites["openspecy"] = "cowger2021,openspecy2025"
+            origins = [k for k in cite_keys(os_keys) if k not in ("cowger2021", "openspecy2025")]
             if origins:
                 cites["origins"] = ",".join(origins)
         if any(h.get("lib") == MODEL_ID for h in used):
@@ -344,8 +377,13 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
             for i, p in enumerate(a.peaks, 1):
                 rows.append([str(i), num(p["x"], 0, lang), num(p["y"], _ynd(sp), lang), p["strength"] + (" br" if p.get("shape") else ""),
                              _n(p["fwhm"], 0, lang), tx((p.get("assign") or ["–"])[0])])
-            b.add_table(f"banden{pid}" if False else f"peaks{pid}", booktabs(head, rows, align="rrrlrl", small=True, escape_header=False),
-                        L["tab_peaks"].format(n=n))
+            pnote = ""
+            if sp.yunit in PK.AREA_BASIS:
+                pnote = ("Halbwertsbreiten aus der in " + tx(ylabel(PK.AREA_BASIS[sp.yunit], lang)) + " umgerechneten Kurve."
+                         if lang == "de" else
+                         "FWHM from the curve converted to " + tx(ylabel(PK.AREA_BASIS[sp.yunit], lang)).lower() + ".")
+            b.add_table(f"peaks{pid}", booktabs(head, rows, align="rrrlrl", small=True, escape_header=False),
+                        L["tab_peaks"].format(n=n), notes=pnote)
         if a.groups and a.groups.get("classes"):
             rows = [[tx(c["name"]), L["verdict"][c["verdict"]], f"{c['found']}/{c['needed']}"]
                     for c in a.groups["classes"] if c["verdict"] != "unwahrscheinlich"]
@@ -360,13 +398,19 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
                         cites=rk.get("hits"))
         if mix:
             rows = [[tx(c["name"]), cell(c), num(100 * c["frac"], 0, lang)] for c in mix["components"]]
-            b.add_table(f"mischung{pid}", booktabs(L["h_mix"], rows, align="llr", small=True),
+            b.add_table(f"mischung{pid}", booktabs(L["h_mix"], rows, align="llr", small=True, escape_header=False),
                         L["tab_mix"].format(n=n, h=num(mix["hqi"], 1, lang)), cites=rk.get("mix"))
         if a.bands:
             rows = [[tx(r["name"]), f"{num(r['hi'], 0, lang)}--{num(r['lo'], 0, lang)}", _n(r["area"], 3, lang),
                      _n(r["height"], 3, lang), _n(r["pos"], 0, lang)] for r in a.bands]
             notes = "; ".join(f"{tx(r['name'])}: {_n(r['value'], 3, lang)}" for r in a.ratios)
-            b.add_table(f"flaechen{pid}", booktabs(L["h_bands"], rows, align="lrrrr", small=True), L["tab_bands"].format(n=n), notes=notes)
+            if sp.yunit in PK.AREA_BASIS:            # T/R: Flächen auf Absorbanz bzw. log(1/R) gerechnet
+                u_b, f_b = tx(ylabel(PK.AREA_BASIS[sp.yunit], lang)), tx(yl)
+                if lang != "de":
+                    u_b, f_b = u_b[:1].lower() + u_b[1:], f_b[:1].lower() + f_b[1:]
+                basis = L["bands_basis"].format(u=u_b, f=f_b)
+                notes = (notes + ". " if notes else "") + basis
+            b.add_table(f"flaechen{pid}", booktabs(L["h_bands"], rows, align="lrrrr", small=True, escape_header=False), L["tab_bands"].format(n=n), notes=notes)
     if inc.get("values", True):
         vals = []
         k = (prefix + "-") if prefix else ""
@@ -420,46 +464,77 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
     q = QA.assess(sp.x, sp.y, sp.yunit)
     pk_snr = float(((a.state.get("peaks") or {}).get("params") or {}).get("snr", PK.DEFAULT["snr"]) or 0)
     rngs = ", ".join(f"{num(hi, 0, lang)}--{num(lo, 0, lang)}" for hi, lo in q["noisy"])
+    t_basis = sp.yunit in PK.AREA_BASIS and (a.bands or a.peaks)
     if de:
         noise_t = ""
         if q["snr"] is not None:
-            noise_t = (f" Das Signal-Rausch-Verhältnis (stärkste Bande zu Rauschen, Rauschen aus dem Rest einer "
-                       f"Savitzky-Golay-Glättung) beträgt etwa {num(q['snr'], 0, lang)}.")
+            noise_t = (f" Das Signal-Rausch-Verhältnis beträgt etwa {num(q['snr'], 0, lang)}: Höhe der stärksten Bande "
+                       "(Maximum des über 12~" + CM + " gleitend gemittelten Spektrums über einer Gummiband-Basislinie) "
+                       "geteilt durch die Standardabweichung des Rauschens, geschätzt aus dem Rest einer "
+                       f"Savitzky-Golay-Glättung (7 Punkte, kubisch){c('sg')} als robuste Standardabweichung "
+                       "(1,4826 $\\cdot$ Median der Beträge) über die ruhigen Abschnitte.")
         if rngs:
             noise_t += (f" Der verrauschte Bereich {rngs}~" + CM + " (bei Diamant-ATR absorbiert der Kristall dort selbst) "
                         "blieb bei Bandensuche, Gruppenbewertung und Bibliothekssuche unberücksichtigt.")
     else:
         noise_t = ""
         if q["snr"] is not None:
-            noise_t = (f" The signal-to-noise ratio (strongest band to noise, noise from the residual of a "
-                       f"Savitzky-Golay smooth) is about {num(q['snr'], 0, lang)}.")
+            noise_t = (f" The signal-to-noise ratio is about {num(q['snr'], 0, lang)}: height of the strongest band "
+                       "(maximum of the spectrum after a 12~" + CM + " moving mean, above a rubber-band baseline) divided by "
+                       "the standard deviation of the noise, estimated from the residual of a Savitzky-Golay smooth "
+                       f"(7 points, cubic){c('sg')} as a robust standard deviation (1.4826 $\\cdot$ median of the "
+                       "absolute values) over the quiet sections.")
         if rngs:
             noise_t += (f" The noisy region {rngs}~" + CM + " (where a diamond ATR crystal absorbs) was ignored for band "
                         "picking, functional-group rating and library search.")
+    warn_t = " ".join(tx(w["de"] if de else w["en"]) for w in a.proc.warnings)
     if de:
         t = (f"Das Spektrum {tx(a.name)}{c('data')} wurde im Bereich {num(o.x[-1], 0, lang)}--{num(o.x[0], 0, lang)}~" + CM +
-             f" ausgewertet ({len(o.x)} Datenpunkte{', ' + src if src else ''})." + c("astm"))
+             f" ausgewertet ({len(o.x)} Datenpunkte{', ' + src if src else ''}).")
         ds = _ds_sentence(a, lang)
         t += f" {ds}" if ds else ""
         if "self" in cites:
             t += (f" Es ist bzw. enthält ein Referenzspektrum aus {_ref_libs(a, lang)}{c('self')}"
                   + (", nicht gemessen, sondern aus Bandenlagen berechnet" if _is_model(a) else "") + ".")
         t += f" Bearbeitung: {steps}." if steps else " Das Spektrum wurde unbearbeitet ausgewertet."
-        if "sg" in cites:
+        if _uses_sg(a):
             t += f" Geglättet bzw. abgeleitet wurde nach Savitzky und Golay{c('sg')}."
+        if _uses_mean(a):
+            t += " Der gleitende Mittelwert ist ungewichtet; an den Rändern wird mit dem Randwert aufgefüllt."
         if "als" in cites:
-            t += f" Die Basislinie wurde mit asymmetrischen kleinsten Quadraten bestimmt{c('als')}."
+            t += (f" Die Basislinie wurde mit asymmetrischen kleinsten Quadraten bestimmt{c('als')}; "
+                  + (r"$\lambda$ gilt je Datenpunkt." if _uses(a, "baseline", method="als", lam_ref="point") else
+                     r"$\lambda$ ist auf 1~" + CM + r" Punktabstand bezogen (verwendet wird $\lambda\cdot(1/\Delta\tilde\nu)^4$ "
+                     r"mit $\Delta\tilde\nu$ in " + CM + "), damit die Steifigkeit nicht vom Datenraster abhängt."))
+        if "poly" in cites:
+            t += f" Die Polynom-Basislinie wurde iterativ angepasst, Punkte über der Kurve jeweils auf die Kurve gesetzt{c('poly')}."
+        if "atr" in cites:
+            t += (" Die ATR-Korrektur skaliert mit $\\tilde\\nu/\\tilde\\nu_{ref}$, weil die Eindringtiefe bei festem "
+                  f"Einfallswinkel und konstanten Brechzahlen proportional zur Wellenlänge ist{c('atr')}; Brechzahlen, "
+                  "Dispersion und Zahl der Reflexionen gehen nicht ein (einfache ATR-Korrektur).")
+        if warn_t:
+            t += " Hinweis: " + warn_t
         if a.peaks:
             p = (a.state.get("peaks") or {}).get("params") or {}
             t += (f" Banden wurden als lokale Maxima mit einer Prominenz von mindestens {num(p.get('prominence', 2), 1, lang)}~\\% "
                   f"des Wertebereichs" + (f", mindestens dem {num(pk_snr, 0, lang)}-fachen Rauschen" if pk_snr else "") +
                   f" und einem Mindestabstand von {num(p.get('distance', 8), 0, lang)}~" + CM +
-                  f" gesucht und anhand einer Korrelationstabelle der Gruppenfrequenzen zugeordnet{c('tab')}.")
+                  f" gesucht und anhand einer Korrelationstabelle der Gruppenfrequenzen zugeordnet{c('tab')}; unter den "
+                  "passenden Tabelleneinträgen stehen solche voran, deren Form zur Bande passt und deren Gruppe die "
+                  "Gruppenbewertung des ganzen Spektrums stützt. Die Zuordnungen sind Vorschläge.")
+        if t_basis:
+            t += (" Flächen, Höhen und Halbwertsbreiten wurden auf dem in " + tx(ylabel(PK.AREA_BASIS[sp.yunit], lang))
+                  + " umgerechneten Spektrum bestimmt.")
         t += noise_t
         if hits:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
-            t += (f" Die Bibliothekssuche ({tex_escape(algo)}) verglich das vorbehandelte Spektrum (Absorbanz, Basislinie, "
-                  f"Maximum 1, Raster 2~" + CM + f") mit {libs}; die Trefferqualität HQI reicht von 0 bis 100.")
+            t += (f" Die Bibliothekssuche ({tex_escape(algo)}) verglich das Spektrum mit {libs}; Probe und Referenzen "
+                  "wurden dafür gleich vorbereitet (Absorbanz, Raster 2~" + CM + ", Gummiband-Basislinie, Maximum 1), "
+                  "die Bearbeitungsschritte oben gelten nur für die Probe. Die Trefferqualität HQI reicht von 0 bis 100.")
+            if s.get("algo") == "peaks":
+                t += (f" Banden gelten als übereinstimmend, wenn sie höchstens {num(SR.PEAK_TOL, 0, lang)}~" + CM +
+                      f" + {num(100 * SR.PEAK_TOL_REL, 1, lang)}~\\% der Wellenzahl auseinanderliegen; für Probe und "
+                      "Referenzen gelten dieselben Suchparameter.")
             if any(h.get("lib") == MODEL_ID for h in hits):
                 t += (f" Die Modellbibliothek{c('model')} enthält aus Literatur-Bandenlagen berechnete, keine gemessenen "
                       "Referenzspektren; Treffer daraus sind als Hinweis zu verstehen.")
@@ -469,32 +544,58 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
             if "own" in cites:
                 t += f" Eigene Referenzen:{c('own')}."
         if mix:
-            t += (f" Für die Mischungsanalyse wurden Kombinationen von Referenzen mit nicht-negativen Gewichten an das "
-                  f"Spektrum angepasst{c('nnls')}; die Anteile beziehen sich auf die Absorbanz, nicht auf die Masse.")
+            t += (" Für die Mischungsanalyse wurde für jede Kombination der Kandidaten (bis zur gewählten Zahl von "
+                  "Komponenten) das Problem der nicht-negativen kleinsten Quadrate (NNLS"
+                  f"{c('nnls')}) mit freiem Achsenabschnitt exakt gelöst, durch Aufzählen aller Teilmengen. "
+                  "Die angegebenen Anteile sind Flächenanteile am angepassten, normierten Absorbanzspektrum "
+                  "(spektraler Beitrag), keine Massen- oder Volumenanteile.")
     else:
         t = (f"Spectrum {tx(a.name)}{c('data')} was evaluated between {num(o.x[-1], 0, lang)} and {num(o.x[0], 0, lang)}~" + CM +
-             f" ({len(o.x)} data points{', ' + src if src else ''})." + c("astm"))
+             f" ({len(o.x)} data points{', ' + src if src else ''}).")
         ds = _ds_sentence(a, lang)
         t += f" {ds}" if ds else ""
         if "self" in cites:
             t += (f" It is or contains a reference spectrum from {_ref_libs(a, lang)}{c('self')}"
                   + (", calculated from band positions, not measured" if _is_model(a) else "") + ".")
         t += f" Processing: {steps}." if steps else " The spectrum was evaluated without processing."
-        if "sg" in cites:
+        if _uses_sg(a):
             t += f" Smoothing/derivatives followed Savitzky and Golay{c('sg')}."
+        if _uses_mean(a):
+            t += " The moving mean is unweighted; the ends are padded with the end values."
         if "als" in cites:
-            t += f" The baseline was estimated by asymmetric least squares{c('als')}."
+            t += (f" The baseline was estimated by asymmetric least squares{c('als')}; "
+                  + (r"$\lambda$ acts per data point." if _uses(a, "baseline", method="als", lam_ref="point") else
+                     r"$\lambda$ refers to a point spacing of 1~" + CM + r" (the solver uses $\lambda\cdot(1/\Delta\tilde\nu)^4$ "
+                     r"with $\Delta\tilde\nu$ in " + CM + "), so the stiffness does not depend on the data spacing."))
+        if "poly" in cites:
+            t += f" The polynomial baseline was fitted iteratively, clipping points above the fit to the fit{c('poly')}."
+        if "atr" in cites:
+            t += (" The ATR correction scales by $\\tilde\\nu/\\tilde\\nu_{ref}$ because the penetration depth is "
+                  f"proportional to the wavelength at a fixed angle of incidence and constant refractive indices{c('atr')}; "
+                  "refractive indices, dispersion and the number of reflections are not used (simple ATR correction).")
+        if warn_t:
+            t += " Note: " + warn_t
         if a.peaks:
             p = (a.state.get("peaks") or {}).get("params") or {}
             t += (f" Bands were picked as local maxima with a prominence of at least {num(p.get('prominence', 2), 1, lang)}~\\% "
                   f"of the data range" + (f", at least {num(pk_snr, 0, lang)} times the noise" if pk_snr else "") +
                   f" and a minimum distance of {num(p.get('distance', 8), 0, lang)}~" + CM +
-                  f", and assigned using a correlation table of group frequencies{c('tab')}.")
+                  f", and assigned using a correlation table of group frequencies{c('tab')}; among the matching table "
+                  "entries, those whose shape fits the band and whose group is supported by the functional-group rating "
+                  "of the whole spectrum come first. The assignments are suggestions.")
+        if t_basis:
+            t += (" Areas, heights and band widths were determined on the spectrum converted to "
+                  + tx(ylabel(PK.AREA_BASIS[sp.yunit], lang)).lower() + ".")
         t += noise_t
         if hits:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
-            t += (f" The library search ({tex_escape(algo)}) compared the pre-processed spectrum (absorbance, baseline, "
-                  f"maximum 1, 2~" + CM + f" grid) with {libs}; the hit quality index HQI ranges from 0 to 100.")
+            t += (f" The library search ({tex_escape(algo)}) compared the spectrum with {libs}; sample and references were "
+                  "prepared the same way (absorbance, 2~" + CM + " grid, rubber-band baseline, maximum 1), the processing "
+                  "steps above apply to the sample only. The hit quality index HQI ranges from 0 to 100.")
+            if s.get("algo") == "peaks":
+                t += (f" Bands match when they are at most {num(SR.PEAK_TOL, 0, lang)}~" + CM +
+                      f" + {num(100 * SR.PEAK_TOL_REL, 1, lang)}~\\% of the wavenumber apart; sample and references use "
+                      "the same band-picking parameters.")
             if any(h.get("lib") == MODEL_ID for h in hits):
                 t += (f" The model library{c('model')} contains references calculated from literature band positions, not "
                       "measured spectra; its hits are indications.")
@@ -504,8 +605,10 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
             if "own" in cites:
                 t += f" Own references:{c('own')}."
         if mix:
-            t += (f" For the mixture analysis, combinations of references were fitted with non-negative weights{c('nnls')}; "
-                  "contributions refer to absorbance, not mass.")
+            t += (" For the mixture analysis, the non-negative least-squares problem (NNLS"
+                  f"{c('nnls')}) with a free intercept was solved exactly for every combination of candidates (up to the "
+                  "chosen number of components) by enumerating all subsets. The shares given are area "
+                  "shares of the fitted, normalised absorbance spectrum (spectral contribution), not mass or volume fractions.")
     return t + "\n"
 
 
@@ -532,8 +635,10 @@ def _results(a: Analysis, hits, mix, lang: str, slug: str, prefix: str) -> str:
                          if de else f"The second hit ({tx(hits[1]['name'])}, HQI {num(hits[1]['hqi'], 1, lang)}) is close.")
     if mix:
         comp = ", ".join(f"{tx(c['name'])} ({num(100 * c['frac'], 0, lang)}~\\%)" for c in mix["components"])
-        parts.append((f"Als Mischung passt {comp} (HQI \\labval{{{slug}}}{{{k}mixhqi}})." if de else
-                      f"As a mixture, {comp} fits (HQI \\labval{{{slug}}}{{{k}mixhqi}})."))
+        parts.append((f"Als Mischung passt {comp} (HQI \\labval{{{slug}}}{{{k}mixhqi}}); die Prozente sind Flächenanteile "
+                      "am Absorbanzspektrum, keine Massenanteile." if de else
+                      f"As a mixture, {comp} fits (HQI \\labval{{{slug}}}{{{k}mixhqi}}); the percentages are area shares "
+                      "of the absorbance spectrum, not mass fractions."))
     return " ".join(parts) + "\n" if parts else ""
 
 
@@ -544,7 +649,7 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
     L = T[lang]
     analyses = []
     for raw, fname, idx, state in items:
-        sps = load_bytes(raw, fname)
+        sps = load_bytes(raw, fname, state.get("_read") or None)      # Einheitenwahl beim Einlesen
         if idx >= len(sps):
             raise ValueError(f"{fname}: Spektrum {idx + 1} fehlt")
         sp = sps[idx]

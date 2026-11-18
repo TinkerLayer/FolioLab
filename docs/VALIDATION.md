@@ -55,17 +55,17 @@ Elementrechner and FTIR suites with it.
 
 | Suite | Tests | Skipped in the public repository | Methods page |
 |---|---|---|---|
-| SDK (`sdk/python/tests`) | 79 | 0 | [provenance](methods/provenance.md) |
-| Datenaufbereitung (data preparation) | 61 | 1: writing `.xls` needs a writer that is not installed; reading `.xls` is tested via xlrd | [datenaufbereitung](methods/datenaufbereitung.md) |
+| SDK (`sdk/python/tests`) | 116 | 1: the ionisation-energy unit test needs the optional NIST ASD data | [provenance](methods/provenance.md), [rechner](methods/rechner.md) |
+| Datenaufbereitung (data preparation) | 83 | 1: writing `.xls` needs a writer that is not installed; reading `.xls` is tested via xlrd. Without pyarrow the Parquet tests are skipped too | [datenaufbereitung](methods/datenaufbereitung.md) |
 | Elementrechner | 261 | 34: need optional data (stability constants 20, Burcat 12, NIST ASD 6, IUPAC pKa 2; the golden report test needs four parts and is counted under each) | [elementrechner](methods/elementrechner.md) |
-| FTIR | 48 | 3: need the optional Open Specy spectra | [ftir](methods/ftir.md) |
-| Mikroskopie (microscopy) | 33 | 0 | [mikroskopie](methods/mikroskopie.md) |
-| Rechner (calculator) | 66 | 0 | [rechner](methods/rechner.md) |
-| TGA | 61 | 1: checks the hint shown when `pyngb` is missing, so it is skipped when `pyngb` is installed | [tga](methods/tga.md) |
-| Zugversuch (tensile test) | 36 | 0 | [zugversuch](methods/zugversuch.md) |
-| **Total** | **645** | **39** | |
+| FTIR | 73 | 3: need the optional Open Specy spectra | [ftir](methods/ftir.md) |
+| Mikroskopie (microscopy) | 58 | 0 | [mikroskopie](methods/mikroskopie.md) |
+| Rechner (calculator) | 83 | 0 | [rechner](methods/rechner.md) |
+| TGA | 84 | 1 or 2: one checks the hint shown when `pyngb` is missing (skipped when it is installed), one reads a table with the real `pyngb` (skipped when it is missing) | [tga](methods/tga.md) |
+| Zugversuch (tensile test) | 55 | 0 | [zugversuch](methods/zugversuch.md) |
+| **Total** | **813** | **40** | |
 
-Counts: version 0.1.0, Windows 11, Python 3.12. With the optional data installed
+Counts: version 0.2.0, Windows 11, Python 3.12, public repository with pyngb installed. With the optional data installed
 (`python tools/fetch_optional_data.py all`), all Elementrechner and FTIR tests run.
 
 A skipped test always names its reason and, for optional data, the command that adds it.
@@ -80,7 +80,20 @@ A skipped test always names its reason and, for optional data, the command that 
    - fits of noise-free functions with known parameters;
    - balanced equations with a unique solution.
 
-   These are the strongest checks of an algorithm.
+   These are the strongest checks of an algorithm. Since 0.2.0 each module also has a file of known-answer tests
+   for its corrected methods (`tests/test_science.py` or `tests/test_known_answers.py`), for example:
+   - TGA: Friedman, Ozawa–Flynn–Wall (ASTM E1641 iteration), KAS, Starink and Vyazovkin recover Eₐ = 150 kJ/mol within
+     0.5 % on data generated independently with scipy; Student t quantiles against `scipy.stats.t.ppf`;
+   - Mikroskopie: TIFF resolution units, non-square pixels, the Miles–Lantuéjoul edge correction exact on average over
+     all translations of a periodic field, perimeter against the contourpy level-½ contour;
+   - Rechner: integrals, derivatives and fits against analytic values and scipy (`integrate.quad`,
+     `optimize.curve_fit`, `special.sici`);
+   - FTIR: band areas and widths of T/R spectra against the analytic Gaussian, ALS against a sparse solver, NNLS
+     against `scipy.optimize.nnls`;
+   - Zugversuch: At/A and Agt/Ag on a synthetic curve with E = 70 GPa, work to fracture against the closed form,
+     the Ramberg–Osgood reference curve;
+   - Datenaufbereitung: Dixon r10 critical values against the null distribution (within 0.003, except n = 4,
+     α = 0.01: table 0.926, computed 0.921, flagged), UTC and DST handling.
 2. **Independent reference values.** Results compared with numbers that do not come from Folio Lab's own code, such
    as values computed with scipy, tabulated values from NIST-JANAF, NIST ASD or textbooks, and worked examples from
    standards or papers. The expected value and its source are written next to each assertion.
@@ -109,8 +122,11 @@ Each methods page lists, per computed quantity, the tests that check it and thei
 
   The data file or code records this. For ionic radii, Antoine coefficients and colligative constants, the result in
   the Elementrechner also shows it. See [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
-- **Citations not yet verified against the original publication.** For example, two threshold methods in the
-  microscopy module (Tsai 1985, Prewitt & Mendelsohn 1966). Each methods page names these.
+- **Citations and tables not yet verified against the original publication or standard.** For example: the Dixon
+  critical values (checked numerically against the null distribution, not against Rorabacher 1991), the procedures of
+  ASTM E1641, E1877 and D7582 in the TGA module, the hardness–tensile-strength factor in the Rechner, edition years of
+  several standards, and some material sources in the tensile module. Each methods page names these and the program
+  marks them.
 - **Behaviour on other operating systems.** Linux and macOS are expected to work but are not tested.
 
 ## Citing a result

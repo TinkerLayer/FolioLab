@@ -16,7 +16,8 @@ Steps (cell references are A1 in the original sheet; "lines" are rows, or column
     {"op": "wide", "series": [1, 2, 3], "name": "c", "cond": "T"}   columns → one value column + condition column
     {"op": "wide_off"}
     {"op": "transpose", "on": true}
-    {"op": "colprop", "series": 1, "symbol": "σ", "kind": "stress", "time": "elapsed"|"raw", "time_unit": "min"}  (DP-06)
+    {"op": "colprop", "series": 1, "symbol": "σ", "kind": "stress", "time": "elapsed"|"raw", "time_unit": "min",
+     "u_type": ""|"u"|"U"|"sd"|"se"|"ci", "u_k": 2, "u_level": 95}  (DP-06; u_type: what the ± / uncertainty is)
 
 Cell texts in number columns (`<0,01`, `n.d.`, `12,3 ± 0,4`, `#DIV/0!`, …) are resolved by `parse.marker` with a flag;
 date and time columns become elapsed time (`parse.elapsed`), the start time is kept as a condition.
@@ -41,6 +42,8 @@ OPS = ("block", "header", "units", "skip", "role", "meta", "meta_remove", "repea
 MARK_TEXT = {"below_lod": "unter der Nachweisgrenze (Wert = Grenze)", "above_range": "über dem Messbereich (Wert = Grenze)",
              "missing": "fehlend (n.d., —, Fehlerwert)", "note": "mit Einheit in der Zelle, umgerechnet"}
 MAX_BLOCKS = 1000
+MAX_CELL_FLAGS = 200_000            # flags per column and kind (unreadable / marker) stored with a dataset; more are
+                                    # reported (page notes, provenance "truncations"), the values themselves stay
 _U_HINT = re.compile(r"^(u|s|sd|std|stdev|σ|sigma|err|error|fehler|unsicherheit|uncertainty|±|\+/-)\b|^(u|s|σ)\s*\(|±",
                      re.I)
 
@@ -117,6 +120,24 @@ def layout_of(steps) -> dict:
                 if tu and unit_problem(tu):
                     raise RecipeError(f"Zeiteinheit „{tu}“: {unit_problem(tu)}")
                 cp["time_unit"] = tu
+            if "u_type" in s:                            # what the ± / uncertainty of this column is (default: not stated)
+                ut = str(s.get("u_type") or "")
+                if ut not in DS.U_TYPES:
+                    raise RecipeError(f"Art der Unsicherheit „{ut}“ unbekannt (u, U, sd, se, ci oder leer)")
+                cp["u_type"] = ut
+                for f, what in (("u_k", "Erweiterungsfaktor k"), ("u_level", "Niveau in %")):
+                    v = s.get(f)
+                    if v is None or v == "":
+                        cp.pop(f, None)
+                        continue
+                    x = LT.number(str(v))
+                    if x is None or not 0 < x < 100:
+                        raise RecipeError(f"{what}: „{v}“ ist keine Zahl zwischen 0 und 100")
+                    cp[f] = x
+                if ut == "U" and not cp.get("u_k"):
+                    raise RecipeError("Erweiterte Unsicherheit U: Erweiterungsfaktor k angeben (z. B. 2)")
+                if ut == "ci" and not cp.get("u_level"):
+                    raise RecipeError("Konfidenzintervall: Niveau in % angeben (z. B. 95)")
             L["colprops"][j] = cp
         elif op in ("unit", "name"):                     # DP-M3: unit or name for the columns of a range
             p = str(s.get("range") or "").split(":")
@@ -477,10 +498,10 @@ def extract(sh: Sheet, steps, sheet_name: str | None = None) -> dict:
                 probe = bad[:2000]
                 n_mark = sum(1 for i in probe if P.resolvable(v.text(lines[i], s, False))) * bad.size / probe.size
             dtype = "number" if filled.sum() == 0 or num_mask.sum() + n_mark >= 0.5 * filled.sum() else "text"
-            raw = {}
+            raw, tzk = {}, "local"                       # cells of a spreadsheet date carry no time zone
             if dtype == "number":
                 vals = np.where(num_mask, x, np.nan).astype(float)
-                for i in bad[:5000]:
+                for i in bad:                            # every cell: markers ("<0,01") must be resolved in all rows
                     raw[int(i)] = v.text(lines[i], s, False)
                 is_date = bool((t == DATE).sum() > 0.5 * max(1, num_mask.sum()))
             else:
@@ -488,9 +509,9 @@ def extract(sh: Sheet, steps, sheet_name: str | None = None) -> dict:
                 is_date = False
                 tc = P.time_column(vals)                 # "2024-03-01 12:00:05", "12:00:05" → seconds
                 if tc is not None:
-                    dtype, vals, is_date = "number", tc[0], True
+                    dtype, vals, is_date, tzk = "number", tc[0], True, tc[2]
             cols.append({"j": j, "name": nm[:120], "unit": unit[:30], "dtype": dtype, "values": vals, "raw": raw,
-                         "date": is_date, "cells": f"{name}!{v.range(lines[0], s, lines[-1], s)}",
+                         "date": is_date, "tz": tzk, "cells": f"{name}!{v.range(lines[0], s, lines[-1], s)}",
                          "errors": int(((t == ERROR) | (t == FORMULA)).sum())})
         if not cols:
             continue
@@ -548,6 +569,7 @@ def extract(sh: Sheet, steps, sheet_name: str | None = None) -> dict:
             off += len(vv)
         out_cols.append({"name": c0["name"], "unit": c0["unit"] if dtype == "number" else "", "dtype": dtype,
                          "values": np.concatenate(vals) if vals else np.array([]), "raw": raw, "date": c0["date"],
+                         "tz": c0.get("tz", "local") if len({p.get("tz", "local") for p in parts}) == 1 else "mixed",
                          "cells": "; ".join(p["cells"] for p in parts[:4]) + (" …" if len(parts) > 4 else ""),
                          "errors": sum(p["errors"] for p in parts), "j": c0["j"],
                          "role": roles[c0["j"]]["role"], "of_j": roles[c0["j"]].get("of")})
@@ -608,8 +630,16 @@ def extract(sh: Sheet, steps, sheet_name: str | None = None) -> dict:
     errs = sum(c["errors"] for c in out_cols)
     if errs:
         notes.append(f"{errs} Fehlerwert(e) oder Formel(n) ohne Wert im Block – als leer gelesen")
+    truncations = [dict(t) for t in (sh.meta.get("truncated") or [])]       # cut by the reader (readers.py)
+    for t in truncations:
+        notes.append(f"GEKÜRZT beim Lesen: {t['what']} ({t['kept']} von {t['total']})")
+    for c in out_cols:
+        for what, n in (("Lesefehler", len(c["raw"])), ("Markierungen beim Lesen", len(c.get("mk") or {}))):
+            if n > MAX_CELL_FLAGS:
+                notes.append(f"GEKÜRZT: {what} in „{c['name']}“ – nur die ersten {MAX_CELL_FLAGS} von {n} Zellen "
+                             f"werden im Datensatz markiert (die Werte selbst bleiben vollständig)")
     return {"columns": out_cols, "rows": nrows, "conditions": conditions, "notes": notes, "marks": marks,
-            "blocks": len(per_block), "layout": _layout_json(L)}
+            "blocks": len(per_block), "layout": _layout_json(L), "truncations": truncations}
 
 
 def _fmt(x) -> str:
@@ -626,6 +656,8 @@ def _resolve(cols, L, conditions, notes):
         for k in ("symbol", "kind"):
             if cp and cp.get(k):
                 c[k] = cp[k]
+        if cp and "u_type" in cp:                       # applies to this column if it is an uncertainty, else to its u
+            c["u_props"] = {k: cp[k] for k in ("u_type", "u_k", "u_level") if cp.get(k) not in (None, "")}
         if c["dtype"] != "number":
             continue
         c["values"] = np.array(c["values"], dtype=float)
@@ -671,10 +703,18 @@ def _resolve(cols, L, conditions, notes):
             except ValueError as e:
                 notes.append(f"Spalte „{c['name']}“: {e}")
                 continue
-            c.update(values=rel, unit=unit, kind=c.get("kind") or "time", elapsed=start)
+            tz = c.get("tz") or "local"
+            if start and tz == "utc" and not only:
+                start += " UTC"
+            secs = rel * (P._FACT.get(unit) or P.unit_seconds(unit))
+            warn = P.dst_check(None if only else vals, secs, tz)
+            c.update(values=rel, unit=unit, kind=c.get("kind") or "time", elapsed=start, tz_warn=warn)
             if start:
                 conditions[f"{c['name']} Start"[:60]] = {"value": start, "unit": "", "from": str(c["cells"])[:80]}
-                notes.append(f"Spalte „{c['name']}“: Datum/Uhrzeit → Zeit seit {start} in {unit}")
+                notes.append(f"Spalte „{c['name']}“: Datum/Uhrzeit → Zeit seit {start} in {unit}"
+                             + ("" if tz == "utc" else " (Ortszeit wie geschrieben, ohne Sommerzeit-Korrektur)"))
+            for w in warn:
+                notes.append(f"Spalte „{c['name']}“: ACHTUNG {w}")
     return out
 
 
@@ -808,19 +848,36 @@ def to_dataset(tbl: dict, title: str, files: list[dict], steps, module_version: 
         if c.get("kind") and c["dtype"] == "number":
             rec["kind"] = c["kind"]
         if c.get("elapsed"):
-            rec["note"] = f"Zeit seit {c['elapsed']}"
+            rec["note"] = f"Zeit seit {c['elapsed']}" + ("" if c.get("tz") == "utc" else
+                                                         " (Ortszeit ohne Zeitzone, keine Sommerzeit-Korrektur)")
         cols.append(rec)
+    uprops = {c["key"]: c["u_props"] for c in tbl["columns"] if c.get("u_props")}
     for c in tbl["columns"]:                        # uncertainty column: the measured column points to it ("u")
         if c.get("role") == "uncertainty" and c.get("of"):
             for r2 in cols:
                 if r2["key"] == c["of"]:
                     r2["u"] = c["key"]
-    flags = []
+    for rec, c in zip(cols, tbl["columns"]):        # ± type: set on the uncertainty column itself or on its value column
+        if c.get("role") == "uncertainty":
+            p = c.get("u_props") or uprops.get(c.get("of") or "")
+            if p:
+                rec.update(p)
+    flags, cut = [], list(tbl.get("truncations") or [])
     for c in tbl["columns"]:
-        for i, t in sorted(c["raw"].items())[:20000]:
+        raw, mk = sorted(c["raw"].items()), sorted((c.get("mk") or {}).items())
+        for i, t in raw[:MAX_CELL_FLAGS]:
             flags.append({"row": int(i), "col": c["key"], "code": "parse_error", "raw": t[:200]})
-        for i, (code, t, reason) in sorted((c.get("mk") or {}).items())[:20000]:
+        for i, (code, t, reason) in mk[:MAX_CELL_FLAGS]:
             flags.append({"row": int(i), "col": c["key"], "code": code, "raw": t[:200], **({"reason": reason} if reason else {})})
+        for what, lst in (("Lesefehler", raw), ("Markierungen beim Lesen", mk)):
+            if len(lst) > MAX_CELL_FLAGS:
+                cut.append({"what": f"{what} in „{c['name']}“", "kept": MAX_CELL_FLAGS, "total": len(lst),
+                            "from_row": int(lst[MAX_CELL_FLAGS][0]) + 1})
     flags.sort(key=lambda f: (f["row"], f["col"]))
     prov = {"files": files, "recipe": list(steps or []), "module_version": module_version}
+    if cut:                                          # DP-06: every cut is recorded with the dataset
+        prov["truncations"] = cut
+    warn = [f"{c['name']}: {w}" for c in tbl["columns"] for w in c.get("tz_warn") or []]
+    if warn:                                         # possible daylight-saving jumps in date/time columns
+        prov["warnings"] = warn[:40]
     return DS.from_columns(title, cols, conditions=tbl["conditions"], flags=flags, provenance=prov)

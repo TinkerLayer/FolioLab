@@ -53,6 +53,9 @@ shipped by the project.
 | pyngb | MIT | optional (NETZSCH .ngb files) |
 | scipy | BSD-3-Clause | tests only (independent reference values) |
 
+Numerical constants taken from published algorithms are listed with the method on the module's methods page (for
+example the Gauss–Kronrod 7/15 nodes and weights as published with QUADPACK, public domain, in the Rechner).
+
 ## Reference data in the repository
 
 The data files record their own provenance: `_source`, `_built`, `_from` and, per value, the source key. Citation
@@ -91,11 +94,13 @@ licence allows redistribution.
 | Davidson et al. 2023, plastic litter from Lake Tahoe | 29 | CC0 1.0 (Dryad) | doi:10.5061/dryad.866t1g1vj |
 | Primpke et al. 2018, Anal. Bioanal. Chem. | 126 | CC BY 4.0 (article and electronic supplementary material) | doi:10.1007/s00216-018-1156-x |
 
-The spectra were taken from Open Specy's processed library file (`nobaseline.rds`, Cowger et al. 2025, Anal. Chem.,
-doi:10.1021/acs.analchem.5c00962). Folio Lab then resampled them to a 2 cm⁻¹ grid (400–4000 cm⁻¹), converted them
-to absorbance, normalised them and merged duplicates (`modules/ftir/tools/build_openspecy.py`). These are changes
-in the sense of CC BY. Each entry keeps its source and licence, and a report that uses a spectrum cites both its
-source and Open Specy. The remaining 1,486 Open Specy spectra are optional (see below).
+The spectra were taken from Open Specy's processed library file (`nobaseline.rds`; Open Specy: Cowger et al. 2021,
+Anal. Chem. 93, 7543–7548, doi:10.1021/acs.analchem.1c00123, and Cowger et al. 2025, Anal. Chem.,
+doi:10.1021/acs.analchem.5c00962, details of the 2025 paper not verified). Folio Lab then resampled them to a
+2 cm⁻¹ grid (400–4000 cm⁻¹), treated them as absorbance (the processed file states no intensity unit), normalised
+them and merged duplicates (`modules/ftir/tools/build_openspecy.py`). These are changes in the sense of CC BY. Each
+entry keeps its source and licence, and a report that uses a spectrum cites both its source and Open Specy. The
+remaining 1,486 Open Specy spectra are optional (see below).
 
 The FTIR **model library** and the band table (`ftir/refdata.py`, `labcalc/irbands.py`) contain band positions from
 the literature (e.g. Socrates, *Infrared and Raman Characteristic Group Frequencies*, 3rd ed.). The spectra are
@@ -125,7 +130,7 @@ Folio Lab commercially.
 | `srd46` | NIST SRD 46 v8.0, critically selected stability constants | NIST Standard Reference Data are copyrighted (15 U.S.C. §290e); the dataset README grants broad use. Because the two statements conflict, it is not redistributed | NIST SRD 46, doi:10.18434/M32154 (after Martell & Smith, *Critical Stability Constants*) |
 | `asd` | NIST Atomic Spectra Database (SRD 78): ionisation energies | Standard Reference Data, "all rights reserved" | Kramida, Ralchenko, Reader & NIST ASD Team, doi:10.18434/T4W30F |
 | `burcat` | Burcat/Goos/Ruscic thermochemical database (3,062 species, NASA-7 polynomials, ATcT values) | free with citation; sale and copying into commercial publications need the author's written agreement | Goos, Burcat & Ruscic, *Extended Third Millennium … Thermochemical Database*, burcat.technion.ac.il |
-| `openspecy` | 1,486 further Open Specy spectra: RRUFF, SWGDRUG, Kimmel Center, FLOPP, AWI 2024, Kozloski, PSLC, Thermo Fisher, NREL and others | per source: CC BY-NC, "personal educational purposes" (RRUFF), "all rights reserved" (SWGDRUG), or no licence stated | Cowger et al. 2025 and the source of each spectrum (kept in the data) |
+| `openspecy` | 1,486 further Open Specy spectra: RRUFF, SWGDRUG, Kimmel Center, FLOPP, AWI 2024, Kozloski, PSLC, Thermo Fisher, NREL and others | per source: CC BY-NC, "personal educational purposes" (RRUFF), "all rights reserved" (SWGDRUG), or no licence stated | Cowger et al. 2021 and 2025 and the source of each spectrum (kept in the data) |
 
 Without these parts:
 

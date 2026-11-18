@@ -124,7 +124,7 @@ def fig_mixture(x, q, combo, lang="de", qname=""):
         m = np.isfinite(y)
         a1.fill_between(x[m], 0, y[m], color=COLORS[(i + 2) % len(COLORS)], alpha=0.18, lw=0)
         a1.plot(x[m], y[m], color=COLORS[(i + 2) % len(COLORS)], lw=0.8,
-                label=f"{c['name']} ({_fmt(100 * c['frac'], lang)} %) · {ref_tag(c, lang)}")
+                label=f"{c['name']} ({_fmt(100 * c['frac'], lang)} % {'Fläche' if lang == 'de' else 'area'}) · {ref_tag(c, lang)}")
     a1.legend(fontsize=7, frameon=False, loc="upper left")
     _style(a1, lang, ylab="Absorbanz, normiert" if lang == "de" else "Absorbance, normalised")
     a1.set_xlabel("")

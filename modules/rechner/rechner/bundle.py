@@ -35,6 +35,11 @@ T = {
            "intro": "Die Rechnung folgt den angegebenen Formeln; Zwischenwerte sind in SI-Einheiten gerechnet.",
            "nothing": "Keine Inhalte gewählt oder noch nichts berechnet.", "fit": "Anpassung {name}: ${tex}$, $R^2 = {r2}$.",
            "env": "Blatt", "reg": "Regression \\texttt{{{src}}}: {params}; $R^2 = {r2}$ ($n = {n}$).",
+           "reg_u": "Angegeben ist der Wert $\\pm$ Standardunsicherheit aus der Kovarianzmatrix am Optimum; "
+                    "Vertrauensbereich 95 \\% mit $t = {t}$ ({dof} Freiheitsgrade).",
+           "noconv": "Achtung: die Anpassung ist nicht konvergiert; die Werte sind unzuverlässig.",
+           "gfit_lb": "Lineweaver--Burk-Gerade; bekannt verzerrt, die direkte Anpassung ist vorzuziehen",
+           "gfit_fo": "Die Unsicherheiten der zurückgerechneten Parameter sind Näherungen erster Ordnung.",
            "methods": "Methodik",
            "ds_intro": "Die Rechenzeilen verwenden Spalten von Datensätzen aus der Datenaufbereitung als Listen in "
                        "SI-Einheiten; ausgeschlossene Zeilen und Zeilen mit Lücken sind in allen gewählten Spalten "
@@ -54,6 +59,11 @@ T = {
            "intro": "The calculation follows the equations shown; intermediate values are computed in SI units.",
            "nothing": "Nothing selected or nothing calculated yet.", "fit": "Fit {name}: ${tex}$, $R^2 = {r2}$.",
            "env": "Sheet", "reg": "Regression \\texttt{{{src}}}: {params}; $R^2 = {r2}$ ($n = {n}$).",
+           "reg_u": "Values are given $\\pm$ standard uncertainty from the covariance matrix at the optimum; "
+                    "95 \\% confidence with $t = {t}$ ({dof} degrees of freedom).",
+           "noconv": "Warning: the fit did not converge; the values are unreliable.",
+           "gfit_lb": "Lineweaver--Burk line; known to be biased, the direct fit is preferable",
+           "gfit_fo": "The uncertainties of back-transformed parameters are first-order approximations.",
            "methods": "Methods",
            "ds_intro": "The calculation lines use columns of datasets from Datenaufbereitung as lists in SI units; "
                        "excluded rows and rows with gaps are removed from all chosen columns.",
@@ -89,19 +99,30 @@ def _axl(sym, unit):
     return f"${R.sym_tex(sym)}$" + (f" in ${ut}$" if ut else "")
 
 
+VALUE_DIGITS = 6        # gültige Ziffern für Werte ohne Unsicherheit im Bericht (Tabelle, \labval, Anpassung)
+
+
 def _pm_tex(v, u, unit, lang):
-    """Wert ± Unsicherheit mit Einheit, Unsicherheit auf zwei gültige Ziffern."""
+    """Wert ± Unsicherheit mit Einheit: Unsicherheit auf zwei gültige Ziffern, der Wert auf dieselbe Dezimalstelle
+    (also mit so vielen Ziffern, wie die Unsicherheit trägt, auch bei grossen und kleinen Beträgen: dann mit
+    gemeinsamer Zehnerpotenz). Ohne Unsicherheit VALUE_DIGITS gültige Ziffern."""
     if v is None:
         return "--"
-    if u:
-        d = max(0, 1 - math.floor(math.log10(abs(u)))) if u > 0 else 6
+    dec = "{,}" if lang == "de" else "."
+    if u and u > 0 and math.isfinite(u) and math.isfinite(v):
+        last = math.floor(math.log10(u)) - 1                 # Stelle der zweiten gültigen Ziffer von u
         if abs(v) >= 1e5 or abs(v) < 1e-3:
-            s = f"({R.num_tex(v, lang, 4)} \\pm {R.num_tex(u, lang, 2)})"
+            ev = max(math.floor(math.log10(abs(v))) if v != 0 else last, last + 1)
+            d = max(0, ev - last)
+            m, mu = v / 10.0 ** ev, u / 10.0 ** ev
+            s = f"({m:.{d}f} \\pm {mu:.{d}f})".replace(".", dec) + r"\cdot 10^{%d}" % ev
         else:
-            dec = "{,}" if lang == "de" else "."
-            s = f"({v:.{d}f} \\pm {u:.{d}f})".replace(".", dec)
+            d = max(0, -last)
+            s = f"{v:.{d}f} \\pm {u:.{d}f}".replace(".", dec)
+            if unit and R.unit_tex(unit):                   # Klammer nur, wenn eine Einheit folgt
+                s = "(" + s + ")"
     else:
-        s = R.num_tex(v, lang, 5)
+        s = R.num_tex(v, lang, VALUE_DIGITS)
     ut = R.unit_tex(unit) if unit else ""
     return s + (r"\," + ut if ut else "")
 
@@ -110,12 +131,20 @@ def _fit_note(o, L_, lang):
     ps = ", ".join(f"${R.sym_tex(p['sym'])} = {_pm_tex(p.get('value'), p.get('u'), p.get('unit'), lang)}$" for p in o.get("params") or [])
     rng = o.get("range")
     src = L_["gfit_ds"].format(t=tex_escape(o["of_title"])) if o.get("of_title") else ""
-    return L_["gfit"].format(
-        name=tex_escape(o.get("name") or ""), how=L_["gfit_lin" if o.get("mode") != "direct" else "gfit_dir"],
+    how = L_["gfit_lin" if o.get("mode") != "direct" else "gfit_dir"]
+    if o.get("method") == "Lineweaver–Burk":
+        how += "; " + L_["gfit_lb"]
+    txt = L_["gfit"].format(
+        name=tex_escape(o.get("name") or ""), how=how,
         y=f"${R.sym_tex(o.get('yname') or 'y')}$", x=f"${R.sym_tex(o.get('xname') or 'x')}$", src=src, params=ps,
         r2=R.num_tex(o["r2"], lang, 5) if o.get("r2") is not None else "--", n=o.get("n"),
         rng=L_["gfit_rng"].format(lo=f"${R.num_tex(rng[0], lang, 4)}$", hi=f"${R.num_tex(rng[1], lang, 4)}$") if rng else "",
         t=R.num_tex(o["t"], lang, 4) if o.get("t") else "--")
+    if o.get("u_method") == "first_order_back_transform":
+        txt += " " + L_["gfit_fo"]
+    if o.get("converged") is False:
+        txt += " " + L_["noconv"]
+    return txt
 
 
 def _plot_ctx(req, plot, runs):
@@ -219,10 +248,10 @@ def build(request: dict, lang="de", include=None, title=None) -> dict:
     def add_row(sym, label, si, unit, kind, src_text, key_hint=None, cite=""):
         k = U.ensure_kind(kind)
         v = S.to_unit(si, unit, k)
-        qt = "$" + R.qty_tex(v, unit, lang, 5) + "$"
+        qt = "$" + R.qty_tex(v, unit, lang, VALUE_DIGITS) + "$"
         rows.append(["$" + R.sym_tex(sym) + "$", tex_escape(label), qt, tex_escape(src_text) + (r" \cite{%s}" % cite if cite else "")])
         vals.append((_key(key_hint or sym, used), tex_escape(f"{E.plain_name(sym)}: {label}"), qt,
-                     re.sub(r"<[^>]+>", "", R.qty_html(v, unit, lang, 5)).replace("&#8239;", " ")))
+                     re.sub(r"<[^>]+>", "", R.qty_html(v, unit, lang, VALUE_DIGITS)).replace("&#8239;", " ")))
 
     seen_user = set()
     for env, n, sh, out, ok in runs:
@@ -323,8 +352,14 @@ def build(request: dict, lang="de", include=None, title=None) -> dict:
                 for r in vis_rows:
                     o = gres.get(str(r.get("id"))) or {}
                     if o.get("type") == "regression":
-                        pt = ", ".join(f"${R.sym_tex(p)} = {R.num_tex(float(v), lang, 5)}$" for p, v in (o.get("params") or {}).items())
-                        notes.append(L_["reg"].format(src=tex_escape(r.get("src", "").strip()), params=pt, r2=R.num_tex(o["r2"], lang, 5), n=o.get("n")))
+                        us = o.get("u") or {}
+                        pt = ", ".join(f"${R.sym_tex(p)} = {_pm_tex(float(v), us.get(p), '', lang)}$" for p, v in (o.get("params") or {}).items())
+                        txt = L_["reg"].format(src=tex_escape(r.get("src", "").strip()), params=pt, r2=R.num_tex(o["r2"], lang, 5), n=o.get("n"))
+                        if any(x is not None for x in us.values()) and o.get("t"):
+                            txt += " " + L_["reg_u"].format(t=R.num_tex(o["t"], lang, 4), dof=o.get("dof"))
+                        if o.get("converged") is False:
+                            txt += " " + L_["noconv"]
+                        notes.append(txt)
                     elif o.get("type") == "fit":
                         notes.append(_fit_note(o, L_, lang))
                     elif o.get("type") == "table" and o.get("ds"):

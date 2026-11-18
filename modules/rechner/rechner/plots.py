@@ -40,6 +40,10 @@ def make_ctx(req: dict) -> E.Ctx:
         except (TypeError, ValueError):
             pass
     ctx = E.Ctx(names=names, angle=req.get("angle", "rad"), complex_ok=bool(req.get("complex")), dims=dims)
+    # Temperatur oder Temperaturdifferenz? (für „-> °C“): Grössenart der Grössen, Zeilenvariablen aus Differenzen
+    ctx.kinds = {sym: q.get("kind") for sym, q in (req.get("quantities") or {}).items()
+                 if isinstance(q, dict) and sym in names and sym not in (req.get("vars") or {})}
+    ctx.tdiff = {str(k) for k in (req.get("vtdiff") or []) if k in names}
     # DP-11: Teile mit eigener Einheit (fit = linreg(eps, sigma) -> fit[1] in Pa, fit[2] in Pa)
     ctx.pdims = {}
     for k, ps in (req.get("vpdims") or {}).items():

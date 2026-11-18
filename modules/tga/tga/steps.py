@@ -141,9 +141,21 @@ def characterise(run: Run, a: int, b: int, d: dict | None = None, width: float =
             f = (m[j - 1] - half) / ((m[j - 1] - m[j]) or 1e-12)
             out["T_mid"] = _f(run.T[j - 1] + f * (run.T[j] - run.T[j - 1]))
             out["t_mid"] = float(t[j - 1] + f * (t[j] - t[j - 1]))
-    # Tangente im Wendepunkt (grösste Steigung) und Basislinien vor/nach der Stufe
-    slope = -rate[p] / (seg_rate if dynamic else 1.0)     # dm/dT bzw. dm/dt
-    tang = (slope, m[p] - slope * x[p])
+    # Tangente im Wendepunkt der TG-Kurve über der aufgetragenen Achse (ISO 11358-1): bei Heizen der Punkt
+    # grösster Steigung |dm/dT| und dessen örtliche Steigung dm/dT (Kettenregel mit der örtlichen Heizrate), nicht
+    # die mittlere Heizrate der Stufe; isotherm über der Zeit mit dm/dt.
+    q = p
+    if dynamic:
+        gT = -np.asarray(d["dT"], float)[a:b + 1]
+        if np.isfinite(gT).any() and np.nanmax(gT) > 0:
+            q = a + int(np.nanargmax(gT))
+            slope = -float(gT[q - a])                       # dm/dT in %/°C
+        else:
+            slope = -rate[p] / seg_rate                     # Rückfall: mittlere Heizrate der Stufe
+    else:
+        slope = -rate[p]                                    # dm/dt in %/min
+    tang = (slope, m[q] - slope * x[q])
+    out["T_inflection"] = _f(run.T[q])
     w = max(5, int(0.25 * (b - a)))
     pre = _linfit(x[max(0, a - w):a + 1], m[max(0, a - w):a + 1]) if a > 2 else None
     post = _linfit(x[b:min(n, b + w + 1)], m[b:min(n, b + w + 1)]) if b < n - 3 else None
@@ -155,9 +167,9 @@ def characterise(run: Run, a: int, b: int, d: dict | None = None, width: float =
     on = _cross(tang, tuple(pre))
     en = _cross(tang, tuple(post))
     key = "T" if dynamic else "t"
-    if on is not None and x[a] - 0.5 * (x[b] - x[a]) <= on <= x[p]:
+    if on is not None and x[a] - 0.5 * (x[b] - x[a]) <= on <= x[q]:
         out[f"{key}_onset"] = float(on)
-    if en is not None and x[p] <= en <= x[b] + 0.5 * (x[b] - x[a]):
+    if en is not None and x[q] <= en <= x[b] + 0.5 * (x[b] - x[a]):
         out[f"{key}_endset"] = float(en)
     out["tangent"] = [float(tang[0]), float(tang[1])]
     out["base_pre"] = [float(pre[0]), float(pre[1])]

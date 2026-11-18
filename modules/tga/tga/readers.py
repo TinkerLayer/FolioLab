@@ -159,8 +159,10 @@ def guess_roles(cols: list[tuple[str, str]], data: np.ndarray) -> dict:
     for r, idx in roles.items():
         if r == "m" and len(idx) > 1:
             def mscore(i):
+                # Korrigierte (leerkurvenkorrigierte) Masse vor der unkorrigierten ("Unsubtracted Weight", PerkinElmer)
                 n, u = cols[i][0].lower(), _norm_unit(cols[i][1])
-                return (("unsubtracted" in n) * 3 + (u == "mg") * 2 + (u == "g") + ("%" == u) * 0.5
+                return (("unsubtracted" not in n and "uncorrected" not in n) * 3 + ("corrected" in n and "uncorrected" not in n)
+                        + (u == "mg") * 2 + (u == "g") + ("%" == u) * 0.5
                         - ("change" in n or "loss" in n or "verlust" in n) * 2)
             idx = sorted(idx, key=mscore, reverse=True)
         if r == "T" and len(idx) > 1:
@@ -393,10 +395,29 @@ def build_run(data, cols, roles, meta, name, texts=None, unit_over=None) -> Run:
             t = t * 60.0
         elif tu == "ms":
             t = t / 60000.0
+    notes = list(meta.get("read_notes") or [])
+    # Temperatur ohne Einheit: Kelvin, wenn der Spaltenname K nennt oder der Lauf bei 250–330 (≈ Raumtemperatur in K)
+    # beginnt; sonst °C, mit Hinweis, wenn der Anfang über 330 liegt.
+    kelvin_guess = False
+    if T is not None and not units.get(T_role, ""):
+        tname = cols[roles[T_role]][0].lower() if roles.get(T_role, -1) < len(cols) else ""
+        fin = T[np.isfinite(T)]
+        start = float(np.median(fin[:5])) if len(fin) else float("nan")
+        if re.search(r"(^|[\s_/\[(-])k($|[\s\])])|kelvin", tname):
+            kelvin_guess = True
+            notes.append(f"Temperaturspalte „{cols[roles[T_role]][0]}“ ohne Einheit, Name nennt K: als Kelvin gelesen.")
+        elif 250 <= start <= 330:
+            kelvin_guess = True
+            notes.append(f"Temperaturspalte ohne Einheit beginnt bei {start:.1f}: als Kelvin gelesen (Raumtemperatur in K). "
+                         "Falls das °C sind, die Einheit in der Spaltenzuordnung wählen.")
+        elif start > 330:
+            notes.append(f"Temperaturspalte ohne Einheit beginnt bei {start:.1f}: als °C gelesen. Falls das Kelvin sind, "
+                         "die Einheit in der Spaltenzuordnung wählen.")
+
     def temp(a, u):
         if a is None:
             return None
-        if u == "k":
+        if u == "k" or (not u and kelvin_guess):
             return a - 273.15
         if u == "°f":
             return (a - 32) / 1.8
@@ -411,6 +432,13 @@ def build_run(data, cols, roles, meta, name, texts=None, unit_over=None) -> Run:
     elif mu == "ug":
         m = m / 1000
     mname = cols[roles["m"]][0].lower() if roles.get("m", -1) < len(cols) else ""
+    if roles.get("m", -1) < len(cols):
+        meta["m_column"] = cols[roles["m"]][0] + (f" [{cols[roles['m']][1]}]" if cols[roles["m"]][1] else "")
+        if "unsubtracted" in mname or "uncorrected" in mname:
+            notes.append(f"Masse aus der Spalte „{cols[roles['m']][0]}“ (ohne Leerkurvenkorrektur); die Datei enthält "
+                         "keine korrigierte Massenspalte.")
+        elif meta.get("format") == "PerkinElmer Pyris":
+            notes.append(f"Masse aus der korrigierten Spalte „{cols[roles['m']][0]}“ (nicht „Unsubtracted Weight“).")
     m0 = meta.get("m0")
     if unit == "mg" and re.search(r"change|loss|verlust|delta|änderung", mname) and abs(np.nanmedian(m[:5])) < 0.05 * abs(np.nanmax(np.abs(m)) or 1):
         if not m0:
@@ -439,6 +467,8 @@ def build_run(data, cols, roles, meta, name, texts=None, unit_over=None) -> Run:
         meta["gas_names"] = names
     if T is None:
         T = np.full(len(m), np.nan)
+    if notes:
+        meta["read_notes"] = notes
     sample = meta.get("sample") or re.sub(r"\.[^.]+$", "", name)
     run = Run(sample[:120], T, m, unit, t, m0, meta, extra)
     if len(run.m) < 5:
@@ -491,12 +521,32 @@ def _xlsx(data: bytes, name: str) -> list[Run]:
         raise ReadError(f"{name}: in keinem Tabellenblatt eine Messwerttabelle gefunden")
     if len(runs) > 1 and all(r.t is not None for r in runs) and len({r.unit for r in runs}) == 1:
         # TRIOS: ein Blatt je Methodenschritt -> zu einem Lauf zusammensetzen
+        # Jedes Blatt kann seine Zeit wieder bei 0 beginnen: Versatz addieren, damit die Zeit stetig und monoton
+        # steigt (Abstand am Übergang = mittlerer Punktabstand des vorigen Blatts).
         first = runs[0]
         T = np.concatenate([r.T for r in runs])
         m = np.concatenate([r.m for r in runs])
-        t = np.concatenate([r.t for r in runs])
+        ts, offsets, end = [], [], None
+        for r in runs:
+            tt = np.asarray(r.t, float)
+            off = 0.0
+            if end is not None and len(tt) and tt[0] <= end[0]:
+                off = end[0] + end[1] - tt[0]
+            ts.append(tt + off)
+            offsets.append(off)
+            if len(tt):
+                step = float(np.median(np.diff(tt))) if len(tt) > 1 else 0.0
+                end = (float(tt[-1] + off), step if step > 0 else 0.0)
+        t = np.concatenate(ts)
         seg = np.concatenate([np.full(len(r.m), k + 1.0) for k, r in enumerate(runs)])
-        meta = dict(first.meta, format="TA TRIOS (XLSX)", sheets=len(runs))
+        meta = dict(first.meta, format="TA TRIOS (XLSX)", sheets=len(runs), sheet_time_offsets=offsets)
+        notes = [n for r in runs for n in (r.meta.get("read_notes") or [])]
+        if any(offsets):
+            offs = ", ".join("%.3g" % o for o in offsets)
+            notes.append("Blätter mit eigener Zeitachse: Zeit je Blatt um das Ende des vorigen Blatts verschoben "
+                         f"(Versatz {offs} min).")
+        if notes:
+            meta["read_notes"] = list(dict.fromkeys(notes))
         return [Run(first.name, T, m, first.unit, t, first.m0, meta, {"seg": seg})]
     return runs
 

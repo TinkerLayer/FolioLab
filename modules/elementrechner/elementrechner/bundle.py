@@ -656,7 +656,7 @@ def _redox(b, L, lang, eqr, rx, steps, tables, cite, vals):
                 parts.append(r"\[ E^\circ = E^\circ_\mathrm{Kathode} - E^\circ_\mathrm{Anode} = %s - %s = %s\ \mathrm{V} \]"
                              .replace("Kathode", "Kathode" if lang == "de" else "cathode").replace("Anode", "Anode" if lang == "de" else "anode")
                              % (_fx(er, 3, lang), f"({_fx(eo, 3, lang)})" if eo < 0 else _fx(eo, 3, lang), _fx(E0, 3, lang)))
-            dG = -float(rx["n"]) * 96485.33212 * E0 / 1000
+            dG = -float(rx["n"]) * C.FARADAY * E0 / 1000
             parts.append(r"\[ \Delta_\mathrm{r}G^\circ = -nFE^\circ = -%s \cdot %s\ \mathrm{C\,mol^{-1}} \cdot %s\ \mathrm{V} = %s\ \mathrm{kJ\,mol^{-1}} \]"
                          % (rx.get("n_frac"), "96\\,485{,}33" if lang == "de" else "96\\,485.33", _fx(E0, 3, lang), _fx(dG, 1, lang)))
             parts.append(_cite_end(L["spont"] if E0 > 0 else L["nspont"], cite("codata2022")))
@@ -666,7 +666,7 @@ def _redox(b, L, lang, eqr, rx, steps, tables, cite, vals):
         vals.append(("n-e", L["v_ne"], _m(str(rx.get("n_frac"))), str(rx.get("n_frac"))))
     ne = rx.get("nernst") or {}
     if ne.get("E") is not None and ne.get("lnQ"):
-        E0n = ne["E"] + 8.314462618 * ne["T"] / (float(rx["n"]) * 96485.33212) * ne["lnQ"]
+        E0n = ne["E"] + C.R_GAS * ne["T"] / (float(rx["n"]) * C.FARADAY) * ne["lnQ"]
         parts.append(_fill(L["nernst"], T=_fx(ne["T"], 2, lang)))
         parts.append(r"\[ E = E^\circ - \frac{RT}{nF}\ln Q = %s - \frac{R \cdot %s\ \mathrm{K}}{%s F}\cdot %s = %s\ \mathrm{V} \]"
                      % (_fx(E0n, 3, lang), _fx(ne["T"], 2, lang), rx.get("n_frac"), _fx(ne["lnQ"], 3, lang), _fx(ne["E"], 3, lang)))

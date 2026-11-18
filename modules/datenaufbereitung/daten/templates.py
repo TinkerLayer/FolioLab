@@ -264,5 +264,6 @@ def combine(parts: list[tuple[str, dict]], title: str) -> dict:
         if c.get("role") == "uncertainty" and c.get("of"):
             ref_c = by_name.get(of_name) if of_name else None
             c["of"] = ref_c["key"] if ref_c else None
+    cut = [{**x, "what": f"{pname}: {x.get('what')}"} for pname, t in parts for x in t.get("truncations") or []]
     return {"columns": cols, "rows": n, "conditions": conds, "notes": (conv_notes + notes + [n for _, t in parts for n in t["notes"]])[:50],
-            "marks": [], "blocks": len(parts), "layout": base["layout"]}
+            "marks": [], "blocks": len(parts), "layout": base["layout"], "truncations": cut}

@@ -39,9 +39,16 @@ where the page has an English text; controls that exist only in German are given
 4. **Threshold** (tab *Threshold* / Schwelle): 13 automatic methods or manual limits, red preview. *Alle Methoden
    vergleichen* (compare all methods) shows the threshold and the object fraction per method. *Anwenden* (apply) makes
    the image binary.
-5. **Particles** (tab *Particles* / Partikel): size, circularity, edge particles, holes, optionally only inside a
-   selection. Result: count, area fraction, area, equivalent circle diameter (ECD) with D10/D50/D90, circularity,
-   Feret, aspect ratio, solidity, grey values; outlines and numbers in the image, table under *Results* (Ergebnisse).
+5. **Particles** (tab *Particles* / Partikel): size, circularity, edge correction, holes, hole edges in the perimeter,
+   optionally only inside a selection. Result: count (measured and edge-corrected), area fraction, area, equivalent
+   circle diameter (ECD) with D10/D50/D90 by number (Q0) and Dv10/Dv50/Dv90 by volume (Q3), circularity, Feret, aspect
+   ratio, solidity, grey values; outlines and numbers in the image, table under *Results* (Ergebnisse).
+   * **Edge correction** (*Randkorrektur*, on by default): particles whose bounding box touches the border of the image
+     or of the selection are not measured; the others get a Miles–Lantuéjoul weight, so large particles are not
+     under-represented. Means, D values and histograms use the weights. The area fraction counts **all** particles,
+     including those at the border.
+   * **Perimeter:** outer contour by default; *Lochränder zum Umfang zählen* (count hole edges in the perimeter) adds
+     the contours of holes.
 6. **Measure:** draw a selection, **Ctrl+M**. Without a selection the whole image is measured. **T** adds the selection
    to the list (tab *Selections* / Auswahlen); the list goes into the report. **Ctrl+K** shows the line profile of a
    line.
@@ -65,7 +72,11 @@ where the page has an English text; controls that exist only in German are given
 
 ## Files
 
-TIFF (8, 16, 32 bit, stacks, RGB; calibration from the resolution and an ImageJ description), PNG, JPEG, BMP, GIF.
+TIFF (8, 16, 32 bit, stacks, RGB), PNG, JPEG, BMP, GIF. TIFF calibration: an ImageJ description (`unit=`) wins;
+otherwise XResolution and YResolution with ResolutionUnit (2 = inch, 3 = cm; 1 = no absolute unit, not used). Pixel
+width and height are kept separately; if only one value is known, square pixels are assumed and the scale pane says
+so. Inch values that are common print settings (72, 96, 300 dpi …) are ignored; other inch values are used with a
+warning, so check the scale.
 Stacks have a slice slider; *Image ▸ Z-Projektion* (Z projection) combines them.
 
 ## Measured quantities
@@ -73,7 +84,7 @@ Stacks have a slice slider; *Image ▸ Z-Projektion* (Z projection) combines the
 | Quantity | Meaning |
 |---|---|
 | Area | number of pixels × pixel area (a pixel belongs to a selection if its centre lies inside) |
-| Perimeter | contour through the centres of the boundary pixels (edge lengths 1, √2 or √0.5) |
+| Perimeter | outer contour (marching squares between the pixel centres: straight steps of one pixel, corners cut by half a pixel diagonal; pixel width and height used separately); hole edges optional |
 | Circularity | 4π·area/perimeter², 1 = circle (digital circles reach about 0.9) |
 | ECD | diameter of the circle with the same area |
 | Feret, MinFeret | largest and smallest distance between parallel tangents to the convex hull |
@@ -107,9 +118,12 @@ Stacks have a slice slider; *Image ▸ Z-Projektion* (Z projection) combines the
 opens the shared import window.
 
 * You choose a length column of a dataset, for example diameters from laser diffraction (nm … mm).
-* The values are laid over the particle histogram with common classes, as relative frequency. Dashed lines mark the
-  two D50 values.
-* Next to it are D10/D50/D90, mean and count of both distributions and the ratio of the two D50 values.
+* The values are laid over the particle histogram with common classes, as relative frequency by number. Dashed lines
+  mark the two D50 (Q0) values.
+* Next to it are D10/D50/D90 (Q0, by number), Dv10/Dv50/Dv90 (Q3, by volume), mean and count of both distributions,
+  computed the same way, and the ratio of the two D50 (Q0) values. Each dataset value counts as one particle; the
+  comparison is only meaningful for a column of individual particle sizes, not for the D values of a laser-diffraction
+  report.
 * Requirements: a scale (otherwise there is no common unit) and a particle analysis.
 * When the dataset is followed live ("always the latest"), the newest version is taken on opening, with a note. When
   the version is kept ("keep vN"), it stays, and a newer one is announced.
@@ -120,11 +134,15 @@ opens the shared import window.
 
 - *Binary ▸ Wasserscheide* (watershed) separates touching particles (distance transform, markers from h-maxima).
   Strongly non-round particles can be cut; then increase h.
-- *Hintergrund abziehen* (subtract background) estimates the background with an opening over a square window. This is
-  similar to a rolling ball but not identical. Choose a radius larger than the largest objects.
+- *Hintergrund abziehen (Graustufen-Öffnung)* (subtract background, grey-scale opening) estimates the background with
+  a flat opening over a square window on a reduced image. It is not a rolling ball and is named accordingly. Choose a
+  radius larger than the largest objects.
 - The references of the threshold methods and of the watershed were checked by DOI against Crossref (17.11.2026).
-  Not confirmed, and therefore to be checked before publication: Moments (Tsai 1985) and Minimum/Intermodes (Prewitt
-  & Mendelsohn 1966).
+  Moments (Tsai 1985) and Minimum/Intermodes (Prewitt & Mendelsohn 1966) have no DOI; their algorithms were checked
+  against the method descriptions and the citations give only authors, title, journal, volume, pages and year. The
+  watershed book is cited as Soille 2004 (2nd edition, corrected printing).
+- Edge correction assumes particles placed independently of the field of view; volume-weighted D values assume
+  spheres of diameter ECD.
 
 ## Development
 

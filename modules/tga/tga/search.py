@@ -178,7 +178,7 @@ def search(Q: dict, libs: list[Library], mode: str = "both", shift: int = 20, n:
                 tg = np.interp(GRID - h["shift"], GRID, tg, left=np.nan, right=np.nan)
             h["tg"] = tg.astype(np.float32)
     return {"hits": hits, "query": q.astype(np.float32), "grid": {"x0": float(GRID[0]), "dx": 1.0, "n": len(GRID)},
-            "mode": mode, "shift": shift}
+            "mode": mode, "shift": shift, "w_curve": float(w_curve)}
 
 
 # ----------------------------------------------------------------------------- Mischung

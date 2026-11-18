@@ -21,7 +21,10 @@ from xml.etree import ElementTree as ET
 
 import labtable as LT
 
-from .sheet import Builder, Err, Formula, ReadError, Sheet, parse_ref
+from .sheet import MAX_COLS, Builder, Err, Formula, ReadError, Sheet, parse_ref
+
+PARQUET_MISSING = "Parquet braucht das Python-Paket pyarrow (pip install pyarrow)."
+MAX_ODS_REPEAT = 100_000           # a filled ODS row repeated more often is read this many times (noted, see read_ods)
 
 TEXT_EXT = {".csv", ".txt", ".tsv", ".dat", ".asc", ".prn"}
 EXCEL_EXT = {".xlsx", ".xlsm"}
@@ -289,7 +292,7 @@ def read_ods(data: bytes, name: str) -> list[Sheet]:
                 continue
             if tag == _T + "table-row":
                 rep = int(el.get(_T + "number-rows-repeated") or 1)
-                vals, c = [], 0
+                vals, c, gap = [], 0, 0
                 for cell in el:
                     if cell.tag not in (_T + "table-cell", _T + "covered-table-cell"):
                         continue
@@ -299,19 +302,26 @@ def read_ods(data: bytes, name: str) -> list[Sheet]:
                     if cs > 1 or rs > 1:
                         b.merged.append([r, c, r + rs - 1, c + cs - 1])
                     if v is None:
-                        vals.extend([None] * min(crep, 1024))
+                        gap += crep                     # empty cells: only written when a value follows (keeps positions)
                     else:
-                        vals.extend([v] * min(crep, 1024))
+                        if gap:
+                            vals.extend([None] * gap)
+                            gap = 0
+                        if len(vals) + crep > MAX_COLS:
+                            raise ReadError(f"{b.name}: mehr als {MAX_COLS} Spalten (wiederholte Zelle in Zeile {r + 1})")
+                        vals.extend([v] * crep)
                     c += crep
-                while vals and vals[-1] is None:
-                    vals.pop()
                 if not vals:
                     pending += rep
                 else:
                     if pending:
                         b.empty_rows(pending)
                         pending = 0
-                    for _ in range(min(rep, 100_000)):
+                    if rep > MAX_ODS_REPEAT:            # a filled row repeated very often (e.g. to the sheet end)
+                        b.notes.append(f"Zeile {r + 1} wiederholt sich {rep}-mal – nur {MAX_ODS_REPEAT}-mal gelesen")
+                        b.meta.setdefault("truncated", []).append(
+                            {"what": f"Blatt {b.name}, Zeile {r + 1}: wiederholte Zeile", "kept": MAX_ODS_REPEAT, "total": rep})
+                    for _ in range(min(rep, MAX_ODS_REPEAT)):
                         b.row(vals)
                 r += rep
                 el.clear()
@@ -375,8 +385,8 @@ def read_parquet(data: bytes, name: str) -> list[Sheet]:
     try:
         import pyarrow as pa
         import pyarrow.parquet as pq
-    except ImportError as e:                              # pragma: no cover
-        raise ReadError("pyarrow fehlt") from e
+    except ImportError as e:                              # optional dependency (README, methods page)
+        raise ReadError(PARQUET_MISSING) from e
     try:
         t = pq.read_table(pa.BufferReader(data))
     except Exception as e:  # noqa: BLE001

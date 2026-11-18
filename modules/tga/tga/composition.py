@@ -130,6 +130,7 @@ def compose(run: Run, preset: str = "e1131", params: dict | None = None, switch:
     n = len(m)
     start = float(np.median(m[:3]))
     warn = []
+    basis = None
     if switch is None:
         switch = gas_switch(run)
         if p.get("t_switch") not in (None, ""):
@@ -171,20 +172,41 @@ def compose(run: Run, preset: str = "e1131", params: dict | None = None, switch:
                              "note": "ohne Gaswechsel nicht getrennt"})
                 warn.append("Kein Gaswechsel erkannt: Russ und Asche lassen sich nicht trennen (Zeit des Wechsels von Hand angeben).")
         else:
-            row("Feuchte", start, m1, "Start", f"{T1:g} °C")
-            row("Flüchtige Bestandteile", m1, m2, f"{T1:g} °C", to2)
-            ash = end if switch else None
+            # ASTM D7582: alle Werte auf die Analysenprobe wie eingewogen ("as-determined"): Bezug = Masse am Start
+            # (m_start). Fixer Kohlenstoff = 100 − (Feuchte + Flüchtige + Asche), alle auf dieser Basis; die
+            # wasserfreie Basis (dry) ist X_d = X · 100 / (100 − Feuchte). Liegt m_start nicht bei 100 % der
+            # Bezugsmasse (z. B. Bezugsmasse bei 120 °C), werden die Werte auf m_start umgerechnet, damit die Basen
+            # nicht gemischt werden.
+            s = 100.0 / start if start > 0 else 1.0
+            ref_mg = run.meta.get("ref_mg") or run.m0
+            mg_start = start / 100.0 * ref_mg if ref_mg else None
+            if abs(start - 100.0) > 0.05:
+                warn.append(f"Masse am Start = {start:.2f} % der Bezugsmasse; die Kurzanalyse ist auf die Masse am Start "
+                            "(Analysenprobe wie eingewogen) umgerechnet.")
+
+            def prow(name, v, frm, to, note=""):
+                rows.append({"name": name, "from": frm, "to": to, "pct": float(v),
+                             "mg": float(v / 100.0 * mg_start) if mg_start else None, "note": note})
+
+            moist = (start - m1) * s
+            vol = (m1 - m2) * s
+            prow("Feuchte", moist, "Start", f"{T1:g} °C")
+            prow("Flüchtige Bestandteile", vol, f"{T1:g} °C", to2)
+            ash = end * s if switch else None
             if ash is None:
                 warn.append("Asche braucht den Wechsel auf Luft/O₂; ohne Wechsel kein fixer Kohlenstoff.")
             else:
-                fixed = 100.0 - (start - m1) - (m1 - m2) - ash
-                rows.append({"name": "Fixer Kohlenstoff (Differenz)", "from": "", "to": "", "pct": float(fixed), "mg": None,
-                             "note": "100 − Feuchte − Flüchtige − Asche"})
-                rows.append({"name": "Asche", "from": "Ende", "to": "", "pct": float(ash), "mg": None, "note": ""})
-                dry = 100.0 - (start - m1)
-                for r in list(rows):
-                    if r["name"] != "Feuchte" and dry > 0:
-                        r["dry"] = float(r["pct"] / dry * 100.0)
+                fixed = 100.0 - moist - vol - ash
+                prow("Fixer Kohlenstoff (Differenz)", fixed, "", "", "100 − Feuchte − Flüchtige − Asche")
+                prow("Asche", ash, "Ende", "")
+            dry = 100.0 - moist
+            for r in rows:
+                if r["name"] != "Feuchte" and dry > 0:
+                    r["dry"] = float(r["pct"] / dry * 100.0)
+            basis = {"de": "Werte wie bestimmt (bezogen auf die Analysenprobe am Start); Spalte „trocken“ = wasserfrei, "
+                           "X·100/(100 − Feuchte)",
+                     "en": "values as determined (based on the analysis sample at the start); column “dry” = moisture-free, "
+                           "X·100/(100 − moisture)"}
     else:
         bounds = sorted(float(b) for b in p.get("bounds") or [])
         prev_m, prev_lab = start, "Start"
@@ -201,7 +223,7 @@ def compose(run: Run, preset: str = "e1131", params: dict | None = None, switch:
                      "mg": float(end / 100 * run.m0) if run.m0 else None, "note": ""})
     return {"preset": preset, "label": PRESETS.get(preset, {}).get("de", preset), "rows": rows, "warnings": warn,
             "switch": switch, "switch_T": float(run.T[switch]) if switch and run.has_T else None,
-            "ref": PRESETS.get(preset, {}).get("ref"), "params": p}
+            "ref": PRESETS.get(preset, {}).get("ref"), "params": p, "basis": basis}
 
 
 # ----------------------------------------------------------------------------- Kalibrierung

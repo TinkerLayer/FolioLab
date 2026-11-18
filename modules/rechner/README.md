@@ -75,7 +75,7 @@ variables of the sheet, the results of the formula cards, the derived values and
 | `inv(A)*b`, `A'`, `A[2,1]`, `det(A)*2`, `A^2+E` | matrices from the Matrices tab (valid on every sheet) |
 | `integral(f(x), x, 0, 2)`, `deriv(x^3, x, 2)`, `nsolve(x^2 == 2, x, 1)`, `sum(k^2, k, 1, 10)` | calculus |
 | `mean(L)`, `std(L)`, `linreg(x, y)`, `polyfit(x, y, 2)`, `roots([1,0,-4])` | statistics, polynomials |
-| `v/t`, `E_kin -> kJ` | calculates in SI with units; `->` converts |
+| `v/t`, `E_kin -> kJ` | calculates in SI with units; `->` converts |`n| `T2 - T1 -> °F`, `dT -> Δ°C` | a temperature difference is converted without offset (shown as Δ°F); `Δ` forces a difference |
 | `sqrt(-4)` with **complex** on | complex results, `2 + 3i` |
 
 With `v` = 72 km/h and `t` = 8 s, `v/t` gives **2.5 m/s²**. ★ marks a line for the report (default: on).
@@ -150,7 +150,7 @@ variables** (*Als Variablen*). From the overview, the target environment is chos
 
 ## Formula cards, derive, search for missing values
 
-* *Formeln* ("formulas", 281, sorted by field and searchable): mechanics, strength of materials (tensile test,
+* *Formeln* ("formulas", 282, sorted by field and searchable): mechanics, strength of materials (tensile test,
   bending, torsion, buckling, fracture mechanics with K_I, hardness), geometry, heat, fluid mechanics, electrical
   engineering, optics/microscopy, mathematics and **chemistry**:
   - *Acids and bases:* pKa/pKb, ion product, pH of strong acids/bases, **weak acids and bases** (approximation and
@@ -178,7 +178,7 @@ variables** (*Als Variablen*). From the overview, the target environment is chos
   explicitly (variable, derived value, result of another card on the same sheet) or left free.
 * If exactly one quantity is missing, it is calculated; at the top of the card the wanted quantity can also be set.
   The rearranged formula, the inserted values and the result (unit selectable) are shown. Formulas that cannot be
-  rearranged in closed form are solved numerically; several solutions are offered for selection.
+  rearranged in closed form are solved numerically (also double roots without a sign change); several solutions are`n  offered for selection. If all quantities are given, the card checks the formula; the tolerance follows from the`n  number of digits typed for the inputs.
 * *ableiten* ("derive"): general laws (marked *auto* in the collection) calculate further values from the variables,
   also over several stages (from `v` and `t` follows `a`, with `m` further `F`). ⇣ takes a derived value over as a
   variable of this sheet.
@@ -198,7 +198,7 @@ As in Desmos: a list of expressions on the left, the canvas on the right. Drawin
 | `(cos(t), sin(t))`, `r = 1 + cos(θ)` | parametric and polar curves (range below the line) |
 | `(2, f(2))` | point |
 | `integral(f(x), x, 0, 2)` | value |
-| table (＋ → *Tabelle*), `y1 ~ m x1 + b` | measured values (paste from Excel) and regression with R² |
+| table (＋ → *Tabelle*), `y1 ~ m x1 + b` | measured values (paste from Excel) and regression with parameters ± standard uncertainty (95 % interval in the tooltip), R² and a warning if the fit did not converge |
 | formula curve (＋ → *Formelkurve*) | result of a formula card over one of its quantities |
 
 The coloured circle shows/hides, right-click chooses the colour. Dragging pans, the mouse wheel zooms (Shift only x,
@@ -215,7 +215,7 @@ resolution.
 * Models: straight line, line through origin, polynomial of degree 2/3, logarithm, exponential, power, Arrhenius,
   Michaelis–Menten.
 * Each model can be fitted **linearised** (*linearisiert*; unweighted straight line through the transformed values)
-  or **direct** (*direkt*; least squares in y). The range is set by dragging in the graph.
+  or **direct** (*direkt*; least squares in y, default for new fits; uses every point at which the model is defined).`n  The range is set by dragging in the graph. Linearised Michaelis–Menten is labelled Lineweaver–Burk with a note on its`n  bias.
 * Result: parameters ± standard uncertainty with units (the 95 % confidence interval is in the tooltip), R², the
   linearised plot with residuals and the curve in the graph. Arrhenius gives Eₐ in kJ/mol and converts °C to K.
 * **→ Variables** (*→ Variablen*) takes over the parameters. In the report, table and figure appear with dataset and

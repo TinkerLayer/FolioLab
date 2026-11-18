@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import base64
+import importlib.util
 import io
+import json
 import math
 import re
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 
@@ -26,6 +29,8 @@ from daten import templates as T  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_readers import ServerTest  # noqa: E402
+
+HAS_PYARROW = importlib.util.find_spec("pyarrow") is not None      # Parquet is optional
 
 
 def device_file(n_rows: int, T_set: float, header=("Zeit", "Temperatur", "Masse"), header_row: int = 4) -> bytes:
@@ -137,7 +142,7 @@ class ExportTest(unittest.TestCase):
 
     def test_round_trips(self):
         ds = sample_ds()
-        for fmt, ext in (("csv", ".csv"), ("xlsx", ".xlsx"), ("json", ".json"), ("parquet", ".parquet")):
+        for fmt, ext in (("csv", ".csv"), ("xlsx", ".xlsx"), ("json", ".json")) + ((("parquet", ".parquet"),) if HAS_PYARROW else ()):
             raw, mime = X.export(ds, fmt)
             back = X.reimport(raw, "export" + ext)
             self.assertEqual(X.same(ds, back), [], fmt)
@@ -146,6 +151,28 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(back.header["data_hash"], ds.header["data_hash"])
         sh = R.load_bytes(X.to_json(ds), "x.json")[0]                       # opened in the page: names + units lines
         self.assertEqual(sh.display(1, 1), "mmol/L")
+
+    def test_csv_keeps_cleaning_state(self):
+        ds = sample_ds()
+        lines = X.to_csv(ds).decode("utf-8").splitlines()
+        self.assertEqual(lines[0].split(",")[-2:], [X.CSV_USED, X.CSV_FLAGS])
+        self.assertTrue(lines[4].endswith(",0,Ausreisser in c (ausgeschlossen: Luftblase)"), lines[4])
+        self.assertTrue(lines[1].endswith(",1,"))
+        self.assertNotIn(X.CSV_USED, X.to_csv(ds, flags=False).decode("utf-8").splitlines()[0])
+        back = X.reimport(X.to_csv(ds), "e.csv")                            # the two columns are not data
+        self.assertEqual(X.same(ds, back), [])
+
+    @unittest.skipUnless(HAS_PYARROW, "Parquet: pyarrow nicht installiert")
+    def test_parquet_round_trip(self):
+        ds = sample_ds()
+        back = X.reimport(X.export(ds, "parquet")[0], "e.parquet")
+        self.assertEqual(X.same(ds, back), [])
+
+    def test_parquet_without_pyarrow(self):
+        with mock.patch.dict(sys.modules, {"pyarrow": None, "pyarrow.parquet": None}):
+            with self.assertRaises(ValueError) as cm:
+                X.export(sample_ds(), "parquet")
+        self.assertEqual(str(cm.exception), "Parquet braucht das Python-Paket pyarrow (pip install pyarrow).")
 
     def test_xlsx_protocol_sheet(self):
         import openpyxl
@@ -194,6 +221,26 @@ class BundleTest(unittest.TestCase):
         self.assertEqual(again.header["data_hash"], ds.header["data_hash"])
         b_en = B.build(ds, {"share": "abc123", "version": 4}, {"lang": "en", "include": {"figures": False}}, None)
         self.assertNotIn("figure", {i["kind"] for i in b_en["items"]})
+        # provenance for the hub: version of this process, what the source files are, Refresh mode (default pin)
+        from daten import __version__
+        self.assertEqual((b["module_version"], b["source"]["kind"], b["source"]["request"]["mode"]),
+                         (__version__, "dataset", "pin"))
+        self.assertIn("nist", bib)                                       # Grubbs: NIST/SEMATECH e-Handbook
+        self.assertIn("10.18434/M32189", bib)
+        self.assertIn("Art der angegebenen Unsicherheit: c: nicht angegeben", txt)
+
+    def test_bundle_states_uncertainty_type_and_refresh_note(self):
+        d0 = sample_ds()
+        d0 = DS.from_columns(d0.header["title"], [{**c, **({"u_type": "U", "u_k": 2} if c["key"] == "u_c" else {}),
+                                                   "values": d0.data[c["key"]].tolist()} for c in d0.columns],
+                             flags=d0.header["flags"], provenance=d0.header["provenance"])
+        b = B.build(d0, {"share": "s-00000001", "version": 3}, {"lang": "de", "mode": "live"}, None,
+                    note="Aktualisiert: Datensatz s-00000001 von Version 2 auf die neueste Version 3")
+        txt = base64.b64decode(b["files"]["text-methodik.tex"]).decode("utf-8")
+        self.assertIn("erweiterte Unsicherheit U (k = 2)", txt)
+        self.assertIn("von Version 2 auf die neueste Version 3", txt)
+        self.assertIn("folgt der neuesten Version", b["summary"])
+        self.assertEqual(b["source"]["request"]["mode"], "live")
 
 
 class ShareServerTest(ServerTest):
@@ -230,17 +277,45 @@ class ShareServerTest(ServerTest):
         st, ck = self.post("/api/ds/checks", {"share": sid})
         self.assertEqual(st, 200, ck)
         self.assertEqual(ck["checks"][0]["key"], "rows")
-        for fmt in ("csv", "xlsx", "json", "parquet"):
+        for fmt in ("csv", "xlsx", "json") + (("parquet",) if HAS_PYARROW else ()):
             st, ex = self.post("/api/ds/export", {"share": sid, "format": fmt})
             self.assertEqual(st, 200, ex)
             self.assertTrue(ex["filename"].endswith("." + fmt))
             self.assertGreater(len(base64.b64decode(ex["data"])), 50)
+        # pyarrow is optional: without it a Parquet export is a clean 400 with the German message, not a 500
+        with mock.patch.dict(sys.modules, {"pyarrow": None, "pyarrow.parquet": None}):
+            st, ex = self.post("/api/ds/export", {"share": sid, "format": "parquet"})
+        self.assertEqual(st, 400, ex)
+        self.assertEqual(ex["error"], X.PARQUET_MISSING)
+        self.assertNotIn("ModuleNotFoundError", str(ex))
+        st, ex = self.post("/api/ds/export", {"share": sid, "format": "pdf"})
+        self.assertEqual(st, 400, ex)
+        st, ex = self.post("/api/ds/export", {"share": sid, "format": "csv", "flags": False})
+        self.assertEqual(st, 200, ex)
+        self.assertNotIn(X.CSV_FLAGS, base64.b64decode(ex["data"]).decode("utf-8").splitlines()[0])
         st, bu = self.post("/api/bundle", {"share": sid, "lang": "de"})
         self.assertEqual(st, 200, bu)
         self.assertEqual(bu["module"], "datenaufbereitung")
         st, rb = self.post("/api/bundle/rebuild", {"source": bu["source"], "lang": "en"})
         self.assertEqual(st, 200, rb)
         self.assertEqual(rb["lang"], "en")
+        # Refresh: a pinned bundle keeps its version, a live one moves to the newest version and says so
+        st, live = self.post("/api/bundle", {"share": sid, "lang": "de", "mode": "live"})
+        self.assertEqual(st, 200, live)
+        v1 = bu["source"]["request"]["version"]
+        st, cb2 = self.post("/api/tpl/batch", {"template": tid, "items": [{"id": a}, {"id": b_}], "mode": "combined",
+                                               "share": sid})
+        self.assertEqual(st, 200, cb2)
+        newest = cb2["combined"]["version"]
+        self.assertEqual(cb2["combined"]["share"], sid)
+        self.assertGreater(newest, v1)
+        st, rp = self.post("/api/bundle/rebuild", {"source": bu["source"]})
+        self.assertEqual(rp["source"]["request"]["version"], v1)
+        st, rl = self.post("/api/bundle/rebuild", {"source": live["source"]})
+        self.assertEqual(st, 200, rl)
+        self.assertEqual(rl["source"]["request"]["version"], newest)
+        self.assertIn(f"von Version {v1} auf die neueste Version {newest}", rl["summary"])
+        self.assertIn(f"Version {newest}", base64.b64decode(rl["files"]["text-methodik.tex"]).decode("utf-8"))
         st, dl = self.post("/api/tpl/delete", {"template": tid})
         st, lst = self.post("/api/tpl/list", {})
         self.assertEqual(lst["templates"], [])

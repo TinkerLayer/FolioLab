@@ -50,6 +50,9 @@ def run(stack: Stack, state: dict | None, lang: str = "de", with_particles: bool
     if pre is not None and pre.shape[:2] != img.shape[:2]:  # nach der Schwelle zugeschnitten/gedreht
         pre = None
     calib = Calib.from_dict(state.get("calib")) if state.get("calib") else st.calib
+    if state.get("calib") and sum(1 for p in state.get("pipeline") or [] if p.get("op") == "rotate") % 2:
+        # Kalibrierung gilt fuer das Original; nach einer ungeraden Zahl von 90°-Drehungen sind x und y vertauscht
+        calib = Calib(calib.ph, calib.pw, calib.unit, calib.square_assumed)
     a = Analysis(name=stack.name, orig=stack, proc=proc, slice=s, img=img, pre=pre, calib=calib, state=state)
     for i, roi in enumerate(state.get("rois") or [], 1):
         roi = roi if roi and roi.get("type") not in (None, "image") else None   # None: ganzes Bild

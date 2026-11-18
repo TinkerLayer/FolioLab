@@ -372,8 +372,9 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label>Zirkularität von</label><input type="number" id="pCircMin" min="0" max="1" step="0.05" value="0"></div>
         <div><label>bis</label><input type="number" id="pCircMax" min="0" max="1" step="0.05" value="1"></div>
       </div>
-      <label class="chk"><input type="checkbox" id="pEdges" checked> Partikel am Bildrand verwerfen</label>
+      <label class="chk" title="Partikel, deren Begrenzungsrechteck den Rand des Bildes bzw. der Auswahl berührt, werden nicht vermessen; die übrigen werden nach Miles und Lantuéjoul gewichtet, damit grosse Partikel nicht unterschätzt werden. Der Flächenanteil zählt alle Partikel."><input type="checkbox" id="pEdges" checked> Randkorrektur: Partikel am Rand nicht vermessen, übrige gewichten</label>
       <label class="chk"><input type="checkbox" id="pHoles"> Löcher zur Partikelfläche zählen</label>
+      <label class="chk" title="Üblich ist der äussere Umfang (Löcher gefüllt). Angekreuzt zählen auch die Ränder von Löchern."><input type="checkbox" id="pPerimTot"> Lochränder zum Umfang zählen</label>
       <label class="chk"><input type="checkbox" id="pRegion"> Nur innerhalb der aktuellen Auswahl</label>
       </details>
       <div id="pSummary"></div>
@@ -493,7 +494,8 @@ const MK_T = {
         "mk.cmp_none_img": "Erst ein Bild öffnen – die Vergleichsverteilung gehört zum aktuellen Bild.",
         "mk.cmp_nocal": "Das Bild hat keinen Massstab. Erst kalibrieren, dann vergleichen.",
         "mk.cmp_nopart": "Noch keine Partikelanalyse – die Verteilung erscheint, sobald Partikel analysiert sind.",
-        "mk.cmp_img": "Partikel (ECD)", "mk.cmp_mean": "Mittelwert", "mk.cmp_ratio": "D50 der Partikel = {r} × D50 des Datensatzes",
+        "mk.cmp_img": "Partikel (ECD)", "mk.cmp_mean": "Mittelwert", "mk.cmp_ratio": "D50 (Q0) der Partikel = {r} × D50 (Q0) des Datensatzes",
+        "mk.cmp_basis": "Beide Spalten gleich gerechnet: jeder Datensatzwert gilt als ein Teilchen; Q0 nach Anzahl, Q3 nach Volumen (d³). D-Werte aus der Laserbeugung sind meist Q3-Kennwerte einer Verteilung, keine Einzelwerte.",
         "mk.cmp_rm": "Entfernen", "mk.cmp_upd": "Auf v{v} wechseln", "mk.cmp_newer": "Neuere Version v{v} verfügbar (festgehalten).",
         "mk.cmp_done": "Vergleichsverteilung „{t}“ übernommen ({n} Werte).", "mk.cmp_follow": "Vergleichsverteilung auf v{v} aktualisiert.",
         "mk.cmp_trunc": "Diagramm mit den ersten {n} Partikeln; Kennwerte und Bericht mit allen.", "mk.cmp_live": "folgt der neuesten Version", "mk.cmp_pin": "Version festgehalten" },
@@ -528,7 +530,8 @@ const MK_T = {
         "mk.cmp_none_img": "Open an image first – the comparison distribution belongs to the current image.",
         "mk.cmp_nocal": "The image has no scale. Calibrate it first, then compare.",
         "mk.cmp_nopart": "No particle analysis yet – the distribution appears once particles are analysed.",
-        "mk.cmp_img": "Particles (ECD)", "mk.cmp_mean": "Mean", "mk.cmp_ratio": "Particle D50 = {r} × dataset D50",
+        "mk.cmp_img": "Particles (ECD)", "mk.cmp_mean": "Mean", "mk.cmp_ratio": "Particle D50 (Q0) = {r} × dataset D50 (Q0)",
+        "mk.cmp_basis": "Both columns computed alike: each dataset value counts as one particle; Q0 by number, Q3 by volume (d³). Laser-diffraction D values are usually Q3 parameters of a distribution, not individual values.",
         "mk.cmp_rm": "Remove", "mk.cmp_upd": "Switch to v{v}", "mk.cmp_newer": "Newer version v{v} available (kept).",
         "mk.cmp_done": "Comparison distribution “{t}” added ({n} values).", "mk.cmp_follow": "Comparison distribution updated to v{v}.",
         "mk.cmp_trunc": "Chart with the first {n} particles; values and report use all.", "mk.cmp_live": "follows the latest version", "mk.cmp_pin": "version kept" },
@@ -1438,7 +1441,7 @@ function opHelp(op) {
   return {
     gauss: "Glättet mit einer Gaussglocke. Sigma etwa halbe Grösse der feinsten Struktur, die erhalten bleiben soll.",
     median: "Entfernt Salz-und-Pfeffer-Rauschen und erhält Kanten besser als der Mittelwertfilter.",
-    background: "Schätzt den Hintergrund mit einer Öffnung (Minimum, dann Maximum) über ein Fenster und zieht ihn ab. Radius grösser als die grössten Objekte wählen.",
+    background: "Schätzt den Hintergrund mit einer flachen Graustufen-Öffnung (Minimum-, dann Maximumfilter über ein quadratisches Fenster, auf verkleinertem Bild) und zieht ihn ab. Das ist kein Rolling-Ball-Verfahren. Radius grösser als die grössten Objekte wählen.",
     unsharp: "Schärft, indem eine geglättete Kopie abgezogen wird.",
     minimum: "Graustufen-Erosion: dunkle Bereiche wachsen.",
     maximum: "Graustufen-Dilatation: helle Bereiche wachsen.",
@@ -1554,7 +1557,7 @@ function calPreview() {
   if (typeof cal === "string") { out.textContent = ""; return; }
   const W = img.px ? img.px.w : 0;
   out.innerHTML = `Ergibt <b>${fmt(cal.pw, 5)} ${esc(cal.unit)}/px</b> · ${fmt(1 / cal.pw, 4)} px/${esc(cal.unit)}` +
-    (W ? ` · Bildbreite ${fmt(W * cal.pw, 4)} ${esc(cal.unit)}` : "");
+    (W ? ` · Bildbreite ${fmt(W * cal.pw, 4)} ${esc(cal.unit)}` : "") + " · quadratische Pixel angenommen (Höhe = Breite)";
 }
 function updateScalePane() {
   const img = cur(), c = img ? calOf(img) : null, ok = !!(img && img.px);
@@ -1770,6 +1773,7 @@ function readPart() {
   return {
     size_min: Math.max(0, n("#pSizeMin", 0)), size_max: n("#pSizeMax", null), circ_min: clamp(n("#pCircMin", 0), 0, 1), circ_max: clamp(n("#pCircMax", 1), 0, 1),
     exclude_edges: $("#pEdges").checked, include_holes: $("#pHoles").checked, size_in_pixels: $("#pPix").checked,
+    perimeter: $("#pPerimTot").checked ? "total" : "outer",
   };
 }
 async function runParticles() {
@@ -1804,20 +1808,23 @@ function updatePartPane() {
   if (!p) { el.innerHTML = ""; renderCmp(); return; }
   const s = p.summary, U = p.unit;
   const pm = (m, sd, nd = 3) => fmt(m, nd) + (sd !== null && sd !== undefined ? " ± " + fmt(sd, nd) : "");
+  const corr = s.EdgeCorrection === "miles-lantuejoul";
   el.innerHTML = `<dl class="kv">
-    <dt>Anzahl</dt><dd><b>${s.Count}</b>${shr("n")}</dd>
-    <dt>Flächenanteil</dt><dd>${fmt(s.AreaFraction, 2)} %${shr("phi")}</dd>
-    <dt>Gesamtfläche</dt><dd>${fmt(s.TotalArea)} ${U}²</dd>
+    <dt>Anzahl${corr ? " (vermessen)" : ""}</dt><dd><b>${s.Count}</b>${shr("n")}</dd>
+    ${corr && s.CountCorrected != null ? `<dt title="Summe der Gewichte nach Miles-Lantuéjoul">Anzahl randkorrigiert</dt><dd>${fmt(s.CountCorrected, 1)}</dd>` : ""}
+    <dt title="Alle Partikel, die die Filter passieren, auch die am Rand">Flächenanteil</dt><dd>${fmt(s.AreaFraction, 2)} %${shr("phi")}</dd>
+    <dt>Gesamtfläche (vermessen)</dt><dd>${fmt(s.TotalArea)} ${U}²</dd>
     <dt>Mittlere Fläche</dt><dd>${pm(s.AverageSize, s.SDSize)} ${U}²${s.AverageSize != null ? shr("Amean") : ""}</dd>
     <dt>Äquivalentdurchmesser</dt><dd>${pm(s.MeanECD, s.SDECD)} ${U}${s.MeanECD != null ? shr("ECD") : ""}</dd>
-    ${s.D50 !== null && s.D50 !== undefined ? `<dt>D10 / D50 / D90</dt><dd>${fmt(s.D10)} / ${fmt(s.D50)} / ${fmt(s.D90)} ${U}${shr("D50")}</dd>` : ""}
+    ${s.D50 !== null && s.D50 !== undefined ? `<dt title="Nach Anzahl gewichtet (Q0)">D10 / D50 / D90 (Q0)</dt><dd>${fmt(s.D10)} / ${fmt(s.D50)} / ${fmt(s.D90)} ${U}${shr("D50")}</dd>` : ""}
+    ${s.Dv50 !== null && s.Dv50 !== undefined ? `<dt title="Nach Volumen gewichtet (Q3, ECD³, Kugeln angenommen) – so geben Laserbeugungsgeräte D-Werte meist an">Dv10 / Dv50 / Dv90 (Q3)</dt><dd>${fmt(s.Dv10)} / ${fmt(s.Dv50)} / ${fmt(s.Dv90)} ${U}</dd>` : ""}
     <dt>Zirkularität</dt><dd>${pm(s.MeanCirc, s.SDCirc, 3)}</dd>
     <dt>Feret-Durchmesser</dt><dd>${pm(s.MeanFeret, s.SDFeret)} ${U}</dd>
     <dt>Seitenverhältnis</dt><dd>${pm(s.MeanAR, s.SDAR, 2)}</dd>
     <dt>Solidität</dt><dd>${pm(s.MeanSolidity, s.SDSolidity, 3)}</dd>
     ${s.Mean !== null && s.Mean !== undefined ? `<dt>Mittlerer Grauwert</dt><dd>${fmt(s.Mean)}</dd>` : ""}
   </dl>
-  <p class="small">Geht mit diesen Einstellungen in Export und Bericht. Ein neuer Bearbeitungsschritt verwirft das Ergebnis.</p>`;
+  <p class="small">${corr ? "Mittelwerte und D-Werte randkorrigiert (Miles-Lantuéjoul). " : ""}Umfang: ${s.Perimeter === "total" ? "mit Lochrändern" : "äussere Kontur"}. Geht mit diesen Einstellungen in Export und Bericht. Ein neuer Bearbeitungsschritt verwirft das Ergebnis.</p>`;
   syncPartView();
   renderCmp();
 }
@@ -1832,12 +1839,22 @@ const MK_IMP = {
   check: (d) => ((d.columns || []).some(c => c.dtype !== "text" && LEN_U[String(c.unit || "").trim()] !== undefined) ? "" : tr("mk.imp_nolen")),
   run: (p) => mkCmpTake(p),
 };
+// Gewichtete Quantile nach der Mittelpunktsregel wie measure.wquantile: P_i = (S_i − w_i/2)/S_n, linear dazwischen.
+function wq(a, w, p) {
+  const S = []; let s = 0; for (const x of w) { s += x; S.push(s); }
+  const P = S.map((c, i) => (c - w[i] / 2) / s);
+  if (p <= P[0]) return a[0];
+  for (let i = 1; i < a.length; i++) if (p <= P[i]) return a[i - 1] + (a[i] - a[i - 1]) * (p - P[i - 1]) / (P[i] - P[i - 1]);
+  return a[a.length - 1];
+}
+// Datensatzwerte: jeder Wert ein Teilchen; Q0 (Anzahl) und Q3 (Volumen, d³) wie compare.stats
 function cmpStats(v) {
-  const a = v.filter(Number.isFinite).sort((x, y) => x - y), n = a.length;
+  const a = v.filter(x => Number.isFinite(x) && x > 0).sort((x, y) => x - y), n = a.length;
   if (!n) return null;
-  const q = (p) => { const h = (n - 1) * p, i = Math.floor(h); return a[i] + (a[Math.min(i + 1, n - 1)] - a[i]) * (h - i); };   // wie numpy.percentile
+  const w0 = a.map(() => 1), w3 = a.map(x => x ** 3);
   const m = a.reduce((s, x) => s + x, 0) / n;
-  return { n, D10: q(0.1), D50: q(0.5), D90: q(0.9), mean: m, sd: n > 1 ? Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (n - 1)) : null };
+  return { n, D10: wq(a, w0, 0.1), D50: wq(a, w0, 0.5), D90: wq(a, w0, 0.9), Dv10: wq(a, w3, 0.1), Dv50: wq(a, w3, 0.5), Dv90: wq(a, w3, 0.9),
+           mean: m, sd: n > 1 ? Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (n - 1)) : null };
 }
 const cmpRecord = (c) => c ? Object.fromEntries(["share", "version", "mode", "key", "name", "unit", "title", "created", "producer", "values_m"].map(k => [k, c[k]])) : null;
 async function mkCmpFetch(c, mode, version) {
@@ -1900,17 +1917,19 @@ function renderCmp() {
   else {
     const vals = (c.values_m || []).map(x => x / f), sd = cmpStats(vals) || {};
     const s = p && p.summary;
-    const si = s ? { n: s.Count, D10: s.D10, D50: s.D50, D90: s.D90, mean: s.MeanECD } : {};
+    const si = s ? { n: s.Count, D10: s.D10, D50: s.D50, D90: s.D90, Dv10: s.Dv10, Dv50: s.Dv50, Dv90: s.Dv90, mean: s.MeanECD } : {};
     const cell = (v, nd) => (v === null || v === undefined ? "–" : fmt(v, nd));
     const row = (lab, k, nd) => `<tr><td>${lab}</td><td>${cell(si[k], nd)}</td><td>${cell(sd[k], nd)}</td></tr>`;
     const ratio = si.D50 && sd.D50 ? si.D50 / sd.D50 : null;
+    const qrows = ["D10", "D50", "D90"].map(k => row(`${k} (Q0) [${esc(u)}]`, k)).join("") + ["Dv10", "Dv50", "Dv90"].map(k => row(`${k} (Q3) [${esc(u)}]`, k)).join("");
     body = (p ? `<div class="leg"><span><i style="background:#1a73e8;opacity:.6"></i>${esc(tr("mk.cmp_img"))}</span><span><i style="background:#e37400"></i>${esc(c.name)}</span></div><canvas id="cmpCv"></canvas>`
                 : `<div class="note">${esc(tr("mk.cmp_nopart"))}</div>`)
       + `<table><thead><tr><th></th><th>${esc(tr("mk.cmp_img"))}</th><th>${esc(c.name)}</th></tr></thead><tbody>`
-      + row("n", "n", 0) + ["D10", "D50", "D90"].map(k => row(`${k} [${esc(u)}]`, k)).join("") + row(`${esc(tr("mk.cmp_mean"))} [${esc(u)}]`, "mean")
+      + row("n", "n", 0) + qrows + row(`${esc(tr("mk.cmp_mean"))} (Q0) [${esc(u)}]`, "mean")
       + `</tbody></table>` + (ratio ? `<div class="small">${esc(tr("mk.cmp_ratio", { r: fmt(ratio, 3) }))}</div>` : "")
+      + `<div class="small">${esc(tr("mk.cmp_basis"))}</div>`
       + (p && p.truncated ? `<div class="small">${esc(tr("mk.cmp_trunc", { n: p.rows.length }))}</div>` : "");
-    setTimeout(() => { const cv = $("#cmpCv"); if (cv && p) drawCmp(cv, p.rows.map(r => +r.ECD), vals, s.D50, sd.D50); }, 0);
+    setTimeout(() => { const cv = $("#cmpCv"); if (cv && p) drawCmp(cv, p.rows.map(r => +r.ECD), vals, s.D50, sd.D50, p.rows.map(r => +(r.Weight || 1))); }, 0);
   }
   el.innerHTML = `<details open><summary>${esc(tr("mk.cmp_h"))}</summary><div class="small">${head}</div>${body}${foot}</details>`;
   $("#cmpRm").addEventListener("click", () => { img.cmp = null; renderCmp(); if (window.ENVS) ENVS.save(); });
@@ -1922,20 +1941,22 @@ function renderCmp() {
   });
 }
 // Gemeinsame Klassen, relative Häufigkeit: Partikel als Balken, Datensatz als Stufenlinie, D50 gestrichelt.
-function drawCmp(cv, a, b, d50a, d50b) {
+function drawCmp(cv, a, b, d50a, d50b, wa) {
   const W = cv.clientWidth || 300, H = cv.clientHeight || 140, r = window.devicePixelRatio || 1;
   cv.width = W * r; cv.height = H * r;
   const c = cv.getContext("2d");
   c.setTransform(r, 0, 0, r, 0, 0);
   c.clearRect(0, 0, W, H);
-  a = a.filter(Number.isFinite); b = b.filter(Number.isFinite);
+  wa = wa && wa.length === a.length ? wa : a.map(() => 1);              // Gewichte der Randkorrektur (Partikel)
+  const ok = a.map((x, i) => Number.isFinite(x) && Number.isFinite(wa[i]));
+  wa = wa.filter((_, i) => ok[i]); a = a.filter((_, i) => ok[i]); b = b.filter(Number.isFinite);
   if (!a.length || !b.length) return;
   let lo = Infinity, hi = -Infinity;
   for (const v of a.concat(b)) { if (v < lo) lo = v; if (v > hi) hi = v; }
   if (hi <= lo) hi = lo + 1;
   const nb = Math.max(6, Math.min(40, Math.floor(Math.sqrt(Math.min(a.length, b.length))) * 2)), w = (hi - lo) / nb;
-  const hist = (v) => { const h = new Array(nb).fill(0); for (const x of v) h[Math.min(nb - 1, Math.floor((x - lo) / w))] += 100 / v.length; return h; };
-  const ha = hist(a), hb = hist(b), mx = Math.max(...ha, ...hb) || 1;
+  const hist = (v, wt) => { const h = new Array(nb).fill(0), tot = wt.reduce((s, x) => s + x, 0); v.forEach((x, i) => { h[Math.min(nb - 1, Math.floor((x - lo) / w))] += 100 * wt[i] / tot; }); return h; };
+  const ha = hist(a, wa), hb = hist(b, b.map(() => 1)), mx = Math.max(...ha, ...hb) || 1;
   const pad = 16, X = (v) => (v - lo) / (hi - lo) * W, Y = (p) => H - pad - p / mx * (H - pad - 6);
   c.fillStyle = "rgba(26,115,232,.55)";
   ha.forEach((p, i) => c.fillRect(X(lo + i * w) + 0.5, Y(p), Math.max(1, W / nb - 1), H - pad - Y(p)));
@@ -1960,7 +1981,7 @@ const COLS = {
   mess: [["Bild", "Bild"], ["Label", "Auswahl"], ["Type", "Art"], ["Area", "Fläche", 2], ["Mean", "Mittelwert"], ["StdDev", "Std.-Abw."], ["Min", "Min"], ["Max", "Max"],
     ["Median", "Median"], ["X", "X", 1], ["Y", "Y", 1], ["Value", "Wert"], ["Perim.", "Umfang", 1], ["Circ.", "Zirk."], ["Length", "Länge", 1], ["Angle", "Winkel [°]"], ["IntDen", "Int.-Dichte"]],
   part: [["#", "#"], ["Area", "Fläche", 2], ["Perim.", "Umfang", 1], ["Circ.", "Zirk."], ["ECD", "ECD", 1], ["Feret", "Feret", 1], ["MinFeret", "MinFeret", 1], ["AR", "AR"],
-    ["Round", "Rundheit"], ["Solidity", "Solidität"], ["X", "X", 1], ["Y", "Y", 1], ["Mean", "Mittelwert"]],
+    ["Round", "Rundheit"], ["Solidity", "Solidität"], ["X", "X", 1], ["Y", "Y", 1], ["Weight", "Gewicht"], ["Mean", "Mittelwert"]],
 };
 function resTable() {
   const img = cur();
@@ -2564,7 +2585,7 @@ async function init() {
   $("#lut").innerHTML = Object.entries(META.luts).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("");
   $("#thrMethod").innerHTML = Object.entries(META.methods).map(([k, v]) => `<option value="${k}" ${k === "otsu" ? "selected" : ""}>${esc(v)}</option>`).join("");
   const pd = META.particle_defaults;
-  $("#pEdges").checked = pd.exclude_edges; $("#pHoles").checked = pd.include_holes;
+  $("#pEdges").checked = pd.exclude_edges; $("#pHoles").checked = pd.include_holes; $("#pPerimTot").checked = pd.perimeter === "total";
   if (window.Lab) { $("#labBtn").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
   renderChips();
   sizeView();

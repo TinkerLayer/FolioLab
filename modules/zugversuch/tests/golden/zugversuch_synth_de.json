@@ -25,19 +25,19 @@
    "type": "png"
   },
   "fig/feld.pdf": {
-   "size": 56944,
+   "size": 57940,
    "type": "pdf"
   },
   "fig/feld.png": {
-   "size": 96167,
+   "size": 97638,
    "type": "png"
   },
   "fig/kandidaten.pdf": {
-   "size": 24873,
+   "size": 24909,
    "type": "pdf"
   },
   "fig/kandidaten.png": {
-   "size": 39524,
+   "size": 39840,
    "type": "png"
   },
   "fig/linear.pdf": {
@@ -81,6 +81,10 @@
     "Haltezeit über 90\\,\\% & 54,8\\,s \\\\",
     "Verhältnis Maximum/Fliessbeginn & 1,33 \\\\",
     "Elastizitätsmodul (scheinbar) & 70,0\\,GPa \\\\",
+    "Gesamtdehnung bei Höchstkraft $A_{gt}$ & 8,98\\,\\% \\\\",
+    "Plastische Dehnung bei Höchstkraft $A_g$ & 8,78\\,\\% \\\\",
+    "Gesamtdehnung beim Bruch $A_t$ & 12,00\\,\\% \\\\",
+    "Bruchdehnung $A$ ($A_t$ ohne elastischen Anteil) & 11,83\\,\\% \\\\",
     "Steigung linearer Abschnitt & 23,333\\,N/s \\\\",
     "Bestimmtheitsmaß $R^2$ & 1,00000 \\\\",
     "\\bottomrule",
@@ -95,7 +99,7 @@
     "Kennwert [MPa] & gemessen & Referenz & Abweichung \\\\",
     "\\midrule",
     "Zugfestigkeit $R_m$ & 140 & 285 & $-$51,0\\,\\% \\\\",
-    "Fliessbeginn (2,0\\,\\%) / $R_{p0,2}$ & 105 & 220 & $-$52,2\\,\\% \\\\",
+    "Fliessbeginn (2,0\\,\\%) / $R_{p0,2}$ (nicht gleichartig) & 105 & 220 & $-$52,2\\,\\% \\\\",
     "Elastizitätsmodul (scheinbar) [GPa] & 70,0 & 70,0 & 0\\,\\% \\\\",
     "\\bottomrule",
     "\\end{tabular}"
@@ -104,106 +108,121 @@
   },
   "refs.bib": {
    "lines": [
+    "@misc{iso6892-1,",
+    "  title = {ISO 6892-1: Metallic materials -- Tensile testing -- Part 1: Method of test at room temperature},",
+    "  author = {{ISO}},",
+    "  year = {2019}",
+    "}",
+    "",
     "@misc{mat-en-aw-5052-h38,",
     "  title = {Werkstoffkennwerte EN AW-5052-H38},",
     "  howpublished = {Datenblatt},",
-    "  note = {Baetro, Aluminium 5052 (5052-H38 ab 270 MPa und 220 MPa)}",
+    "  note = {Baetro, Aluminium 5052 (5052-H38 ab 270 MPa und 220 MPa); Wertart: Rm unklar, Rp unklar}",
+    "}",
+    "",
+    "@techreport{ramberg-osgood-1943,",
+    "  author = {Ramberg, Walter and Osgood, William R.},",
+    "  title = {Description of stress-strain curves by three parameters},",
+    "  institution = {National Advisory Committee for Aeronautics},",
+    "  type = {Technical Note},",
+    "  number = {902},",
+    "  year = {1943}",
     "}",
     "",
     "@misc{mat-en-aw-1050a-weich,",
     "  title = {Werkstoffkennwerte EN AW-1050A, weich},",
     "  howpublished = {Literatur},",
-    "  note = {MakeItFrom, 1050 gegen 7075 (Rm 76 bis 140 MPa); MakeItFrom, 1050A-F gegen 5754-F (E 68 GPa)}",
+    "  note = {MakeItFrom, 1050 gegen 7075 (Rm 76 bis 140 MPa); MakeItFrom, 1050A-F gegen 5754-F (E 68 GPa); Wertart: Rm unklar, Rp unklar; nicht geprüft: Rm 76 MPa ist die Untergrenze der Spanne 76 bis 140 MPa, die die Quelle für 1050 über alle Zustände nennt: weder Normmindestwert noch Typwert des weichen Zustands; Rm\\_min/Rm\\_max umfassen auch kaltverfestigte Zustände. Herkunft von Rp und A in der Quelle nicht geprüft.}",
     "}",
     "",
     "@misc{mat-en-aw-8011a-o-folie,",
     "  title = {Werkstoffkennwerte EN AW-8011A-O, Folie},",
     "  howpublished = {Normspanne, Rp und A Typwert (dickenabhängig)},",
-    "  note = {EN 546-2, Folie}",
+    "  note = {EN 546-2, Folie; Wertart: Rm Mitte der Spanne, Rp Typwert}",
     "}",
     "",
     "@misc{mat-en-aw-1050a-h14,",
     "  title = {Werkstoffkennwerte EN AW-1050A-H14},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm}",
+    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm; Wertart: Rm Mitte der Spanne, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-3003-h14,",
     "  title = {Werkstoffkennwerte EN AW-3003-H14},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm}",
+    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm; Wertart: Rm Mitte der Spanne, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-6060-t6,",
     "  title = {Werkstoffkennwerte EN AW-6060-T6},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 755-2, Strangpressprofil}",
+    "  note = {EN 755-2, Strangpressprofil; Wertart: Rm Mindestwert, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-5754-o-h111,",
     "  title = {Werkstoffkennwerte EN AW-5754-O/H111},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2}",
+    "  note = {EN 485-2; Wertart: Rm Mitte der Spanne, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-5052-h32,",
     "  title = {Werkstoffkennwerte EN AW-5052-H32},",
     "  howpublished = {Datenblatt},",
-    "  note = {Baetro, Aluminium 5052}",
+    "  note = {Baetro, Aluminium 5052; Wertart: Rm unklar, Rp unklar}",
     "}",
     "",
     "@misc{mat-en-aw-5754-h22,",
     "  title = {Werkstoffkennwerte EN AW-5754-H22},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2}",
+    "  note = {EN 485-2; Wertart: Rm Mitte der Spanne, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-5086-h116-h32,",
     "  title = {Werkstoffkennwerte EN AW-5086-H116/H32},",
     "  howpublished = {Datenblatt},",
-    "  note = {Aerospace Metals, 5086-H116/H32 (Rm 290 MPa, Rp0,2 207 MPa, E 71 GPa)}",
+    "  note = {Aerospace Metals, 5086-H116/H32 (Rm 290 MPa, Rp0,2 207 MPa, E 71 GPa); Wertart: Rm unklar, Rp unklar}",
     "}",
     "",
     "@misc{mat-en-aw-5083-o-h111,",
     "  title = {Werkstoffkennwerte EN AW-5083-O/H111},",
     "  howpublished = {Datenblatt},",
-    "  note = {Righton Blackburns, 5083 O/H111 (Blech 0,2 bis 6,3 mm, Rp0,2 ab 125 MPa, Rm 275 bis 350 MPa)}",
+    "  note = {Righton Blackburns, 5083 O/H111 (Blech 0,2 bis 6,3 mm, Rp0,2 ab 125 MPa, Rm 275 bis 350 MPa); Wertart: Rm unklar, Rp unklar}",
     "}",
     "",
     "@misc{mat-en-aw-6061-t6,",
     "  title = {Werkstoffkennwerte EN AW-6061-T6},",
     "  howpublished = {Datenblatt},",
-    "  note = {Protolabs, Datenblatt 6061-T651/T6 (Rm 310, Rp0,2 276 MPa); Powertec, Aluminium 6061-T6 (E 68,9 GPa)}",
+    "  note = {Protolabs, Datenblatt 6061-T651/T6 (Rm 310, Rp0,2 276 MPa); Powertec, Aluminium 6061-T6 (E 68,9 GPa); Wertart: Rm unklar, Rp unklar}",
     "}",
     "",
     "@misc{mat-en-aw-6082-t6,",
     "  title = {Werkstoffkennwerte EN AW-6082-T6},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 485-2, Blech}",
+    "  note = {EN 485-2, Blech; Wertart: Rm Mindestwert, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-7020-t6,",
     "  title = {Werkstoffkennwerte EN AW-7020-T6},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 485-2, Blech}",
+    "  note = {EN 485-2, Blech; Wertart: Rm Mindestwert, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-2017a-t4,",
     "  title = {Werkstoffkennwerte EN AW-2017A-T4},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 485-2, Blech}",
+    "  note = {EN 485-2, Blech; Wertart: Rm Mindestwert, Rp Mindestwert}",
     "}",
     "",
     "@misc{mat-en-aw-2024-t3,",
     "  title = {Werkstoffkennwerte EN AW-2024-T3},",
     "  howpublished = {Datenblatt},",
-    "  note = {United Aluminum, 6061/7075/2024 (2024-T3 mit 483 und 345 MPa)}",
+    "  note = {United Aluminum, 6061/7075/2024 (2024-T3 mit 483 und 345 MPa); Wertart: Rm unklar, Rp unklar}",
     "}",
     "",
     "@misc{mat-en-aw-7075-t6,",
     "  title = {Werkstoffkennwerte EN AW-7075-T6},",
     "  howpublished = {Datenblatt},",
-    "  note = {United Aluminum, 6061/7075/2024 (7075-T6 mit 572,3 und 503,3 MPa)}",
+    "  note = {United Aluminum, 6061/7075/2024 (7075-T6 mit 572,3 und 503,3 MPa); Wertart: Rm unklar, Rp unklar}",
     "}",
     "",
     "@misc{data-zugversuch-synthetische-kurve,",
@@ -217,13 +236,13 @@
   },
   "text-ergebnisse.tex": {
    "lines": [
-    "Die Probe erreichte eine Zugfestigkeit von \\labval{zugversuch-synthetische-kurve}{Rm} (Maximalkraft \\labval{zugversuch-synthetische-kurve}{Fmax} nach \\labval{zugversuch-synthetische-kurve}{tmax}). Der Fliessbeginn lag bei \\labval{zugversuch-synthetische-kurve}{yield}, das Verhältnis von Maximum zu Fliessbeginn bei \\labval{zugversuch-synthetische-kurve}{ratio}. Vom Maximum bis zum Bruch fiel die Last um \\labval{zugversuch-synthetische-kurve}{drop}; die Last blieb \\labval{zugversuch-synthetische-kurve}{hold} über 90\\,\\% des Maximums. Gegenüber dem Referenzwerkstoff EN AW-5052-H38 ($R_m = $ \\labval{zugversuch-synthetische-kurve}{refRm} \\cite{mat-en-aw-5052-h38}) weicht die Zugfestigkeit um \\labval{zugversuch-synthetische-kurve}{refdRm} ab. Eine Übereinstimmung in $R_m$ allein bestimmt den Werkstoff nicht. Der scheinbare Modul von \\labval{zugversuch-synthetische-kurve}{E} ist kein Werkstoffkennwert."
+    "Die Probe erreichte eine Zugfestigkeit von \\labval{zugversuch-synthetische-kurve}{Rm} (Maximalkraft \\labval{zugversuch-synthetische-kurve}{Fmax} nach \\labval{zugversuch-synthetische-kurve}{tmax}). Der Fliessbeginn lag bei \\labval{zugversuch-synthetische-kurve}{yield}, das Verhältnis von Maximum zu Fliessbeginn bei \\labval{zugversuch-synthetische-kurve}{ratio}. Vom Maximum bis zum Bruch fiel die Last um \\labval{zugversuch-synthetische-kurve}{drop}; die Last blieb \\labval{zugversuch-synthetische-kurve}{hold} ohne Unterbrechung über \\labval{zugversuch-synthetische-kurve}{holdthr} des Maximums. Die Gesamtdehnung beim Bruch betrug $A_t = $ \\labval{zugversuch-synthetische-kurve}{At}, die Bruchdehnung nach Abzug des elastischen Anteils $A = $ \\labval{zugversuch-synthetische-kurve}{A}. Gegenüber dem Referenzwerkstoff EN AW-5052-H38 ($R_m = $ \\labval{zugversuch-synthetische-kurve}{refRm} \\cite{mat-en-aw-5052-h38}) weicht die Zugfestigkeit um \\labval{zugversuch-synthetische-kurve}{refdRm} ab. Eine Übereinstimmung in $R_m$ allein bestimmt den Werkstoff nicht. Der scheinbare Modul von \\labval{zugversuch-synthetische-kurve}{E} ist kein Werkstoffkennwert."
    ],
    "type": "tex"
   },
   "text-methodik.tex": {
    "lines": [
-    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]. Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg. Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}. Der lineare Abschnitt wurde als längstes Zeitfenster bestimmt, in dem die Messpunkte innerhalb einer festen Toleranz auf einer Geraden liegen. Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$. Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert und keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6})."
+    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]. Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg. Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}. Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als \\labval{zugversuch-synthetische-kurve}{tol} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann (gierige Suche, nicht notwendig das längste solche Fenster). Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$. Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens \\labval{zugversuch-synthetische-kurve}{holdthr} des Maximums beträgt. Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren \\cite{iso6892-1} aus den Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung geteilt durch die Steigung des linearen Abschnitts derselben Kurve). Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood~\\cite{ramberg-osgood-1943} durch $R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne $R_{p0,2}$ elastisch bis $R_m$). Sie dienen nur der Orientierung und sind keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist."
    ],
    "type": "tex"
   },
@@ -239,7 +258,13 @@
     "\\labset{zugversuch-synthetische-kurve}{break}{120\\,MPa}% vor dem Bruch",
     "\\labset{zugversuch-synthetische-kurve}{drop}{14,3\\,\\%}% Abfall Maximum bis Bruch",
     "\\labset{zugversuch-synthetische-kurve}{hold}{54,8\\,s}% Haltezeit",
+    "\\labset{zugversuch-synthetische-kurve}{holdthr}{90\\,\\%}% Halteschwelle",
     "\\labset{zugversuch-synthetische-kurve}{ratio}{1,33}% Verhältnis Maximum/Fliessbeginn",
+    "\\labset{zugversuch-synthetische-kurve}{tol}{1,00\\,MPa}% Toleranz Fitfenster",
+    "\\labset{zugversuch-synthetische-kurve}{Agt}{8,98\\,\\%}% Gesamtdehnung bei Höchstkraft $A_{gt}$",
+    "\\labset{zugversuch-synthetische-kurve}{Ag}{8,78\\,\\%}% Plastische Dehnung bei Höchstkraft $A_g$",
+    "\\labset{zugversuch-synthetische-kurve}{At}{12,00\\,\\%}% Gesamtdehnung beim Bruch $A_t$",
+    "\\labset{zugversuch-synthetische-kurve}{A}{11,83\\,\\%}% Bruchdehnung $A$ ($A_t$ ohne elastischen Anteil)",
     "\\labset{zugversuch-synthetische-kurve}{E}{70,0\\,GPa}% Elastizitätsmodul (scheinbar)",
     "\\labset{zugversuch-synthetische-kurve}{A0}{0,2000\\,mm$^2$}% Querschnitt $A_0$",
     "\\labset{zugversuch-synthetische-kurve}{L0}{10,0\\,mm}% Messlänge $L_0$",
@@ -247,7 +272,7 @@
     "\\labset{zugversuch-synthetische-kurve}{rate}{6,7\\,Hz}% Abtastrate",
     "\\labset{zugversuch-synthetische-kurve}{thr}{2,0\\,\\%}% Schwelle Fliessbeginn",
     "\\labset{zugversuch-synthetische-kurve}{refRm}{285\\,MPa}% $R_m$ Referenz",
-    "\\labset{zugversuch-synthetische-kurve}{refdRm}{$-$51,0\\,\\%}% ΔRm"
+    "\\labset{zugversuch-synthetische-kurve}{refdRm}{$-$51,0\\,\\%}% dRm (Referenz)"
    ],
    "type": "tex"
   },
@@ -258,7 +283,7 @@
     "\\toprule",
     "Nr. & Werkstoff & $R_{p0,2}$ [MPa] & $R_m$ [MPa] & $A$ [\\%] & $E$ [GPa] & Quelle \\\\",
     "\\midrule",
-    "1 & EN AW-1050A, weich & 25 & 76 & 30 & 68,0 & \\cite{mat-en-aw-1050a-weich} \\\\",
+    "1 & EN AW-1050A, weich* & 25 & 76 & 30 & 68,0 & \\cite{mat-en-aw-1050a-weich} \\\\",
     "2 & EN AW-8011A-O, Folie & 50 & 105 & 4 & 69,0 & \\cite{mat-en-aw-8011a-o-folie} \\\\",
     "3 & EN AW-1050A-H14 & 85 & 125 & 4 & 69,0 & \\cite{mat-en-aw-1050a-h14} \\\\",
     "4 & EN AW-3003-H14 & 125 & 165 & 4 & 69,0 & \\cite{mat-en-aw-3003-h14} \\\\",
@@ -283,9 +308,19 @@
  },
  "items": [
   {
+   "key": "iso6892-1",
+   "kind": "citation",
+   "title": "ISO 6892-1: Metallic materials -- Tensile testing -- Part 1: Method of test at room temperature"
+  },
+  {
    "key": "mat-en-aw-5052-h38",
    "kind": "citation",
    "title": "Werkstoffkennwerte EN AW-5052-H38"
+  },
+  {
+   "key": "ramberg-osgood-1943",
+   "kind": "citation",
+   "title": "Description of stress-strain curves by three parameters"
   },
   {
    "key": "mat-en-aw-1050a-weich",
@@ -403,7 +438,7 @@
    "width": "0.9"
   },
   {
-   "caption": "Gemessene Spannungs-Dehnungs-Kurve im idealisierten Feld der Vergleichsgruppe Aluminium und dem Referenzwerkstoff EN AW-5052-H38. Dehnung aus dem Weg an der Probe. Die Zahlen an den Kurvenenden bezeichnen die Werkstoffe im Schlüssel; Kennwerte aus den angegebenen Quellen~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "caption": "Gemessene Spannungs-Dehnungs-Kurve im Feld der Vergleichsgruppe Aluminium und dem Referenzwerkstoff EN AW-5052-H38; die Werkstoffkurven sind idealisiert und dienen nur der Orientierung. Dehnung aus dem Weg an der Probe. Die Zahlen an den Kurvenenden bezeichnen die Werkstoffe im Schlüssel; Kennwerte aus den angegebenen Quellen~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
    "cites": [
     "mat-en-aw-1050a-weich",
     "mat-en-aw-8011a-o-folie",
@@ -431,14 +466,14 @@
    "width": "0.9"
   },
   {
-   "caption": "Fliessbeginn und Zugfestigkeit der Messung im Vergleich mit den nächstliegenden Werkstoffen der Gruppe Aluminium~\\cite{mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-8011a-o-folie,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38}.",
+   "caption": "Fliessbeginn und Zugfestigkeit der Messung im Vergleich mit den nächstliegenden Werkstoffen der Gruppe Aluminium~\\cite{mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-8011a-o-folie,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5052-h38}.",
    "cites": [
     "mat-en-aw-1050a-h14",
     "mat-en-aw-3003-h14",
     "mat-en-aw-6060-t6",
     "mat-en-aw-8011a-o-folie",
+    "mat-en-aw-5754-o-h111",
     "mat-en-aw-5052-h32",
-    "mat-en-aw-5754-h22",
     "mat-en-aw-5052-h38"
    ],
    "file": "fig/kandidaten.pdf",
@@ -468,7 +503,7 @@
    "notes": ""
   },
   {
-   "caption": "Messung Synthetische Kurve im Vergleich mit dem Referenzwerkstoff EN AW-5052-H38 (Sollwerte, nicht gemessen)~\\cite{mat-en-aw-5052-h38}.",
+   "caption": "Messung Synthetische Kurve im Vergleich mit dem Referenzwerkstoff EN AW-5052-H38 (Sollwerte, nicht gemessen). Abweichung = (Messung $-$ Referenz)/Referenz. Der Fliessbeginn ist eine Abweichungsschwelle, keine $R_{p0,2}$; seine Abweichung von der Referenz dient nur der Orientierung~\\cite{mat-en-aw-5052-h38}.",
    "cites": [
     "mat-en-aw-5052-h38"
    ],
@@ -479,7 +514,7 @@
    "notes": ""
   },
   {
-   "caption": "Werkstoffe des Spannungs-Dehnungs-Felds Aluminium mit den Kennwerten, aus denen ihre Kurven idealisiert sind (Nummern wie im Diagramm)~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "caption": "Werkstoffe des Spannungs-Dehnungs-Felds Aluminium mit den Kennwerten, aus denen ihre Kurven idealisiert sind (Nummern wie im Diagramm). Mit * markierte Einträge sind nicht geprüft (Grund in der Literaturangabe)~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
    "cites": [
     "mat-en-aw-1050a-weich",
     "mat-en-aw-8011a-o-folie",
@@ -579,8 +614,32 @@
      "54.8 s"
     ],
     [
+     "holdthr",
+     "90 %"
+    ],
+    [
      "ratio",
      "1.33"
+    ],
+    [
+     "tol",
+     "1.00 MPa"
+    ],
+    [
+     "Agt",
+     "8.98 %"
+    ],
+    [
+     "Ag",
+     "8.78 %"
+    ],
+    [
+     "At",
+     "12.00 %"
+    ],
+    [
+     "A",
+     "11.83 %"
     ],
     [
      "E",

@@ -98,6 +98,32 @@ function bundle(value, src = 'x;y\n1;2\n') {
     const labdata = fs.readFileSync(path.join(P.filesDir(id), 'lab', 'labdata.tex'), 'utf8');
     assert.ok(!/history/.test(labdata));
     ok++;
+
+    // module version: the one the computing module reports in its bundle wins over module.json; source kind kept
+    const mv = await lab.save(id, { ...bundle(3), slug: 'ds', module_version: '0.3.0',
+      source: { kind: 'dataset', request: { share: 's-0000abcd', version: 2, x: { id: 's-0000beef', mode: 'live', used: 4 } }, files: { 'datensatz.json': b64('{}') } } }, 'new');
+    assert.strictEqual(mv.provenance.module_version, '0.3.0');
+    assert.strictEqual(mv.provenance.module_version_from, 'bundle');
+    assert.strictEqual(mv.provenance.source_kind, 'dataset');
+    assert.strictEqual(m1.provenance.module_version_from, 'module.json');
+    assert.strictEqual(m1.provenance.source_kind, 'files');
+    ok++;
+
+    // removing a result: never issued -> deleted; issued -> kept under lab/_removed/ and still listed as a dependency
+    const plain = await lab.save(id, bundle(4), 'new');
+    assert.deepStrictEqual(await lab.remove(id, plain.slug), { kept: null });
+    assert.ok(!fs.existsSync(path.join(P.filesDir(id), 'lab', plain.slug)));
+    await lab.issue(id, 'ds');
+    const rm = await lab.remove(id, 'ds');
+    assert.match(rm.kept, /^_removed\/ds-/);
+    const keptMan = JSON.parse(fs.readFileSync(path.join(P.filesDir(id), 'lab', ...rm.kept.split('/'), 'bundle.json'), 'utf8'));
+    assert.ok(keptMan.removed && keptMan.issued);
+    assert.ok(!(await lab.list(id)).some((b) => b.slug === 'ds' || b.slug === '_removed'));
+    const deps = await lab.dependencies(id);
+    const dr = deps.results.find((r) => r.removed);
+    assert.strictEqual(dr.result, rm.kept);
+    assert.deepStrictEqual(dr.shares, ['s-0000abcd v2', 's-0000beef v4']);              // binding: the version used
+    ok++;
     console.log(`report revisions: ${ok} checks passed`);
   } catch (e) {
     console.error(`report revisions: failed after ${ok} checks`);

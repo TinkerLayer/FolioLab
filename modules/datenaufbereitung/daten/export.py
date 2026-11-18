@@ -32,15 +32,37 @@ def _cell(c, v):
     return str(v)
 
 
-def to_csv(ds: DS.Dataset) -> bytes:
-    """One header line "name [unit]", point decimals, comma separator (what pgfplots and Excel import read)."""
+CSV_USED, CSV_FLAGS = "verwendet", "Markierungen"         # the two cleaning-state columns at the end of a CSV
+
+
+def row_flags(ds: DS.Dataset) -> list[str]:
+    """Per row: its flags as text, e.g. "Ausreisser in c (ausgeschlossen: Luftblase); unter Nachweisgrenze in d"."""
+    names = {c["key"]: c["name"] for c in ds.columns}
+    out = [[] for _ in range(ds.rows)]
+    for f in ds.header.get("flags") or []:
+        s = FLAG_NAMES.get(f["code"], f["code"]) + (f" in {names.get(f['col'], f['col'])}" if f.get("col") else "")
+        if f.get("excluded"):
+            s += " (ausgeschlossen" + (f": {f['reason']}" if f.get("reason") else "") + ")"
+        elif f.get("reason"):
+            s += f" ({f['reason']})"
+        out[f["row"]].append(s)
+    return ["; ".join(x) for x in out]
+
+
+def to_csv(ds: DS.Dataset, flags: bool = True) -> bytes:
+    """One header line "name [unit]", point decimals, comma separator (what pgfplots and Excel import read).
+    With `flags` (default) two columns follow the data: "verwendet" (1 = used, 0 = excluded by a recorded decision)
+    and "Markierungen" (every flag of the row with column, exclusion and reason), so the file keeps its cleaning
+    state. `reimport` recognises and drops them."""
     buf = io.StringIO()
     w = csv.writer(buf, lineterminator="\n")
-    w.writerow([head_text(c) for c in ds.columns])
+    w.writerow([head_text(c) for c in ds.columns] + ([CSV_USED, CSV_FLAGS] if flags else []))
     arrs = [ds.data[c["key"]] for c in ds.columns]
+    used = ds.used_mask()
+    texts = row_flags(ds) if flags else None
     for r in range(ds.rows):
         w.writerow(["" if (x := _cell(c, a[r])) is None else (repr(x) if isinstance(x, float) else x)
-                    for c, a in zip(ds.columns, arrs)])
+                    for c, a in zip(ds.columns, arrs)] + ([1 if used[r] else 0, texts[r]] if flags else []))
     return buf.getvalue().encode("utf-8")
 
 
@@ -90,9 +112,16 @@ def protocol_rows(ds: DS.Dataset, describe=None) -> list[list]:
         rows.append(["Bedingung", "Wert", "Einheit", "aus"])
         rows += [[k, v.get("value"), v.get("unit", ""), v.get("from", "")] for k, v in h["conditions"].items()]
         rows.append([])
-    rows.append(["Spalte", "Schlüssel", "Einheit", "Grösse", "Rolle", "Symbol", "Hinweis"])
+    cut = [t for x in chain for t in (x.get("truncations") or [])]
+    if cut:
+        rows.append(["GEKÜRZT", "behalten", "insgesamt"])
+        rows += [[t.get("what", ""), t.get("kept"), t.get("total")] for t in cut]
+        rows.append([])
+    ukeys = {c.get("u") for c in ds.columns if c.get("u")}
+    rows.append(["Spalte", "Schlüssel", "Einheit", "Grösse", "Rolle", "Symbol", "Hinweis", "Art der Unsicherheit"])
     rows += [[c["name"], c["key"], c.get("unit", ""), c.get("kind", ""), c.get("role", ""), c.get("symbol", ""),
-              c.get("note", "")] for c in ds.columns]
+              c.get("note", ""), DS.u_type_text(c) if c.get("role") == "uncertainty" or c["key"] in ukeys else ""]
+             for c in ds.columns]
     rows.append([])
     if h.get("flags"):
         names = {c["key"]: c["name"] for c in ds.columns}
@@ -100,6 +129,8 @@ def protocol_rows(ds: DS.Dataset, describe=None) -> list[list]:
         rows += [[f["row"] + 1, names.get(f.get("col"), f.get("col", "")), FLAG_NAMES.get(f["code"], f["code"]),
                   "ja" if f.get("excluded") else "", f.get("reason", ""), f.get("rule", ""), f.get("raw", "")]
                  for f in h["flags"][:100_000]]
+        if len(h["flags"]) > 100_000:
+            rows.append([f"GEKÜRZT: nur die ersten 100000 von {len(h['flags'])} Markierungen gelistet (alle in JSON)"])
     return rows
 
 
@@ -126,9 +157,16 @@ def to_xlsx(ds: DS.Dataset, describe=None) -> bytes:
     return b.getvalue()
 
 
+PARQUET_MISSING = "Parquet braucht das Python-Paket pyarrow (pip install pyarrow)."
+
+
 def to_parquet(ds: DS.Dataset) -> bytes:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
+    """Optional: needs pyarrow (not a requirement of the module); without it a ValueError with a German message."""
+    try:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+    except ImportError:
+        raise ValueError(PARQUET_MISSING) from None
     arrays, names = [], []
     for c in ds.columns:
         a = ds.data[c["key"]]
@@ -142,9 +180,9 @@ def to_parquet(ds: DS.Dataset) -> bytes:
     return b.getvalue()
 
 
-def export(ds: DS.Dataset, fmt: str, describe=None) -> tuple[bytes, str]:
+def export(ds: DS.Dataset, fmt: str, describe=None, flags: bool = True) -> tuple[bytes, str]:
     if fmt == "csv":
-        return to_csv(ds), FORMATS["csv"][0]
+        return to_csv(ds, flags), FORMATS["csv"][0]
     if fmt == "xlsx":
         return to_xlsx(ds, describe), FORMATS["xlsx"][0]
     if fmt == "json":
@@ -165,7 +203,10 @@ def reimport(raw: bytes, fname: str) -> DS.Dataset:
     from . import recipe as RC
     sh = R.load_bytes(raw, fname)[0]
     steps = RC.guess(sh)
-    return RC.to_dataset(RC.extract(sh, steps), "Import", [], steps, "")
+    tbl = RC.extract(sh, steps)
+    if fname.lower().endswith(".csv"):              # the cleaning-state columns of to_csv are not data
+        tbl["columns"] = [c for c in tbl["columns"] if c["name"] not in (CSV_USED, CSV_FLAGS)]
+    return RC.to_dataset(tbl, "Import", [], steps, "")
 
 
 def same(a: DS.Dataset, b: DS.Dataset) -> list[str]:

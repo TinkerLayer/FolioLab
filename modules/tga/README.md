@@ -41,7 +41,8 @@ library) are licensed. Folio Lab therefore ships:
    files, shown as tabs at the top). Read are generic text/CSV (comma, semicolon, tab; decimal comma; header lines
    with sample mass, heating rate, gas, crucible) and the text exports of NETZSCH Proteus (ASCII, `##` header),
    TA Universal Analysis, TA TRIOS (CSV/XLSX; several sheets with a time column are joined into one run, one segment
-   per sheet), METTLER STARe, PerkinElmer Pyris and
+   per sheet, with each sheet's clock shifted so that time keeps increasing), METTLER STARe, PerkinElmer Pyris
+   (corrected weight preferred over "Unsubtracted Weight") and
    Shimadzu. Columns are recognised (time, sample/program temperature, mass in mg or %, DTG, gas, flow, segment,
    heat flow); if that fails, *Öffnen mit Spaltenzuordnung …* (open with column mapping) opens a dialog. Segments
    (dynamic, isothermal, cooling, gas switch) are recognised. The **Examples** (*Beispiele*) menu loads synthetic
@@ -52,7 +53,8 @@ library) are licensed. Folio Lab therefore ships:
    steps form a **protocol** that is always applied to the original (interface, export and report agree), can be
    saved/loaded as JSON and applied to all runs.
 3. **Steps** (tab **Steps**, *Stufen*): automatic from the DTG, limits can be moved by hand. For each step the
-   extrapolated onset and end temperature per ISO 11358-1 (tangent at the inflection point), midpoint, DTG peak,
+   extrapolated onset and end temperature per ISO 11358-1 (tangent at the inflection point of the TG curve over
+   temperature, local slope), midpoint, DTG peak,
    maximum rate, loss in % and mg.
 4. **Values** (tab **Values**, *Kennwerte*): T at 1/2/5/10/50 % loss, residue at the end and at a chosen
    temperature, isothermal loss. Collapsed below:
@@ -64,21 +66,22 @@ library) are licensed. Folio Lab therefore ships:
      chemigram of a band; a click in the curve selects the time, *In FTIR öffnen* (open in FTIR) passes the
      spectrum (background subtracted) to the FTIR search (outside Folio Lab as a `.jdx` download).
 5. **Composition** (*Zusammensetzung*): templates ASTM E1131 (moisture, polymer, carbon after switching to air,
-   ash) and ASTM D7582 (proximate analysis), free limits; **stoichiometry** (content from one step, e.g.
+   ash) and ASTM D7582 (proximate analysis, as-determined and dry basis), free limits; **stoichiometry** (content from one step, e.g.
    CaCO₃ = loss / 0.4397; Mg(OH)₂, Al(OH)₃, gypsum, calcium oxalate, PVC → HCl …, calculated from the IUPAC atomic
    weights); **calcium oxalate check** (12.33 / 19.17 / 30.12 %) and two-point temperature calibration.
 6. **Search** (tab **Search**, *Suche*): curve comparison of the DTG (cosine, reference shiftable by ±shift K) plus
-   comparison of the steps (peak temperature, loss, residue), hit score 0–100, principle after Schindler et al. 2017
-   (doi:10.1007/s10973-017-6208-5). A different atmosphere or heating rate is flagged; filter by category.
+   comparison of the steps (peak temperature, loss, residue), hit score 0–100 (weight of the curve comparison
+   adjustable, default 60 %), principle after Schindler et al. 2017 (doi:10.1007/s10973-017-6208-5). A different atmosphere or heating rate is flagged; filter by category.
    *Im Lauf einblenden* (overlay on the run) lays the reference over the run.
 7. **Mixture** (*Mischung*): DTG of the sample as a non-negative sum of 2–3 references; the weights are **mass
    fractions**, mass without loss in the measured range remains as "inert".
 8. **Compare** (*Vergleich*): overlay runs (TG/DTG, normalised), step table across all runs, mean ± s for
    replicates.
-9. **Kinetics** (*Kinetik*; ≥ 3 heating rates, one step): Friedman, Ozawa–Flynn–Wall (ASTM E1641), KAS, Starink,
-   Vyazovkin with Eₐ(α) and confidence interval, Kissinger, Coats–Redfern, master plot, compensation effect,
-   lifetime per ASTM E1877. Warnings following the ICTAC recommendations (too few or too close heating rates, Eₐ
-   strongly dependent on α …).
+9. **Kinetics** (*Kinetik*; ≥ 3 heating rates, one step): Friedman, Ozawa–Flynn–Wall (Eₐ refined iteratively as in
+   ASTM E1641), KAS, Starink, Vyazovkin (basic integral method) with Eₐ(α) and 95 % confidence interval (exact
+   Student t; none for Vyazovkin), Kissinger, Coats–Redfern, master plot, compensation effect, lifetime from the
+   Toop relation on which ASTM E1877 is based (not checked against the text of the standard). Warnings following
+   the ICTAC recommendations (too few or too close heating rates, Eₐ strongly dependent on α …).
 10. **Separation** (*Trennung*): fit overlapping DTG steps as Fraser–Suzuki peaks; biomass template (hemicellulose,
     cellulose, lignin).
 11. **Equations** (tab **Equations**, *Gleichungen*), see below.
@@ -159,8 +162,10 @@ math in the methods text, with source.
 python -m unittest discover -s tests
 ```
 
-Checks all readers (synthetic files per format, column mapping, segments), protocol, steps and onset on synthetic
-calcium oxalate (known losses), composition and stoichiometry, search (the generating reference ranks first) and
-mixture (known fractions), kinetics (a given Eₐ is recovered), Fraser–Suzuki separation, own libraries, own
+Checks all readers (synthetic files per format, column mapping, segments), protocol, steps on synthetic calcium
+oxalate (known losses), onset against an analytic tangent construction (also with a varying heating rate),
+composition (E1131, D7582 bases) and stoichiometry, search (the generating reference ranks first, chosen weights
+applied) and mixture (known fractions), kinetics (Eₐ recovered from data generated independently with scipy for
+F1, F2 and A2; Student t against scipy), Fraser–Suzuki separation, own libraries, own
 equations, DSC (known peak area and Tg), gas analysis (known Gram–Schmidt maxima), sharing the step table, report and
 the server.

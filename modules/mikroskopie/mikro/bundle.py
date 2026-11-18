@@ -16,7 +16,7 @@ from . import charts as C
 from . import threshold as TH
 from .analysis import Analysis, display_for_pre, run
 from .imageio import Stack
-from .measure import sample_line
+from .measure import line_scale, sample_line
 
 T = {
     "de": {
@@ -24,22 +24,25 @@ T = {
         "fig_img": "Aufnahme {n}{roi}.", "fig_img_roi": " mit den gemessenen Auswahlen",
         "fig_part": "Erkannte Partikel in {n} ({c} Partikel, Konturen türkis).",
         "fig_hist": "Grauwerthistogramm von {n}{thr}.", "fig_hist_thr": " mit Schwellenbereich ({m})",
-        "fig_sizes": "Verteilung des flächengleichen Kreisdurchmessers der Partikel in {n}.",
+        "fig_sizes": "Anzahlverteilung (Q0) des flächengleichen Kreisdurchmessers der Partikel in {n}{e}.",
+        "fig_sizes_e": ", randkorrigiert nach Miles und Lantuéjoul",
         "fig_shape": "Zirkularität gegen Äquivalentdurchmesser der Partikel in {n}.",
         "fig_profile": "Grauwertprofil entlang der Linie {l} in {n}.",
-        "fig_cmp": "Summenverteilung des Äquivalentdurchmessers: {n}.",
+        "fig_cmp": "Summenverteilung (Q0, nach Anzahl) des Äquivalentdurchmessers: {n}.",
         "tab_meas": "Messwerte der Auswahlen in {n}.", "tab_part": "Partikelanalyse von {n}.",
         "tab_cmp": "Partikelanalyse im Vergleich.",
         "data_part": "Partikel in {n}: Fläche, Umfang, Form, Feret, Lage, Intensität.",
         "data_prof": "Grauwertprofil entlang {l} in {n}.", "data_meas": "Messwerte der Auswahlen in {n}.",
         "h_quant": "Grösse", "h_val": "Wert",
-        "rows": {"count": "Anzahl Partikel", "frac": "Flächenanteil", "area": "Mittlere Fläche",
-                 "ecd": "Äquivalentdurchmesser", "d": "D10 / D50 / D90", "circ": "Zirkularität",
+        "rows": {"count": "Anzahl Partikel (vermessen)", "ncorr": "Anzahl randkorrigiert", "frac": "Flächenanteil",
+                 "area": "Mittlere Fläche",
+                 "ecd": "Äquivalentdurchmesser", "d": "D10 / D50 / D90 (Anzahl, Q0)",
+                 "dv": "Dv10 / Dv50 / Dv90 (Volumen, Q3)", "circ": "Zirkularität",
                  "feret": "Feret-Durchmesser", "ar": "Seitenverhältnis", "sol": "Solidität",
                  "region": "Ausgewertete Fläche"},
         "meas_head": ["Auswahl", "Fläche", "Mittelwert", "Std.-Abw.", "Min", "Max"],
-        "cmp_head": ["Bild", "n", "Flächenant. [\\%]", "ECD [{u}]", "D50 [{u}]", "Zirk."],
-        "fig_ovl": "Grössenverteilung der Partikel in {n} und Vergleichsverteilung {c} (relative Häufigkeit, gestrichelt: $D_{{50}}$).",
+        "cmp_head": ["Bild", "n", "Flächenant. [\\%]", "ECD [{u}]", "D50 (Q0) [{u}]", "Zirk."],
+        "fig_ovl": "Grössenverteilung der Partikel in {n} und Vergleichsverteilung {c} (relative Häufigkeit nach Anzahl, gestrichelt: $D_{{50}}$ (Q0)).",
         "tab_ovl": "Partikel in {n} und Vergleichsverteilung {c}.", "ovl_img": "Partikel (ECD)",
         "ovl_mean": "Mittelwert", "data_ovl": "Vergleichsverteilung {c}.",
         "methods": "Methodik", "results": "Ergebnisse",
@@ -49,21 +52,24 @@ T = {
         "fig_img": "Micrograph {n}{roi}.", "fig_img_roi": " with the measured selections",
         "fig_part": "Detected particles in {n} ({c} particles, outlines in cyan).",
         "fig_hist": "Grey-value histogram of {n}{thr}.", "fig_hist_thr": " with threshold range ({m})",
-        "fig_sizes": "Distribution of the equivalent circle diameter of the particles in {n}.",
+        "fig_sizes": "Number distribution (Q0) of the equivalent circle diameter of the particles in {n}{e}.",
+        "fig_sizes_e": ", edge-corrected after Miles and Lantuéjoul",
         "fig_shape": "Circularity versus equivalent diameter of the particles in {n}.",
         "fig_profile": "Grey-value profile along line {l} in {n}.",
-        "fig_cmp": "Cumulative distribution of the equivalent diameter: {n}.",
+        "fig_cmp": "Cumulative number distribution (Q0) of the equivalent diameter: {n}.",
         "tab_meas": "Measurements of the selections in {n}.", "tab_part": "Particle analysis of {n}.",
         "tab_cmp": "Particle analysis compared.",
         "data_part": "Particles in {n}: area, perimeter, shape, Feret, position, intensity.",
         "data_prof": "Grey-value profile along {l} in {n}.", "data_meas": "Measurements of the selections in {n}.",
         "h_quant": "Quantity", "h_val": "Value",
-        "rows": {"count": "Number of particles", "frac": "Area fraction", "area": "Mean area",
-                 "ecd": "Equivalent diameter", "d": "D10 / D50 / D90", "circ": "Circularity",
+        "rows": {"count": "Number of particles (measured)", "ncorr": "Number, edge-corrected", "frac": "Area fraction",
+                 "area": "Mean area",
+                 "ecd": "Equivalent diameter", "d": "D10 / D50 / D90 (number, Q0)",
+                 "dv": "Dv10 / Dv50 / Dv90 (volume, Q3)", "circ": "Circularity",
                  "feret": "Feret diameter", "ar": "Aspect ratio", "sol": "Solidity", "region": "Analysed area"},
         "meas_head": ["Selection", "Area", "Mean", "Std. dev.", "Min", "Max"],
-        "cmp_head": ["Image", "n", "Area fr. [\\%]", "ECD [{u}]", "D50 [{u}]", "Circ."],
-        "fig_ovl": "Size distribution of the particles in {n} and comparison distribution {c} (relative frequency, dashed: $D_{{50}}$).",
+        "cmp_head": ["Image", "n", "Area fr. [\\%]", "ECD [{u}]", "D50 (Q0) [{u}]", "Circ."],
+        "fig_ovl": "Size distribution of the particles in {n} and comparison distribution {c} (relative frequency by number, dashed: $D_{{50}}$ (Q0)).",
         "tab_ovl": "Particles in {n} and comparison distribution {c}.", "ovl_img": "Particles (ECD)",
         "ovl_mean": "Mean", "data_ovl": "Comparison distribution {c}.",
         "methods": "Methods", "results": "Results",
@@ -71,8 +77,8 @@ T = {
 }
 
 PART_COLS = ["#", "Area", "Perim.", "Circ.", "ECD", "Feret", "FeretAngle", "MinFeret", "Major", "Minor", "Angle",
-             "AR", "Round", "Solidity", "X", "Y", "BX", "BY", "Width", "Height", "Pixels", "Mean", "StdDev", "Min",
-             "Max", "IntDen"]
+             "AR", "Round", "Solidity", "X", "Y", "BX", "BY", "Width", "Height", "Pixels", "Weight", "Mean", "StdDev",
+             "Min", "Max", "IntDen"]
 
 
 def _u(calib):
@@ -100,10 +106,17 @@ def _fig(b, fig, id, caption, width="0.8"):
     b.add_figure(fig, id, caption, width=width, dpi=150)
 
 
+def _cal_text(calib) -> str:
+    """Pixelgrösse als Text: quadratisch „0.25 µm/px“, sonst „0.25 × 0.3 µm/px“ (Breite × Höhe)."""
+    if calib.square:
+        return f"{calib.pw:g} {calib.unit}/px"
+    return f"{calib.pw:g} × {calib.ph:g} {calib.unit}/px"
+
+
 def _data_cite(b: Bundle, a: Analysis, raw_len: int, lang: str):
     st = a.orig
     key = f"data-{b.slug}"
-    cal = f"{a.calib.pw:g} {a.calib.unit}/px" if a.calib.calibrated else ("unkalibriert" if lang == "de" else "uncalibrated")
+    cal = _cal_text(a.calib) if a.calib.calibrated else ("unkalibriert" if lang == "de" else "uncalibrated")
     b.add_citation(key, "misc", title=tex_escape(a.name),
                    howpublished=("Bilddatei" if lang == "de" else "Image file"),
                    note=tex_escape(f"{st.width}×{st.height} px, {st.type_label()}, {cal}, {raw_len / 1024:.0f} KiB"))
@@ -117,7 +130,9 @@ def _thr_cite(b: Bundle, a: Analysis):
     key = TH.METHODS[thr["method"]][1]
     ref = dict(TH.REFERENCES[key])
     et = ref.pop("entry_type")
-    b.add_citation(key, et, **{k: tex_escape(v) if k not in ("pages",) else v for k, v in ref.items()})
+    if key in TH.UNVERIFIED:
+        ref["note"] = "Angaben nicht verifiziert" if b.lang == "de" else "not verified"
+    b.add_citation(key, et, **{k: tex_escape(v) if k not in ("pages", "doi") else v for k, v in ref.items()})
     return key
 
 
@@ -148,7 +163,8 @@ def _overlay(a: Analysis) -> dict | None:
     except CMP.CompareError:
         return None
     ecd = np.array([r["ECD"] for r in a.part["rows"]], dtype=float)
-    return {"cmp": c, "vals": vals, "ecd": ecd, "s_img": CMP.stats(ecd), "s_ds": CMP.stats(vals)}
+    w = np.array([r.get("Weight", 1.0) for r in a.part["rows"]], dtype=float)   # Randkorrektur wie in der Zusammenfassung
+    return {"cmp": c, "vals": vals, "ecd": ecd, "w": w, "s_img": CMP.stats(ecd, w), "s_ds": CMP.stats(vals)}
 
 
 def _ovl_cite(b: Bundle, c: dict, lang: str) -> str:
@@ -180,6 +196,13 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
         k = _ws_cite(b, a)
         if k:
             cites["ws"] = k
+        if a.part is not None:
+            from .measure import QUANTILE_REF
+            qk, qref = QUANTILE_REF
+            qref = dict(qref)
+            et = qref.pop("entry_type")
+            b.add_citation(qk, et, **{k2: tex_escape(v) if k2 != "pages" else v for k2, v in qref.items()})
+            cites["q"] = qk
     part = a.part
     rows = part["rows"] if part else []
     summ = part["summary"] if part else {}
@@ -209,17 +232,19 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
             _fig(b, C.fig_hist(hv, lang, thr), "histogramm",
                  L["fig_hist"].format(n=n, thr=L["fig_hist_thr"].format(m=tex_escape(m)) if thr else ""), "0.75")
         if len(rows) >= 3:
-            _fig(b, C.fig_sizes(rows, u, lang), "groessen", L["fig_sizes"].format(n=n), "0.75")
+            ecorr = summ.get("EdgeCorrection") == "miles-lantuejoul"
+            _fig(b, C.fig_sizes(rows, u, lang), "groessen", L["fig_sizes"].format(n=n, e=L["fig_sizes_e"] if ecorr else ""), "0.75")
             _fig(b, C.fig_shape(rows, u, lang), "form", L["fig_shape"].format(n=n), "0.75")
         if ov:
             cname = ov["cmp"].get("name") or ov["cmp"].get("key")
             b.add_figure(C.fig_sizes_overlay(ov["ecd"], ov["vals"], u, lang,
-                                             (("Partikel" if lang == "de" else "Particles"), f"{cname}")),
+                                             (("Partikel" if lang == "de" else "Particles"), f"{cname}"), weights=ov["w"]),
                          "vergleichsverteilung", L["fig_ovl"].format(n=n, c=tex_escape(_ovl_name(ov["cmp"]))),
                          width="0.8", dpi=150, cites=[cites["cmp"]] if "cmp" in cites else None)
         for i, r in enumerate([r for r in (a.state.get("rois") or []) if r.get("type") == "line"][:3], 1):
             d, v = sample_line(a.intensity, r["x1"], r["y1"], r["x2"], r["y2"], int(r.get("width") or 1))
-            _fig(b, C.fig_profile(d * a.calib.pw, v, u, lang), f"profil{i}",
+            d = d * line_scale(a.calib, r["x2"] - r["x1"], r["y2"] - r["y1"])
+            _fig(b, C.fig_profile(d, v, u, lang), f"profil{i}",
                  L["fig_profile"].format(n=n, l=tex_escape(r.get("name") or str(i))), "0.75")
 
     if inc.get("tables", True):
@@ -243,34 +268,62 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
             R = L["rows"]
             nd = _nd(summ.get("MeanECD"))
             ndA = _nd(summ.get("AverageSize"))
-            tab = [[R["count"], num(summ["Count"], 0, lang)],
-                   [R["region"], num(summ["RegionArea"], _nd(summ["RegionArea"]), lang) + r"\," + tex_escape(u + "²")],
-                   [R["frac"], num(summ["AreaFraction"], 2, lang) + r"\,\%"],
-                   [R["area"], _pm(summ.get("AverageSize"), summ.get("SDSize"), ndA, lang, u + "²")],
-                   [R["ecd"], _pm(summ.get("MeanECD"), summ.get("SDECD"), nd, lang, u)]]
+            ecorr = summ.get("EdgeCorrection") == "miles-lantuejoul"
+            tab = [[R["count"], num(summ["Count"], 0, lang)]]
+            if ecorr and summ.get("CountCorrected") is not None:
+                tab.append([R["ncorr"], num(summ["CountCorrected"], 1, lang)])
+            tab += [[R["region"], num(summ["RegionArea"], _nd(summ["RegionArea"]), lang) + r"\," + tex_escape(u + "²")],
+                    [R["frac"], num(summ["AreaFraction"], 2, lang) + r"\,\%"],
+                    [R["area"], _pm(summ.get("AverageSize"), summ.get("SDSize"), ndA, lang, u + "²")],
+                    [R["ecd"], _pm(summ.get("MeanECD"), summ.get("SDECD"), nd, lang, u)]]
             if summ.get("D50") is not None:
                 tab.append([R["d"], " / ".join(num(summ[k], nd, lang) for k in ("D10", "D50", "D90")) + r"\," + ue])
+            if summ.get("Dv50") is not None:
+                tab.append([R["dv"], " / ".join(num(summ[k], nd, lang) for k in ("Dv10", "Dv50", "Dv90")) + r"\," + ue])
             tab += [[R["circ"], _pm(summ.get("MeanCirc"), summ.get("SDCirc"), 2, lang)],
                     [R["feret"], _pm(summ.get("MeanFeret"), summ.get("SDFeret"), nd, lang, u)],
                     [R["ar"], _pm(summ.get("MeanAR"), summ.get("SDAR"), 2, lang)],
                     [R["sol"], _pm(summ.get("MeanSolidity"), summ.get("SDSolidity"), 2, lang)]]
-            b.add_table("partikel", booktabs([L["h_quant"], L["h_val"]], tab, "lr"), L["tab_part"].format(n=n),
-                        notes=(r"Mittelwert $\pm$ Standardabweichung; ECD: Durchmesser des flächengleichen Kreises."
-                               if lang == "de" else r"Mean $\pm$ standard deviation; ECD: diameter of the circle of equal area."))
+            if lang == "de":
+                note = (r"Mittelwert $\pm$ Standardabweichung; ECD: Durchmesser des flächengleichen Kreises. "
+                        r"Q0: nach Anzahl gewichtet; Q3: nach Volumen gewichtet (ECD$^3$, Kugeln angenommen). "
+                        r"Flächenanteil aus allen Partikeln einschliesslich der am Rand.")
+                if ecorr:
+                    note += (r" Mittelwerte, Standardabweichungen und D-Werte randkorrigiert: Partikel am Rand der "
+                             r"Auswertungsfläche nicht vermessen, die übrigen nach Miles und Lantuéjoul gewichtet.")
+            else:
+                note = (r"Mean $\pm$ standard deviation; ECD: diameter of the circle of equal area. "
+                        r"Q0: weighted by number; Q3: weighted by volume (ECD$^3$, spheres assumed). "
+                        r"Area fraction from all particles including those at the border.")
+                if ecorr:
+                    note += (r" Means, standard deviations and D values edge-corrected: particles at the border of the "
+                             r"analysed area not measured, the others weighted after Miles and Lantuéjoul.")
+            b.add_table("partikel", booktabs([L["h_quant"], L["h_val"]], tab, "lr"), L["tab_part"].format(n=n), notes=note)
         if ov:
             si, sd = ov["s_img"], ov["s_ds"]
             nd = _nd(si.get("D50"))
             tab = [["n", num(si["n"], 0, lang), num(sd["n"], 0, lang)]]
-            tab += [[k, num(si[k], nd, lang) + r"\," + ue, num(sd[k], nd, lang) + r"\," + ue] for k in ("D10", "D50", "D90")]
-            tab.append([L["ovl_mean"], _pm(si["mean"], si["sd"], nd, lang, u), _pm(sd["mean"], sd["sd"], nd, lang, u)])
+            tab += [[f"{k} (Q0)", num(si[k], nd, lang) + r"\," + ue, num(sd[k], nd, lang) + r"\," + ue] for k in ("D10", "D50", "D90")]
+            tab += [[f"{k} (Q3)", num(si[k], nd, lang) + r"\," + ue, num(sd[k], nd, lang) + r"\," + ue] for k in ("Dv10", "Dv50", "Dv90")]
+            tab.append([L["ovl_mean"] + " (Q0)", _pm(si["mean"], si["sd"], nd, lang, u), _pm(sd["mean"], sd["sd"], nd, lang, u)])
             b.add_table("vergleichsverteilung", booktabs([L["h_quant"], L["ovl_img"], tex_escape(ov["cmp"].get("name") or "")], tab, "lrr"),
                         L["tab_ovl"].format(n=n, c=tex_escape(_ovl_name(ov["cmp"]))),
-                        cites=[cites["cmp"]] if "cmp" in cites else None)
+                        cites=[cites["cmp"]] if "cmp" in cites else None,
+                        notes=(r"Beide Spalten gleich berechnet: jeder Datensatzwert gilt als ein Teilchen; Q0 nach Anzahl, "
+                               r"Q3 nach Volumen ($d^3$) gewichtet. Kennwerte einer Laserbeugungsverteilung (meist Q3) sind "
+                               r"keine Einzelwerte und so nicht vergleichbar." if lang == "de" else
+                               r"Both columns computed alike: each dataset value counts as one particle; Q0 weighted by "
+                               r"number, Q3 by volume ($d^3$). Parameters of a laser-diffraction distribution (usually Q3) "
+                               r"are not individual values and cannot be compared this way."))
 
     if inc.get("values", True):
         vals = []
         if a.calib.calibrated:
-            vals.append(("px", "Pixelgrösse" if lang == "de" else "Pixel size", num(a.calib.pw, 4, lang, f"{u}/px"), f"{a.calib.pw:g} {u}/px"))
+            if a.calib.square:
+                vals.append(("px", "Pixelgrösse" if lang == "de" else "Pixel size", num(a.calib.pw, 4, lang, f"{u}/px"), f"{a.calib.pw:g} {u}/px"))
+            else:
+                vals.append(("px", "Pixelgrösse (Breite × Höhe)" if lang == "de" else "Pixel size (width × height)",
+                             num(a.calib.pw, 4, lang) + r"\,$\times$\," + num(a.calib.ph, 4, lang, f"{u}/px"), _cal_text(a.calib)))
         st = a.proc.stack
         vals.append(("imgW", "Bildbreite" if lang == "de" else "Image width", num(st.width * a.calib.pw, _nd(st.width * a.calib.pw), lang, u), ""))
         vals.append(("imgH", "Bildhöhe" if lang == "de" else "Image height", num(st.height * a.calib.ph, _nd(st.height * a.calib.ph), lang, u), ""))
@@ -290,15 +343,21 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
                          ("meanCirc", "Mittlere Zirkularität" if lang == "de" else "Mean circularity", num(summ["MeanCirc"], 2, lang), f"{summ['MeanCirc']:.2f}"),
                          ("meanFeret", "Mittlerer Feret-Durchmesser" if lang == "de" else "Mean Feret diameter", num(summ["MeanFeret"], nd, lang, u), "")]
                 if summ.get("D50") is not None:
-                    vals += [(k, k, num(summ[k], nd, lang, u), f"{summ[k]:.{nd}f} {u}") for k in ("D10", "D50", "D90")]
+                    vals += [(k, f"{k} (Q0)", num(summ[k], nd, lang, u), f"{summ[k]:.{nd}f} {u}") for k in ("D10", "D50", "D90")]
+                if summ.get("Dv50") is not None:
+                    vals += [(k, f"{k} (Q3)", num(summ[k], nd, lang, u), f"{summ[k]:.{nd}f} {u}") for k in ("Dv10", "Dv50", "Dv90")]
+                if summ.get("EdgeCorrection") == "miles-lantuejoul":
+                    vals.append(("nCorr", "Anzahl randkorrigiert" if lang == "de" else "Number, edge-corrected",
+                                 num(summ["CountCorrected"], 1, lang), f"{summ['CountCorrected']:.1f}"))
         if ov:
             sd, cn = ov["s_ds"], ov["cmp"].get("name") or ""
             nd = _nd(sd.get("D50"))
             vals.append(("cmpN", f"{cn}: n", num(sd["n"], 0, lang), str(sd["n"])))
-            vals += [(f"cmp{k}", f"{cn}: {k}", num(sd[k], nd, lang, u), f"{sd[k]:.{nd}f} {u}") for k in ("D10", "D50", "D90")]
+            vals += [(f"cmp{k}", f"{cn}: {k} (Q0)", num(sd[k], nd, lang, u), f"{sd[k]:.{nd}f} {u}") for k in ("D10", "D50", "D90")]
+            vals += [(f"cmp{k}", f"{cn}: {k} (Q3)", num(sd[k], nd, lang, u), f"{sd[k]:.{nd}f} {u}") for k in ("Dv10", "Dv50", "Dv90")]
             r = _ovl_ratio(ov)
             if r is not None:
-                vals.append(("cmpRatio", "D50 Partikel / " + cn if lang == "de" else "D50 particles / " + cn,
+                vals.append(("cmpRatio", "D50 (Q0) Partikel / " + cn if lang == "de" else "D50 (Q0) particles / " + cn,
                              num(r, 2, lang), f"{r:.2f}"))
         for i, m in enumerate(a.measurements, 1):
             if m.get("Mean") is not None and m.get("Type") != "point":
@@ -318,6 +377,7 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
                                    "Circ": "Zirkularität" if lang == "de" else "Circularity",
                                    "Feret": f"Feret [{ue}]", "Perim": f"Umfang [{ue}]" if lang == "de" else f"Perimeter [{ue}]",
                                    "AR": "AR", "Solidity": "Solidity", "Mean": "Mittelwert" if lang == "de" else "Mean",
+                                   "Weight": "Gewicht (Randkorrektur)" if lang == "de" else "Weight (edge correction)",
                                    "X": f"x [{ue}]", "Y": f"y [{ue}]"},
                            plot={"x": "ECD", "y": "Circ", "style": "marks"})
         if ov:
@@ -326,7 +386,8 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
                            labels={"d": f"{tex_escape(ov['cmp'].get('name') or 'd')} [{ue}]"})
         for i, r in enumerate([r for r in (a.state.get("rois") or []) if r.get("type") == "line"][:3], 1):
             d, v = sample_line(a.intensity, r["x1"], r["y1"], r["x2"], r["y2"], int(r.get("width") or 1))
-            b.add_data_csv(f"profil{i}", ["d", "value"], [[float(x), float(y)] for x, y in zip(d * a.calib.pw, v)],
+            d = d * line_scale(a.calib, r["x2"] - r["x1"], r["y2"] - r["y1"])
+            b.add_data_csv(f"profil{i}", ["d", "value"], [[float(x), float(y)] for x, y in zip(d, v)],
                            L["data_prof"].format(n=n, l=tex_escape(r.get("name") or str(i))),
                            labels={"d": ("Abstand" if lang == "de" else "Distance") + f" [{ue}]",
                                    "value": "Grauwert" if lang == "de" else "Grey value"},
@@ -372,17 +433,35 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
             c_ws = f" \\cite{{{cites['ws']}}}" if "ws" in cites else ""
             m.append("Sich berührende Teilchen wurden mit einer Wasserscheide auf der euklidischen Distanzkarte getrennt "
                      f"(Marker aus den h-Maxima, Flutung nach Vincent und Soille){c_ws}.")
+        if a.calib.calibrated:
+            m.append("Die Pixel wurden als quadratisch behandelt" + (" (nur eine Pixelgrösse bekannt, Pixelhöhe gleich Pixelbreite angenommen)." if a.calib.square_assumed else ".")
+                     if a.calib.square else
+                     "Die Pixel sind nicht quadratisch; Flächen, Längen, Umfänge, Feret-Durchmesser und Ellipsenachsen wurden mit getrennter Pixelbreite und -höhe berechnet.")
         if a.part is not None:
             P = {**{"size_min": 0, "size_max": None, "circ_min": 0, "circ_max": 1}, **(a.state.get("particles") or {})}
             unit = "Pixel" if P.get("size_in_pixels") else tex_escape(_u(a.calib) + "²")
             smax = "∞" if P.get("size_max") in (None, "", "inf") else num(P["size_max"], 2, lang)
+            total = P.get("perimeter") == "total" and not P.get("include_holes")
             m.append(f"Partikel wurden als zusammenhängende Bereiche des Binärbildes (8er-Nachbarschaft) erfasst, "
                      f"mit einer Fläche von {num(P.get('size_min') or 0, 2, lang)} bis {tex_escape(smax)}\\,{unit} und einer Zirkularität "
                      f"$4\\pi A/U^2$ von {num(P.get('circ_min') or 0, 2, lang)} bis {num(P.get('circ_max') if P.get('circ_max') is not None else 1, 2, lang)}"
-                     + ("; Partikel am Bildrand wurden verworfen" if P.get("exclude_edges", True) else "")
                      + ("; Löcher wurden der Partikelfläche zugerechnet" if P.get("include_holes") else "") + ". "
-                     "Der Umfang folgt der Kontur durch die Mittelpunkte der Randpixel, der Äquivalentdurchmesser (ECD) "
-                     "ist der Durchmesser des flächengleichen Kreises.")
+                     "Der Umfang ist die Länge der Marching-Squares-Kontur zwischen den Pixelmitten (gerade Schritte eine "
+                     "Pixelkante, Ecken als halbe Pixeldiagonale), "
+                     + ("einschliesslich der Ränder von Löchern" if total else "nur die Aussenkontur (Löcher gefüllt)")
+                     + "; der Äquivalentdurchmesser (ECD) ist der Durchmesser des flächengleichen Kreises.")
+            if P.get("exclude_edges", True):
+                m.append("Vermessen wurden nur Partikel, deren Begrenzungsrechteck den Rand der ausgewerteten Fläche nicht "
+                         "berührt; jedes wurde nach Miles und Lantuéjoul mit dem Kehrwert des Anteils der Lagen gewichtet, "
+                         "in denen ein Rechteck seiner Grösse den Rand nicht berührt (Bild $W\\times H$, Rechteck $w\\times h$ "
+                         "Pixel: $WH/((W-w-1)(H-h-1))$). Mittelwerte, Standardabweichungen und D-Werte sind mit diesen Gewichten "
+                         "berechnet; der Flächenanteil enthält auch die Partikel am Rand.")
+            else:
+                m.append("Partikel am Rand der ausgewerteten Fläche wurden mit ihrem sichtbaren Teil vermessen (keine Randkorrektur).")
+            m.append("$D_{10}$, $D_{50}$ und $D_{90}$ sind Quantile der Anzahlverteilung (Q0) des ECD, $D_{v10}$, $D_{v50}$ "
+                     "und $D_{v90}$ der Volumenverteilung (Q3, Gewicht ECD$^3$, Kugeln angenommen); Quantile nach der "
+                     "Mittelpunktsregel (bei gleichen Gewichten Definition 5 nach Hyndman und Fan"
+                     + (f" \\cite{{{cites['q']}}}" if "q" in cites else "") + ").")
     else:
         m.append(f"The micrograph {tex_escape(a.name)}{c_data} ({st.width}\\,$\\times$\\,{st.height} pixels, {tex_escape(st.type_label())}"
                  + (f", pixel size {v('px')}" if "px" in have else ", without length calibration") + ") was analysed.")
@@ -395,35 +474,59 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
             c_ws = f" \\cite{{{cites['ws']}}}" if "ws" in cites else ""
             m.append("Touching particles were separated by a watershed on the Euclidean distance map "
                      f"(markers from the h-maxima, flooding after Vincent and Soille){c_ws}.")
+        if a.calib.calibrated:
+            m.append("Pixels were treated as square" + (" (only one pixel size known; pixel height assumed equal to pixel width)." if a.calib.square_assumed else ".")
+                     if a.calib.square else
+                     "The pixels are not square; areas, lengths, perimeters, Feret diameters and ellipse axes were computed with separate pixel width and height.")
         if a.part is not None:
             P = {**{"size_min": 0, "size_max": None, "circ_min": 0, "circ_max": 1}, **(a.state.get("particles") or {})}
             unit = "pixels" if P.get("size_in_pixels") else tex_escape(_u(a.calib) + "²")
             smax = "∞" if P.get("size_max") in (None, "", "inf") else num(P["size_max"], 2, lang)
+            total = P.get("perimeter") == "total" and not P.get("include_holes")
             m.append(f"Particles were detected as connected regions of the binary image (8-connectivity) with an area of "
                      f"{num(P.get('size_min') or 0, 2, lang)} to {tex_escape(smax)}\\,{unit} and a circularity $4\\pi A/P^2$ of "
                      f"{num(P.get('circ_min') or 0, 2, lang)} to {num(P.get('circ_max') if P.get('circ_max') is not None else 1, 2, lang)}"
-                     + ("; particles touching the image border were excluded" if P.get("exclude_edges", True) else "")
                      + ("; holes were counted as particle area" if P.get("include_holes") else "") + ". "
-                     "The perimeter follows the contour through the centres of the boundary pixels; the equivalent circle "
-                     "diameter (ECD) is the diameter of the circle of equal area.")
+                     "The perimeter is the length of the marching-squares contour between the pixel centres (straight steps "
+                     "one pixel edge, corners cut by half a pixel diagonal), "
+                     + ("including the boundaries of holes" if total else "outer contour only (holes filled)")
+                     + "; the equivalent circle diameter (ECD) is the diameter of the circle of equal area.")
+            if P.get("exclude_edges", True):
+                m.append("Only particles whose bounding box does not touch the border of the analysed area were measured; "
+                         "each was weighted after Miles and Lantuéjoul by the inverse fraction of positions in which a box of "
+                         "its size does not touch the border (image $W\\times H$, box $w\\times h$ pixels: "
+                         "$WH/((W-w-1)(H-h-1))$). Means, standard deviations and D values use these weights; the area "
+                         "fraction includes the particles at the border.")
+            else:
+                m.append("Particles at the border of the analysed area were measured with their visible part (no edge correction).")
+            m.append("$D_{10}$, $D_{50}$ and $D_{90}$ are quantiles of the number distribution (Q0) of the ECD, $D_{v10}$, "
+                     "$D_{v50}$ and $D_{v90}$ of the volume distribution (Q3, weight ECD$^3$, spheres assumed); quantiles by "
+                     "the midpoint rule (for equal weights definition 5 of Hyndman and Fan"
+                     + (f" \\cite{{{cites['q']}}}" if "q" in cites else "") + ").")
     b.add_text("methodik", " ".join(m) + "\n", T[lang]["methods"])
 
     r = []
     if a.part is not None and "n" in have:
         if de:
-            r.append(f"In {tex_escape(a.name)} wurden {v('n')} Partikel erfasst; sie bedecken {v('areaFrac')} der ausgewerteten Fläche.")
+            r.append(f"In {tex_escape(a.name)} wurden {v('n')} Partikel vermessen"
+                     + (f" (randkorrigiert {v('nCorr')})" if "nCorr" in have else "")
+                     + f"; die Partikel bedecken {v('areaFrac')} der ausgewerteten Fläche.")
             if "meanECD" in have:
                 r.append(f"Der mittlere Äquivalentdurchmesser beträgt {v('meanECD')} (Standardabweichung {v('sdECD')}), die mittlere Fläche {v('meanArea')}.")
             if "D50" in have:
-                r.append(f"Die Grössenverteilung hat die Kennwerte $D_{{10}}$ = {v('D10')}, $D_{{50}}$ = {v('D50')} und $D_{{90}}$ = {v('D90')}.")
+                r.append(f"Die Anzahlverteilung (Q0) hat die Kennwerte $D_{{10}}$ = {v('D10')}, $D_{{50}}$ = {v('D50')} und $D_{{90}}$ = {v('D90')}"
+                         + (f"; nach Volumen (Q3) ist $D_{{v50}}$ = {v('Dv50')}." if "Dv50" in have else "."))
             if "meanCirc" in have:
                 r.append(f"Die mittlere Zirkularität liegt bei {v('meanCirc')} (1 entspricht einem Kreis), der mittlere Feret-Durchmesser bei {v('meanFeret')}.")
         else:
-            r.append(f"{v('n')} particles were detected in {tex_escape(a.name)}, covering {v('areaFrac')} of the analysed area.")
+            r.append(f"{v('n')} particles were measured in {tex_escape(a.name)}"
+                     + (f" (edge-corrected {v('nCorr')})" if "nCorr" in have else "")
+                     + f"; the particles cover {v('areaFrac')} of the analysed area.")
             if "meanECD" in have:
                 r.append(f"The mean equivalent diameter is {v('meanECD')} (standard deviation {v('sdECD')}), the mean area {v('meanArea')}.")
             if "D50" in have:
-                r.append(f"The size distribution has $D_{{10}}$ = {v('D10')}, $D_{{50}}$ = {v('D50')} and $D_{{90}}$ = {v('D90')}.")
+                r.append(f"The number distribution (Q0) has $D_{{10}}$ = {v('D10')}, $D_{{50}}$ = {v('D50')} and $D_{{90}}$ = {v('D90')}"
+                         + (f"; by volume (Q3), $D_{{v50}}$ = {v('Dv50')}." if "Dv50" in have else "."))
             if "meanCirc" in have:
                 r.append(f"The mean circularity is {v('meanCirc')} (1 is a circle); the mean Feret diameter is {v('meanFeret')}.")
     c = a.state.get("compare") or {}
@@ -433,14 +536,14 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
         c_cmp = f" \\cite{{{cites['cmp']}}}" if "cmp" in cites else ""
         if de:
             r.append(f"Zum Vergleich wurde die Spalte ,,{col}`` des Datensatzes ,,{ttl}`` (Version {c.get('version')}){c_cmp} "
-                     f"herangezogen ({v('cmpN')} Werte). Ihre Verteilung hat $D_{{10}}$ = {v('cmpD10')}, $D_{{50}}$ = {v('cmpD50')} "
+                     f"herangezogen ({v('cmpN')} Werte, jeder als ein Teilchen gezählt). Ihre Anzahlverteilung (Q0) hat $D_{{10}}$ = {v('cmpD10')}, $D_{{50}}$ = {v('cmpD50')} "
                      f"und $D_{{90}}$ = {v('cmpD90')}"
-                     + (f"; der $D_{{50}}$ der Partikel beträgt das {v('cmpRatio')}-Fache davon." if "cmpRatio" in have else "."))
+                     + (f"; der $D_{{50}}$ (Q0) der Partikel beträgt das {v('cmpRatio')}-Fache davon." if "cmpRatio" in have else "."))
         else:
             r.append(f"For comparison, the column ``{col}'' of the dataset ``{ttl}'' (version {c.get('version')}){c_cmp} was used "
-                     f"({v('cmpN')} values). Its distribution has $D_{{10}}$ = {v('cmpD10')}, $D_{{50}}$ = {v('cmpD50')} "
+                     f"({v('cmpN')} values, each counted as one particle). Its number distribution (Q0) has $D_{{10}}$ = {v('cmpD10')}, $D_{{50}}$ = {v('cmpD50')} "
                      f"and $D_{{90}}$ = {v('cmpD90')}"
-                     + (f"; the particle $D_{{50}}$ is {v('cmpRatio')} times that value." if "cmpRatio" in have else "."))
+                     + (f"; the particle $D_{{50}}$ (Q0) is {v('cmpRatio')} times that value." if "cmpRatio" in have else "."))
     for i, mm in enumerate(a.measurements, 1):
         if f"roi{i}Mean" in have:
             lab = tex_escape(mm["Label"])
@@ -469,7 +572,8 @@ def _multi(b: Bundle, analyses: list[Analysis], raws: list[int], lang: str, inc:
     with_p = [a for a in analyses if a.part]
     if inc.get("figures", True):
         if with_p:
-            series = [(a.name, [r["ECD"] for r in a.part["rows"]]) for a in with_p]
+            series = [(a.name, [r["ECD"] for r in a.part["rows"]], [r.get("Weight", 1.0) for r in a.part["rows"]])
+                      for a in with_p]
             b.add_figure(C.fig_compare(series, u, lang), "vergleich",
                          L["fig_cmp"].format(n=tex_escape(", ".join(a.name for a in with_p))), width="0.8", dpi=150)
         for i, a in enumerate(analyses, 1):

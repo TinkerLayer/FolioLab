@@ -1,7 +1,8 @@
 """Funktionelle Gruppen: Korrelationstabelle der Gruppenfrequenzen und Auswertung eines Spektrums.
 
-Bereiche nach den gängigen Tabellenwerken (Socrates, Infrared and Raman Characteristic Group Frequencies, 3. Aufl.,
-2001; Silverstein/Webster, Spectrometric Identification of Organic Compounds). Die Bewertung ist ein Hinweis, keine
+Bereiche nach den gängigen Tabellenwerken (G. Socrates, Infrared and Raman Characteristic Group Frequencies, 3. Aufl.,
+Wiley 2001; R. M. Silverstein, F. X. Webster, D. J. Kiemle, D. L. Bryce, Spectrometric Identification of Organic
+Compounds, 8. Aufl., Wiley 2014; einzelne Einträge sind keiner Seite zugeordnet). Die Bewertung ist ein Hinweis, keine
 Identifizierung: Sie prüft, ob die typischen Banden einer Gruppe mit passender Stärke vorhanden sind, und nennt
 fehlende Schlüsselbanden.
 """
@@ -231,19 +232,58 @@ def _en(nm, spec):
     return nm
 
 
-def assign(x0: float, strength: str = "m", lang: str = "de", n: int = 3) -> list[str]:
-    """Mögliche Zuordnungen einer Bande (enge, zur Stärke passende Bereiche zuerst)."""
+ASSIGN_TOL = 4.0          # cm⁻¹: Tabellenbereiche gelten um so viel erweitert (Messunsicherheit der Bandenlage)
+BROAD_MIN = 30.0          # cm⁻¹: schmalere Banden passen nicht zu breiten Tabellenbanden (O–H, Carbonat, Sulfat …)
+EXTRA_GROUPS = {"fluoro": ("Fluor",)}    # Stoffklassen, deren Banden nur als Bereich angegeben sind
+
+
+def class_groups(cid: str) -> set:
+    """Tabellengruppen (Spalte "Gruppe" der Korrelationstabelle) einer Stoffklasse: die Gruppen aller Tabellenbanden,
+    die die Klasse als nötig oder stützend nennt."""
+    for c in CLASSES:
+        if c[0] != cid:
+            continue
+        out = set(EXTRA_GROUPS.get(cid, ()))
+        for spec, _lvl in list(c[3]) + list(c[4]):
+            ids = spec if isinstance(spec, tuple) else (spec,)
+            out |= {_T[i][7] for i in ids if isinstance(i, str) and i in _T}
+        return out
+    return set()
+
+
+def context_of(groups_result: dict | None) -> dict:
+    """Gruppe -> Rang aus der Gruppenbewertung des ganzen Spektrums: 0 = Klasse „wahrscheinlich“, 1 = „möglich“."""
+    ctx: dict = {}
+    for c in (groups_result or {}).get("classes", []):
+        r = {"wahrscheinlich": 0, "möglich": 1}.get(c.get("verdict"))
+        if r is None:
+            continue
+        for g in class_groups(c["id"]):
+            ctx[g] = min(ctx.get(g, 9), r)
+    return ctx
+
+
+def assign(x0: float, strength: str = "m", lang: str = "de", n: int = 3, fwhm: float | None = None,
+           context: dict | None = None) -> list[str]:
+    """Mögliche Zuordnungen einer Bande. Es passen alle Tabellenbereiche, die (um ASSIGN_TOL erweitert) die Lage
+    enthalten. Reihenfolge: (1) Form passt (eine Bande schmaler als BROAD_MIN gehört nicht zu einer breiten
+    Tabellenbande), (2) Gruppe einer Stoffklasse, die die Gruppenbewertung des Spektrums als „wahrscheinlich“ (vor
+    „möglich“, vor allen anderen) einstuft (context, siehe context_of), (3) Lage im nicht erweiterten Bereich,
+    (4) engerer Bereich, (5) Stärke passt zur Tabelle. Die Stärke kommt zuletzt, weil sie relativ zur stärksten Bande
+    des Spektrums gilt und wenig über die Gruppe aussagt."""
     order = {"vs": 3, "s": 3, "m": 2, "w": 1}
+    ctx = context or {}
     hits = []
     for t in TABLE:
         lo, hi = min(t[1], t[2]), max(t[1], t[2])
-        if lo - 4 <= x0 <= hi + 4:
+        if lo - ASSIGN_TOL <= x0 <= hi + ASSIGN_TOL:
             width = hi - lo
             mism = abs(order.get(strength, 2) - order.get(t[3], 2))
             inside = 0 if lo <= x0 <= hi else 1
-            hits.append((inside, mism, width, t[5] if lang == "de" else t[6]))
+            shape_bad = 1 if (fwhm is not None and t[4] == "br" and float(fwhm) < BROAD_MIN) else 0
+            hits.append((shape_bad, ctx.get(t[7], 2), inside, width, mism, t[5] if lang == "de" else t[6]))
     hits.sort()
-    return [h[3] for h in hits[:n]]
+    return [h[5] for h in hits[:n]]
 
 
 def table(lang: str = "de") -> list[dict]:

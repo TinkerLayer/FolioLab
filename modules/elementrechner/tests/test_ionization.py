@@ -46,7 +46,10 @@ class Ionization(unittest.TestCase):
     def test_rechner_function(self):
         from labcalc import expr as E
         E._register_chem()
+        # Rechner 1.4.0: IE() is an energy in J (shown with -> eV); IE_eV() keeps the plain number in eV
         r = E.STRFUNCS["IE"][0](None, "Na", 1)
+        self.assertAlmostEqual(float(getattr(r, "value", r)) / 1.602176634e-19, IO.ie(11, 1)["eV"], places=9)
+        r = E.STRFUNCS["IE_eV"][0](None, "Na", 1)
         self.assertAlmostEqual(float(getattr(r, "value", r)), IO.ie(11, 1)["eV"], places=9)
 
 

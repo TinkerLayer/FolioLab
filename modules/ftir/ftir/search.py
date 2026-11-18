@@ -5,12 +5,16 @@ Trefferqualität (HQI, 0–100, 100 = deckungsgleich), berechnet nur im gemeinsa
   euclid   Euklidischer Abstand:   HQI = 100 · (1 − d²/2) der auf Länge 1 normierten Spektren (= Kosinus)
   dcorr    1. Ableitung, Korrelation;  deuclid  1. Ableitung, euklidisch (betonen Bandenlagen, unempfindlich
            gegen Basislinien)
-  peaks    Peaksuche: Anteil der Banden, die sich innerhalb der Toleranz entsprechen (beidseitig gewichtet)
+  peaks    Peaksuche: Anteil der Banden, die sich innerhalb der Toleranz entsprechen (beidseitig gewichtet); Banden
+           von Probe und Referenz werden mit denselben Parametern gesucht (PEAK_PARAMS, auch dasselbe S/N-Kriterium)
 Deckt eine Referenz den gewählten Bereich nur teilweise ab, sinkt der HQI anteilig (unter 90 % Abdeckung).
 
-Mischungen: Kombinationen aus 2–3 (bis 4) Referenzen werden mit nicht-negativen Gewichten und freiem
-Achsenabschnitt an das Spektrum angepasst; HQI = 100 · R² der Anpassung. Gewichte sind Anteile an der Absorbanz,
-keine Massenanteile.
+Mischungen: Für jede Teilmenge von 1 bis K (Standard 3, höchstens 4) Kandidaten wird das Spektrum als gewichtete
+Summe der Referenzen mit freiem Achsenabschnitt angepasst; die Gewichte müssen positiv sein. Gelöst wird je Teilmenge
+das NNLS-Problem (nicht-negative kleinste Quadrate, Problemstellung nach Lawson & Hanson 1974) exakt durch Aufzählen
+aller Trägermengen (vollständige Suche über Teilmengen, nicht der aktive-Mengen-Algorithmus von Lawson & Hanson).
+HQI = 100 · R² der Anpassung. Die Anteile sind Flächenanteile: Anteil der Komponente an der Fläche des angepassten,
+normierten Absorbanzspektrums (spektraler Beitrag), keine Massen- oder Volumenanteile.
 """
 from __future__ import annotations
 
@@ -28,6 +32,17 @@ ALGOS = {
     "peaks": ("Peaksuche", "Peak search"),
 }
 DEFAULT_EXCLUDE = [[2400.0, 2280.0]]          # CO₂
+
+# Peaksuche: Banden zweier Spektren entsprechen sich, wenn |Δν̃| ≤ PEAK_TOL + PEAK_TOL_REL · ν̃ (6 cm⁻¹ + 0,4 %, also
+# ≈ 8 cm⁻¹ bei 500, 10 bei 1000, 18 bei 3000 cm⁻¹). Mit der Wellenzahl wachsend, weil Banden oberhalb 2800 cm⁻¹ (O–H,
+# N–H, C–H) breiter sind und ihre Lage stärker von Wasserstoffbrücken und Probenzustand abhängt. Ohne externe Quelle.
+PEAK_TOL, PEAK_TOL_REL = 6.0, 0.004
+# gleiche Bandensuche für Probe und Referenz (Prominenz 1,5 %, Abstand 6 cm⁻¹, höchstens 40, S/N ≥ 10)
+PEAK_PARAMS = {"prominence": 1.5, "distance": 6, "max": 40, "snr": 10.0}
+
+
+def peak_tolerance(x) -> np.ndarray:
+    return PEAK_TOL + PEAK_TOL_REL * np.asarray(x, float)
 
 
 def region_mask(include=None, exclude=None) -> np.ndarray:
@@ -80,10 +95,10 @@ def _scores(q: np.ndarray, L: np.ndarray, mask: np.ndarray, kind: str, mats=None
     return hqi, cov_frac
 
 
-def _peak_scores(q: np.ndarray, lib: Library, mask: np.ndarray, tol: float = 6.0):
+def _peak_scores(q: np.ndarray, lib: Library, mask: np.ndarray):
     from . import peaks as PK
     v = np.isfinite(q) & mask
-    p = PK.find(GRID[v], np.nan_to_num(q[v]).astype(float), "A", {"prominence": 1.5, "distance": 6, "max": 40})
+    p = PK.find(GRID[v], np.nan_to_num(q[v]).astype(float), "A", PEAK_PARAMS)
     qx = np.array([a["x"] for a in p])
     qw = np.array([a["rel"] for a in p])
     lo, hi = GRID[v].min(), GRID[v].max()
@@ -98,7 +113,7 @@ def _peak_scores(q: np.ndarray, lib: Library, mask: np.ndarray, tol: float = 6.0
         if not len(lx):
             continue
         dq = np.abs(qx[:, None] - lx[None, :])
-        tq = tol + 0.004 * qx[:, None]
+        tq = peak_tolerance(qx[:, None])
         mq = (dq <= tq).any(1)
         ml = (dq <= tq).any(0)
         a = float((qw * mq).sum() / qw.sum())
@@ -169,7 +184,9 @@ def scaled_overlay(q: np.ndarray, l: np.ndarray, wq: np.ndarray) -> np.ndarray:
 
 # ----------------------------------------------------------------------------- Mischungen
 def _nnls_small(G: np.ndarray, b: np.ndarray):
-    """min |y - Xw|² mit w ≥ 0 für kleine k über alle Teilmengen (G = XᵀX, b = Xᵀy). Gibt (w, Abnahme der SSQ)."""
+    """min |y - Xw|² mit w ≥ 0 für kleine k (G = XᵀX, b = Xᵀy), exakt durch Aufzählen aller Trägermengen S: je S
+    ungebundene kleinste Quadrate, gültig nur mit allen Gewichten > 0; das Optimum des NNLS-Problems ist die gültige
+    Lösung mit der grössten Abnahme der Quadratsumme. Gibt (w, Abnahme der SSQ)."""
     k = len(b)
     best_w, best_gain = np.zeros(k), 0.0
     for r in range(1, k + 1):
@@ -281,9 +298,12 @@ def mixture(q: np.ndarray, libs: list[Library], include=None, exclude=None, max_
             comps.append({"lib": lib.id, "lib_name": lib.name, "id": lib.entries[i]["id"], "name": lib.entries[i]["name"],
                           "source": lib.entries[i].get("source", ""), **lib.cite_fields(lib.entries[i]),
                           "weight": float(wj), "_j": j})
+        # Flächenanteil (spektraler Beitrag): Anteil der Komponente an der Fläche der angepassten Summe der normierten
+        # Referenzen im gemeinsamen Bereich – keine Massen- oder Volumenanteile
         tot = sum(c["weight"] * float(np.sum(np.clip(Xm[c["_j"]], 0, None))) for c in comps) or 1.0
         for c in comps:
             c["frac"] = c["weight"] * float(np.sum(np.clip(Xm[c.pop("_j")], 0, None))) / tot
+            c["frac_kind"] = "area"
         combos.append({"hqi": round(hqi, 2), "n": len(S), "components": comps, "_S": S, "_w": w})
         if len(combos) >= top * 3:
             break

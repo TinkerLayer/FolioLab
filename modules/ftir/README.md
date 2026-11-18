@@ -20,8 +20,9 @@ rebuilt. Folio Lab therefore ships three things:
   repository contains 196 spectra of 104 substances, mostly plastics, from the sources that allow redistribution
   (Microplastix SpecDB, Davidson et al. 2023, Primpke et al. 2018). `python tools/fetch_optional_data.py openspecy`
   adds the other 1486 on your computer as a second library, *Open Specy, restricted licences*. The full set has 1682
-  spectra of 1223 substances from the Open Specy collection (Cowger et al. 2025, *Anal. Chem.*, doi:10.1021/acs.analchem.5c00962; data
-  doi:10.17605/OSF.IO/X7DPZ). Among others, it contains RRUFF (minerals), SWGDRUG (drugs), Kimmel Center,
+  spectra of 1223 substances from the Open Specy collection (Cowger et al. 2021, *Anal. Chem.* 93, 7543–7548,
+  doi:10.1021/acs.analchem.1c00123; Cowger et al. 2025, *Anal. Chem.*, doi:10.1021/acs.analchem.5c00962, details not
+  verified; data doi:10.17605/OSF.IO/X7DPZ). Among others, it contains RRUFF (minerals), SWGDRUG (drugs), Kimmel Center,
   Primpke 2018 and AWI (plastics, fibres, natural materials), PSLC, FLOPP, Microplastix and more.
   By category: mineral/filler 732, drug 411, plastic 275, chemical 114, natural material 71, fibre 35,
   elastomer 34, paint/coating 6, pigment 4. Each entry names its origin (citation) and, where stated, the
@@ -74,8 +75,11 @@ displayed formula in the methods text, with its source.
    SQZ/DIF/DUP, multiple blocks), Thermo OMNIC (`.spa`), GRAMS/Galactic (`.spc`, new format, also several
    spectra), Agilent MicroLab (`.fir`, Cary 630 / 4300 Handheld: SPC with resolution, SampleID and source file),
    Bruker OPUS (`.0`, `.1`, …; not yet checked, see Limitations) and text/CSV (comma, semicolon, tab, space;
-   decimal comma; several y columns = several spectra; wavelength in µm/nm is converted). Transmittance and
-   absorbance are detected. The *File ▸ Beispiel: …* (example) entries load three calculated examples.
+   decimal comma; several y columns = several spectra; wavelength in µm/nm is converted). Units stated in the file
+   (column header, JCAMP `##XUNITS`/`##YUNITS`, SPC axis codes) are used; SPC x axes that are not a wavenumber or
+   wavelength are refused. If the file states no unit, it is guessed (x: largest value ≤ 50 → wavelength in µm,
+   otherwise cm⁻¹; y: from the values) and a notice appears with the button *Einheiten …* (units) to choose them.
+   The *File ▸ Beispiel: …* (example) entries load three calculated examples.
    **Signal quality:** for every spectrum, the noise, the signal-to-noise ratio (status line) and noisy regions
    are determined. Notes appear above the plot: noisy region (typical for diamond ATR at 2300–1900 cm⁻¹,
    hatched in the plot), weak signal (S/N < 50; "check sample contact" below 15), possible saturation
@@ -83,15 +87,19 @@ displayed formula in the methods text, with its source.
 2. **Edit** (*Edit (Bearbeiten)* tab or *Edit* menu): choose a step and set its parameters. The **preview** shows
    before (grey), baseline (dashed) and after; *Anwenden* (apply) adds the step to the **protocol**. Steps:
    absorbance ↔ transmittance, Kubelka-Munk, baseline (rubber band, ALS, polynomial, anchor points set by hand with
-   tool **B**), smoothing (Savitzky-Golay, moving average), bridge CO₂, ATR correction, normalise (maximum,
-   min-max, vector, area, band), cut, interpolate, offset, scale, 1st/2nd derivative. The protocol is always
+   tool **B**), smoothing (Savitzky-Golay, moving average), bridge CO₂ (2390–2280 and 680–655 cm⁻¹; the wider
+   ranges used up to version 1.4 can be chosen; a notice appears if a sample band seems to reach into the range),
+   ATR correction (y · ν̃/ν̃_ref, penetration depth ∝ wavelength), normalise (maximum, min-max, vector, area, band;
+   "band" only for absorbance-like spectra), cut, interpolate, offset, scale, 1st/2nd derivative. The protocol is always
    applied to the original (interface, export and report are identical). It can be undone step by step, saved and
    loaded as JSON, and applied to all spectra.
 3. **Bands** (*Bands (Banden)* tab): automatic search (prominence, minimum distance, threshold, maximum number,
    minimum S/N; minima for transmittance) with position, height, intensity (vs/s/m/w, broad), FWHM and possible
    assignment. Clicking a band shows up to six assignments. Tool **P** sets bands by hand, **D** deletes them.
    **Band areas** (*Band areas (Bandenflächen)*): drag a range with tool **R** or type it in (base: straight line or
-   zero), plus **ratios** (*Ratios (Verhältnisse)*) of areas or heights (e.g. carbonyl index).
+   zero), plus **ratios** (*Ratios (Verhältnisse)*) of areas or heights (e.g. carbonyl index). For transmittance
+   and reflectance, areas, heights and FWHM are computed on absorbance (−log₁₀(T/100)) or log(1/R); only there are
+   they proportional to the amount.
 4. **Groups** (*Groups (Gruppen)* tab): assessment of about 30 compound classes (likely / possible / unlikely;
    wahrscheinlich / möglich / unwahrscheinlich) with evidence per band and statements from empty key regions
    ("no carbonyl band …"). Below it, the searchable **correlation table** (85 group frequencies); a click marks the
@@ -106,14 +114,15 @@ displayed formula in the methods text, with its source.
    library, entry and source in the JCAMP field `##$FOLIO REF`. This survives saving and reopening, and carries
    over into difference, mean and sum spectra. In the report, the spectrum, search, mixture and comparison figures
    and the hit and mixture tables (per row) cite their references automatically in the caption: Open Specy
-   (Cowger et al. 2025) plus the original database (e.g. RRUFF); the model library as its own entry with the note
+   (Cowger et al. 2021 and 2025) plus the original database (e.g. RRUFF); the model library as its own entry with the note
    "not measured spectra"; own libraries with name and the source of the entry. The labels in the figures name
    the origin ("· Open Specy/RRUFF", "· model"; "· Modell" in German reports). The export writes the sources to
    `treffer.csv`, `mischung.csv` and `protokoll.txt`.
    *Als Spektrum öffnen* (or a double-click) lays the reference over the sample, normalised.
 6. **Mixture** (*Mixture (Mischung)* tab): combinations of up to 2, 3 (default) or 4 references with non-negative
    weights; the list is sorted by HQI, and more components are listed first only if they fit noticeably better.
-   The view shows sample, fit, components and residual. Fractions refer to absorbance, not to mass.
+   The view shows sample, fit, components and residual. Fractions are **area shares** (share of each component in
+   the area of the fitted, normalised absorbance spectrum), not mass or volume fractions.
 7. **Spectra** (*Spectra (Spektren)* tab): overlay (overlaid, normalised, stacked), rename, **difference spectrum**
    A − f·B (factor automatically by least squares, also within a range chosen with **R**), mean and sum. New
    spectra appear as their own tabs and go into search and report like measured ones.
@@ -123,8 +132,8 @@ displayed formula in the methods text, with its source.
    speichern* (save spectrum as JCAMP-DX / CSV) downloads the processed spectrum.
 9. **To report … (Zum Bericht …)** sends figures (spectrum with bands, search hits, mixture, comparison), tables
    (bands with assignment, groups, hits, mixture, areas), key values (`\labval`: number of bands, strongest band,
-   best hit, HQI, areas, ratios), data (CSV for pgfplots), sources (file, Socrates table, ASTM E1252,
-   Savitzky-Golay, ALS, NNLS, depending on use) and text blocks (methods, results). Search and mixture results are
+   best hit, HQI, areas, ratios), data (CSV for pgfplots), sources (file, Socrates and Silverstein for band
+   tables, Savitzky-Golay, ALS, polynomial baseline, ATR, NNLS, Open Specy, depending on use) and text blocks (methods, results). Search and mixture results are
    stored with their curves, so that *Refresh* in the report does not depend on later changes to the libraries.
    Results that are out of date after a change to the protocol are not sent.
 
@@ -134,25 +143,34 @@ carbonyl, C–H/O–H). **Ctrl+O** (Strg+O) opens, **Ctrl+Z/Y** (Strg+Z/Y) undoe
 
 ## Methods
 
-* **Search:** every spectrum is prepared the same way: absorbance, averaged onto a grid of 400–4000 cm⁻¹ with
-  2 cm⁻¹ spacing, rubber-band baseline subtracted, maximum 1. HQI = 100·r² (correlation) or 100·cos (Euclidean)
+* **Search:** sample and references are prepared the same way: absorbance, averaged onto a grid of 400–4000 cm⁻¹
+  with 2 cm⁻¹ spacing, rubber-band baseline subtracted, maximum 1 (the user's protocol is applied to the sample
+  before that, never to the references). HQI = 100·r² (correlation) or 100·cos (Euclidean)
   in the common, selected range; references that cover less than 90 % of the range are down-weighted in
   proportion. The derivative methods compare the 1st derivative (Savitzky-Golay, 9 points); peak search compares
-  the band lists with a tolerance of 6 cm⁻¹ + 0.4 % of the band position.
+  the band lists with a tolerance of 6 cm⁻¹ + 0.4 % of the band position; bands of sample and references are
+  picked with the same parameters (including S/N ≥ 10).
 * **Mixture:** candidates are the best single hits and the best hits for the residual after subtracting the best
-  one. All subsets are fitted by non-negative least squares with a free intercept; HQI = 100·R²; ranking by
-  HQI − 2 per additional component.
+  one. Every subset of up to K candidates is fitted with non-negative weights and a free intercept; the
+  non-negative least-squares problem (Lawson & Hanson 1974) is solved exactly by enumerating all supports, not with
+  the Lawson–Hanson active-set algorithm. HQI = 100·R²; ranking by HQI − 2 per additional component.
 * **Groups:** absorbance minus rubber band, maximum 1; required, supporting and contradicting bands per compound
   class with minimum heights (at least 6 × noise); broad bands (O–H, N–H) are judged by the lower quartile of the
   range. If a required band lies outside the measured range or in the noise, the class is at most "possible".
   Statements about missing bands are made only if the noise would still show a band of 2.5 % of the strongest.
 * **Noise:** residual after Savitzky-Golay smoothing (7 points, cubic), locally as a running median over
-  80 cm⁻¹; σ₀ = 25th percentile (quiet sections). Noisy: locally > 3.5 σ₀ (edges down to 2 σ₀) and more noise
+  80 cm⁻¹; σ₀ = robust standard deviation (1.4826 · median |residual| / √(1 − 7/21)) over the quiet points
+  (local noise ≤ 2 × the 25th percentile of the local values). S/N = height of the strongest band (maximum of the
+  12 cm⁻¹ moving mean above a rubber band, outside noisy regions) / σ₀. Noisy: locally > 3.5 σ₀ (edges down to 2 σ₀) and more noise
   than signal there. Bands need a prominence ≥ 10 × noise (the usual limit of quantification); in noisy regions,
   no bands are set automatically, and the search leaves these regions empty (they count neither for baseline and
   normalisation nor for the comparison; can be switched off).
-* **ALS baseline** after Eilers & Boelens (2005) with an own solver, **Savitzky-Golay** via least-squares
-  coefficients, no SciPy dependency.
+* **ALS baseline** after Eilers & Boelens (2005) with an own solver; log λ refers to 1 cm⁻¹ point spacing and is
+  converted with (1 cm⁻¹/Δν̃)⁴, so the same setting gives the same baseline on any grid (per data point as up to
+  1.4 is selectable). **Savitzky-Golay** via least-squares coefficients, no SciPy dependency.
+* **Assignments:** all table ranges (± 4 cm⁻¹) containing the band; first those whose shape fits (a band narrower
+  than 30 cm⁻¹ is not given a broad table band), then groups of compound classes the group assessment rates
+  likely/possible, then position inside the range, narrower range, matching strength.
 
 ## Overview, environments, sharing
 
@@ -191,7 +209,9 @@ carbonyl, C–H/O–H). **Ctrl+O** (Strg+O) opens, **Ctrl+Z/Y** (Strg+Z/Y) undoe
   JCAMP-DX or CSV.
 * Group assessment and assignments are hints from table values, not structure elucidation. For dense, overlapping
   C–O bands (e.g. paints, coatings), the broad rules for sulfate, phosphate and silicate tend to report too much.
-* Mixture fractions are absorbance fractions; mass fractions need a calibration.
+* Mixture fractions are area shares (spectral contribution); mass fractions need a calibration.
+* The ATR correction assumes constant refractive indices and weak absorption; it does not correct band shifts
+  near strong bands (anomalous dispersion).
 
 ## Tests
 
@@ -202,4 +222,7 @@ python -m unittest discover -s tests
 Checks file formats (CSV with decimal comma, JCAMP with DIF/DUP and multiple blocks, `.spa`, `.spc`, Agilent
 `.fir`, generated OPUS files), sharing the peak table, signal quality (diamond ATR window, weak signal),
 processing, bands, groups, all search methods, mixtures, own and bundled libraries (hits, merging, provenance, RDS
-reader), the report and the server.
+reader), the report and the server. `tests/test_science.py` holds known-answer checks for CO₂ ranges, band
+normalisation, ATR factor, ALS λ scaling (solver compared with SciPy if installed), areas on absorbance,
+assignments, peak tolerance, mixture area shares and NNLS (SciPy comparison), noise and S/N, units on reading and
+Open Specy units.

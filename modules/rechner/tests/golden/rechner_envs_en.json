@@ -88,7 +88,7 @@
   },
   "text-diagramm1-anpassung.tex": {
    "lines": [
-    "Regression \\texttt{y1 \\textasciitilde{} a x1\\textasciicircum{}2}: $a = 0.98235$; $R^2 = 0.99818$ ($n = 3$)."
+    "Regression \\texttt{y1 \\textasciitilde{} a x1\\textasciicircum{}2}: $a = 0.982 \\pm 0.021$; $R^2 = 0.99818$ ($n = 3$). Values are given $\\pm$ standard uncertainty from the covariance matrix at the optimum; 95 \\% confidence with $t = 4.303$ (2 degrees of freedom)."
    ],
    "type": "tex"
   },
@@ -98,7 +98,7 @@
     "\\[ \\frac{v}{t} = 2.5\\,\\mathrm{m}/\\mathrm{s}^{2} \\]",
     "\\[ k = 2\\,v = 40\\,\\mathrm{m}/\\mathrm{s} \\]",
     "\\[ \\frac{k}{2} = 72\\,\\mathrm{km}/\\mathrm{h} \\]",
-    "\\[ \\mathrm{RT} = R \\cdot 298.15 = 2478.957 \\quad \\mbox{\\cite{rf-codata2022}} \\]"
+    "\\[ \\mathrm{RT} = R \\cdot 298.15 = 2478.957\\,\\mathrm{J}/(\\mathrm{mol}\\cdot \\mathrm{K}) \\quad \\mbox{\\cite{rf-codata2022}} \\]"
    ],
    "type": "tex"
   },

@@ -13,13 +13,13 @@ Legend: **built** = in the app (module features are covered by each module's tes
 |---|---|---|---|
 | Report editor (Folio) and hub | – | LaTeX reports, projects, module launcher, results in reports with revisions | smoke test (compiles every template), `suite-test.js`, revisions test |
 | Shared SDK (`sdk/python`, `sdk/web`) | – | Calculation core, sources, environments, sharing, datasets, index, provenance, page parts | 79 |
-| Zugversuch (tensile test) | 1.2.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, PDF report | 51 |
-| Mikroskopie (microscopy) | 1.2.0 | Micrographs: processing, threshold, watershed, measuring, particle analysis, comparison with a dataset | 33 |
-| Rechner (calculator) | 1.3.0 | Units, sheets, line variables, 274 sourced equations, equation and system solver, graph with large datasets and fits, matrices, symbol picker, values with origin | 66 |
-| FTIR | 1.4.0 | IR spectra: processing, bands, groups, library search, mixtures, OPUS, spectra from datasets | 48 |
-| TGA | 0.12.0 | Thermogravimetry: steps, composition, library search, kinetics, DSC, TGA–FTIR, runs from datasets | 61 (1 skipped) |
-| Elementrechner (chemistry) | 0.10.0 | Equations, substances, thermochemistry, designer, redox, pH, lab workflows, nuclear, kinetics (also from datasets), speciation | 261 |
-| Datenaufbereitung (Data Purification) | 0.2.0 | Excel/CSV/typed tables → marked, parsed, cleaned datasets with units, outlier flags, templates, exports, report; used by Rechner, Elementrechner, TGA, FTIR | 61 (1 skipped) + `tools/e2e_datasets.py` |
+| Zugversuch (tensile test) | 1.3.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, PDF report | 55 |
+| Mikroskopie (microscopy) | 1.3.0 | Micrographs: processing, threshold, watershed, measuring, particle analysis, comparison with a dataset | 58 |
+| Rechner (calculator) | 1.4.0 | Units, sheets, line variables, 282 sourced equations, equation and system solver, graph with large datasets and fits, matrices, symbol picker, values with origin | 83 |
+| FTIR | 1.5.0 | IR spectra: processing, bands, groups, library search, mixtures, OPUS, spectra from datasets | 73 |
+| TGA | 0.13.0 | Thermogravimetry: steps, composition, library search, kinetics, DSC, TGA–FTIR, runs from datasets | 84 (1 skipped) |
+| Elementrechner (chemistry) | 0.11.0 | Equations, substances, thermochemistry, designer, redox, pH, lab workflows, nuclear, kinetics (also from datasets), speciation | 261 |
+| Datenaufbereitung (Data Purification) | 0.3.0 | Excel/CSV/typed tables → marked, parsed, cleaned datasets with units, outlier flags, templates, exports, report; used by Rechner, Elementrechner, TGA, FTIR | 83 (1 skipped) + `tools/e2e_datasets.py` |
 
 Every module (except the Elementrechner, which has its own board) opens on the same **overview**: the project index,
 shares addressed to it, its environments and its own shares; a click opens an environment. **⇄** next to a value
@@ -184,7 +184,7 @@ English (DE|EN); table contents and older result texts are still German.
 - **Measurements:** area, perimeter, circularity, ECD, Feret/MinFeret, ellipse axes and angle, aspect ratio,
   roundness, solidity, grey values (mean, SD, min, max, median, integrated density).
 - **Particle analysis:** size and circularity filters, edge particles, holes, within a selection; count, area fraction,
-  size distribution with D10/D50/D90, contours and numbers in the image.
+  size distribution with number-weighted D10/D50/D90 and volume-weighted Dv10/Dv50/Dv90 (edge-corrected), contours and numbers in the image.
 - **Export and report:** image with scale, mask, particle image, histogram, size distribution, CSV, protocol; figures,
   tables, values, data and methods text to the report.
 - **⇄ values** from the particle summary (n, area fraction, mean area, ECD, D50) to other environments.
@@ -193,7 +193,7 @@ English (DE|EN); table contents and older result texts are still German.
   "pin" keeps one. The report gets the figure, table, CSV and a citation of the dataset. A scale is needed.
 
 ### Limits and possible additions
-- Background subtraction approximates a rolling ball but is not identical.
+- Background subtraction is a grey-scale opening (labelled as such), not a rolling ball.
 - Threshold references checked by DOI (9 of 11); Tsai 1985 and Prewitt & Mendelsohn 1966 are marked unverified.
 - Measurements do not go to the project index yet.
 
@@ -283,7 +283,7 @@ English (DE|EN); table contents and older result texts are still German.
 - OPUS, `.spa` and `.spc` are tested only with generated files, not yet with real ones.
 - Peaks do not go to the project index yet.
 - Group ratings are hints, not structure elucidation; sulfate/phosphate/silicate rules over-report in dense C–O
-  regions. Mixture fractions are absorbance fractions, not mass fractions.
+  regions. Mixture fractions are area shares (spectral contributions), not mass fractions.
 
 ## 7. TGA
 
@@ -414,15 +414,18 @@ Detail: `modules/datenaufbereitung/README.md`; methods: `docs/methods/datenaufbe
   environments (⇄, live or snapshot); check chips per version.
 - **Convert and clean → new dataset:** unit conversion per column or for the whole dataset, formula columns with
   constants, trim/filter/sort/drop empty, duplicate flags, replicate means (mean, s, n, SE), join on x (interpolated,
-  labelled), Savitzky–Golay (labelled), outlier flags (Grubbs, Dixon, IQR, Hampel, studentised fit residual; cited),
-  exclusion with a required reason; step log with counts; live or pinned to the source.
+  labelled), Savitzky–Golay (labelled), outlier flags (Grubbs sequential or single pass, Dixon one- or two-sided,
+  IQR with Hyndman–Fan type 7 quartiles, Hampel by position or x window, studentised fit residual as a rule of thumb),
+  exclusion with a required reason; step log with counts; live or pinned to the source; flags travel with replicate
+  means and every flag change makes a new version.
 - **Templates and batches:** anchors and a block that refits to the file; problems named by cell; batch one dataset
   per file or one combined (union of columns, same quantity converted, differing conditions as columns).
-- **Export and report:** CSV, XLSX (with "Protokoll"), JSON, Parquet, all reading back the same; report bundle with
-  preview figure, tables, `\labval` values, data CSV for pgfplots, cited methods text with file hashes; Refresh from
-  the dataset kept in the report.
+- **Export and report:** CSV (with the columns "verwendet" and "Markierungen"), XLSX (with "Protokoll"), JSON,
+  Parquet (optional, needs pyarrow), all reading back the same; report bundle with preview figure, tables, `\labval`
+  values, data CSV for pgfplots, cited methods text with file hashes; Refresh pinned to the dataset version in the
+  report (default) or live (newest version, noted in the report).
 - **End-to-end test:** `tools/e2e_datasets.py` (Excel → mark → clean → Rechner, Elementrechner, TGA, FTIR → bundle →
-  exports; 23 checks) in a temporary folder.
+  exports; 24 checks) in a temporary folder.
 
 ### Limits
 - `.xls` is read via xlrd but has no unit test. Step texts and server notes are German (also in the English report).

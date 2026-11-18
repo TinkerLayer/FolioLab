@@ -186,9 +186,16 @@ def write_xlsx(r: Result, folder: Path) -> Path:
             "Abschnitt «Einschnürung» ist nicht belegt, nur die Bruchfläche entscheidet (7.3)", fmt="0.0")
         put(None, "Bruchdauer", f"=\"< \"&FIXED(1/{ref('rate')},1)&\" s\"", "",
             "bei dieser Abtastrate nicht aufgelöst (7.7)")
-    put("holdt", "Haltezeit über Haltezeitschwelle", f"=MAX({rng('O')})-MIN({rng('O')})", "s", fmt="0.0")
-    put(None, "Plateau-Mittelwert 80–100 % der Zeit bis Maximum",
-        f"=AVERAGEIFS({rng('L')},{rng('D')},\">=\"&0.8*{ref('tmax')},{rng('D')},\"<=\"&{ref('tmax')})", u, fmt="0.0")
+    put("holdrun", "Abschnitt über Haltezeitschwelle mit dem Maximum", f"=INDEX({rng('P')},{ref('imax')}+1)", "",
+        "Nummer aus Spalte P der Messdaten")
+    put("holdt", "Haltezeit über Haltezeitschwelle", f"=MAX({rng('O')})-MIN({rng('O')})", "s",
+        "zusammenhängender Abschnitt um das Maximum; ein Punkt unter der Schwelle beendet ihn", fmt="0.0")
+    put("tref", "Beginn der Zeit bis Maximum", f"=MAX({ref('t0')},0)", "s", "Fusspunkt t0, nicht vor dem ersten Punkt",
+        fmt="0.00")
+    put("tpl", "Plateau ab", f"={ref('tref')}+0.8*({ref('tmax')}-{ref('tref')})", "s", fmt="0.00")
+    put("plat", "Plateau-Mittelwert 80–100 % der Zeit von t0 bis Maximum",
+        f"=IF({ref('tmax')}>{ref('tref')},AVERAGEIFS({rng('L')},{rng('D')},\">=\"&{ref('tpl')},{rng('D')},"
+        f"\"<=\"&{ref('tmax')}),\"–\")", u, fmt="0.0")
     if stress and r.v_mm_s and r.l0:
         put("E", "Elastizitätsmodul, scheinbar", f"={ref('k')}*{ref('L0')}/({ref('v')}/60)/1000", "GPa",
             "scheinbar: Traversenweg enthält Nachgiebigkeit von Einspannung und Rahmen (7.2). "
@@ -220,7 +227,8 @@ def write_xlsx(r: Result, folder: Path) -> Path:
              ("Dehnung scheinbar [%]" if cfg.displacement_source != "probe" else "Dehnung [%]") if has_eps
              else "Dehnung [%] (v oder L0 fehlt)",
              f"Weg [{d['displacement_unit']}]", "Phase", "Lastabfall-Marke", f"Auswertegrösse {yname} [{u}]",
-             f"Abweichung Gerade − {yname} [{u}]", "Fliessmarke", "Zeit über Haltezeitschwelle [s]"]
+             f"Abweichung Gerade − {yname} [{u}]", "Fliessmarke", "Zeit im Halteabschnitt des Maximums [s]",
+             "Abschnitt über Haltezeitschwelle (Nr.)"]
     for i, h in enumerate(heads, 1):
         c = ws_d.cell(1, i, h)
         c.font = BOLD
@@ -248,8 +256,13 @@ def write_xlsx(r: Result, folder: Path) -> Path:
         ws_d.cell(rr, 12, f"=G{rr}" if stress else f"=F{rr}")
         ws_d.cell(rr, 13, f"={ref('k')}*D{rr}+{ref('q')}-L{rr}").number_format = "0.000"
         ws_d.cell(rr, 14, f"=IF(AND(A{rr}>{ref('hi')},M{rr}>{ref('thr')}*{ref('Ymax')}),1,0)")
-        ws_d.cell(rr, 15, f"=IF(L{rr}>={ref('hold')}*{ref('Ymax')},D{rr},\"\")")
-    for i, w in enumerate([7, 20, 9, 10, 12, 11, 11, 12, 8, 12, 10, 12, 13, 9, 13], 1):
+        lim = f"{ref('hold')}*{ref('Ymax')}"
+        ws_d.cell(rr, 15, f"=IF(AND(L{rr}>={lim},P{rr}={ref('holdrun')}),D{rr},\"\")")
+        if rr == 2:
+            ws_d.cell(rr, 16, f"=IF(L{rr}>={lim},1,0)")
+        else:
+            ws_d.cell(rr, 16, f"=P{rr - 1}+IF(AND(L{rr}>={lim},L{rr - 1}<{lim}),1,0)")
+    for i, w in enumerate([7, 20, 9, 10, 12, 11, 11, 12, 8, 12, 10, 12, 13, 9, 13, 13], 1):
         ws_d.column_dimensions[get_column_letter(i)].width = w
     ws_d.freeze_panes = "A2"
 
@@ -358,6 +371,8 @@ def write_xlsx(r: Result, folder: Path) -> Path:
             expect["Yy"] = float(r.y[r.yield_idx])
         if r.drop_idx is not None:
             expect["Yb"] = float(r.y[r.break_idx])
+        if r.kv["plateau"]["mittel"] is not None:
+            expect["plat"] = r.kv["plateau"]["mittel"]
         if r.e_schein_gpa is not None and "E" in cells:
             expect["E"] = r.e_schein_gpa
         for key, val in expect.items():

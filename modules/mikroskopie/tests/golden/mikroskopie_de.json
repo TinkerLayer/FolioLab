@@ -5,14 +5,14 @@
   "module": "mikroskopie",
   "module_name": "Mikroskopie",
   "slug": "bildanalyse-beispiel-partikel-tif",
-  "summary": "Beispiel_Partikel.tif: 55 Partikel, 4,1 %",
+  "summary": "Beispiel_Partikel.tif: 55 Partikel, 4,5 %",
   "title": "Bildanalyse Beispiel_Partikel.tif"
  },
  "files": {
   "data/partikel.csv": {
-   "first": "1,19.8125,17.2782,0.833976,5.02255,6.32456,71.5651,4.25,6.1359,4.11122,77.4936,1.49248,0.670027,0.939259,31.1408,3.98778,29,1,4.25,6,317,2681.49,646.292,1308,3330,53126.9",
-   "header": "id,Area,Perim,Circ,ECD,Feret,FeretAngle,MinFeret,Major,Minor,Angle,AR,Round,Solidity,X,Y,BX,BY,Width,Height,Pixels,Mean,StdDev,Min,Max,IntDen",
-   "last": "55,13.9375,13.9246,0.903292,4.21257,4.8283,68.7495,4,4.60064,3.85724,65.4745,1.19273,0.838415,0.942918,59.0129,138.541,57,136.25,4,4.5,223,1972.71,291.36,1307,2271,27494.7",
+   "first": "1,19.8125,17.2782,0.833976,5.02255,6.32456,71.5651,4.25,6.1359,4.11122,77.4936,1.49248,0.670027,0.939259,31.1408,3.98778,29,1,4.25,6,317,1.07046,2681.49,646.292,1308,3330,53126.9",
+   "header": "id,Area,Perim,Circ,ECD,Feret,FeretAngle,MinFeret,Major,Minor,Angle,AR,Round,Solidity,X,Y,BX,BY,Width,Height,Pixels,Weight,Mean,StdDev,Min,Max,IntDen",
+   "last": "55,13.9375,13.9246,0.903292,4.21257,4.8283,68.7495,4,4.60064,3.85724,65.4745,1.19273,0.838415,0.942918,59.0129,138.541,57,136.25,4,4.5,223,1.05752,1972.71,291.36,1307,2271,27494.7",
    "rows": 55,
    "type": "csv"
   },
@@ -40,11 +40,11 @@
    "type": "png"
   },
   "fig/groessen.pdf": {
-   "size": 11811,
+   "size": 13086,
    "type": "pdf"
   },
   "fig/groessen.png": {
-   "size": 18532,
+   "size": 22355,
    "type": "png"
   },
   "fig/histogramm.pdf": {
@@ -91,15 +91,17 @@
     "\\toprule",
     "Grösse & Wert \\\\",
     "\\midrule",
-    "Anzahl Partikel & 55 \\\\",
+    "Anzahl Partikel (vermessen) & 55 \\\\",
+    "Anzahl randkorrigiert & 58,7 \\\\",
     "Ausgewertete Fläche & 27648\\,$\\mu$m$^2$ \\\\",
-    "Flächenanteil & 4,10\\,\\% \\\\",
-    "Mittlere Fläche & 20,6\\,$\\pm$\\,14,8\\,$\\mu$m$^2$ \\\\",
-    "Äquivalentdurchmesser & 4,76\\,$\\pm$\\,1,90\\,$\\mu$m \\\\",
-    "D10 / D50 / D90 & 2,34 / 5,02 / 6,98\\,$\\mu$m \\\\",
+    "Flächenanteil & 4,50\\,\\% \\\\",
+    "Mittlere Fläche & 21,0\\,$\\pm$\\,15,0\\,$\\mu$m$^2$ \\\\",
+    "Äquivalentdurchmesser & 4,81\\,$\\pm$\\,1,91\\,$\\mu$m \\\\",
+    "D10 / D50 / D90 (Anzahl, Q0) & 2,34 / 5,04 / 7,13\\,$\\mu$m \\\\",
+    "Dv10 / Dv50 / Dv90 (Volumen, Q3) & 4,63 / 6,44 / 8,44\\,$\\mu$m \\\\",
     "Zirkularität & 0,85\\,$\\pm$\\,0,09 \\\\",
-    "Feret-Durchmesser & 5,85\\,$\\pm$\\,2,65\\,$\\mu$m \\\\",
-    "Seitenverhältnis & 1,38\\,$\\pm$\\,0,33 \\\\",
+    "Feret-Durchmesser & 5,92\\,$\\pm$\\,2,67\\,$\\mu$m \\\\",
+    "Seitenverhältnis & 1,38\\,$\\pm$\\,0,34 \\\\",
     "Solidität & 0,93\\,$\\pm$\\,0,03 \\\\",
     "\\bottomrule",
     "\\end{tabular}"
@@ -123,19 +125,29 @@
     "  pages = {62--66},",
     "  year = {1979},",
     "  doi = {10.1109/TSMC.1979.4310076}",
+    "}",
+    "",
+    "@article{hyndman1996,",
+    "  author = {Hyndman, Rob J. and Fan, Yanan},",
+    "  title = {Sample quantiles in statistical packages},",
+    "  journal = {The American Statistician},",
+    "  volume = {50},",
+    "  number = {4},",
+    "  pages = {361--365},",
+    "  year = {1996}",
     "}"
    ],
    "type": "bib"
   },
   "text-ergebnisse.tex": {
    "lines": [
-    "In Beispiel\\_Partikel.tif wurden \\labval{bildanalyse-beispiel-partikel-tif}{n} Partikel erfasst; sie bedecken \\labval{bildanalyse-beispiel-partikel-tif}{areaFrac} der ausgewerteten Fläche. Der mittlere Äquivalentdurchmesser beträgt \\labval{bildanalyse-beispiel-partikel-tif}{meanECD} (Standardabweichung \\labval{bildanalyse-beispiel-partikel-tif}{sdECD}), die mittlere Fläche \\labval{bildanalyse-beispiel-partikel-tif}{meanArea}. Die Grössenverteilung hat die Kennwerte $D_{10}$ = \\labval{bildanalyse-beispiel-partikel-tif}{D10}, $D_{50}$ = \\labval{bildanalyse-beispiel-partikel-tif}{D50} und $D_{90}$ = \\labval{bildanalyse-beispiel-partikel-tif}{D90}. Die mittlere Zirkularität liegt bei \\labval{bildanalyse-beispiel-partikel-tif}{meanCirc} (1 entspricht einem Kreis), der mittlere Feret-Durchmesser bei \\labval{bildanalyse-beispiel-partikel-tif}{meanFeret}. In der Auswahl Feld A beträgt der mittlere Grauwert \\labval{bildanalyse-beispiel-partikel-tif}{roi1Mean} bei einer Fläche von \\labval{bildanalyse-beispiel-partikel-tif}{roi1Area}. In der Auswahl L1 beträgt der mittlere Grauwert \\labval{bildanalyse-beispiel-partikel-tif}{roi2Mean} über eine Länge von \\labval{bildanalyse-beispiel-partikel-tif}{roi2Length}."
+    "In Beispiel\\_Partikel.tif wurden \\labval{bildanalyse-beispiel-partikel-tif}{n} Partikel vermessen (randkorrigiert \\labval{bildanalyse-beispiel-partikel-tif}{nCorr}); die Partikel bedecken \\labval{bildanalyse-beispiel-partikel-tif}{areaFrac} der ausgewerteten Fläche. Der mittlere Äquivalentdurchmesser beträgt \\labval{bildanalyse-beispiel-partikel-tif}{meanECD} (Standardabweichung \\labval{bildanalyse-beispiel-partikel-tif}{sdECD}), die mittlere Fläche \\labval{bildanalyse-beispiel-partikel-tif}{meanArea}. Die Anzahlverteilung (Q0) hat die Kennwerte $D_{10}$ = \\labval{bildanalyse-beispiel-partikel-tif}{D10}, $D_{50}$ = \\labval{bildanalyse-beispiel-partikel-tif}{D50} und $D_{90}$ = \\labval{bildanalyse-beispiel-partikel-tif}{D90}; nach Volumen (Q3) ist $D_{v50}$ = \\labval{bildanalyse-beispiel-partikel-tif}{Dv50}. Die mittlere Zirkularität liegt bei \\labval{bildanalyse-beispiel-partikel-tif}{meanCirc} (1 entspricht einem Kreis), der mittlere Feret-Durchmesser bei \\labval{bildanalyse-beispiel-partikel-tif}{meanFeret}. In der Auswahl Feld A beträgt der mittlere Grauwert \\labval{bildanalyse-beispiel-partikel-tif}{roi1Mean} bei einer Fläche von \\labval{bildanalyse-beispiel-partikel-tif}{roi1Area}. In der Auswahl L1 beträgt der mittlere Grauwert \\labval{bildanalyse-beispiel-partikel-tif}{roi2Mean} über eine Länge von \\labval{bildanalyse-beispiel-partikel-tif}{roi2Length}."
    ],
    "type": "tex"
   },
   "text-methodik.tex": {
    "lines": [
-    "Ausgewertet wurde die Aufnahme Beispiel\\_Partikel.tif \\cite{data-bildanalyse-beispiel-partikel-tif} (768\\,$\\times$\\,576 Pixel, 16-bit, Pixelgrösse \\labval{bildanalyse-beispiel-partikel-tif}{px}). Die Bearbeitung umfasste in dieser Reihenfolge: Hintergrund abziehen (r = 30 px, dunkler Hintergrund); Gauss-Filter ($\\sigma$ = 1,5 px); Schwelle (binär machen) (Otsu, dunkler Hintergrund); Löcher füllen. Die Schwelle wurde automatisch nach der Methode Otsu \\cite{otsu1979} bestimmt (\\labval{bildanalyse-beispiel-partikel-tif}{thr}). Partikel wurden als zusammenhängende Bereiche des Binärbildes (8er-Nachbarschaft) erfasst, mit einer Fläche von 2,00 bis $\\infty$\\,$\\mu$m$^2$ und einer Zirkularität $4\\pi A/U^2$ von 0,00 bis 1,00; Partikel am Bildrand wurden verworfen. Der Umfang folgt der Kontur durch die Mittelpunkte der Randpixel, der Äquivalentdurchmesser (ECD) ist der Durchmesser des flächengleichen Kreises."
+    "Ausgewertet wurde die Aufnahme Beispiel\\_Partikel.tif \\cite{data-bildanalyse-beispiel-partikel-tif} (768\\,$\\times$\\,576 Pixel, 16-bit, Pixelgrösse \\labval{bildanalyse-beispiel-partikel-tif}{px}). Die Bearbeitung umfasste in dieser Reihenfolge: Hintergrund abziehen (Graustufen-Öffnung, quadratisches Fenster, r = 30 px, dunkler Hintergrund); Gauss-Filter ($\\sigma$ = 1,5 px); Schwelle (binär machen) (Otsu, dunkler Hintergrund); Löcher füllen. Die Schwelle wurde automatisch nach der Methode Otsu \\cite{otsu1979} bestimmt (\\labval{bildanalyse-beispiel-partikel-tif}{thr}). Die Pixel wurden als quadratisch behandelt. Partikel wurden als zusammenhängende Bereiche des Binärbildes (8er-Nachbarschaft) erfasst, mit einer Fläche von 2,00 bis $\\infty$\\,$\\mu$m$^2$ und einer Zirkularität $4\\pi A/U^2$ von 0,00 bis 1,00. Der Umfang ist die Länge der Marching-Squares-Kontur zwischen den Pixelmitten (gerade Schritte eine Pixelkante, Ecken als halbe Pixeldiagonale), nur die Aussenkontur (Löcher gefüllt); der Äquivalentdurchmesser (ECD) ist der Durchmesser des flächengleichen Kreises. Vermessen wurden nur Partikel, deren Begrenzungsrechteck den Rand der ausgewerteten Fläche nicht berührt; jedes wurde nach Miles und Lantuéjoul mit dem Kehrwert des Anteils der Lagen gewichtet, in denen ein Rechteck seiner Grösse den Rand nicht berührt (Bild $W\\times H$, Rechteck $w\\times h$ Pixel: $WH/((W-w-1)(H-h-1))$). Mittelwerte, Standardabweichungen und D-Werte sind mit diesen Gewichten berechnet; der Flächenanteil enthält auch die Partikel am Rand. $D_{10}$, $D_{50}$ und $D_{90}$ sind Quantile der Anzahlverteilung (Q0) des ECD, $D_{v10}$, $D_{v50}$ und $D_{v90}$ der Volumenverteilung (Q3, Gewicht ECD$^3$, Kugeln angenommen); Quantile nach der Mittelpunktsregel (bei gleichen Gewichten Definition 5 nach Hyndman und Fan \\cite{hyndman1996})."
    ],
    "type": "tex"
   },
@@ -149,15 +161,19 @@
     "\\labset{bildanalyse-beispiel-partikel-tif}{thr}{1307--5457}% Schwelle",
     "\\labset{bildanalyse-beispiel-partikel-tif}{thrMethod}{Otsu}% Schwellenmethode",
     "\\labset{bildanalyse-beispiel-partikel-tif}{n}{55}% Anzahl Partikel",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{areaFrac}{4,10\\,\\%}% Flächenanteil",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{meanArea}{20,6\\,$\\mu$m$^2$}% Mittlere Fläche",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{meanECD}{4,76\\,$\\mu$m}% Mittlerer Äquivalentdurchmesser",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{sdECD}{1,90\\,$\\mu$m}% Std.-Abw. Äquivalentdurchmesser",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{areaFrac}{4,50\\,\\%}% Flächenanteil",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{meanArea}{21,0\\,$\\mu$m$^2$}% Mittlere Fläche",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{meanECD}{4,81\\,$\\mu$m}% Mittlerer Äquivalentdurchmesser",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{sdECD}{1,91\\,$\\mu$m}% Std.-Abw. Äquivalentdurchmesser",
     "\\labset{bildanalyse-beispiel-partikel-tif}{meanCirc}{0,85}% Mittlere Zirkularität",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{meanFeret}{5,85\\,$\\mu$m}% Mittlerer Feret-Durchmesser",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{D10}{2,34\\,$\\mu$m}% D10",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{D50}{5,02\\,$\\mu$m}% D50",
-    "\\labset{bildanalyse-beispiel-partikel-tif}{D90}{6,98\\,$\\mu$m}% D90",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{meanFeret}{5,92\\,$\\mu$m}% Mittlerer Feret-Durchmesser",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{D10}{2,34\\,$\\mu$m}% D10 (Q0)",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{D50}{5,04\\,$\\mu$m}% D50 (Q0)",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{D90}{7,13\\,$\\mu$m}% D90 (Q0)",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{Dv10}{4,63\\,$\\mu$m}% Dv10 (Q3)",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{Dv50}{6,44\\,$\\mu$m}% Dv50 (Q3)",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{Dv90}{8,44\\,$\\mu$m}% Dv90 (Q3)",
+    "\\labset{bildanalyse-beispiel-partikel-tif}{nCorr}{58,7}% Anzahl randkorrigiert",
     "\\labset{bildanalyse-beispiel-partikel-tif}{roi1Mean}{290,9}% Feld A: Mittelwert",
     "\\labset{bildanalyse-beispiel-partikel-tif}{roi1Area}{1875\\,$\\mu$m$^2$}% Feld A: Fläche",
     "\\labset{bildanalyse-beispiel-partikel-tif}{roi2Mean}{536,7}% L1: Mittelwert",
@@ -176,6 +192,11 @@
    "key": "otsu1979",
    "kind": "citation",
    "title": "A threshold selection method from gray-level histograms"
+  },
+  {
+   "key": "hyndman1996",
+   "kind": "citation",
+   "title": "Sample quantiles in statistical packages"
   },
   {
    "caption": "Aufnahme Beispiel\\_Partikel.tif mit den gemessenen Auswahlen.",
@@ -208,7 +229,7 @@
    "width": "0.75"
   },
   {
-   "caption": "Verteilung des flächengleichen Kreisdurchmessers der Partikel in Beispiel\\_Partikel.tif.",
+   "caption": "Anzahlverteilung (Q0) des flächengleichen Kreisdurchmessers der Partikel in Beispiel\\_Partikel.tif, randkorrigiert nach Miles und Lantuéjoul.",
    "cites": [],
    "file": "fig/groessen.pdf",
    "id": "groessen",
@@ -253,7 +274,7 @@
    "id": "partikel",
    "kind": "table",
    "label": "tab:bildanalyse-beispiel-partikel-tif-partikel",
-   "notes": "Mittelwert $\\pm$ Standardabweichung; ECD: Durchmesser des flächengleichen Kreises."
+   "notes": "Mittelwert $\\pm$ Standardabweichung; ECD: Durchmesser des flächengleichen Kreises. Q0: nach Anzahl gewichtet; Q3: nach Volumen gewichtet (ECD$^3$, Kugeln angenommen). Flächenanteil aus allen Partikeln einschliesslich der am Rand. Mittelwerte, Standardabweichungen und D-Werte randkorrigiert: Partikel am Rand der Auswertungsfläche nicht vermessen, die übrigen nach Miles und Lantuéjoul gewichtet."
   },
   {
    "columns": [
@@ -278,6 +299,7 @@
     "Width",
     "Height",
     "Pixels",
+    "Weight",
     "Mean",
     "StdDev",
     "Min",
@@ -297,6 +319,7 @@
     "Mean": "Mittelwert",
     "Perim": "Umfang [$\\mu$m]",
     "Solidity": "Solidity",
+    "Weight": "Gewicht (Randkorrektur)",
     "X": "x [$\\mu$m]",
     "Y": "y [$\\mu$m]"
    },
@@ -368,7 +391,7 @@
     ],
     [
      "areaFrac",
-     "4.10 %"
+     "4.50 %"
     ],
     [
      "meanArea",
@@ -376,7 +399,7 @@
     ],
     [
      "meanECD",
-     "4.76 µm"
+     "4.81 µm"
     ],
     [
      "sdECD",
@@ -396,11 +419,27 @@
     ],
     [
      "D50",
-     "5.02 µm"
+     "5.04 µm"
     ],
     [
      "D90",
-     "6.98 µm"
+     "7.13 µm"
+    ],
+    [
+     "Dv10",
+     "4.63 µm"
+    ],
+    [
+     "Dv50",
+     "6.44 µm"
+    ],
+    [
+     "Dv90",
+     "8.44 µm"
+    ],
+    [
+     "nCorr",
+     "58.7"
     ],
     [
      "roi1Mean",

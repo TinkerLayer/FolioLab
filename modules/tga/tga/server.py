@@ -575,8 +575,15 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/api/search":
             req = self._req()
             Q = query_of(req)
+            try:
+                w_raw = req.get("w_curve")
+                w = 0.6 if w_raw in (None, "") else float(w_raw)
+            except (TypeError, ValueError):
+                return self._json({"error": "Ungültige Gewichtung der DTG-Kurve (0 bis 1)."}, 400)
+            if not (0.0 <= w <= 1.0):
+                return self._json({"error": "Die Gewichtung der DTG-Kurve muss zwischen 0 und 1 liegen."}, 400)
             res = SR.search(Q, libs_of(req.get("libs")), req.get("mode") or "both", int(req.get("shift", 20)),
-                            int(req.get("n") or 25), req.get("category") or None, bool(req.get("same_atm")))
+                            int(req.get("n") or 25), req.get("category") or None, bool(req.get("same_atm")), w_curve=w)
             return self._json(res)
         if p == "/api/mixture":
             req = self._req()

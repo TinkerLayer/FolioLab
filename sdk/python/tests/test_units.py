@@ -22,7 +22,8 @@ class UnitsU01Test(unittest.TestCase):
         self.assertEqual(U.auto_unit("ph", 7.0), "pH")
 
     def test_conversions(self):
-        cases = [("1 mS/cm", "µS/cm", 1000), ("1 S/m", "mS/cm", 10), ("1 °dH", "mmol/L", 0.17832), ("1 °fH", "mmol/L", 0.1),
+        cases = [("1 mS/cm", "µS/cm", 1000), ("1 S/m", "mS/cm", 10), ("1 °dH", "mmol/L", 10 / 56.077),        # 10 mg CaO/L, M(CaO) = 40.078 + 15.999 g/mol (IUPAC Standardatomgewichte)
+                 ("1 °fH", "mmol/L", 10 / 100.086),                                         # 10 mg CaCO3/L, M(CaCO3) = 100.086 g/mol
                  ("1 cP", "mPa*s", 1), ("1 cSt", "mm^2/s", 1), ("760 Torr", "atm", 1), ("1 mTorr", "Pa", 0.133322),
                  ("45 %RH", "%", 45), ("1 sccm", "mL/min", 1), ("1 slm", "L/min", 1), ("1000 ppb", "ppm", 1),
                  ("1 klx", "lx", 1000), ("1 mSv/h", "µSv/h", 1000), ("1 µkat", "nkat", 1000), ("1 CFU/mL", "1/L", 1000),

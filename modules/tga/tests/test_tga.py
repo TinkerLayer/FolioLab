@@ -555,6 +555,20 @@ class ServerTest(unittest.TestCase):
         code, k = self.post("/api/kinetics", {"ids": ids[:2], "T_lo": 300, "T_hi": 600})
         self.assertEqual(code, 400)
 
+    def test_search_weight_passed(self):
+        """The chosen weight w reaches the score: hqi = w·curve + (1 − w)·step (before the atmosphere factor)."""
+        code, r = self.post("/api/sample", {"which": "oxalat"})
+        iid = r["runs"][0]["id"]
+        for w in (1.0, 0.0, 0.3):
+            code, s = self.post("/api/search", {"id": iid, "state": {}, "w_curve": w, "libs": ["modell"]})
+            self.assertEqual(code, 200, s)
+            self.assertAlmostEqual(s["w_curve"], w)
+            for h in s["hits"][:5]:
+                f = 0.85 if any("Atmosphäre" in x for x in h["warnings"]) else 1.0
+                self.assertAlmostEqual(h["hqi"], f * (w * h["curve"] + (1 - w) * h["step"]), delta=0.02)
+        code, s = self.post("/api/search", {"id": iid, "state": {}, "w_curve": 1.5})
+        self.assertEqual(code, 400)
+
     def test_bad_file(self):
         code, r = self.post("/api/load?name=leer.csv", raw=b"nur text\nohne zahlen\n")
         self.assertEqual(code, 400)

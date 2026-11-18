@@ -1,7 +1,9 @@
 """I-04: Vergleichsverteilung aus einem Datensatz (`data.table` der Datenaufbereitung).
 
 Eine Längenspalte eines Datensatzes (z. B. Partikelgrössen aus der Laserbeugung oder aus einer anderen Auswertung) wird
-über die Grössenverteilung der Partikelanalyse gelegt; beide bekommen D10/D50/D90 (Perzentile wie in `measure`). Die Werte
+über die Grössenverteilung der Partikelanalyse gelegt; beide bekommen D10/D50/D90 anzahlgewichtet (Q0) und
+Dv10/Dv50/Dv90 volumengewichtet (Q3, aus d³), mit derselben Quantildefinition wie `measure`. Jeder Datensatzwert gilt
+als ein Teilchen; Kennwerte einer Laserbeugungsverteilung (meist Q3) sind keine Einzelwerte und gehören nicht hierher. Die Werte
 werden in Metern gespeichert, damit eine spätere Änderung der Bildkalibrierung (µm ↔ nm) nichts verfälscht; im Bericht
 stehen sie in der Einheit der Kalibrierung. Der Arbeitsstand trägt die Werte selbst, damit der Bericht ohne den Datensatz
 neu gebaut werden kann, und Freigabe + Version, damit die Herkunftskette die benutzte Version festhält.
@@ -72,15 +74,24 @@ def values_m(ds, key: str) -> np.ndarray:
     return v
 
 
-def stats(v) -> dict:
-    """n, D10/D50/D90 (Perzentile wie die Partikelanalyse), Mittelwert und Standardabweichung."""
+def stats(v, w=None) -> dict:
+    """n, D10/D50/D90 anzahlgewichtet (Q0), Dv10/Dv50/Dv90 volumengewichtet (Q3, Gewicht d³), Mittelwert und
+    Standardabweichung (Q0). Gleiche Quantildefinition wie die Partikelanalyse (measure.wquantile, Mittelpunktsregel),
+    damit Partikel und Datensatz auf derselben Basis verglichen werden. w: Anzahlgewichte (Partikel: Randkorrektur),
+    für Datensatzwerte 1 – jeder Wert gilt als ein Teilchen."""
+    from .measure import wmean_sd, wquantile
     v = np.asarray(v, dtype=float)
-    v = v[np.isfinite(v)]
+    w = np.ones_like(v) if w is None else np.asarray(w, dtype=float)
+    ok = np.isfinite(v) & np.isfinite(w) & (w > 0)
+    v, w = v[ok], w[ok]
     if not v.size:
-        return {"n": 0, "D10": None, "D50": None, "D90": None, "mean": None, "sd": None}
-    d10, d50, d90 = (float(np.percentile(v, q)) for q in (10, 50, 90))
-    return {"n": int(v.size), "D10": d10, "D50": d50, "D90": d90, "mean": float(v.mean()),
-            "sd": float(v.std(ddof=1)) if v.size > 1 else None}
+        return {"n": 0, "D10": None, "D50": None, "D90": None, "Dv10": None, "Dv50": None, "Dv90": None,
+                "mean": None, "sd": None}
+    d10, d50, d90 = wquantile(v, w, (0.1, 0.5, 0.9))
+    v10, v50, v90 = wquantile(v, w * v ** 3, (0.1, 0.5, 0.9))
+    mean, sd = wmean_sd(v, w)
+    return {"n": int(v.size), "D10": d10, "D50": d50, "D90": d90, "Dv10": v10, "Dv50": v50, "Dv90": v90,
+            "mean": mean, "sd": sd}
 
 
 def in_unit(cmp: dict, unit: str) -> np.ndarray:

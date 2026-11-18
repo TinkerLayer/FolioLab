@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from . import chem as C
 
-R = 8.314462618
+R = C.R_GAS                      # J/(mol K), exakt N_A·k
 REFS = ["codata2022", "atkins"]
 P_UNITS = {"Pa": 1.0, "kPa": 1e3, "MPa": 1e6, "bar": 1e5, "mbar": 100.0, "hPa": 100.0, "atm": 101325.0,
            "Torr": 101325.0 / 760, "mmHg": 133.322387415, "psi": 6894.757293168}

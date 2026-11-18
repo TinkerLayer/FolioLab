@@ -40,28 +40,36 @@ MIN_SNR = 8.0
 OUTLIER_R = 0.5                 # Korrelation mit dem typischen Spektrum des Stoffs
 DUP_R = 0.985                   # darüber gelten zwei Spektren als gleich
 
-OPEN_SPECY = ("Open Specy reference library: Cowger W. et al. (2025), Open Specy 1.0, Anal. Chem., "
-              "doi:10.1021/acs.analchem.5c00962; Daten: OSF doi:10.17605/OSF.IO/X7DPZ")
+OPEN_SPECY = ("Open Specy reference library: Cowger W. et al. (2021), Microplastic spectral classification needs an "
+              "open source community: Open Specy to the rescue!, Anal. Chem. 93, 7543–7548, "
+              "doi:10.1021/acs.analchem.1c00123; Cowger W. et al. (2025), Open Specy 1.0, Anal. Chem., "
+              "doi:10.1021/acs.analchem.5c00962 (Angaben nicht geprüft); Daten: OSF doi:10.17605/OSF.IO/X7DPZ")
+NV = " (Angaben nicht geprüft / not verified)"     # Zitat ohne geprüfte Einzelheiten: unsichere Angaben weggelassen
 
 # Herkunft: Kurzname, Zitat, Standardkategorie für nicht zugeordnete Namen
 ORGS = {
     "rruff": ("RRUFF", "Lafuente B., Downs R.T., Yang H., Stone N. (2015): The power of databases: the RRUFF project. "
-                       "rruff.info", "Füllstoff/Mineral"),
-    "primpke et al. 2018": ("Primpke 2018", "Primpke S. et al. (2018), Anal. Bioanal. Chem., doi:10.1007/s00216-018-1156-x",
-                            None),
-    "win cowger and sebastian primpke": ("AWI 2024", "Cowger W., Roscher L. et al. (2024), Anal. Bioanal. Chem., "
-                                                     "doi:10.1007/s00216-024-05127-w", None),
+                       "In: Highlights in Mineralogical Crystallography, De Gruyter, 1–30; rruff.info", "Füllstoff/Mineral"),
+    "primpke et al. 2018": ("Primpke 2018", "Primpke S., Wirth M., Lorenz C., Gerdts G. (2018): Reference database design "
+                                            "for the automated analysis of microplastic samples based on Fourier "
+                                            "transform infrared (FTIR) spectroscopy. Anal. Bioanal. Chem. 410, 5131–5141, "
+                                            "doi:10.1007/s00216-018-1156-x", None),
+    "win cowger and sebastian primpke": ("AWI 2024", "Cowger W., Primpke S. et al.: AWI spectra via Open Specy" + NV,
+                                         None),
     "flopp, de frond et al. 2021": ("FLOPP", "De Frond H., Rubinovitz R., Rochman C.M. (2021): µATR-FTIR spectral "
-                                             "libraries of plastic particles (FLOPP and FLOPP-e), Anal. Chem.", None),
+                                             "libraries of plastic particles (FLOPP and FLOPP-e) for the analysis of "
+                                             "microplastics. Anal. Chem. 93, 15878–15885, doi:10.1021/acs.analchem.1c02549",
+                                    None),
     "microplastix": ("Microplastix", "Lenz R. et al. (2023): Microplastix SpecDB v1.0.2, Zenodo, "
                                      "doi:10.5281/zenodo.10149551", None),
     "julia, davidson": ("Davidson 2023", "Davidson J. et al. (2023): Polymer characterization of submerged plastic "
                                          "litter from Lake Tahoe, Dryad, doi:10.5061/dryad.866t1g1vj", None),
     "kimmel_center": ("Kimmel Center", "Kimmel Center for Archaeological Science, Weizmann Institute of Science: "
-                                       "IR spectra library", None),
-    "swgdrug": ("SWGDRUG", "SWGDRUG IR library, swgdrug.org", "Wirkstoff"),
-    "pslc_database": ("PSLC", "Polymer Science Learning Center, University of Wisconsin–Stevens Point", "Chemikalie"),
-    "chabuka et al. 2020": ("Chabuka 2020", "Chabuka B.K., Kalivas J.H. (2020), Appl. Spectrosc.", None),
+                                       "IR spectra library" + NV, None),
+    "swgdrug": ("SWGDRUG", "Scientific Working Group for the Analysis of Seized Drugs (SWGDRUG): IR library, "
+                           "swgdrug.org" + NV, "Wirkstoff"),
+    "pslc_database": ("PSLC", "Polymer Science Learning Center (PSLC): spectra collection" + NV, "Chemikalie"),
+    "chabuka et al. 2020": ("Chabuka 2020", "Chabuka B.K., Kalivas J.H. (2020), Applied Spectroscopy" + NV, None),
     "aline carvalho": ("Carvalho", "A. Carvalho, über Open Specy", None),
     "argiro adamopoulou": ("Adamopoulou", "A. Adamopoulou, über Open Specy", None),
     "rachel kozloski": ("Kozloski", "R. Kozloski, über Open Specy", None),
@@ -429,6 +437,28 @@ def _mk(gid, variant=""):
 MODE = {"atr": "ATR", "transmission": "Transmission", "transmittance": "Transmission"}   # "absorbance" ist keine Messart
 
 
+def unit_column(cols: dict) -> str | None:
+    """Spalte der Metadaten mit der Intensitätseinheit, falls die Quelle eine hat (z. B. "intensity_units")."""
+    for c in cols:
+        lc = str(c).lower()
+        if "unit" in lc and ("intens" in lc or lc.startswith("y")):
+            return c
+    return None
+
+
+def stored_unit(text) -> str | None:
+    """Intensitätseinheit aus den Metadaten -> "A", "T", "R" oder None (fehlt oder unbekannt).
+    Nur die Intensitätseinheit zählt, nicht die Messart: eine Transmissionsmessung kann als Absorbanz gespeichert sein."""
+    t = str(text or "").lower()
+    if "absorb" in t:
+        return "A"
+    if "transmit" in t or "transmis" in t:
+        return "T"
+    if "reflect" in t:
+        return "R"
+    return None
+
+
 def main(src: str, dst: str):
     o = read_rds(src)
     wn = np.asarray(o.get("wavenumber"), float)
@@ -439,6 +469,10 @@ def main(src: str, dst: str):
     n_all = len(spectra)
     rows = []
     why = Counter()
+    ucol = unit_column(cols)
+    units = Counter()
+    print("Intensitätseinheit: " + (f"Spalte „{ucol}“" if ucol else
+                                     "keine Spalte in den Metadaten – alle Spektren werden als Absorbanz behandelt"))
     for i in range(n_all):
         st, org, mode = get("spectrum_type", i), get("organization", i) or "", (get("instrument_mode", i) or "").lower()
         if st != "ftir":
@@ -459,22 +493,29 @@ def main(src: str, dst: str):
         if v.sum() < 50:
             why["leer"] += 1
             continue
+        # Gespeicherte Intensitätseinheit beachten (T/R werden in prep in Absorbanz bzw. log(1/R) umgerechnet,
+        # als Bruchteil gespeicherte Werte vorher in %); ohne Angabe als Absorbanz behandeln und das vermerken
+        su = stored_unit(get(ucol, i)) if ucol else None
+        yu = su or "A"
+        yv = y[v] * 100 if yu in ("T", "R") and np.nanmax(y[v]) <= 1.5 else y[v]
         try:
-            g = prep(wn[v], y[v], "A")
+            g = prep(wn[v], yv, yu)
         except ValueError:
             why["zu kurz"] += 1
             continue
         if np.isfinite(g).sum() < MIN_POINTS:
             why["zu kurz"] += 1
             continue
-        q = QA.assess(wn[v], y[v], "A")
+        q = QA.assess(wn[v], yv, yu)
+        units[su or "nicht angegeben"] += 1
         if q["snr"] is not None and q["snr"] < MIN_SNR:
             why["verrauscht"] += 1
             continue
         lic = (get("license", i) or "").upper().replace("CC BY-NC", "CC BY-NC")
         rows.append({"g": g, "gid": c[0], "de": c[1], "en": c[2], "cat": c[3], "variant": c[4], "org": org,
-                     "mode": MODE.get(mode, ""), "license": lic, "snr": q["snr"] or 0})
+                     "mode": MODE.get(mode, ""), "license": lic, "snr": q["snr"] or 0, "yunit_src": su or ""})
     print(f"{n_all} Spektren gelesen, {len(rows)} geeignet; ausgeschlossen: {dict(why)}")
+    print(f"Intensitätseinheiten der geeigneten Spektren: {dict(units)}")
 
     groups = defaultdict(list)
     for r in rows:
@@ -529,7 +570,9 @@ def main(src: str, dst: str):
         e = {"id": f"os{len(entries):05d}", "name": name, "name_en": name_en, "group": r["gid"], "category": r["cat"],
              "cas": "", "formula": "", "source": f"{short}: {cite}",
              "comment": "; ".join(x for x in (r["mode"], f"Lizenz {r['license']}" if r["license"] else "") if x),
-             "license": r["license"] or "", "mode": r["mode"], "origin": short, "yunit": "A"}
+             "license": r["license"] or "", "mode": r["mode"], "origin": short, "yunit": "A",
+             # Einheit laut Quelle ("" = nicht angegeben, als Absorbanz behandelt); der Suchvektor ist immer Absorbanz
+             "yunit_src": r["yunit_src"]}
         g = r["g"]
         v = np.where(np.isfinite(g))[0]
         e["xmin"], e["xmax"] = float(GRID[v[0]]), float(GRID[v[-1]])
@@ -545,6 +588,9 @@ def main(src: str, dst: str):
                            "Messart und Lizenz; Teile nur für nicht-kommerzielle Nutzung (CC BY-NC).",
             "source": OPEN_SPECY, "created": "2026-11-16", "entries": entries,
             "counts": dict(Counter(e["category"] for e in entries)),
+            "yunit_note": ("Intensitätseinheit aus der Metadatenspalte „" + ucol + "“; ohne Angabe als Absorbanz behandelt"
+                           if ucol else "Quelle ohne Intensitätseinheit; alle Spektren als Absorbanz behandelt"),
+            "yunit_counts": dict(Counter(e["yunit_src"] or "nicht angegeben" for e in entries)),
             "origins": {v[0]: v[1] for v in ORGS.values()}}
     np.savez_compressed(out / "data.npz", G=G)
     (out / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=0), encoding="utf-8")

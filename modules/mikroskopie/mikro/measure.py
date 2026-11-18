@@ -100,6 +100,50 @@ def _stats(vals: np.ndarray) -> dict:
             "Max": float(v.max()), "Median": float(np.median(v)), "Mode": float(uniq[np.argmax(cnt)])}
 
 
+def line_scale(calib: Calib, dx: float, dy: float) -> float:
+    """Kalibrierte Laenge je Pixelschritt entlang der Richtung (dx, dy): |(dx·pw, dy·ph)| / |(dx, dy)|.
+    Bei nicht quadratischen Pixeln haengt sie von der Richtung ab; bei quadratischen ist sie pw."""
+    L = math.hypot(dx, dy)
+    return math.hypot(dx * calib.pw, dy * calib.ph) / L if L > 0 else calib.pw
+
+
+# Quelle der Quantildefinition (Format wie threshold.REFERENCES)
+QUANTILE_REF = ("hyndman1996", dict(entry_type="article", author="Hyndman, Rob J. and Fan, Yanan",
+                                    title="Sample quantiles in statistical packages", journal="The American Statistician",
+                                    volume="50", number="4", pages="361--365", year="1996"))
+
+
+def wquantile(x, w, qs) -> list:
+    """Gewichtete Quantile, Mittelpunktsregel: die sortierten Werte x_i stehen bei P_i = (S_i − w_i/2)/S_n
+    (S_i = kumulierte Gewichte), dazwischen linear interpoliert, ausserhalb [P_1, P_n] der erste bzw. letzte Wert.
+    Mit gleichen Gewichten ist das Definition 5 nach Hyndman & Fan (1996), P_i = (i − ½)/n. Unabhaengig vom
+    Massstab der Gewichte, daher auch fuer Volumengewichte (d³) geeignet."""
+    x = np.asarray(x, dtype=np.float64)
+    w = np.broadcast_to(np.asarray(w, dtype=np.float64), x.shape)
+    ok = np.isfinite(x) & np.isfinite(w) & (w > 0)
+    x, w = x[ok], w[ok]
+    if not x.size:
+        return [None for _ in qs]
+    o = np.argsort(x, kind="stable")
+    x, w = x[o], w[o]
+    S = np.cumsum(w)
+    P = (S - w / 2) / S[-1]
+    return [float(np.interp(q, P, x)) for q in qs]
+
+
+def wmean_sd(x, w) -> tuple:
+    """Gewichteter Mittelwert und Standardabweichung mit Nenner Σw − Σw²/Σw (gleich n − 1 bei gleichen Gewichten)."""
+    x = np.asarray(x, dtype=np.float64)
+    w = np.asarray(w, dtype=np.float64)
+    if not x.size:
+        return None, None
+    V1 = w.sum()
+    m = float((w * x).sum() / V1)
+    den = V1 - (w * w).sum() / V1
+    sd = float(math.sqrt(max((w * (x - m) ** 2).sum() / den, 0.0))) if x.size > 1 and den > 0 else None
+    return m, sd
+
+
 def sample_line(img: np.ndarray, x1, y1, x2, y2, width: int = 1) -> tuple[np.ndarray, np.ndarray]:
     """Grauwerte entlang einer Linie (bilinear, Schritt 1 Pixel); bei width > 1 quer gemittelt."""
     g = gray_of(img)
@@ -222,8 +266,12 @@ def _shoelace(p: np.ndarray) -> float:
     return 0.5 * abs(float(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1))))
 
 
-def _perimeters(lab: np.ndarray, n: int) -> np.ndarray:
-    """Umfang je Label als Laenge der Kontur durch die Randpixelmitten (Marching Squares).
+def _perimeters(lab: np.ndarray, n: int, pw: float = 1.0, ph: float = 1.0) -> np.ndarray:
+    """Umfang je Label: Laenge der Marching-Squares-Kontur auf Hoehe ½ zwischen den Pixelmitten, d. h. des Polygons
+    durch die Mitten der Kanten zwischen Vordergrund- und Hintergrundpixel. Je 2×2-Zelle aus Pixelmitten:
+    1 oder 3 Vordergrundpixel -> ½·|(pw, ph)| (Ecke abgeschnitten); 2 waagrecht benachbarte -> pw;
+    2 senkrecht benachbarte -> ph; 2 diagonale (Sattel, als getrennt behandelt) -> |(pw, ph)|.
+    Mit pw = ph = 1: gerade Schritte 1, Ecken √½. Alle Konturen zaehlen, auch die von Loechern.
     In einer 2×2-Zelle liegt bei 8er-Nachbarschaft hoechstens ein Label."""
     p = np.pad(lab, 1)
     a, b, c, d = p[:-1, :-1], p[:-1, 1:], p[1:, :-1], p[1:, 1:]
@@ -231,14 +279,36 @@ def _perimeters(lab: np.ndarray, n: int) -> np.ndarray:
     fa, fb, fc, fd = a > 0, b > 0, c > 0, d > 0
     cnt = fa.astype(np.int8) + fb + fc + fd
     diag = (cnt == 2) & (fa == fd)        # Sattel: zwei diagonale Pixel
-    seg = np.where((cnt == 1) | (cnt == 3), math.sqrt(0.5), 0.0)
-    seg = np.where((cnt == 2) & ~diag, 1.0, seg)
-    seg = np.where(diag, 2 * math.sqrt(0.5), seg)
+    horiz = (cnt == 2) & (fa == fb) & ~diag   # obere oder untere Zeile belegt: waagrechte Kante
+    hyp = math.hypot(pw, ph)
+    seg = np.where((cnt == 1) | (cnt == 3), hyp / 2, 0.0)
+    seg = np.where(horiz, pw, seg)
+    seg = np.where((cnt == 2) & ~diag & ~horiz, ph, seg)
+    seg = np.where(diag, hyp, seg)
     return np.bincount(L.ravel(), weights=seg.ravel(), minlength=n + 1)
 
 
+def _outer_perimeter(sub: np.ndarray, pw: float, ph: float) -> float:
+    """Aeusserer Umfang einer Einzelmaske (Loecher gefuellt), gleicher Schaetzer wie _perimeters."""
+    f = fill_holes(np.pad(sub, 1))
+    return float(_perimeters(f.astype(np.int32), 1, pw, ph)[1])
+
+
+def _interior(reg: np.ndarray) -> np.ndarray:
+    """Inneres einer Auswertungsflaeche: Pixel, deren 8 Nachbarn alle in der Flaeche liegen (Bildrand zaehlt aussen)."""
+    p = np.pad(reg, 1, constant_values=False)
+    H, W = reg.shape
+    out = reg.copy()
+    for dy in (0, 1, 2):
+        for dx in (0, 1, 2):
+            out &= p[dy:dy + H, dx:dx + W]
+    return out
+
+
 DEFAULT_PARTICLE = {"size_min": 0.0, "size_max": None, "circ_min": 0.0, "circ_max": 1.0, "exclude_edges": True,
-                    "include_holes": False, "size_in_pixels": False}
+                    "include_holes": False, "size_in_pixels": False, "perimeter": "outer"}
+
+SUMMARY_KEYS = ("Perim.", "Circ.", "ECD", "Feret", "MinFeret", "AR", "Solidity", "Mean")
 
 
 def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, params: dict | None = None,
@@ -246,7 +316,13 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
     """Partikelanalyse auf einer Binaermaske (Objekte > 0), 8er-Nachbarschaft.
 
     Liefert {"rows": [...], "summary": {...}, "labels": Labelbild der behaltenen Partikel}.
-    Groessen in kalibrierten Einheiten (oder Pixeln, wenn size_in_pixels)."""
+    Groessen in kalibrierten Einheiten (oder Pixeln, wenn size_in_pixels).
+
+    Randkorrektur (exclude_edges): gezaehlt und vermessen werden nur Partikel, deren Begrenzungsrechteck ganz im
+    Inneren der Auswertungsflaeche liegt (ganzes Bild: beruehrt den Bildrand nicht). Jedes bekommt das Gewicht
+    w = |R| / N(w, h) nach Miles und Lantuéjoul: |R| = Pixel der Flaeche, N = Anzahl der Lagen, in denen ein
+    Rechteck seiner Groesse ganz im Inneren liegt (ganzes Bild: (W − w − 1)(H − h − 1)). Verteilungskennwerte sind
+    mit w gewichtet. Der Flaechenanteil zaehlt alle Partikel, die die Filter passieren, auch die am Rand."""
     P = {**DEFAULT_PARTICLE, **(params or {})}
     m = np.asarray(binary) > 0
     H, W = m.shape
@@ -259,10 +335,15 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
     pa = calib.pw * calib.ph
     g = gray_of(intensity) if intensity is not None else None
     res = {"rows": [], "summary": {}, "labels": np.zeros_like(lab)}
-    region_area = (reg.sum() if reg is not None else H * W) * pa
+    reg_px = int(reg.sum()) if reg is not None else H * W
+    region_area = reg_px * pa
+    edge_corr = bool(P["exclude_edges"])
+    outer = P.get("perimeter", "outer") != "total"
     if n == 0:
-        res["summary"] = {"Count": 0, "TotalArea": 0.0, "AverageSize": None, "AreaFraction": 0.0,
-                          "RegionArea": region_area}
+        res["summary"] = {"Count": 0, "CountCorrected": 0.0, "Density": 0.0, "TotalArea": 0.0, "ForegroundArea": 0.0,
+                          "AverageSize": None, "AreaFraction": 0.0, "RegionArea": region_area,
+                          "EdgeCorrection": "miles-lantuejoul" if edge_corr else "none",
+                          "Perimeter": "outer" if outer else "total"}
         return res
     flat = lab.ravel()
     yy, xx = np.indices((H, W))
@@ -272,7 +353,35 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
     sxx = np.bincount(flat, weights=(xx.ravel() + 0.5) ** 2, minlength=n + 1)
     syy = np.bincount(flat, weights=(yy.ravel() + 0.5) ** 2, minlength=n + 1)
     sxy = np.bincount(flat, weights=(xx.ravel() + 0.5) * (yy.ravel() + 0.5), minlength=n + 1)
-    perim_px = _perimeters(lab, n)
+    pw, ph = calib.pw, calib.ph
+    perim_all = _perimeters(lab, n, pw, ph)           # alle Konturen (aussen und Loecher)
+    holes = None
+    if outer and not P["include_holes"]:
+        hm = fill_holes(m) & ~m
+        holes = hm if hm.any() else None
+    # Randkorrektur: Inneres der Flaeche und Anzahl der Lagen eines w × h-Rechtecks darin
+    if reg is None:
+        def inside(x0, y0, x1, y1):
+            return x0 >= 1 and y0 >= 1 and x1 <= W - 1 and y1 <= H - 1
+
+        def npos(w, h):
+            return max(0, W - w - 1) * max(0, H - h - 1)
+    else:
+        C = np.zeros((H + 1, W + 1), dtype=np.int64)
+        C[1:, 1:] = _interior(reg).astype(np.int64).cumsum(0).cumsum(1)
+        cache: dict = {}
+
+        def inside(x0, y0, x1, y1):
+            return int(C[y1, x1] - C[y0, x1] - C[y1, x0] + C[y0, x0]) == (x1 - x0) * (y1 - y0)
+
+        def npos(w, h):
+            if (w, h) not in cache:
+                if w > W or h > H:
+                    cache[(w, h)] = 0
+                else:
+                    S = C[h:, w:] - C[:-h, w:] - C[h:, :-w] + C[:-h, :-w]
+                    cache[(w, h)] = int(np.count_nonzero(S == w * h))
+            return cache[(w, h)]
     order = np.argsort(flat, kind="stable")
     bounds = np.searchsorted(flat[order], np.arange(n + 2))
     if g is not None:
@@ -295,31 +404,40 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
     unit_area = 1.0 if P["size_in_pixels"] else pa
     smin = float(P["size_min"] or 0.0)
     smax = float(P["size_max"]) if P["size_max"] not in (None, "", "inf", "Infinity") else math.inf
+    fg_area = 0.0
     for k in range(1, n + 1):
         a_px = area_px[k]
         s, e = bounds[k], bounds[k + 1]
         bx0, bx1 = int(xs_all[s:e].min()), int(xs_all[s:e].max()) + 1
         by0, by1 = int(ys_all[s:e].min()), int(ys_all[s:e].max()) + 1
-        if P["exclude_edges"] and (bx0 == 0 or by0 == 0 or bx1 == W or by1 == H):
-            continue
         size = a_px * unit_area
         if size < smin or size > smax:
             continue
-        perim = perim_px[k] * calib.pw
+        perim = float(perim_all[k])
+        if holes is not None and holes[by0:by1, bx0:bx1].any():
+            perim = _outer_perimeter(lab[by0:by1, bx0:bx1] == k, pw, ph)
         area = a_px * pa
         circ = min(1.0, 4 * math.pi * area / perim ** 2) if perim > 0 else 1.0
         if circ < float(P["circ_min"] or 0) or circ > float(P["circ_max"] if P["circ_max"] is not None else 1):
             continue
+        fg_area += area                               # Flaechenanteil: auch Randpartikel
+        if edge_corr:
+            if not inside(bx0, by0, bx1, by1):
+                continue
+            wt = reg_px / npos(bx1 - bx0, by1 - by0)
+        else:
+            wt = 1.0
         cx, cy = sx[k] / a_px, sy[k] / a_px
-        mu20 = sxx[k] / a_px - cx * cx + 1 / 12
-        mu02 = syy[k] / a_px - cy * cy + 1 / 12
-        mu11 = sxy[k] / a_px - cx * cy
+        # zweite Zentralmomente in kalibrierten Einheiten (x mit pw, y mit ph), je + Ausdehnung eines Pixels²/12
+        mu20 = (sxx[k] / a_px - cx * cx + 1 / 12) * pw * pw
+        mu02 = (syy[k] / a_px - cy * cy + 1 / 12) * ph * ph
+        mu11 = (sxy[k] / a_px - cx * cy) * pw * ph
         common = math.sqrt(max(((mu20 - mu02) / 2) ** 2 + mu11 ** 2, 0))
-        l1 = max((mu20 + mu02) / 2 + common, 1e-12)
-        l2 = max((mu20 + mu02) / 2 - common, 1e-12)
+        l1 = max((mu20 + mu02) / 2 + common, 1e-300)
+        l2 = max((mu20 + mu02) / 2 - common, 1e-300)
         major, minor = 4 * math.sqrt(l1), 4 * math.sqrt(l2)
-        scale = math.sqrt(a_px / (math.pi * major * minor / 4)) if major * minor > 0 else 1.0
-        major, minor = major * scale * calib.pw, minor * scale * calib.pw
+        scale = math.sqrt(area / (math.pi * major * minor / 4)) if major * minor > 0 else 1.0
+        major, minor = major * scale, minor * scale
         angle = math.degrees(0.5 * math.atan2(-2 * mu11, mu20 - mu02)) % 180.0
         es, ee = ebounds[k], ebounds[k + 1]
         px, py = ex[es:ee].astype(np.float64), ey[es:ee].astype(np.float64)
@@ -337,7 +455,7 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
                "Solidity": min(1.0, area / hull_area) if hull_area > 0 else 1.0,
                "X": cx * calib.pw, "Y": cy * calib.ph, "BX": bx0 * calib.pw, "BY": by0 * calib.ph,
                "Width": (bx1 - bx0) * calib.pw, "Height": (by1 - by0) * calib.ph, "Pixels": int(a_px),
-               "_px": [cx, cy]}
+               "Weight": wt, "_px": [cx, cy]}
         if g is not None:
             mean = sg[k] / a_px
             var = max(sgg[k] / a_px - mean * mean, 0.0)
@@ -350,19 +468,27 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
     keep[keep_ids] = np.arange(1, len(keep_ids) + 1, dtype=np.int32)
     res["labels"] = keep[lab]
     res["rows"] = rows
-    areas = np.array([r["Area"] for r in rows])
-    summ = {"Count": len(rows), "TotalArea": float(areas.sum()) if rows else 0.0,
-            "AverageSize": float(areas.mean()) if rows else None,
-            "SDSize": float(areas.std(ddof=1)) if len(rows) > 1 else None,
-            "AreaFraction": float(areas.sum() / region_area * 100) if region_area else 0.0,
-            "RegionArea": float(region_area)}
-    for key in ("Perim.", "Circ.", "ECD", "Feret", "MinFeret", "AR", "Solidity", "Mean"):
-        vals = np.array([r[key] for r in rows if r.get(key) is not None], dtype=np.float64)
-        summ["Mean" + key.rstrip(".")] = float(vals.mean()) if vals.size else None
-        summ["SD" + key.rstrip(".")] = float(vals.std(ddof=1)) if vals.size > 1 else None
+    areas = np.array([r["Area"] for r in rows], dtype=np.float64)
+    wts = np.array([r["Weight"] for r in rows], dtype=np.float64)
+    m_a, sd_a = wmean_sd(areas, wts)
+    summ = {"Count": len(rows), "CountCorrected": float(wts.sum()),
+            "Density": float(wts.sum() / region_area) if region_area else None,
+            "TotalArea": float(areas.sum()) if rows else 0.0, "ForegroundArea": float(fg_area),
+            "AverageSize": m_a, "SDSize": sd_a,
+            "AreaFraction": float(fg_area / region_area * 100) if region_area else 0.0,
+            "RegionArea": float(region_area),
+            "EdgeCorrection": "miles-lantuejoul" if edge_corr else "none",
+            "Perimeter": "outer" if outer else "total"}
+    for key in SUMMARY_KEYS:
+        sel = [(r[key], r["Weight"]) for r in rows if r.get(key) is not None]
+        mean, sd = wmean_sd([v for v, _ in sel], [x for _, x in sel])
+        summ["Mean" + key.rstrip(".")] = mean
+        summ["SD" + key.rstrip(".")] = sd
     if rows:
-        ecd = np.array([r["ECD"] for r in rows])
-        summ["D10"], summ["D50"], summ["D90"] = (float(np.percentile(ecd, q)) for q in (10, 50, 90))
+        ecd = np.array([r["ECD"] for r in rows], dtype=np.float64)
+        # Q0: anzahlgewichtet (je Partikel Gewicht w); Q3: volumengewichtet mit w·ECD³ (Kugeln mit d = ECD)
+        summ["D10"], summ["D50"], summ["D90"] = wquantile(ecd, wts, (0.1, 0.5, 0.9))
+        summ["Dv10"], summ["Dv50"], summ["Dv90"] = wquantile(ecd, wts * ecd ** 3, (0.1, 0.5, 0.9))
     res["summary"] = summ
     return res
 

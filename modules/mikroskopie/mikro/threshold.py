@@ -28,8 +28,12 @@ METHODS = {
 }
 
 # MI-02 (17.11.2026): Angaben mit DOI gegen Crossref geprüft (Autoren, Jahr, Band, Heft, Seiten).
-# Ohne DOI und nicht per Crossref-Titelsuche bestätigt – Angaben aus Referenzwissen:
-UNVERIFIED = {"tsai1985", "prewitt1966"}
+# tsai1985 und prewitt1966 (SF, 18.11.2026): Verfahren mit der Beschreibung abgeglichen (Tsai: erste drei Momente
+# erhalten, Schwelle beim p0-Quantil; Prewitt & Mendelsohn: 3-Punkt-Glättung bis zu genau zwei Maxima, Mitte der
+# Maxima bzw. Tal dazwischen, wie bei Glasbey 1993 beschrieben); Autoren, Titel, Zeitschrift, Band, Seiten und Jahr
+# bestätigt. Ohne DOI und ohne Heftnummer, weil diese offline nicht geprüft werden konnten.
+# Schlüssel, die hier stehen, bekommen im Bericht den Vermerk „nicht verifiziert“.
+UNVERIFIED: set = set()
 
 REFERENCES = {
     "ridler1978": dict(entry_type="article", author="Ridler, T. W. and Calvard, S.",
@@ -59,7 +63,7 @@ REFERENCES = {
                     year="1995"),
     "tsai1985": dict(entry_type="article", author="Tsai, Wen-Hsiang",
                      title="Moment-preserving thresholding: a new approach",
-                     journal="Computer Vision, Graphics, and Image Processing", volume="29", number="3",
+                     journal="Computer Vision, Graphics, and Image Processing", volume="29",
                      pages="377--393", year="1985"),
     "glasbey1993": dict(entry_type="article", author="Glasbey, C. A.",
                         title="An analysis of histogram-based thresholding algorithms",
@@ -67,7 +71,7 @@ REFERENCES = {
                         pages="532--537", year="1993", doi="10.1006/cgip.1993.1040"),
     "prewitt1966": dict(entry_type="article", author="Prewitt, Judith M. S. and Mendelsohn, Mortimer L.",
                         title="The analysis of cell images", journal="Annals of the New York Academy of Sciences",
-                        volume="128", number="3", pages="1035--1053", year="1966"),
+                        volume="128", pages="1035--1053", year="1966"),
     "doyle1962": dict(entry_type="article", author="Doyle, Worthie",
                       title="Operations useful for similarity-invariant pattern recognition",
                       journal="Journal of the ACM", volume="9", number="2", pages="259--267", year="1962", doi="10.1145/321119.321123"),
@@ -284,8 +288,10 @@ def _moments(d):
     if z1 == z0:
         return int(m1)
     p0 = (z1 - m1) / (z1 - z0)
+    # Tsai: Schwelle = p0-Quantil, d. h. die kleinste Klasse k mit kumuliertem Anteil >= p0 (Toleranz fuer
+    # Rundung); ein Zweiwertbild wird so genau in seine beiden Werte geteilt.
     cs = np.cumsum(h)
-    over = np.nonzero(cs > p0)[0]
+    over = np.nonzero(cs >= p0 - 1e-9)[0]
     return int(over[0]) if over.size else len(d) - 1
 
 
@@ -311,13 +317,17 @@ def _smooth_until_bimodal(d):
 
 
 def _minimum(d):
+    """Prewitt & Mendelsohn: Tal zwischen den beiden Maxima des bis zur Zweigipfligkeit geglaetteten Histogramms
+    (erstes lokales Minimum zwischen den Gipfeln; ein abfallender Anfang vor dem ersten Gipfel zaehlt nicht)."""
     y = _smooth_until_bimodal(d)
     if y is None:
         return _default(d)
-    for k in range(1, len(y) - 1):
+    peaks = np.nonzero((y[1:-1] > y[:-2]) & (y[1:-1] > y[2:]))[0] + 1
+    p0, p1 = int(peaks[0]), int(peaks[1])
+    for k in range(p0 + 1, p1):
         if y[k - 1] > y[k] and y[k + 1] >= y[k]:
             return k
-    return _default(d)
+    return p0 + int(np.argmin(y[p0:p1 + 1]))
 
 
 def _intermodes(d):

@@ -164,9 +164,12 @@ check(len(raws) == 1 and b"FOLIO DATASET" in raws[0][0], f"FTIR spectrum file {r
 b = B.build(ds2, {"share": d2["share"], "version": env2["version"]}, {"lang": "de"}, describe_step)
 files = {k: base64.b64decode(v) for k, v in b["files"].items()}
 text = files["text-methodik.tex"].decode("latin-1")
-bib = files["refs.bib"].decode("latin-1")
+bib = files.get("refs.bib", b"").decode("latin-1")
 check("Ausgeschlossen wurden 2 Zeile(n)" in text and d2["share"] in text, "methods text names exclusions and the dataset ID")
-check("nist-esh" in bib and "\\cite{nist-esh}" in text, "residual-fit source cited (bib + \\cite)")
+# since 0.3.0 the residual fit cites no source (studentised residual with a rule-of-thumb threshold, methods page)
+check("nist-esh" not in bib and "Faustregel" in text and "studentisiert" in text,
+      "residual fit described as rule of thumb, no unverified source cited")
+check(b["module_version"] and b["source"]["kind"] == "dataset", f"bundle carries module version {b['module_version']} and source kind")
 for k, v in files.items():
     if k.endswith((".tex", ".bib", ".csv")):
         try:
@@ -181,7 +184,11 @@ rb = B.rebuild_dataset(b["source"])
 check(rb is not None and rb.header["data_hash"] == ds2.header["data_hash"], "bundle source rebuilds the same dataset (Refresh)")
 
 # ---------------------------------------------------------------- 8. exports keep units and the protocol
+import importlib.util  # noqa: E402
 for fmt in ("csv", "xlsx", "json", "parquet"):
+    if fmt == "parquet" and importlib.util.find_spec("pyarrow") is None:
+        print("  (Parquet übersprungen: pyarrow nicht installiert, optional)")
+        continue
     data, mime = X.export(ds2, fmt, describe_step)
     back = X.reimport(data, "x" + X.FORMATS[fmt][1])
     diff = X.same(ds2, back)

@@ -25,19 +25,19 @@
    "type": "png"
   },
   "fig/feld.pdf": {
-   "size": 56133,
+   "size": 57152,
    "type": "pdf"
   },
   "fig/feld.png": {
-   "size": 93691,
+   "size": 95373,
    "type": "png"
   },
   "fig/kandidaten.pdf": {
-   "size": 21317,
+   "size": 21350,
    "type": "pdf"
   },
   "fig/kandidaten.png": {
-   "size": 40274,
+   "size": 40532,
    "type": "png"
   },
   "fig/linear.pdf": {
@@ -81,6 +81,10 @@
     "Hold time above 90\\,\\% & 54.8\\,s \\\\",
     "Ratio maximum/yield onset & 1.33 \\\\",
     "Elastic modulus (apparent) & 70.0\\,GPa \\\\",
+    "Total extension at maximum force $A_{gt}$ & 8.98\\,\\% \\\\",
+    "Plastic extension at maximum force $A_g$ & 8.78\\,\\% \\\\",
+    "Total extension at fracture $A_t$ & 12.00\\,\\% \\\\",
+    "Percentage elongation after fracture $A$ ($A_t$ minus elastic part) & 11.83\\,\\% \\\\",
     "Slope of linear section & 23.333\\,N/s \\\\",
     "Coefficient of determination $R^2$ & 1.00000 \\\\",
     "\\bottomrule",
@@ -95,7 +99,7 @@
     "Quantity [MPa] & measured & reference & deviation \\\\",
     "\\midrule",
     "Tensile strength $R_m$ & 140 & 285 & $-$51.0\\,\\% \\\\",
-    "Yield onset (2.0\\,\\%) / $R_{p0.2}$ & 105 & 220 & $-$52.2\\,\\% \\\\",
+    "Yield onset (2.0\\,\\%) / $R_{p0.2}$ (not like with like) & 105 & 220 & $-$52.2\\,\\% \\\\",
     "Elastic modulus (apparent) [GPa] & 70.0 & 70.0 & 0\\,\\% \\\\",
     "\\bottomrule",
     "\\end{tabular}"
@@ -104,106 +108,121 @@
   },
   "refs.bib": {
    "lines": [
+    "@misc{iso6892-1,",
+    "  title = {ISO 6892-1: Metallic materials -- Tensile testing -- Part 1: Method of test at room temperature},",
+    "  author = {{ISO}},",
+    "  year = {2019}",
+    "}",
+    "",
     "@misc{mat-en-aw-5052-h38,",
     "  title = {Material properties of EN AW-5052-H38},",
     "  howpublished = {Datenblatt},",
-    "  note = {Baetro, Aluminium 5052 (5052-H38 ab 270 MPa und 220 MPa)}",
+    "  note = {Baetro, Aluminium 5052 (5052-H38 ab 270 MPa und 220 MPa); value type: Rm unclear, Rp unclear}",
+    "}",
+    "",
+    "@techreport{ramberg-osgood-1943,",
+    "  author = {Ramberg, Walter and Osgood, William R.},",
+    "  title = {Description of stress-strain curves by three parameters},",
+    "  institution = {National Advisory Committee for Aeronautics},",
+    "  type = {Technical Note},",
+    "  number = {902},",
+    "  year = {1943}",
     "}",
     "",
     "@misc{mat-en-aw-1050a-weich,",
     "  title = {Material properties of EN AW-1050A, weich},",
     "  howpublished = {Literatur},",
-    "  note = {MakeItFrom, 1050 gegen 7075 (Rm 76 bis 140 MPa); MakeItFrom, 1050A-F gegen 5754-F (E 68 GPa)}",
+    "  note = {MakeItFrom, 1050 gegen 7075 (Rm 76 bis 140 MPa); MakeItFrom, 1050A-F gegen 5754-F (E 68 GPa); value type: Rm unclear, Rp unclear; not checked: Rm 76 MPa ist die Untergrenze der Spanne 76 bis 140 MPa, die die Quelle für 1050 über alle Zustände nennt: weder Normmindestwert noch Typwert des weichen Zustands; Rm\\_min/Rm\\_max umfassen auch kaltverfestigte Zustände. Herkunft von Rp und A in der Quelle nicht geprüft.}",
     "}",
     "",
     "@misc{mat-en-aw-8011a-o-folie,",
     "  title = {Material properties of EN AW-8011A-O, Folie},",
     "  howpublished = {Normspanne, Rp und A Typwert (dickenabhängig)},",
-    "  note = {EN 546-2, Folie}",
+    "  note = {EN 546-2, Folie; value type: Rm middle of the range, Rp typical}",
     "}",
     "",
     "@misc{mat-en-aw-1050a-h14,",
     "  title = {Material properties of EN AW-1050A-H14},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm}",
+    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm; value type: Rm middle of the range, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-3003-h14,",
     "  title = {Material properties of EN AW-3003-H14},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm}",
+    "  note = {EN 485-2, Blech 0,5 bis 1,5 mm; value type: Rm middle of the range, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-6060-t6,",
     "  title = {Material properties of EN AW-6060-T6},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 755-2, Strangpressprofil}",
+    "  note = {EN 755-2, Strangpressprofil; value type: Rm minimum, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-5754-o-h111,",
     "  title = {Material properties of EN AW-5754-O/H111},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2}",
+    "  note = {EN 485-2; value type: Rm middle of the range, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-5052-h32,",
     "  title = {Material properties of EN AW-5052-H32},",
     "  howpublished = {Datenblatt},",
-    "  note = {Baetro, Aluminium 5052}",
+    "  note = {Baetro, Aluminium 5052; value type: Rm unclear, Rp unclear}",
     "}",
     "",
     "@misc{mat-en-aw-5754-h22,",
     "  title = {Material properties of EN AW-5754-H22},",
     "  howpublished = {Normwert, Rp Mindestwert},",
-    "  note = {EN 485-2}",
+    "  note = {EN 485-2; value type: Rm middle of the range, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-5086-h116-h32,",
     "  title = {Material properties of EN AW-5086-H116/H32},",
     "  howpublished = {Datenblatt},",
-    "  note = {Aerospace Metals, 5086-H116/H32 (Rm 290 MPa, Rp0,2 207 MPa, E 71 GPa)}",
+    "  note = {Aerospace Metals, 5086-H116/H32 (Rm 290 MPa, Rp0,2 207 MPa, E 71 GPa); value type: Rm unclear, Rp unclear}",
     "}",
     "",
     "@misc{mat-en-aw-5083-o-h111,",
     "  title = {Material properties of EN AW-5083-O/H111},",
     "  howpublished = {Datenblatt},",
-    "  note = {Righton Blackburns, 5083 O/H111 (Blech 0,2 bis 6,3 mm, Rp0,2 ab 125 MPa, Rm 275 bis 350 MPa)}",
+    "  note = {Righton Blackburns, 5083 O/H111 (Blech 0,2 bis 6,3 mm, Rp0,2 ab 125 MPa, Rm 275 bis 350 MPa); value type: Rm unclear, Rp unclear}",
     "}",
     "",
     "@misc{mat-en-aw-6061-t6,",
     "  title = {Material properties of EN AW-6061-T6},",
     "  howpublished = {Datenblatt},",
-    "  note = {Protolabs, Datenblatt 6061-T651/T6 (Rm 310, Rp0,2 276 MPa); Powertec, Aluminium 6061-T6 (E 68,9 GPa)}",
+    "  note = {Protolabs, Datenblatt 6061-T651/T6 (Rm 310, Rp0,2 276 MPa); Powertec, Aluminium 6061-T6 (E 68,9 GPa); value type: Rm unclear, Rp unclear}",
     "}",
     "",
     "@misc{mat-en-aw-6082-t6,",
     "  title = {Material properties of EN AW-6082-T6},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 485-2, Blech}",
+    "  note = {EN 485-2, Blech; value type: Rm minimum, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-7020-t6,",
     "  title = {Material properties of EN AW-7020-T6},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 485-2, Blech}",
+    "  note = {EN 485-2, Blech; value type: Rm minimum, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-2017a-t4,",
     "  title = {Material properties of EN AW-2017A-T4},",
     "  howpublished = {Normmindestwert},",
-    "  note = {EN 485-2, Blech}",
+    "  note = {EN 485-2, Blech; value type: Rm minimum, Rp minimum}",
     "}",
     "",
     "@misc{mat-en-aw-2024-t3,",
     "  title = {Material properties of EN AW-2024-T3},",
     "  howpublished = {Datenblatt},",
-    "  note = {United Aluminum, 6061/7075/2024 (2024-T3 mit 483 und 345 MPa)}",
+    "  note = {United Aluminum, 6061/7075/2024 (2024-T3 mit 483 und 345 MPa); value type: Rm unclear, Rp unclear}",
     "}",
     "",
     "@misc{mat-en-aw-7075-t6,",
     "  title = {Material properties of EN AW-7075-T6},",
     "  howpublished = {Datenblatt},",
-    "  note = {United Aluminum, 6061/7075/2024 (7075-T6 mit 572,3 und 503,3 MPa)}",
+    "  note = {United Aluminum, 6061/7075/2024 (7075-T6 mit 572,3 und 503,3 MPa); value type: Rm unclear, Rp unclear}",
     "}",
     "",
     "@misc{data-tensile-test-synthetische-kurve,",
@@ -217,13 +236,13 @@
   },
   "text-ergebnisse.tex": {
    "lines": [
-    "The specimen reached a tensile strength of \\labval{tensile-test-synthetische-kurve}{Rm} (maximum force \\labval{tensile-test-synthetische-kurve}{Fmax} after \\labval{tensile-test-synthetische-kurve}{tmax}). Yield onset was at \\labval{tensile-test-synthetische-kurve}{yield}; the ratio of maximum to yield onset was \\labval{tensile-test-synthetische-kurve}{ratio}. From the maximum to the break the load dropped by \\labval{tensile-test-synthetische-kurve}{drop}; it stayed above 90\\,\\% of the maximum for \\labval{tensile-test-synthetische-kurve}{hold}. Compared with the reference material EN AW-5052-H38 ($R_m = $ \\labval{tensile-test-synthetische-kurve}{refRm} \\cite{mat-en-aw-5052-h38}), the tensile strength deviates by \\labval{tensile-test-synthetische-kurve}{refdRm}. Agreement in $R_m$ alone does not identify the material. The apparent modulus of \\labval{tensile-test-synthetische-kurve}{E} is not a material property."
+    "The specimen reached a tensile strength of \\labval{tensile-test-synthetische-kurve}{Rm} (maximum force \\labval{tensile-test-synthetische-kurve}{Fmax} after \\labval{tensile-test-synthetische-kurve}{tmax}). Yield onset was at \\labval{tensile-test-synthetische-kurve}{yield}; the ratio of maximum to yield onset was \\labval{tensile-test-synthetische-kurve}{ratio}. From the maximum to the break the load dropped by \\labval{tensile-test-synthetische-kurve}{drop}; it stayed above \\labval{tensile-test-synthetische-kurve}{holdthr} of the maximum for \\labval{tensile-test-synthetische-kurve}{hold} without interruption. The total extension at fracture was $A_t = $ \\labval{tensile-test-synthetische-kurve}{At}, the percentage elongation after fracture without the elastic part $A = $ \\labval{tensile-test-synthetische-kurve}{A}. Compared with the reference material EN AW-5052-H38 ($R_m = $ \\labval{tensile-test-synthetische-kurve}{refRm} \\cite{mat-en-aw-5052-h38}), the tensile strength deviates by \\labval{tensile-test-synthetische-kurve}{refdRm}. Agreement in $R_m$ alone does not identify the material. The apparent modulus of \\labval{tensile-test-synthetische-kurve}{E} is not a material property."
    ],
    "type": "tex"
   },
   "text-methodik.tex": {
    "lines": [
-    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]. The time axis of the evaluation was calculated from the travelled displacement and the test speed \\labval{tensile-test-synthetische-kurve}{v}, so strain and modulus follow the measured displacement. Stress refers to the initial cross-section $A_0 = $\\labval{tensile-test-synthetische-kurve}{A0}. The linear section was determined as the longest time window in which the data points lie on a straight line within a fixed tolerance. Yield onset is the first point after this window that deviates from the extended line by more than \\labval{tensile-test-synthetische-kurve}{thr} of the maximum. This threshold is a convention, not a proof stress $R_{p0.2}$. The measurement was compared with the 17 materials of the group Aluminium; their stress--strain curves are idealised from $R_{p0.2}$, $R_m$, $A$ and $E$ and are not measured curves (property values from~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6})."
+    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]. The time axis of the evaluation was calculated from the travelled displacement and the test speed \\labval{tensile-test-synthetische-kurve}{v}, so strain and modulus follow the measured displacement. Stress refers to the initial cross-section $A_0 = $\\labval{tensile-test-synthetische-kurve}{A0}. The linear section was found by growing a window from the point of steepest slope, one data point at a time to the left and to the right, as long as all points of the window deviate from their regression line by less than \\labval{tensile-test-synthetische-kurve}{tol}; the search stops when neither side can grow (a greedy search, not necessarily the longest such window). Yield onset is the first point after this window that deviates from the extended line by more than \\labval{tensile-test-synthetische-kurve}{thr} of the maximum. This threshold is a convention, not a proof stress $R_{p0.2}$. The hold time is the duration of the contiguous section around the maximum in which the load stays at or above \\labval{tensile-test-synthetische-kurve}{holdthr} of the maximum. Strain was counted from the foot point of the regression line. The percentage elongation after fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer method \\cite{iso6892-1} from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part (stress divided by the slope of the linear section of the same curve). The measurement was compared with the 17 materials of the group Aluminium; their stress--strain curves are idealised from $R_{p0.2}$, $R_m$, $A$ and $E$ (elastic with $E$, then the Ramberg--Osgood relation~\\cite{ramberg-osgood-1943} through $R_{p0.2}$ and $R_m$ at $0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$). They are for orientation only and are not measured curves (property values from~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ relative to the material value; the ratio of maximum to yield onset only lowers the status, because the yield onset is a threshold, not $R_{p0.2}$."
    ],
    "type": "tex"
   },
@@ -239,7 +258,13 @@
     "\\labset{tensile-test-synthetische-kurve}{break}{120\\,MPa}% Before break",
     "\\labset{tensile-test-synthetische-kurve}{drop}{14.3\\,\\%}% Drop maximum to break",
     "\\labset{tensile-test-synthetische-kurve}{hold}{54.8\\,s}% Hold time",
+    "\\labset{tensile-test-synthetische-kurve}{holdthr}{90\\,\\%}% Hold threshold",
     "\\labset{tensile-test-synthetische-kurve}{ratio}{1.33}% Ratio maximum/yield onset",
+    "\\labset{tensile-test-synthetische-kurve}{tol}{1.00\\,MPa}% Fit-window tolerance",
+    "\\labset{tensile-test-synthetische-kurve}{Agt}{8.98\\,\\%}% Total extension at maximum force $A_{gt}$",
+    "\\labset{tensile-test-synthetische-kurve}{Ag}{8.78\\,\\%}% Plastic extension at maximum force $A_g$",
+    "\\labset{tensile-test-synthetische-kurve}{At}{12.00\\,\\%}% Total extension at fracture $A_t$",
+    "\\labset{tensile-test-synthetische-kurve}{A}{11.83\\,\\%}% Percentage elongation after fracture $A$ ($A_t$ minus elastic part)",
     "\\labset{tensile-test-synthetische-kurve}{E}{70.0\\,GPa}% Elastic modulus (apparent)",
     "\\labset{tensile-test-synthetische-kurve}{A0}{0.2000\\,mm$^2$}% Cross-section $A_0$",
     "\\labset{tensile-test-synthetische-kurve}{L0}{10.0\\,mm}% Gauge length $L_0$",
@@ -247,7 +272,7 @@
     "\\labset{tensile-test-synthetische-kurve}{rate}{6.7\\,Hz}% Sampling rate",
     "\\labset{tensile-test-synthetische-kurve}{thr}{2.0\\,\\%}% Yield-onset threshold",
     "\\labset{tensile-test-synthetische-kurve}{refRm}{285\\,MPa}% Reference $R_m$",
-    "\\labset{tensile-test-synthetische-kurve}{refdRm}{$-$51.0\\,\\%}% ΔRm"
+    "\\labset{tensile-test-synthetische-kurve}{refdRm}{$-$51.0\\,\\%}% dRm (reference)"
    ],
    "type": "tex"
   },
@@ -258,7 +283,7 @@
     "\\toprule",
     "No. & Material & $R_{p0.2}$ [MPa] & $R_m$ [MPa] & $A$ [\\%] & $E$ [GPa] & Source \\\\",
     "\\midrule",
-    "1 & EN AW-1050A, weich & 25 & 76 & 30 & 68.0 & \\cite{mat-en-aw-1050a-weich} \\\\",
+    "1 & EN AW-1050A, weich* & 25 & 76 & 30 & 68.0 & \\cite{mat-en-aw-1050a-weich} \\\\",
     "2 & EN AW-8011A-O, Folie & 50 & 105 & 4 & 69.0 & \\cite{mat-en-aw-8011a-o-folie} \\\\",
     "3 & EN AW-1050A-H14 & 85 & 125 & 4 & 69.0 & \\cite{mat-en-aw-1050a-h14} \\\\",
     "4 & EN AW-3003-H14 & 125 & 165 & 4 & 69.0 & \\cite{mat-en-aw-3003-h14} \\\\",
@@ -283,9 +308,19 @@
  },
  "items": [
   {
+   "key": "iso6892-1",
+   "kind": "citation",
+   "title": "ISO 6892-1: Metallic materials -- Tensile testing -- Part 1: Method of test at room temperature"
+  },
+  {
    "key": "mat-en-aw-5052-h38",
    "kind": "citation",
    "title": "Material properties of EN AW-5052-H38"
+  },
+  {
+   "key": "ramberg-osgood-1943",
+   "kind": "citation",
+   "title": "Description of stress-strain curves by three parameters"
   },
   {
    "key": "mat-en-aw-1050a-weich",
@@ -403,7 +438,7 @@
    "width": "0.9"
   },
   {
-   "caption": "Measured stress--strain curve within the idealised field of the comparison group Aluminium and the reference material EN AW-5052-H38. Strain from the displacement measured on the specimen. Numbers at the curve ends identify the materials in the key; property values from the sources given~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "caption": "Measured stress--strain curve within the field of the comparison group Aluminium and the reference material EN AW-5052-H38; the material curves are idealised, for orientation only. Strain from the displacement measured on the specimen. Numbers at the curve ends identify the materials in the key; property values from the sources given~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
    "cites": [
     "mat-en-aw-1050a-weich",
     "mat-en-aw-8011a-o-folie",
@@ -431,14 +466,14 @@
    "width": "0.9"
   },
   {
-   "caption": "Yield onset and tensile strength of the measurement compared with the closest materials of the group Aluminium~\\cite{mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-8011a-o-folie,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38}.",
+   "caption": "Yield onset and tensile strength of the measurement compared with the closest materials of the group Aluminium~\\cite{mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-8011a-o-folie,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5052-h38}.",
    "cites": [
     "mat-en-aw-1050a-h14",
     "mat-en-aw-3003-h14",
     "mat-en-aw-6060-t6",
     "mat-en-aw-8011a-o-folie",
+    "mat-en-aw-5754-o-h111",
     "mat-en-aw-5052-h32",
-    "mat-en-aw-5754-h22",
     "mat-en-aw-5052-h38"
    ],
    "file": "fig/kandidaten.pdf",
@@ -468,7 +503,7 @@
    "notes": ""
   },
   {
-   "caption": "Measurement Synthetische Kurve compared with the reference material EN AW-5052-H38 (nominal values, not measured)~\\cite{mat-en-aw-5052-h38}.",
+   "caption": "Measurement Synthetische Kurve compared with the reference material EN AW-5052-H38 (nominal values, not measured). Deviation = (measurement $-$ reference)/reference. The yield onset is a deviation threshold, not $R_{p0.2}$; its deviation from the reference is for orientation only~\\cite{mat-en-aw-5052-h38}.",
    "cites": [
     "mat-en-aw-5052-h38"
    ],
@@ -479,7 +514,7 @@
    "notes": ""
   },
   {
-   "caption": "Materials of the stress--strain field Aluminium with the property values their curves are idealised from (numbers as in the figure)~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "caption": "Materials of the stress--strain field Aluminium with the property values their curves are idealised from (numbers as in the figure). Entries marked * are not checked (reason in the reference)~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
    "cites": [
     "mat-en-aw-1050a-weich",
     "mat-en-aw-8011a-o-folie",
@@ -579,8 +614,32 @@
      "54.8 s"
     ],
     [
+     "holdthr",
+     "90 %"
+    ],
+    [
      "ratio",
      "1.33"
+    ],
+    [
+     "tol",
+     "1.00 MPa"
+    ],
+    [
+     "Agt",
+     "8.98 %"
+    ],
+    [
+     "Ag",
+     "8.78 %"
+    ],
+    [
+     "At",
+     "12.00 %"
+    ],
+    [
+     "A",
+     "11.83 %"
     ],
     [
      "E",

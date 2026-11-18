@@ -973,7 +973,7 @@ function drawFeld(svg) {
   series.push({ x: ENV.eps, y: ENV.upper, color: cssv("--ph1"), width: 1.6 });
   series.push({ x: ENV.eps, y: ENV.lower, color: cssv("--ph1"), width: 1.6, dash: "6 4" });
   const allCurves = ENV.curves.length && ENV.curves.every(c => c.curve);
-  const legend = [{ label: `Feld ${r.group} (${allCurves ? "Kurven aus Quellen" : "idealisiert"})`, color: cssv("--band"), kind: "box" },
+  const legend = [{ label: `Feld ${r.group} (${allCurves ? "Kurven aus Quellen" : "idealisiert, zur Orientierung"})`, color: cssv("--band"), kind: "box" },
                   { label: "obere Grenze", color: cssv("--ph1") }, { label: "untere Grenze", color: cssv("--ph1"), dash: "6 4" }];
   let ymax = Math.max(...ENV.upper.filter(v => v !== null)), xmax = Math.max(...ENV.eps);
   const refCurve = refName ? ENV.curves.find(c => c.name === refName) : null;
@@ -1026,7 +1026,7 @@ function drawChart() {
   if (S.tab === "feld") {
     const ENV = ENVS_DONE[r.group] || { curves: [] };
     const own = [...ENV.curves, ...(r.field_extra || [])].filter(c => c.curve).map(c => c.name);
-    notes.innerHTML = `<div class="w info"><b>5.2</b>Werkstoffkurven sind idealisiert aus Rp, Rm, A und E, keine Messwerte${own.length ? `; aus der jeweiligen Quelle übernommen sind die Kurven von ${esc(own.join(", "))}` : ""}. Vergleichsgruppe: ${esc(r.group)}${(r.extras || []).length ? `; zusätzlich gezeigt (farbig, nicht Teil des Felds): ${esc(r.extras.join(", "))}` : ""}.</div>`;
+    notes.innerHTML = `<div class="w info"><b>5.2</b>Werkstoffkurven sind idealisiert aus Rp, Rm, A und E (elastisch mit E, dann Ramberg-Osgood durch Rp0,2 und Rm), nur zur Orientierung, keine Messwerte${own.length ? `; aus der jeweiligen Quelle übernommen sind die Kurven von ${esc(own.join(", "))}` : ""}. Vergleichsgruppe: ${esc(r.group)}${(r.extras || []).length ? `; zusätzlich gezeigt (farbig, nicht Teil des Felds): ${esc(r.extras.join(", "))}` : ""}.</div>`;
   }
   for (const w of r.warnings.filter(w => codes.includes(w.code))) notes.innerHTML += `<div class="w ${w.level}"><b>${w.code}</b>${esc(w.text)}</div>`;
 }
@@ -1056,7 +1056,7 @@ function renderKV() {
   const t = $("#kvTable");
   if (!S.files.length) { t.innerHTML = `<tr><td class="small">Noch keine Messung.</td></tr>`; $("#fitTable").innerHTML = ""; return; }
   let h = `<tr><th>Messung</th><th>Modus</th><th class="n">A₀ [mm²]</th><th class="n">Fliessbeginn</th><th class="n">Fmax / Rm</th>
-    <th class="n">vor Bruch</th><th class="n">Abfall</th><th class="n">Haltezeit [s]</th><th class="n">Rm / Streckgr.</th><th class="n">E scheinbar</th></tr>`;
+    <th class="n">vor Bruch</th><th class="n">Abfall</th><th class="n" title="zusammenhängend über der Halteschwelle um das Maximum">Haltezeit [s]</th><th class="n" title="Maximum / Fliessbeginn (Schwelle, keine Rp0,2)">Max / Fliessb.</th><th class="n">E scheinbar</th></tr>`;
   S.files.forEach((o, i) => {
     const r = o.res; if (!r) return;
     const kv = r.kv, st = r.mode === "Spannung";
@@ -1083,7 +1083,9 @@ function renderKV() {
     <tr><td>Grösste Abweichung / Toleranz</td><td class="n">${f(fit.max_dev, 2, u)} / ${f(fit.tol, 2, u)}</td></tr>
     <tr><td>Fusspunkt t₀</td><td class="n">${f(r.t0, 2, "s")}</td></tr>
     <tr><td>Abtastrate</td><td class="n">${f(k.rate_hz, 1, "Hz")} (Fenster der Steigung ${r.window_points} Punkte)</td></tr>
-    <tr><td>Plateau-Mittel 80–100 % der Zeit bis Maximum</td><td class="n">${f(k.plateau.mittel, 1, u)}</td></tr>
+    <tr><td>Plateau-Mittel 80–100 % der Zeit von t₀ bis Maximum</td><td class="n">${f(k.plateau.mittel, 1, u)}</td></tr>
+    <tr><td>Haltezeit (zusammenhängend um das Maximum)</td><td class="n">${f(k.hold.dauer, 1, "s")}${k.hold.abschnitte > 1 ? ` <span class="small">(${k.hold.abschnitte} Abschnitte über der Schwelle, zusammen ${f(k.hold.summe, 1, "s")})</span>` : ""}</td></tr>
+    ${k.At_pct !== undefined && k.At_pct !== null ? `<tr><td>Dehnung Agt / Ag · At / A${r.config && r.config.displacement_source !== "probe" ? " (scheinbar)" : ""}</td><td class="n">${f(k.Agt_pct, 2)} / ${f(k.Ag_pct, 2)} · ${f(k.At_pct, 2)} / ${f(k.A_pct, 2, "%")}</td></tr>` : ""}
     <tr><td>Bruchdauer</td><td class="n">${esc(k.break_duration_text)}</td></tr>`;
   for (const y of r.yield_table) g += `<tr><td>Fliessbeginn bei ${f(y.schwelle * 100, 1)} %</td><td class="n">${y.F === null ? "–" : f(y.F, 1, "N") + (r.mode === "Spannung" ? " / " + f(y.y, 0, "MPa") : "") + " bei " + f(y.t, 1, "s")}</td></tr>`;
   g += `<tr><td>Phasen</td><td class="n">${k.phases.map(p => `${p.phase} ${p.von}–${p.bis}`).join(" · ")}</td></tr>`;
@@ -1106,8 +1108,8 @@ function refCard(r) {
     cells.push(["Ohne A₀: nötige Fläche", f(ref.A_needed_mm2, 4, "mm²"), `Fmax bei Rm ${f(ref.Rm, 0)} MPa, Rund-Ø ${f(ref.d_equiv_mm, 2, "mm")}`, ""]);
   }
   if (r.e_schein_gpa !== null && r.e_schein_gpa !== undefined) cells.push(["E scheinbar / Soll", `${f(r.e_schein_gpa, 1)} / ${f(ref.E, ref.E < 10 ? 2 : 0)} GPa`, "Nachgiebigkeit des Aufbaus enthalten (7.2)", bar(r.e_schein_gpa, ref.E)]);
-  cells.push(["Bruchdehnung A (Soll)", f(ref.A, 0, "%"), ref.basis ? esc(ref.basis) : "", ""]);
-  return `<div class="small" style="margin-bottom:4px">Referenzwerkstoff <b style="color:#9334e6">${esc(ref.name)}</b> (${esc(ref.category)}) · Sollwerte, nicht gemessen</div>
+  cells.push(["Bruchdehnung A (Soll)", f(ref.A, 0, "%"), [ref.basis, ref.value_type ? "Wertart: " + ref.value_type : ""].filter(Boolean).map(esc).join(" · "), ""]);
+  return `<div class="small" style="margin-bottom:4px">Referenzwerkstoff <b style="color:#9334e6">${esc(ref.name)}</b> (${esc(ref.category)}) · Sollwerte, nicht gemessen${ref.check_note ? ` · <span class="badge warn" title="${esc(ref.check_note)}">nicht geprüft</span> ${esc(ref.check_note)}` : ""}</div>
     <div class="refcard">${cells.map(([l, v, s, b]) => `<div class="c"><div class="l">${l}</div><div class="v">${v}</div>${b}<div class="s">${s}</div></div>`).join("")}</div>`;
 }
 function renderCmp() {
@@ -1123,18 +1125,18 @@ function renderCmp() {
     body.innerHTML = refCard(r) + `<div class="w warn"><b>7.1</b>${esc(w ? w.text : "A₀ fehlt.")}</div>`; return;
   }
   const c = r.comparison, multi = new Set(c.rows.map(x => x.category)).size > 1, refName = r.reference ? r.reference.name : null;
-  let h = refCard(r) + `<div class="w info" style="margin-bottom:8px"><b>Kandidaten</b>${esc(c.hinweis)} Gemessen: Rm ${f(r.kv.Rm, 0, "MPa")}${c.measured_ratio ? `, Verhältnis Rm/Streckgrenze ${f(c.measured_ratio, 2)}` : ""}, Fmax ${f(r.kv.max.F, 1, "N")}.</div>
+  let h = refCard(r) + `<div class="w info" style="margin-bottom:8px"><b>Kandidaten</b>${esc(c.hinweis)} Gemessen: Rm ${f(r.kv.Rm, 0, "MPa")}${c.measured_ratio ? `, Verhältnis Rm/Fliessbeginn ${f(c.measured_ratio, 2)}` : ""}, Fmax ${f(r.kv.max.F, 1, "N")}.</div>
   <div class="tablewrap"><table><tr><th class="n">Rang</th><th>Werkstoff</th>${multi ? "<th>Kategorie</th>" : ""}<th class="n">Rm [MPa]</th><th>Einordnung nach Rm</th><th class="n">Rp0,2 [MPa]</th>
   <th class="n">Rm/Rp</th><th class="n">ΔRm</th><th class="n">ΔVerh.</th><th>Status</th><th class="n">A₀ nötig [mm²]</th><th class="n">d gleichw. [mm]</th></tr>`;
   for (const row of c.rows) {
     const cls = row.status === "Kandidat" ? "status-k" : row.status.startsWith("zurück") ? "status-z" : "status-x";
     const isRef = row.name === refName;
-    h += `<tr${isRef ? ' style="box-shadow: inset 3px 0 0 #9334e6"' : ""}><td class="n">${row.rank}<span class="small"> (Rm: ${row.rank_rm})</span></td><td title="${esc(row.source)}">${esc(row.name)}${isRef ? ' <span class="badge" style="color:#9334e6">Referenz</span>' : ""}</td>
+    h += `<tr${isRef ? ' style="box-shadow: inset 3px 0 0 #9334e6"' : ""}><td class="n">${row.rank}<span class="small"> (Rm: ${row.rank_rm})</span></td><td title="${esc(row.source)}${row.value_type ? " · Wertart: " + esc(row.value_type) : ""}${row.check_note ? " · nicht geprüft: " + esc(row.check_note) : ""}">${esc(row.name)}${row.check_note ? ' <span class="badge warn">nicht geprüft</span>' : ""}${isRef ? ' <span class="badge" style="color:#9334e6">Referenz</span>' : ""}</td>
       ${multi ? `<td class="small">${esc(row.category)}</td>` : ""}<td class="n">${f(row.Rm, 0)}</td><td>${esc(row.rm_class)} <span class="small">(${esc(row.rm_basis)})</span></td><td class="n">${f(row.Rp, 0)}</td>
-      <td class="n">${f(row.ratio, 2)}</td><td class="n">${f(-row.d_rm_pct, 1, "%")}</td><td class="n">${row.d_ratio_pct === null ? "–" : f(row.d_ratio_pct, 0, "%")}</td>
+      <td class="n">${f(row.ratio, 2)}</td><td class="n">${f(row.d_rm_pct, 1, "%")}</td><td class="n">${row.d_ratio_pct === null ? "–" : f(row.d_ratio_pct, 0, "%")}</td>
       <td class="${cls}">${esc(row.status)}</td><td class="n">${f(row.A_needed_mm2, 4)}</td><td class="n">${f(row.d_equiv_mm, 2)}</td></tr>`;
   }
-  h += `</table></div><div class="small" style="margin-top:6px">Rang aus Abstand in Rm und im Verfestigungsverhältnis; in Klammern der Rang nach Rm allein. Rückrechnung: Fläche, bei der die gemessene Fmax genau dem Rm der Legierung entspräche, und Durchmesser der gleichwertigen Rundprobe. Quellen je Zeile im Tooltip des Namens.</div>`;
+  h += `</table></div><div class="small" style="margin-top:6px">${esc(c.criterion || "")} In Klammern der Rang nach |ΔRm| allein. ΔRm und ΔVerh. = (Messung − Werkstoff) / Werkstoff. ${esc(c.ratio_basis || "")} Rückrechnung: Fläche, bei der die gemessene Fmax genau dem Rm der Legierung entspräche, und Durchmesser der gleichwertigen Rundprobe. Quellen je Zeile im Tooltip des Namens.</div>`;
   body.innerHTML = h;
 }
 
@@ -1454,7 +1456,8 @@ async function ownManage() {
       $("#ownImp").onclick = () => pickJson(async (data) => {
         const j = await api("api/own/import", { data });
         if (j.error) { $("#dlgErr").textContent = j.error; return; }
-        $("#dlgErr").textContent = j.skipped.length ? `${j.added} übernommen, übersprungen: ${j.skipped.join("; ")}` : "";
+        $("#dlgErr").textContent = [j.skipped.length ? `${j.added} übernommen, übersprungen: ${j.skipped.join("; ")}` : "",
+          (j.no_source || []).length ? `ohne Quelle übernommen und so gekennzeichnet: ${j.no_source.join(", ")}` : ""].filter(Boolean).join(" · ");
         META = j.meta; b.querySelector("#ownList").innerHTML = ownListHtml(); wire(b);
         await afterOwnChange(j.meta);
       });

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import ast
 import math
+import re
 
 import numpy as np
 
@@ -20,11 +21,12 @@ NO_SUBST = {"pi", "e", "MPa1", "c_std"}
 
 
 class Known:
-    __slots__ = ("sym", "kind", "si", "unit", "src", "label", "prov", "name")
+    __slots__ = ("sym", "kind", "si", "unit", "src", "label", "prov", "name", "rnd")
 
-    def __init__(self, sym, kind, si, unit, src, label="", prov=None, name=None):
+    def __init__(self, sym, kind, si, unit, src, label="", prov=None, name=None, rnd=0.0):
         self.sym, self.kind, self.si, self.unit, self.src, self.label, self.prov = sym, kind, si, unit, src, label, prov
         self.name = name or sym          # Name des Benutzers ("Geschwindigkeit"); sym ist die Rolle in Formeln ("v")
+        self.rnd = rnd                   # relative Rundung der Eingabe (halbe letzte Stelle), 0 = exakt
 
     def to_dict(self, lang="de"):
         k = U.ensure_kind(self.kind)
@@ -41,6 +43,73 @@ def to_si(v, unit, kind: U.Kind):
 
 def to_unit(si, unit, kind: U.Kind):
     return U.from_si(si, unit or kind.si, diff=kind.diff)
+
+
+_NUMTXT = re.compile(r"[+-]?(\d*)(\.?)(\d*)(?:[eE][+-]?\d+)?")
+
+
+def rounding_of(text) -> float:
+    """Relative Rundung einer eingegebenen Dezimalzahl: halbe Einheit der letzten Stelle, bezogen auf den Betrag
+    (2,50 -> 0,005/2,5 = 0,002; 1,5e3 -> 50/1500). Ganze Zahlen ohne Komma und ohne Exponent (2, 7, 1200) und
+    Ausdrücke (2*pi) gelten als exakt."""
+    s = str(text).strip()
+    if s.count(",") == 1 and "." not in s:
+        s = s.replace(",", ".")
+    m = _NUMTXT.fullmatch(s)
+    if not m or not (m.group(1) or m.group(3)):
+        return 0.0
+    if not m.group(2) and "e" not in s.lower():
+        return 0.0
+    try:
+        v = abs(float(s))
+    except ValueError:
+        return 0.0
+    if v == 0:
+        return 0.0
+    mant = s.lower().split("e")
+    ex = int(mant[1]) if len(mant) == 2 else 0
+    frac = m.group(3) if m.group(2) else ""
+    return 0.5 * 10.0 ** (ex - len(frac)) / v
+
+
+def _rnd_si(raw, unit, si):
+    """Rundung der Eingabe relativ zum SI-Wert (bei °C/°F zählt die Rundung in der eingegebenen Einheit)."""
+    r = rounding_of(raw)
+    if not r or not si:
+        return 0.0
+    try:
+        f, _, _ = U.parse_unit(unit or "1")
+        v = float(str(raw).strip().replace(",", ".")) if str(raw).count(",") <= 1 else None
+    except (U.UnitError, ValueError):
+        return r
+    return r * abs(v * f) / abs(si) if v is not None else r
+
+
+CHECK_RTOL_MIN = 1e-9          # Probe: Untergrenze der relativen Toleranz (Rechengenauigkeit)
+CHECK_RTOL_MAX = 1e-2          # … und Obergrenze (sonst sagt die Probe nichts mehr)
+
+
+def check_tolerance(eq, resolved, a, b):
+    """Toleranz der Probe: Rundung der Eingaben, in erster Ordnung durch die Gleichung fortgepflanzt,
+    Σ |∂(links − rechts)/∂x_i|·|x_i|·δ_i / max(|links|, |rechts|), begrenzt auf [CHECK_RTOL_MIN, CHECK_RTOL_MAX]."""
+    vals = {s: kn.si for s, kn in resolved.items()}
+    scale = max(abs(a), abs(b), 1e-300)
+    tot = 0.0
+    for s, kn in resolved.items():
+        if not kn.rnd or kn.si == 0:
+            continue
+        h = 1e-6 * abs(kn.si)
+        vv = dict(vals)
+        vv[s] = kn.si + h
+        try:
+            a2 = float(E.evaluate(eq.lhs, _ctx(vv)))
+            b2 = float(E.evaluate(eq.rhs, _ctx(vv)))
+        except (E.CalcError, TypeError, ValueError, ZeroDivisionError, OverflowError):
+            continue
+        dr = abs((a2 - b2) - (a - b)) / h
+        if math.isfinite(dr):
+            tot += dr * abs(kn.si) * kn.rnd
+    return min(CHECK_RTOL_MAX, max(CHECK_RTOL_MIN, tot / scale))
 
 
 def _num_expr(text, names=None):
@@ -133,12 +202,50 @@ def numeric_roots(eq, target, vals, kind: U.Kind):
                 y, scale = f(r)
                 if np.isfinite(y) and abs(float(y)) <= 1e-7 * max(1e-300, float(scale)):
                     roots.append(r)
+        roots.extend(_touching(f, X, Y))
     out = []
     for r in sorted(roots):
         if not out or abs(r - out[-1]) > 1e-9 * max(abs(r), 1e-300):
             out.append(r)
     if kind.pos:
         out = [r for r in out if r > 0]
+    return out
+
+
+TOUCH_RTOL = 1e-10             # Berührstelle: |links − rechts| ≤ 1e-10·max(|links|, |rechts|) am Minimum von |f|
+
+
+def _touching(f, X, Y):
+    """Nullstellen ohne Vorzeichenwechsel (doppelte Nullstellen, Berührpunkte): an jedem lokalen Minimum von |f| auf
+    dem Raster ohne Vorzeichenwechsel, das deutlich kleiner als seine Nachbarn ist, |f| mit dem Goldenen Schnitt
+    minimieren, dann Newton auf f′ (wie labcalc.solve); angenommen, wenn |f| ≤ TOUCH_RTOL·Skala."""
+    from labcalc import solve as SV
+    out = []
+    A = np.abs(Y)
+    fin = np.isfinite(Y)
+
+    def g(t):                                     # Zahl oder Feld (für die numerische Ableitung)
+        try:
+            v = np.asarray(f(t)[0], dtype=float)
+        except (E.CalcError, ValueError, TypeError, ZeroDivisionError, OverflowError):
+            return np.full(np.shape(t), math.nan) if np.ndim(t) else math.nan
+        return float(v) if v.ndim == 0 else v
+
+    for i in range(1, len(X) - 1):
+        if not (fin[i - 1] and fin[i] and fin[i + 1]) or Y[i] == 0:
+            continue
+        if not (A[i] < A[i - 1] and A[i] <= A[i + 1] and np.sign(Y[i - 1]) == np.sign(Y[i]) == np.sign(Y[i + 1])):
+            continue
+        if A[i] > 0.2 * max(A[i - 1], A[i + 1]):
+            continue
+        r = SV._golden_min(lambda t: abs(g(t)) if math.isfinite(g(t)) else math.inf, float(X[i - 1]), float(X[i + 1]))
+        r = SV._touch_polish(lambda t: g(t), r)
+        try:
+            y, scale = f(r)
+        except (E.CalcError, ValueError, TypeError, ZeroDivisionError, OverflowError):
+            continue
+        if np.isfinite(y) and abs(float(y)) <= TOUCH_RTOL * max(1e-300, float(scale)):
+            out.append(float(r))
     return out
 
 
@@ -216,7 +323,7 @@ class Sheet:
                 lab = v.get("label") or (k.de if self.lang == "de" else k.en)
                 if kind == "ph":                          # U-01: für die Formeln ist ein pH-Wert eine Zahl
                     kind = "number"
-                kn = Known(sym, kind, si, unit, "user:" + vid, lab, name=name)
+                kn = Known(sym, kind, si, unit, "user:" + vid, lab, name=name, rnd=_rnd_si(raw, unit, si))
                 if (sym, kind) in self.user:
                     other = self.user[(sym, kind)]
                     raise E.CalcError(f"{R.plain(ast.Name(id=sym))} ({k.de}) ist schon durch „{other.name}“ belegt"
@@ -278,7 +385,7 @@ class Sheet:
                 raise E.CalcError(f"{R.plain(ast.Name(id=var['sym']))}: {msg}")
             names = {k[0]: kn.si for k, kn in base.items()}
             si = to_si(_num_expr(raw, names), unit, kind)
-            return Known(var["sym"], var["kind"], si, unit, "manual"), "manual"
+            return Known(var["sym"], var["kind"], si, unit, "manual", rnd=_rnd_si(raw, unit, si)), "manual"
         bind = spec.get("bind") or "auto"
         if bind == "none":
             return None, "missing"
@@ -364,13 +471,15 @@ class Sheet:
         if target is None:
             # alles gegeben: Probe
             vals = {s: kn.si for s, kn in resolved.items()}
+            tol = CHECK_RTOL_MIN
             try:
                 a = float(E.evaluate(eq.lhs, _ctx(vals)))
                 b = float(E.evaluate(eq.rhs, _ctx(vals)))
                 rel = abs(a - b) / max(abs(a), abs(b), 1e-300)
+                tol = check_tolerance(eq, resolved, a, b)
             except (E.CalcError, TypeError, ValueError):
                 rel = math.nan
-            out.update(status="check", check={"rel": E._jnum(rel), "ok": bool(rel < 1e-3)})
+            out.update(status="check", check={"rel": E._jnum(rel), "tol": tol, "ok": bool(rel <= tol)})
             return out, None
         if miss_other:
             out.update(status="missing", missing=[{"sym": m["sym"], "kind": m["kind"], "html": R.sym_html(m["sym"]),

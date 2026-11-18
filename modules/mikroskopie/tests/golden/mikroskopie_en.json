@@ -5,14 +5,14 @@
   "module": "mikroskopie",
   "module_name": "Microscopy",
   "slug": "image-analysis-beispiel-partikel-tif",
-  "summary": "Beispiel_Partikel.tif: 55 particles, 4.1 %",
+  "summary": "Beispiel_Partikel.tif: 55 particles, 4.5 %",
   "title": "Image analysis Beispiel_Partikel.tif"
  },
  "files": {
   "data/partikel.csv": {
-   "first": "1,19.8125,17.2782,0.833976,5.02255,6.32456,71.5651,4.25,6.1359,4.11122,77.4936,1.49248,0.670027,0.939259,31.1408,3.98778,29,1,4.25,6,317,2681.49,646.292,1308,3330,53126.9",
-   "header": "id,Area,Perim,Circ,ECD,Feret,FeretAngle,MinFeret,Major,Minor,Angle,AR,Round,Solidity,X,Y,BX,BY,Width,Height,Pixels,Mean,StdDev,Min,Max,IntDen",
-   "last": "55,13.9375,13.9246,0.903292,4.21257,4.8283,68.7495,4,4.60064,3.85724,65.4745,1.19273,0.838415,0.942918,59.0129,138.541,57,136.25,4,4.5,223,1972.71,291.36,1307,2271,27494.7",
+   "first": "1,19.8125,17.2782,0.833976,5.02255,6.32456,71.5651,4.25,6.1359,4.11122,77.4936,1.49248,0.670027,0.939259,31.1408,3.98778,29,1,4.25,6,317,1.07046,2681.49,646.292,1308,3330,53126.9",
+   "header": "id,Area,Perim,Circ,ECD,Feret,FeretAngle,MinFeret,Major,Minor,Angle,AR,Round,Solidity,X,Y,BX,BY,Width,Height,Pixels,Weight,Mean,StdDev,Min,Max,IntDen",
+   "last": "55,13.9375,13.9246,0.903292,4.21257,4.8283,68.7495,4,4.60064,3.85724,65.4745,1.19273,0.838415,0.942918,59.0129,138.541,57,136.25,4,4.5,223,1.05752,1972.71,291.36,1307,2271,27494.7",
    "rows": 55,
    "type": "csv"
   },
@@ -40,11 +40,11 @@
    "type": "png"
   },
   "fig/groessen.pdf": {
-   "size": 11131,
+   "size": 12164,
    "type": "pdf"
   },
   "fig/groessen.png": {
-   "size": 18621,
+   "size": 23335,
    "type": "png"
   },
   "fig/histogramm.pdf": {
@@ -91,15 +91,17 @@
     "\\toprule",
     "Quantity & Value \\\\",
     "\\midrule",
-    "Number of particles & 55 \\\\",
+    "Number of particles (measured) & 55 \\\\",
+    "Number, edge-corrected & 58.7 \\\\",
     "Analysed area & 27648\\,$\\mu$m$^2$ \\\\",
-    "Area fraction & 4.10\\,\\% \\\\",
-    "Mean area & 20.6\\,$\\pm$\\,14.8\\,$\\mu$m$^2$ \\\\",
-    "Equivalent diameter & 4.76\\,$\\pm$\\,1.90\\,$\\mu$m \\\\",
-    "D10 / D50 / D90 & 2.34 / 5.02 / 6.98\\,$\\mu$m \\\\",
+    "Area fraction & 4.50\\,\\% \\\\",
+    "Mean area & 21.0\\,$\\pm$\\,15.0\\,$\\mu$m$^2$ \\\\",
+    "Equivalent diameter & 4.81\\,$\\pm$\\,1.91\\,$\\mu$m \\\\",
+    "D10 / D50 / D90 (number, Q0) & 2.34 / 5.04 / 7.13\\,$\\mu$m \\\\",
+    "Dv10 / Dv50 / Dv90 (volume, Q3) & 4.63 / 6.44 / 8.44\\,$\\mu$m \\\\",
     "Circularity & 0.85\\,$\\pm$\\,0.09 \\\\",
-    "Feret diameter & 5.85\\,$\\pm$\\,2.65\\,$\\mu$m \\\\",
-    "Aspect ratio & 1.38\\,$\\pm$\\,0.33 \\\\",
+    "Feret diameter & 5.92\\,$\\pm$\\,2.67\\,$\\mu$m \\\\",
+    "Aspect ratio & 1.38\\,$\\pm$\\,0.34 \\\\",
     "Solidity & 0.93\\,$\\pm$\\,0.03 \\\\",
     "\\bottomrule",
     "\\end{tabular}"
@@ -123,19 +125,29 @@
     "  pages = {62--66},",
     "  year = {1979},",
     "  doi = {10.1109/TSMC.1979.4310076}",
+    "}",
+    "",
+    "@article{hyndman1996,",
+    "  author = {Hyndman, Rob J. and Fan, Yanan},",
+    "  title = {Sample quantiles in statistical packages},",
+    "  journal = {The American Statistician},",
+    "  volume = {50},",
+    "  number = {4},",
+    "  pages = {361--365},",
+    "  year = {1996}",
     "}"
    ],
    "type": "bib"
   },
   "text-ergebnisse.tex": {
    "lines": [
-    "\\labval{image-analysis-beispiel-partikel-tif}{n} particles were detected in Beispiel\\_Partikel.tif, covering \\labval{image-analysis-beispiel-partikel-tif}{areaFrac} of the analysed area. The mean equivalent diameter is \\labval{image-analysis-beispiel-partikel-tif}{meanECD} (standard deviation \\labval{image-analysis-beispiel-partikel-tif}{sdECD}), the mean area \\labval{image-analysis-beispiel-partikel-tif}{meanArea}. The size distribution has $D_{10}$ = \\labval{image-analysis-beispiel-partikel-tif}{D10}, $D_{50}$ = \\labval{image-analysis-beispiel-partikel-tif}{D50} and $D_{90}$ = \\labval{image-analysis-beispiel-partikel-tif}{D90}. The mean circularity is \\labval{image-analysis-beispiel-partikel-tif}{meanCirc} (1 is a circle); the mean Feret diameter is \\labval{image-analysis-beispiel-partikel-tif}{meanFeret}. In selection Feld A the mean grey value is \\labval{image-analysis-beispiel-partikel-tif}{roi1Mean} over an area of \\labval{image-analysis-beispiel-partikel-tif}{roi1Area}. In selection L1 the mean grey value is \\labval{image-analysis-beispiel-partikel-tif}{roi2Mean} along a length of \\labval{image-analysis-beispiel-partikel-tif}{roi2Length}."
+    "\\labval{image-analysis-beispiel-partikel-tif}{n} particles were measured in Beispiel\\_Partikel.tif (edge-corrected \\labval{image-analysis-beispiel-partikel-tif}{nCorr}); the particles cover \\labval{image-analysis-beispiel-partikel-tif}{areaFrac} of the analysed area. The mean equivalent diameter is \\labval{image-analysis-beispiel-partikel-tif}{meanECD} (standard deviation \\labval{image-analysis-beispiel-partikel-tif}{sdECD}), the mean area \\labval{image-analysis-beispiel-partikel-tif}{meanArea}. The number distribution (Q0) has $D_{10}$ = \\labval{image-analysis-beispiel-partikel-tif}{D10}, $D_{50}$ = \\labval{image-analysis-beispiel-partikel-tif}{D50} and $D_{90}$ = \\labval{image-analysis-beispiel-partikel-tif}{D90}; by volume (Q3), $D_{v50}$ = \\labval{image-analysis-beispiel-partikel-tif}{Dv50}. The mean circularity is \\labval{image-analysis-beispiel-partikel-tif}{meanCirc} (1 is a circle); the mean Feret diameter is \\labval{image-analysis-beispiel-partikel-tif}{meanFeret}. In selection Feld A the mean grey value is \\labval{image-analysis-beispiel-partikel-tif}{roi1Mean} over an area of \\labval{image-analysis-beispiel-partikel-tif}{roi1Area}. In selection L1 the mean grey value is \\labval{image-analysis-beispiel-partikel-tif}{roi2Mean} along a length of \\labval{image-analysis-beispiel-partikel-tif}{roi2Length}."
    ],
    "type": "tex"
   },
   "text-methodik.tex": {
    "lines": [
-    "The micrograph Beispiel\\_Partikel.tif \\cite{data-image-analysis-beispiel-partikel-tif} (768\\,$\\times$\\,576 pixels, 16-bit, pixel size \\labval{image-analysis-beispiel-partikel-tif}{px}) was analysed. Processing comprised, in this order: Subtract background (r = 30 px, dark background); Gaussian blur ($\\sigma$ = 1.5 px); Threshold (make binary) (Otsu, dark background); Fill holes. The threshold was set automatically with the Otsu method \\cite{otsu1979} (\\labval{image-analysis-beispiel-partikel-tif}{thr}). Particles were detected as connected regions of the binary image (8-connectivity) with an area of 2.00 to $\\infty$\\,$\\mu$m$^2$ and a circularity $4\\pi A/P^2$ of 0.00 to 1.00; particles touching the image border were excluded. The perimeter follows the contour through the centres of the boundary pixels; the equivalent circle diameter (ECD) is the diameter of the circle of equal area."
+    "The micrograph Beispiel\\_Partikel.tif \\cite{data-image-analysis-beispiel-partikel-tif} (768\\,$\\times$\\,576 pixels, 16-bit, pixel size \\labval{image-analysis-beispiel-partikel-tif}{px}) was analysed. Processing comprised, in this order: Subtract background (grey-scale opening, square window, r = 30 px, dark background); Gaussian blur ($\\sigma$ = 1.5 px); Threshold (make binary) (Otsu, dark background); Fill holes. The threshold was set automatically with the Otsu method \\cite{otsu1979} (\\labval{image-analysis-beispiel-partikel-tif}{thr}). Pixels were treated as square. Particles were detected as connected regions of the binary image (8-connectivity) with an area of 2.00 to $\\infty$\\,$\\mu$m$^2$ and a circularity $4\\pi A/P^2$ of 0.00 to 1.00. The perimeter is the length of the marching-squares contour between the pixel centres (straight steps one pixel edge, corners cut by half a pixel diagonal), outer contour only (holes filled); the equivalent circle diameter (ECD) is the diameter of the circle of equal area. Only particles whose bounding box does not touch the border of the analysed area were measured; each was weighted after Miles and Lantuéjoul by the inverse fraction of positions in which a box of its size does not touch the border (image $W\\times H$, box $w\\times h$ pixels: $WH/((W-w-1)(H-h-1))$). Means, standard deviations and D values use these weights; the area fraction includes the particles at the border. $D_{10}$, $D_{50}$ and $D_{90}$ are quantiles of the number distribution (Q0) of the ECD, $D_{v10}$, $D_{v50}$ and $D_{v90}$ of the volume distribution (Q3, weight ECD$^3$, spheres assumed); quantiles by the midpoint rule (for equal weights definition 5 of Hyndman and Fan \\cite{hyndman1996})."
    ],
    "type": "tex"
   },
@@ -149,15 +161,19 @@
     "\\labset{image-analysis-beispiel-partikel-tif}{thr}{1307--5457}% Threshold",
     "\\labset{image-analysis-beispiel-partikel-tif}{thrMethod}{Otsu}% Threshold method",
     "\\labset{image-analysis-beispiel-partikel-tif}{n}{55}% Particle count",
-    "\\labset{image-analysis-beispiel-partikel-tif}{areaFrac}{4.10\\,\\%}% Area fraction",
-    "\\labset{image-analysis-beispiel-partikel-tif}{meanArea}{20.6\\,$\\mu$m$^2$}% Mean area",
-    "\\labset{image-analysis-beispiel-partikel-tif}{meanECD}{4.76\\,$\\mu$m}% Mean equivalent diameter",
-    "\\labset{image-analysis-beispiel-partikel-tif}{sdECD}{1.90\\,$\\mu$m}% SD of equivalent diameter",
+    "\\labset{image-analysis-beispiel-partikel-tif}{areaFrac}{4.50\\,\\%}% Area fraction",
+    "\\labset{image-analysis-beispiel-partikel-tif}{meanArea}{21.0\\,$\\mu$m$^2$}% Mean area",
+    "\\labset{image-analysis-beispiel-partikel-tif}{meanECD}{4.81\\,$\\mu$m}% Mean equivalent diameter",
+    "\\labset{image-analysis-beispiel-partikel-tif}{sdECD}{1.91\\,$\\mu$m}% SD of equivalent diameter",
     "\\labset{image-analysis-beispiel-partikel-tif}{meanCirc}{0.85}% Mean circularity",
-    "\\labset{image-analysis-beispiel-partikel-tif}{meanFeret}{5.85\\,$\\mu$m}% Mean Feret diameter",
-    "\\labset{image-analysis-beispiel-partikel-tif}{D10}{2.34\\,$\\mu$m}% D10",
-    "\\labset{image-analysis-beispiel-partikel-tif}{D50}{5.02\\,$\\mu$m}% D50",
-    "\\labset{image-analysis-beispiel-partikel-tif}{D90}{6.98\\,$\\mu$m}% D90",
+    "\\labset{image-analysis-beispiel-partikel-tif}{meanFeret}{5.92\\,$\\mu$m}% Mean Feret diameter",
+    "\\labset{image-analysis-beispiel-partikel-tif}{D10}{2.34\\,$\\mu$m}% D10 (Q0)",
+    "\\labset{image-analysis-beispiel-partikel-tif}{D50}{5.04\\,$\\mu$m}% D50 (Q0)",
+    "\\labset{image-analysis-beispiel-partikel-tif}{D90}{7.13\\,$\\mu$m}% D90 (Q0)",
+    "\\labset{image-analysis-beispiel-partikel-tif}{Dv10}{4.63\\,$\\mu$m}% Dv10 (Q3)",
+    "\\labset{image-analysis-beispiel-partikel-tif}{Dv50}{6.44\\,$\\mu$m}% Dv50 (Q3)",
+    "\\labset{image-analysis-beispiel-partikel-tif}{Dv90}{8.44\\,$\\mu$m}% Dv90 (Q3)",
+    "\\labset{image-analysis-beispiel-partikel-tif}{nCorr}{58.7}% Number, edge-corrected",
     "\\labset{image-analysis-beispiel-partikel-tif}{roi1Mean}{290.9}% Feld A: mean",
     "\\labset{image-analysis-beispiel-partikel-tif}{roi1Area}{1875\\,$\\mu$m$^2$}% Feld A: area",
     "\\labset{image-analysis-beispiel-partikel-tif}{roi2Mean}{536.7}% L1: mean",
@@ -176,6 +192,11 @@
    "key": "otsu1979",
    "kind": "citation",
    "title": "A threshold selection method from gray-level histograms"
+  },
+  {
+   "key": "hyndman1996",
+   "kind": "citation",
+   "title": "Sample quantiles in statistical packages"
   },
   {
    "caption": "Micrograph Beispiel\\_Partikel.tif with the measured selections.",
@@ -208,7 +229,7 @@
    "width": "0.75"
   },
   {
-   "caption": "Distribution of the equivalent circle diameter of the particles in Beispiel\\_Partikel.tif.",
+   "caption": "Number distribution (Q0) of the equivalent circle diameter of the particles in Beispiel\\_Partikel.tif, edge-corrected after Miles and Lantuéjoul.",
    "cites": [],
    "file": "fig/groessen.pdf",
    "id": "groessen",
@@ -253,7 +274,7 @@
    "id": "partikel",
    "kind": "table",
    "label": "tab:image-analysis-beispiel-partikel-tif-partikel",
-   "notes": "Mean $\\pm$ standard deviation; ECD: diameter of the circle of equal area."
+   "notes": "Mean $\\pm$ standard deviation; ECD: diameter of the circle of equal area. Q0: weighted by number; Q3: weighted by volume (ECD$^3$, spheres assumed). Area fraction from all particles including those at the border. Means, standard deviations and D values edge-corrected: particles at the border of the analysed area not measured, the others weighted after Miles and Lantuéjoul."
   },
   {
    "columns": [
@@ -278,6 +299,7 @@
     "Width",
     "Height",
     "Pixels",
+    "Weight",
     "Mean",
     "StdDev",
     "Min",
@@ -297,6 +319,7 @@
     "Mean": "Mean",
     "Perim": "Perimeter [$\\mu$m]",
     "Solidity": "Solidity",
+    "Weight": "Weight (edge correction)",
     "X": "x [$\\mu$m]",
     "Y": "y [$\\mu$m]"
    },
@@ -368,7 +391,7 @@
     ],
     [
      "areaFrac",
-     "4.10 %"
+     "4.50 %"
     ],
     [
      "meanArea",
@@ -376,7 +399,7 @@
     ],
     [
      "meanECD",
-     "4.76 µm"
+     "4.81 µm"
     ],
     [
      "sdECD",
@@ -396,11 +419,27 @@
     ],
     [
      "D50",
-     "5.02 µm"
+     "5.04 µm"
     ],
     [
      "D90",
-     "6.98 µm"
+     "7.13 µm"
+    ],
+    [
+     "Dv10",
+     "4.63 µm"
+    ],
+    [
+     "Dv50",
+     "6.44 µm"
+    ],
+    [
+     "Dv90",
+     "8.44 µm"
+    ],
+    [
+     "nCorr",
+     "58.7"
     ],
     [
      "roi1Mean",

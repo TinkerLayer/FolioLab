@@ -12,10 +12,13 @@ Modelle:
   mm     v = Vmax·S/(Km + S)      linearisiert (Lineweaver–Burk): 1/v = 1/Vmax + (Km/Vmax)·(1/S)
 
 Linearisiert: Ausgleichsgerade durch die umgerechneten Punkte (ungewichtet, wie im Praktikum); die Parameter werden
-zurückgerechnet, ihre Unsicherheit mit der Kovarianz nach Gauss (erste Ordnung). Direkt: kleinste Quadrate in y
-(Levenberg–Marquardt mit numerischer Ableitung, Start bei den linearisierten Werten), Unsicherheit aus
-s²·(JᵀJ)⁻¹. Vertrauensbereich 95 % mit dem Student-t-Quantil (n − p Freiheitsgrade). Für lin, prop, poly und log
-sind beide Wege gleich (das Modell ist in den Parametern schon linear).
+zurückgerechnet, ihre Unsicherheit mit der Kovarianz nach Gauss (erste Ordnung, symmetrisch). Lineweaver–Burk (mm)
+ist bekannt verzerrt (die Kehrwerte geben kleinen S und v grosses Gewicht); es bleibt als Option, die direkte
+Anpassung wird empfohlen. Direkt: kleinste Quadrate in y (Levenberg–Marquardt mit numerischer Ableitung, Start bei
+den linearisierten Werten) an allen Punkten, an denen das Modell selbst definiert ist (auch y ≤ 0), Unsicherheit aus
+s²·(JᵀJ)⁻¹ am Optimum, mit Konvergenzprüfung. Vertrauensbereich 95 % mit dem Student-t-Quantil (n − p
+Freiheitsgrade). Für lin, prop, poly und log sind beide Wege gleich (das Modell ist in den Parametern schon linear).
+R² = 1 − SSE/SST; SST um den Mittelwert, beim Modell ohne Achsenabschnitt (prop) unzentriert, SST = Σy².
 
 Werte kommen in den Einheiten der Spalten (nicht SI); die Einheiten der Parameter werden daraus gebildet.
 """
@@ -29,7 +32,8 @@ import numpy as np
 from . import stats
 from . import units as U
 
-R_GAS = 8.314462618                    # J/(mol·K), CODATA 2022 (exakt aus N_A·k)
+R_GAS = U.R_GAS                        # J/(mol·K), exakt R = N_A·k (SI 2019), volle Doppelgenauigkeit
+GTOL = 1e-4                            # Konvergenz: max. Kosinus zwischen Residuum und Spalten der Jacobi-Matrix
 
 # key: (de, en, Formel, Parameter, linearisierbar)
 MODELS = {
@@ -144,10 +148,27 @@ def _linear_ls(cols, y):
     return q, cov, sse, dof
 
 
-def _r2(y, yh):
-    sst = float(np.sum((y - y.mean()) ** 2))
+def _r2(y, yh, centred=True):
+    """Bestimmtheitsmass 1 − SSE/SST. centred=False (Modell ohne Achsenabschnitt): SST = Σy² statt Σ(y − ȳ)²."""
+    sst = float(np.sum((y - y.mean()) ** 2)) if centred else float(np.sum(y ** 2))
     sse = float(np.sum((y - yh) ** 2))
     return 1 - sse / sst if sst > 0 else 1.0
+
+
+def converged(J, r, y) -> bool:
+    """Optimum erreicht? Residuum (fast) null oder senkrecht zu allen Spalten von J (Kosinus ≤ GTOL, wie das
+    Gradientenkriterium von MINPACK)."""
+    rr = float(r @ r)
+    if rr <= 1e-24 * max(float(y @ y), 1e-300):
+        return True
+    if not np.all(np.isfinite(J)):
+        return False
+    nr = math.sqrt(rr)
+    cols = np.sqrt(np.sum(J * J, axis=0))
+    g = np.abs(J.T @ r)
+    with np.errstate(all="ignore"):
+        cos = np.where(cols > 0, g / (cols * nr), 0.0)
+    return bool(np.all(cos <= GTOL))
 
 
 # Linearisierte Form der nichtlinearen Modelle: Punkte (X, Y) und Rückrechnung der Geradenparameter (c, s)
@@ -191,7 +212,7 @@ def _from_line(model, c, s):
 
 
 def _lm(f, q0, x, y, iters=200):
-    """Levenberg–Marquardt für y ≈ f(x, q); gibt (q, Kovarianz, SSE, Freiheitsgrade)."""
+    """Levenberg–Marquardt für y ≈ f(x, q); gibt (q, Kovarianz, SSE, Freiheitsgrade, konvergiert?)."""
     q = np.asarray(q0, dtype=float)
     n, k = len(y), len(q)
 
@@ -236,10 +257,10 @@ def _lm(f, q0, x, y, iters=200):
         if not better or done:
             break
     with np.errstate(all="ignore"):
-        J, _ = jac(q)
+        J, f0 = jac(q)
     dof = n - k
     cov = (s / dof) * np.linalg.pinv(J.T @ J) if dof > 0 and np.all(np.isfinite(J)) else None
-    return q, cov, s, dof
+    return q, cov, s, dof, converged(J, f0 - y, y)
 
 
 def _direct_fn(model, xunit):
@@ -256,6 +277,28 @@ def _direct_fn(model, xunit):
     if model == "mm":
         return (lambda x, q: q[0] * x / (q[1] + x)), (lambda q: ([q[0], q[1]], np.eye(2)))
     raise FitError("Unbekanntes Modell")
+
+
+def _direct_points(model, x, xunit):
+    """Punkte, an denen das Modell selbst (nicht seine Linearisierung) definiert ist: exp, mm alle; pow x > 0;
+    arrh T > 0 (in K)."""
+    if model == "pow":
+        return x > 0
+    if model == "arrh":
+        T, _ = _temperature_K(x, xunit)
+        return T > 0
+    return np.ones_like(x, dtype=bool)
+
+
+def _direct_note(model, x, dm, xunit):
+    msgs = []
+    if model == "arrh":
+        msgs.append(_temperature_K(x, xunit)[1])
+        if not dm.all():
+            msgs.append("Punkte mit T ≤ 0 K weggelassen")
+    elif model == "pow" and not dm.all():
+        msgs.append("Punkte mit x ≤ 0 weggelassen")
+    return "; ".join(m for m in msgs if m)
 
 
 def _thin(a, b, n=500):
@@ -285,11 +328,13 @@ def fit(x, y, model: str, mode: str = "lin", xunit: str = "", yunit: str = "", l
     notes = []
     mode = "direct" if (mode == "direct" and has_lin) else "lin"
     X, Y, keep, note = _lin_points(model, x, y, xunit)
-    if note:
+    if note and mode != "direct":
         notes.append(note)
     if len(X) < k:
         raise FitError(f"{de}: zu wenige brauchbare Wertepaare ({len(X)})")
     r2_lin = None
+    conv = None
+    u_method = "linear"                  # Kovarianz s²·(AᵀA)⁻¹ eines in den Parametern linearen Modells
     if not has_lin:
         cols = _design(model, x) if model != "log" else _design(model, x[keep])
         yy = y if model != "log" else y[keep]
@@ -302,12 +347,33 @@ def fit(x, y, model: str, mode: str = "lin", xunit: str = "", yunit: str = "", l
         p, G = _from_line(model, float(c), float(s))
         cov_p = G @ cov_l @ G.T if cov_l is not None else None
         xs_used, ys_used = x[keep], y[keep]
+        u_method = "first_order_back_transform"
         if mode == "direct":
+            dm = _direct_points(model, x, xunit)
+            xs_used, ys_used = x[dm], y[dm]
+            dn = _direct_note(model, x, dm, xunit)
+            if dn:
+                notes.append(dn)
+            if len(xs_used) < k:
+                raise FitError(f"{de}: zu wenige brauchbare Wertepaare ({len(xs_used)})")
+            if int(dm.sum()) > int(keep.sum()):
+                notes.append(f"Startwerte aus den {int(keep.sum())} linearisierbaren Punkten; angepasst an alle "
+                             f"{int(dm.sum())} Punkte")
             f, back = _direct_fn(model, xunit)
             q0 = [float(c), float(s)] if model != "mm" else p
-            q, cov_q, _sse, dof = _lm(f, q0, xs_used, ys_used)
+            q, cov_q, _sse, dof, conv = _lm(f, q0, xs_used, ys_used)
             p, G = back(q)
             cov_p = G @ cov_q @ G.T if cov_q is not None else None
+            u_method = "jacobian" if model == "mm" else "jacobian_first_order"
+            if not conv:
+                notes.append("Levenberg–Marquardt nicht konvergiert (kein Optimum nach dem Gradientenkriterium) – "
+                             "Ergebnis und Unsicherheiten unzuverlässig; Daten, Bereich oder Modell prüfen")
+        elif model == "mm":
+            notes.append("Lineweaver–Burk (doppelt reziproke Gerade): bekannt verzerrt, da kleine S und v durch die "
+                         "Kehrwerte grosses Gewicht erhalten – für Ergebnisse die direkte Anpassung verwenden")
+        if mode != "direct":
+            which = {"exp": "a", "pow": "a", "arrh": "A", "mm": "Vmax und Km"}[model]
+            notes.append(f"Unsicherheit von {which} aus der Geraden zurückgerechnet (erste Ordnung, symmetrisch)")
     with np.errstate(all="ignore"):
         yh = predict(model, p, xs_used, xunit)
     resid = ys_used - yh
@@ -324,12 +390,24 @@ def fit(x, y, model: str, mode: str = "lin", xunit: str = "", yunit: str = "", l
                        "ci": _num(t * u) if (t is not None and u is not None) else None, "unit": units[i]})
     if model == "pow" and (xunit or yunit):
         notes.append(f"a gilt für x in {xunit or '1'} und y in {yunit or '1'}")
+    if model == "log":
+        notes.append(f"a = y bei x = 1 {xunit}: a hängt von der Einheit von x ab (x in {xunit})" if xunit else
+                     "a = y bei x = 1: a hängt von der Einheit von x ab")
+    if model == "prop":
+        notes.append("R² ohne Achsenabschnitt: SST = Σy² (unzentriert)")
     s_res = math.sqrt(float(resid @ resid) / dof) if dof > 0 else None
     out = {
         "model": model, "mode": mode, "name": en if lang == "en" else de, "formula": formula, "n": n, "dof": dof,
-        "params": params, "r2": _num(_r2(ys_used, yh)), "s": _num(s_res) if s_res is not None else None, "t": t,
-        "notes": notes, "xunit": xunit, "yunit": yunit,
+        "params": params, "r2": _num(_r2(ys_used, yh, centred=model != "prop")),
+        "r2_centred": model != "prop", "s": _num(s_res) if s_res is not None else None, "t": t,
+        "notes": notes, "xunit": xunit, "yunit": yunit, "u_method": u_method,
     }
+    if model == "mm" and mode != "direct":
+        out["method"] = "Lineweaver–Burk"
+    if conv is not None:
+        out["converged"] = bool(conv)
+    if model == "log":
+        out["a_xunit"] = xunit or ""
     if r2_lin is not None:
         out["r2_lin"] = _num(r2_lin)
     out["plots"] = _plots(model, mode, p, x, y, X, Y, keep, xs_used, resid, xunit, yunit, lang)
@@ -368,6 +446,8 @@ def _plots(model, mode, p, x, y, X, Y, keep, xs_used, resid, xunit, yunit, lang)
         lin_t = "Data and fit" if en else "Messwerte und Ausgleich"
     else:
         lin_t = f"Linearised: {ay} over {ax}" if en else f"Linearisiert: {ay} über {ax}"
+        if model == "mm":
+            lin_t += " (Lineweaver–Burk)"
     return [
         {"title": lin_t, "xlab": lx, "ylab": ly,
          "series": [{"name": meas, "x": [_num(v) for v in tx], "y": [_num(v) for v in ty], "pts": True},

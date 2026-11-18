@@ -315,7 +315,9 @@ def ds_route(action: str, req: dict) -> dict:
             from . import export as X
             ds, env = D.load(envs, sid, req.get("version"))
             fmt = str(req.get("format") or "csv")
-            data, mime = X.export(ds, fmt, describe_step)
+            if fmt not in X.FORMATS:
+                raise ValueError(f"Format „{fmt}“ unbekannt (csv, xlsx, json, parquet)")
+            data, mime = X.export(ds, fmt, describe_step, flags=req.get("flags", True) is not False)
             stem = re.sub(r"[\\/:*?\"<>|]+", "_", f"{ds.header['title']}_v{env['version']}")[:100]
             return {"data": base64.b64encode(data).decode("ascii"), "mime": mime, "filename": stem + X.FORMATS[fmt][1],
                     "bytes": len(data)}
@@ -420,25 +422,47 @@ def tpl_route(action: str, req: dict) -> dict:
 
 
 def bundle_route(action: str, req: dict) -> dict:
-    """DP-10: report bundle of a dataset (share + version); Refresh uses the dataset kept in the bundle."""
+    """DP-10: report bundle of a dataset (share + version).
+
+    Refresh (rebuild) follows the mode stored in the request: "pin" (default, also for bundles made before the mode
+    existed) rebuilds the same version – the dataset kept in the bundle, else that version from the active project;
+    "live" loads the newest version of the share from the active project and says in the summary and the methods
+    text when it moved (if the share cannot be read there, the kept version is used and that is said instead)."""
     from . import bundle as B
     from . import datasets as D
+    import labdataset as DS
     if action == "rebuild":
         src = req.get("source") or {}
         old = src.get("request") or {}
         request = {**old, **{k: v for k, v in req.items() if k != "source"}}
-        ds = B.rebuild_dataset(src)
+        mode = "live" if old.get("mode") == "live" else "pin"
+        sid = str(old.get("share") or "")
+        ds, meta, note = None, None, ""
+        if mode == "live" and sid:
+            try:
+                ds, env = D.load(STATE.envs, sid, None)
+                meta = {"share": sid, "version": env["version"]}
+                if old.get("version") is not None and env["version"] != old.get("version"):
+                    note = (f"Aktualisiert: Datensatz {sid} von Version {old.get('version')} auf die neueste Version "
+                            f"{env['version']} (Bericht folgt der neuesten Version)")
+            except (EnvError, DS.DatasetError, ValueError, KeyError, OSError) as e:
+                ds, note = None, (f"Neueste Version von {sid} nicht lesbar ({e}); Version {old.get('version')} "
+                                  f"beibehalten")
         if ds is None:
-            ds, env = D.load(STATE.envs, str(old.get("share") or ""), old.get("version"))
-            meta = {"share": old.get("share"), "version": env["version"]}
-        else:
-            meta = {"share": old.get("share"), "version": old.get("version")}
-        return B.build(ds, meta, request, describe_step)
+            ds = B.rebuild_dataset(src)
+            if ds is None:
+                ds, env = D.load(STATE.envs, sid, old.get("version"))
+                meta = {"share": old.get("share"), "version": env["version"]}
+            else:
+                meta = {"share": old.get("share"), "version": old.get("version")}
+        request["mode"] = mode
+        return B.build(ds, meta, request, describe_step, note=note)
     sid = str(req.get("share") or "")
     if not sid:
         raise ValueError("Kein Datensatz gewählt")
     ds, env = D.load(STATE.envs, sid, req.get("version"))
     request = {k: req.get(k) for k in ("lang", "include", "title", "slug") if req.get(k) is not None}
+    request["mode"] = "live" if req.get("mode") == "live" else "pin"
     return B.build(ds, {"share": sid, "version": env["version"]}, request, describe_step)
 
 

@@ -66,7 +66,7 @@ _add("mmHg", 133.322387415, PRESS, False)
 _add("J", 1, ENERGY)
 _add("Wh", 3600, ENERGY)
 _add("cal", 4.184, ENERGY)
-_add("eV", 1.602176634e-19, ENERGY)
+_add("eV", 1.602176634e-19, ENERGY)               # = e·1 V, exakt (SI 2019)
 _add("W", 1, POWER)
 _add("Hz", 1, _d(s=-1))
 _add("C", 1, _d(A=1, s=1))
@@ -127,8 +127,13 @@ _add("slm", 1e-3 / 60, _d(m=3, s=-1), False)      # L/min im Normzustand
 _add("Gy", 1, _d(m=2, s=-2))                      # Gray (Energiedosis, J/kg)
 _add("Sv", 1, _d(m=2, s=-2))                      # Sievert (Äquivalentdosis, J/kg)
 _add("kat", 1, _d(mol=1, s=-1))                   # Katal (katalytische Aktivität)
-_add("°dH", 0.17832, _d(mol=1, m=-3), False)      # deutsche Härte: 1 °dH = 10 mg CaO/L = 0,17832 mmol/L
-_add("°fH", 0.1, _d(mol=1, m=-3), False)          # französische Härte: 1 °fH = 0,1 mmol/L (10 mg CaCO₃/L)
+# Wasserhärte als Stoffmenge Erdalkali-Ionen; molare Massen aus den konventionellen Standard-Atomgewichten (IUPAC/CIAAW:
+# Ca 40,078; C 12,011; O 15,999 g/mol).
+M_CAO = 40.078 + 15.999                            # g/mol
+M_CACO3 = 40.078 + 12.011 + 3 * 15.999             # g/mol
+_add("°dH", 10.0 / M_CAO, _d(mol=1, m=-3), False)    # deutsche Härte: 1 °dH = 10 mg CaO/L = 0,178326 mmol/L
+_add("°fH", 10.0 / M_CACO3, _d(mol=1, m=-3), False)  # französische Härte: 1 °fH = 10 mg CaCO₃/L = 0,099914 mmol/L
+#                                                    (oft auf 0,1 mmol/L gerundet; Unterschied 0,09 %)
 _add("CFU", 1, D0, False)                         # koloniebildende Einheiten (Anzahl), z. B. CFU/mL
 _add("KBE", 1, D0, False)                         # dasselbe deutsch
 # Skalen, die sich nicht in andere dimensionslose Einheiten umrechnen lassen (pH → % wäre Unsinn); siehe compatible()
@@ -270,6 +275,19 @@ def to_si(v: float, unit: str, diff: bool = False) -> float:
 def from_si(v, unit: str, diff: bool = False):
     f, _, off = parse_unit(unit)
     return (v - (0.0 if diff else off)) / f
+
+
+_DELTA = re.compile(r"^\s*(?:Δ|Delta|delta)\s*")
+
+
+def split_delta(unit: str):
+    """Zieleinheit mit Differenz-Kennung: "Δ°C", "Delta °C", "delta °F" -> ("°C", True); sonst (Einheit, False).
+    Eine Differenz wird ohne Nullpunktverschiebung umgerechnet (10 K -> 10 °C)."""
+    s = str(unit or "")
+    m = _DELTA.match(s)
+    if m and s[m.end():].strip():
+        return s[m.end():].strip(), True
+    return s.strip(), False
 
 
 _NAMED = [("N", FORCE), ("Pa", PRESS), ("J", ENERGY), ("W", POWER), ("V", VOLT), ("C", _d(A=1, s=1)),
@@ -517,33 +535,60 @@ def auto_unit(kind: str, si: float) -> str:
 
 
 # ----------------------------------------------------------------------------- Konstanten
+# Definierende Konstanten des SI (9. Ausgabe der SI-Broschüre, 2019), exakt:
+H_PLANCK = 6.62607015e-34          # J·s
+C_LIGHT = 299792458.0              # m/s
+K_BOLTZMANN = 1.380649e-23         # J/K
+N_AVOGADRO = 6.02214076e23         # 1/mol
+E_CHARGE = 1.602176634e-19         # C
+
+
+def _wien_x() -> float:
+    """Lösung von x = 5·(1 − e^(−x)) (Wiensches Verschiebungsgesetz in der Wellenlänge), Newton, Doppelgenauigkeit."""
+    x = 5.0
+    for _ in range(50):
+        g = x - 5 * (1 - math.exp(-x))
+        nx = x - g / (1 - 5 * math.exp(-x))
+        if nx == x:
+            break
+        x = nx
+    return x
+
+
+# Daraus abgeleitete Konstanten, ebenfalls exakt (hier in voller Doppelgenauigkeit berechnet, nicht gerundet):
+HBAR = H_PLANCK / (2 * math.pi)
+R_GAS = N_AVOGADRO * K_BOLTZMANN                                                  # 8,314462618… J/(mol·K)
+FARADAY = N_AVOGADRO * E_CHARGE                                                   # 96485,33212… C/mol
+SIGMA_SB = 2 * math.pi ** 5 * K_BOLTZMANN ** 4 / (15 * H_PLANCK ** 3 * C_LIGHT ** 2)  # 5,670374419…·10⁻⁸
+WIEN_B = H_PLANCK * C_LIGHT / (K_BOLTZMANN * _wien_x())                           # 2,897771955…·10⁻³ m·K
+
 CONSTANTS = {
     "pi": (math.pi, "1", "Kreiszahl π", "pi"),
     "e": (math.e, "1", "Eulersche Zahl", "Euler's number"),
     "g0": (9.80665, "m/s^2", "Normfallbeschleunigung", "Standard gravity"),
-    "c0": (299792458.0, "m/s", "Lichtgeschwindigkeit", "Speed of light"),
-    "hP": (6.62607015e-34, "J*s", "Planck-Konstante", "Planck constant"),
-    "hbar": (1.054571817e-34, "J*s", "Reduzierte Planck-Konstante", "Reduced Planck constant"),
-    "kB": (1.380649e-23, "J/K", "Boltzmann-Konstante", "Boltzmann constant"),
-    "NA": (6.02214076e23, "1/mol", "Avogadro-Konstante", "Avogadro constant"),
-    "Rgas": (8.314462618, "J/(mol*K)", "Universelle Gaskonstante", "Gas constant"),
+    "c0": (C_LIGHT, "m/s", "Lichtgeschwindigkeit", "Speed of light"),
+    "hP": (H_PLANCK, "J*s", "Planck-Konstante", "Planck constant"),
+    "hbar": (HBAR, "J*s", "Reduzierte Planck-Konstante", "Reduced Planck constant"),
+    "kB": (K_BOLTZMANN, "J/K", "Boltzmann-Konstante", "Boltzmann constant"),
+    "NA": (N_AVOGADRO, "1/mol", "Avogadro-Konstante", "Avogadro constant"),
+    "Rgas": (R_GAS, "J/(mol*K)", "Universelle Gaskonstante", "Gas constant"),
     "G_grav": (6.67430e-11, "m^3/(kg*s^2)", "Gravitationskonstante", "Gravitational constant"),
     "eps0": (8.8541878188e-12, "F/m", "Elektrische Feldkonstante", "Vacuum permittivity"),
     "mu0": (1.25663706127e-6, "H/m", "Magnetische Feldkonstante", "Vacuum permeability"),
-    "q_e": (1.602176634e-19, "C", "Elementarladung", "Elementary charge"),
+    "q_e": (E_CHARGE, "C", "Elementarladung", "Elementary charge"),
     "m_e": (9.1093837139e-31, "kg", "Elektronenmasse", "Electron mass"),
     "m_p": (1.67262192595e-27, "kg", "Protonenmasse", "Proton mass"),
     "m_n": (1.67492750056e-27, "kg", "Neutronenmasse", "Neutron mass"),
     "m_u": (1.66053906892e-27, "kg", "Atomare Masseneinheit", "Atomic mass constant"),
-    "sigma_SB": (5.670374419e-8, "W/(m^2*K^4)", "Stefan-Boltzmann-Konstante", "Stefan-Boltzmann constant"),
-    "F_c": (96485.33212, "C/mol", "Faraday-Konstante", "Faraday constant"),
+    "sigma_SB": (SIGMA_SB, "W/(m^2*K^4)", "Stefan-Boltzmann-Konstante", "Stefan-Boltzmann constant"),
+    "F_c": (FARADAY, "C/mol", "Faraday-Konstante", "Faraday constant"),
     "T0": (273.15, "K", "Nullpunkt der Celsius-Skala", "Zero of the Celsius scale"),
     "p_n": (101325.0, "Pa", "Normdruck (Standardatmosphäre)", "Standard atmosphere"),
     "p_std": (1e5, "Pa", "Standarddruck 1 bar", "Standard pressure 1 bar"),
     "c_std": (1000.0, "mol/m^3", "Standardkonzentration 1 mol/L", "Standard concentration 1 mol/L"),
     "b_std": (1.0, "mol/kg", "Standardmolalität 1 mol/kg", "Standard molality 1 mol/kg"),
     "MPa1": (1e6, "Pa", "Bezugsspannung 1 N/mm²", "Reference stress 1 N/mm²"),
-    "b_wien": (2.897771955e-3, "m*K", "Wiensche Konstante", "Wien's displacement constant"),
+    "b_wien": (WIEN_B, "m*K", "Wiensche Konstante", "Wien's displacement constant"),
 }
 
 

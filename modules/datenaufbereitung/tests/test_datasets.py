@@ -133,6 +133,26 @@ class DatasetServerTest(ServerTest):
         st, e = self.post("/api/ds/delete", {"share": pin["share"]})
         self.assertEqual(st, 200, e)
 
+    def test_flag_only_change_is_a_new_version_and_live_child_follows(self):
+        """A changed flag or exclusion (same values) gives a new version; the live child is computed again by the
+        running module, whose version is recorded (not the version of the first computation)."""
+        envs = self.S.STATE.envs
+        p1 = D.publish(envs, D.producer(envs, "0.3.0", None, "Test"), parent())
+        sid = p1["share"]
+        ch = D.make_derived(envs, "0.3.0", sid, [{"op": "convert", "col": "F", "unit": "kN"}], "kN", "live")
+        flagged = DS.from_columns("Zug", [{**c, "values": parent().data[c["key"]].tolist()} for c in parent().columns],
+                                  flags=[{"row": 2, "col": "dL", "code": "outlier", "excluded": True, "reason": "Riss"}])
+        self.assertEqual(flagged.header["data_hash"], parent().header["data_hash"])
+        p2 = D.publish(envs, D.producer(envs, "9.9.9", None, "Test"), flagged, sid)
+        self.assertEqual((p2["version"], p2["unchanged"]), (2, False))
+        self.assertEqual(p2["children"], [{"share": ch["share"], "version": 2}])
+        self.assertEqual(D.publish(envs, D.producer(envs, "9.9.9", None, "Test"), flagged, sid)["unchanged"], True)
+        cds, cenv = D.load(envs, ch["share"], 2)
+        self.assertEqual(cds.header["flags"][0]["reason"], "Riss")
+        self.assertEqual(int((~cds.used_mask()).sum()), 1)
+        self.assertEqual((cenv["producer"]["module_version"], cds.header["provenance"]["module_version"]), ("9.9.9", "9.9.9"))
+        self.assertEqual(D.load(envs, ch["share"], 1)[1]["producer"]["module_version"], "0.3.0")
+
     def test_connected_table_follows_in_place(self):
         """A dataset opened through a connection from another collection is replaced in place by the next version."""
         iid, steps = self.sheet()

@@ -162,7 +162,10 @@ def make_raw(ds, roles: dict, geo: dict, source: dict) -> tuple[bytes, str, dict
             notes.append("Prüfgeschwindigkeit aus der Zeitspalte gemittelt")
         if v is None:
             v = 1.0
-            notes.append("Prüfgeschwindigkeit nicht angegeben: 1 mm/min angenommen; sie verschiebt nur die Zeitachse")
+            notes.append("Prüfgeschwindigkeit nicht angegeben: 1 mm/min angenommen. v skaliert die Zeitachse "
+                         "(t = Σ|ΔL| / v); Dehnung, Modul und Rm hängen nicht davon ab, wohl aber Zeitangaben "
+                         "(tmax, Haltezeit, Dauer des Abfalls) und die Zahl der Punkte im Steigungsfenster (1 s), "
+                         "das den Start des linearen Abschnitts bestimmt")
         t = path / (v / 60.0)
         time_from = "elongation"
     else:

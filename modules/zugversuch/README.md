@@ -71,15 +71,21 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
     the field regardless of the comparison group; they get a number and a key entry like the others and are cited.
 - **Own equations** (Eigene Gleichungen, a section of the input panel): symbol, label, expression, unit, digits,
   optional source. Variables are the key values of the measurement (`Fmax`, `Rm`, `Fy`, `sy`, `Fbreak`, `sbreak`,
-  `E`, `A0`, `L0`, `v`, `k`, `Ag`, `A`, `hold`, `ratio`, `Wbreak`, …) and the target values of the reference
-  (`Rm_ref`, `Rp_ref`, `A_ref`, `E_ref`). Variables are plain numbers in the display units (force N, stress MPa,
-  E GPa, A₀ mm², lengths mm, strain %); the unit of a result is a label you set. Results appear in the input panel,
+  `E`, `A0`, `L0`, `v`, `k`, `Agt`, `Ag`, `At`, `A`, `hold`, `ratio`, `Wbreak`, …) and the target values of the
+  reference (`Rm_ref`, `Rp_ref`, `A_ref`, `E_ref`). Variables are plain numbers in the display units (force N, stress
+  MPa, E GPa, A₀ mm², lengths mm, strain %); the unit of a result is a label you set. Since 1.3.0 `At` and `Agt` are
+  the total extensions at fracture and at maximum force (ISO 6892-1), and `A` and `Ag` are these minus the elastic
+  part (stress divided by the slope of the linear section). Before 1.3.0 `A` and `Ag` meant the total extensions;
+  equations that used them change their result. `Wbreak` is ∫F dL over the measured elongation when the dataset has
+  one, otherwise over the crosshead path. Results appear in the input panel,
   on the key-value page of the PDF report and in the Folio Lab report (`\labval` `eq-<symbol>`, table, formula in the
   methods text with its source). Stored in `outputs/zugversuch/eigene_gleichungen.json`.
   - Each row of `data/alloys.json` names a specific source (standard, data sheet of a named grade, or institute
     publication), optionally with `url`, `jahr` (year) and `abgerufen` (accessed). These appear in the bibliography
     entry of the Folio Lab report and on the source pages. Property values that the source does not give (for example
-    E for elastomers, A for wood) are marked in `basis` as estimates.
+    E for elastomers, A for wood) are marked in `basis` as estimates. `wertart` gives the value type of Rm and Rp
+    (minimum, typical, middle of the range, unclear); `nicht_geprueft` marks rows whose source or value is not
+    verified (shown as "nicht geprüft" in the app and with * in the report). Wood E values are bending moduli.
 - **Labelled material field:** every comparison curve carries a number at its end (ordered by Rm), and a key next to
   or below the chart names the material. From 31 materials on (for example "alle Werkstoffe") the numbers would be
   unreadable; the materials are then listed only in the key and on the source pages.
@@ -136,7 +142,8 @@ python -m flps.cli datei.flps --json --formate ""
 python -m unittest discover -s tests -v
 ```
 
-The acceptance test (`tests/test_reference.py`) evaluates a reference recording and checks the parser result, the
+`tests/test_science.py` checks the definitions with known answers (hold time, plateau, At/A, work to break,
+idealised curve, ranking, material data, import). The acceptance test (`tests/test_reference_measurement.py`) evaluates a reference recording and checks the parser result, the
 data preparation, the evaluation in force and in stress, the material ranking and the apparent modulus against
 expected values. The reference recording is not part of the public repository; see the methods file for what each
 test checks and which tests need the recording.
@@ -159,10 +166,17 @@ test checks and which tests need the recording.
 ## Conventions
 
 - **Measurement point numbers** are 0-based indices.
-- **Hold time** is the time span from the first to the last data point above the threshold.
-- **Ranking**: distance = √((ΔRm/Rm)² + (Δratio/ratio)²). Status "Kandidat" (candidate) at |ΔRm| ≤ 15 % and
-  |Δratio| ≤ 15 %, "zurückgestuft" (downgraded) if only Rm fits, "unwahrscheinlich" (unlikely) up to 40 %, above that
-  "ausgeschlossen" (excluded). The limits are at the top of `flps/alloys.py`.
+- **Hold time** is the duration of the contiguous run of points above the threshold that contains the maximum; a
+  point below the threshold ends it.
+- **Plateau** is the mean over the last 20 % of the time from the foot point t₀ to the maximum.
+- **Ranking**: ΔRm = (Rm − Rm_material)/Rm_material. Status "Kandidat" (candidate) at |ΔRm| ≤ 15 % and
+  |Δratio| ≤ 15 % (Δratio also relative to the material value), "zurückgestuft" (downgraded) if only Rm fits,
+  "unwahrscheinlich" (unlikely) up to 40 %, above that "ausgeschlossen" (excluded). Rows are sorted by status, then by
+  |ΔRm|; the ratio (yield onset against Rp0.2, not like with like) only affects the status. The limits are at the top
+  of `flps/alloys.py`.
+- **Idealised material curves** (for orientation only): elastic with E, then Ramberg–Osgood (1943) through Rp0.2 and
+  Rm at 0.55·A, then a 7 % drop to A.
+- **Specimens**: ISO 527-2 dimensions follow ISO 527-2:2012 (type 1A: L₀ = 75 mm).
 - **Classification by Rm**: missing Rm_min/Rm_max are replaced by the mean value and marked as "Spanne unvollständig"
   (range incomplete) or "Mittelwert" (mean value).
 - **Stress–strain curve**: the measured curve starts at the origin and runs along the fitted line up to the fit

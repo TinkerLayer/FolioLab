@@ -1,8 +1,16 @@
 """Signalqualität eines Spektrums: Rauschen, verrauschte Bereiche, Signal/Rausch-Verhältnis und Hinweise.
 
-Rauschen: Rest nach einer Savitzky-Golay-Glättung (7 Punkte, kubisch), lokal als gleitender Median der Beträge
-(robust gegen einzelne scharfe Banden). sigma0 ist das 25. Perzentil der lokalen Werte, also das Rauschen der
-ruhigen Abschnitte.
+Rauschen: Rest r nach einer Savitzky-Golay-Glättung (7 Punkte, kubisch), lokal als gleitender Median der Beträge
+über ≈80 cm⁻¹ (robust gegen einzelne scharfe Banden), mal 1,4826/√(1 − h0). Der Faktor 1,4826 macht den Median der
+Beträge zur Standardabweichung, √(1 − h0) gleicht aus, dass die Glättung einen Teil des Rauschens mitnimmt (Rest
+r = e − Σ cⱼ eⱼ hat die Varianz σ²(1 − h0), h0 = 7/21). sigma0 in zwei Stufen: Vorstufe = 25. Perzentil der lokalen
+Werte; sigma0 = 1,4826 · Median(|r|)/√(1 − h0) über alle Punkte, deren lokaler Wert höchstens das Doppelte der
+Vorstufe ist (ohne verrauschte Fenster und dichte Bandenbereiche). Für weisses, normalverteiltes Rauschen schätzt
+sigma0 dessen Standardabweichung (Test: Abweichung im Mittel unter 3 % bei 0,5–4 cm⁻¹ Punktabstand, ≈ −8 % bei 8 cm⁻¹);
+das 25. Perzentil allein lag 9–24 % darunter (bis Version 1.4).
+
+S/N = Signal / sigma0, Signal = Höhe der stärksten Bande: Maximum der über ≈12 cm⁻¹ gleitend gemittelten Kurve über
+einer Gummiband-Basislinie, ausserhalb der verrauschten Bereiche (bei T und R auf −y).
 
 Verrauscht heisst: lokal mehr als 3,5 x sigma0 und dort mehr Rauschen als Signal. Typisch ist der Bereich
 um 2300–1900 cm⁻¹ bei Diamant-ATR (der Kristall absorbiert dort selbst, es kommt wenig Licht an); ebenso die
@@ -86,6 +94,17 @@ def assess(x: np.ndarray, y: np.ndarray, yunit: str = "A") -> dict:
     s0 = float(np.percentile(loc, 25))
     if s0 <= 0:
         s0 = float(np.median(loc[loc > 0])) if (loc > 0).any() else 0.0
+    if s0 > 0:
+        # Das 25. Perzentil der lokalen Werte liegt bei weissem Rauschen unter σ (≈ −9 % bei 1 cm⁻¹, ≈ −24 % bei 8 cm⁻¹
+        # Punktabstand, weil die lokalen Schätzungen streuen). Deshalb zweite Stufe: robuste Standardabweichung des
+        # Glättungsrests über alle ruhigen Punkte (lokales Rauschen ≤ 2 x Vorstufe; ohne verrauschte Fenster und ohne
+        # dichte Bandenbereiche, in denen der Rest Signal enthält).
+        r = y - savgol(y, 7, 3)
+        sel = loc <= 2.0 * s0
+        if sel.sum() >= 30:
+            s1 = 1.4826 * float(np.median(np.abs(r[sel]))) / np.sqrt(1 - H0)
+            if s1 > 0:
+                s0 = s1
     out = {"sigma": s0, "noisy": [], "snr": None, "warnings": []}
     if s0 <= 0 or yunit in ("D1", "D2"):
         return out
@@ -113,14 +132,17 @@ def assess(x: np.ndarray, y: np.ndarray, yunit: str = "A") -> dict:
     quiet = ~mask_of(x, out["noisy"])
     if quiet.sum() < 30:
         quiet = np.ones(len(x), bool)
-    # Signal: stärkste Bande über einer Hüllkurven-Basislinie, ausserhalb der verrauschten Bereiche
+    # Signal: Höhe der stärksten Bande = Maximum der geglätteten Kurve (gleitender Mittelwert über ≈12 cm⁻¹) über einer
+    # Gummiband-Basislinie durch dieselbe Kurve, ausserhalb der verrauschten Bereiche. Die Glättung hält Rauschspitzen
+    # klein (Rauschen / √k); schmale Banden (Halbwertsbreite unter ≈12 cm⁻¹) werden dabei etwas niedriger.
     from .process import rubberband
     ys = -sm if yunit in ("T", "R") else sm
     xb, yb = x[quiet], ys[quiet]
     order = np.argsort(xb)
     xb, yb = xb[order], yb[order]
-    sig = float(np.percentile(yb - rubberband(xb, yb), 99.5))
+    sig = float(np.max(yb - rubberband(xb, yb)))
     snr = sig / s0
+    out["signal"] = sig
     out["snr"] = round(snr, 1)
     W = out["warnings"]
     for hi, lo in out["noisy"]:

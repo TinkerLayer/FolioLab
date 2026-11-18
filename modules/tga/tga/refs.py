@@ -1,6 +1,11 @@
 """Quellen des TGA-Moduls als strukturierte Einträge (labcite). Schlüssel = Zitierschlüssel im Bericht."""
 from __future__ import annotations
 
+# Ausgabejahr nicht bekannt (weder im Code noch in der Dokumentation belegt): als „current edition“ markiert, damit es
+# vor der Veröffentlichung nachgetragen wird (Feld "year" ergänzen und den Hinweis entfernen). ASTM E1582, E2040,
+# D7582, E967, E793.
+NO_EDITION = "current edition; edition year not recorded in Folio Lab, to be filled in by the user"
+
 REFS = {
     "iso11358-1": {"type": "standard", "title": "ISO 11358-1:2022 Plastics – Thermogravimetry (TG) of polymers – Part 1: General principles",
                    "container": "International Organization for Standardization", "year": "2022"},
@@ -13,19 +18,19 @@ REFS = {
     "astm-e1877": {"type": "standard", "title": "ASTM E1877-21 Standard Practice for Calculating Thermal Endurance of Materials from Thermogravimetric Decomposition Data",
                    "container": "ASTM International", "year": "2021", "doi": "10.1520/E1877-21"},
     "astm-e1582": {"type": "standard", "title": "ASTM E1582 Standard Test Method for Temperature Calibration of Thermogravimetric Analyzers",
-                   "container": "ASTM International"},
+                   "container": "ASTM International", "note": NO_EDITION},
     "astm-e2040": {"type": "standard", "title": "ASTM E2040 Standard Test Method for Mass Scale Calibration of Thermogravimetric Analyzers",
-                   "container": "ASTM International"},
+                   "container": "ASTM International", "note": NO_EDITION},
     "astm-d7582": {"type": "standard", "title": "ASTM D7582 Standard Test Methods for Proximate Analysis of Coal and Coke by Macro Thermogravimetric Analysis",
-                   "container": "ASTM International"},
+                   "container": "ASTM International", "note": NO_EDITION},
     "iso11357-1": {"type": "standard", "title": "ISO 11357-1:2023 Plastics – Differential scanning calorimetry (DSC) – Part 1: General principles",
                    "container": "International Organization for Standardization", "year": "2023"},
     "iso11357-2": {"type": "standard", "title": "ISO 11357-2:2020 Plastics – Differential scanning calorimetry (DSC) – Part 2: Determination of glass transition temperature and step height",
                    "container": "International Organization for Standardization", "year": "2020"},
     "astm-e967": {"type": "standard", "title": "ASTM E967 Standard Test Method for Temperature Calibration of Differential Scanning Calorimeters and Differential Thermal Analyzers",
-                  "container": "ASTM International"},
+                  "container": "ASTM International", "note": NO_EDITION},
     "astm-e793": {"type": "standard", "title": "ASTM E793 Standard Test Method for Enthalpies of Fusion and Crystallization by Differential Scanning Calorimetry",
-                  "container": "ASTM International"},
+                  "container": "ASTM International", "note": NO_EDITION},
     "dehaseth1977": {"type": "article", "authors": "de Haseth, J. A.; Isenhour, T. L.", "year": "1977",
                      "title": "Reconstruction of gas chromatograms from interferometric gas chromatography/infrared spectrometry data",
                      "container": "Analytical Chemistry", "volume": "49", "issue": "13", "pages": "1977-1981",
@@ -63,9 +68,16 @@ REFS = {
     "starink": {"type": "article", "authors": "Starink, M. J.", "year": "2003",
                 "title": "The determination of activation energy from linear heating rate experiments: a comparison of the accuracy of isoconversion methods",
                 "container": "Thermochimica Acta", "volume": "404", "pages": "163-176", "doi": "10.1016/S0040-6031(03)00144-8"},
-    "vyazovkin2001": {"type": "article", "authors": "Vyazovkin, S.", "year": "2001",
-                      "title": "Modification of the integral isoconversional method to account for variation in the activation energy",
-                      "container": "Journal of Computational Chemistry", "volume": "22", "issue": "2", "pages": "178-183"},
+    # Grundform des integralen nichtlinearen Verfahrens (Integral von 0 bis T_α); das ist, was kinetics._vyazovkin
+    # rechnet (für lineares Heizen). Das erweiterte Verfahren (Integration über kleine Δα, Vyazovkin 2001, J. Comput.
+    # Chem. 22, 178-183) ist nicht umgesetzt und wird daher nicht zitiert.
+    "vyazovkin1997": {"type": "article", "authors": "Vyazovkin, S.", "year": "1997",
+                      "title": "Evaluation of activation energy of thermally stimulated solid-state reactions under arbitrary variation of temperature",
+                      "container": "Journal of Computational Chemistry", "volume": "18", "pages": "393-402"},
+    # Toop-Beziehung für die Lebensdauer (kinetics.lifetime_toop); Heft, Seiten und DOI nicht geprüft und daher weggelassen.
+    "toop1971": {"type": "article", "authors": "Toop, D. J.", "year": "1971",
+                 "title": "Theory of life testing and use of thermogravimetric analysis to predict the thermal life of wire enamels",
+                 "container": "IEEE Transactions on Electrical Insulation", "volume": "EI-6"},
     "coatsredfern": {"type": "article", "authors": "Coats, A. W.; Redfern, J. P.", "year": "1964", "title": "Kinetic parameters from thermogravimetric data",
                      "container": "Nature", "volume": "201", "pages": "68-69", "doi": "10.1038/201068a0"},
     "doyle": {"type": "article", "authors": "Doyle, C. D.", "year": "1962", "title": "Estimating isothermal life from thermogravimetric data",

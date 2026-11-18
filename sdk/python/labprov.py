@@ -1,10 +1,12 @@
 """Herkunft und Aufbewahrung (A8).
 
 * `chain(suite, project, ref)` – vom Wert zurück bis zur Rohdatei: Projektindex-Eintrag → geteilte Version →
-  Umgebung und Eintrag des erzeugenden Moduls → Rohdatei (Pfad, SHA-256). Wird nur auf Anfrage gebaut.
+  Umgebung und Eintrag des erzeugenden Moduls → Rohdatei (Pfad, SHA-256). Ein abgeleiteter Datensatz zeigt seine
+  Schritte und die ganze Kette seiner Eltern. Wird nur auf Anfrage gebaut.
 * `report_refs(suite, project)` – welche Freigabe-Versionen und Index-Einträge in Berichten des Projekts stecken
-  (gelesen aus `projects/<bericht>/files/lab/*/bundle.json` und deren `history/*/bundle.json`).
-* `guard_*` – Versionen und Umgebungen, die ein Bericht benutzt, lassen sich nicht löschen.
+  (gelesen aus `projects/<bericht>/files/lab/*/bundle.json`, deren `history/*/bundle.json` und aus entfernten, aber
+  ausgegebenen Ergebnissen unter `lab/_removed/`), samt den Elternversionen benutzter abgeleiteter Datensätze.
+* `guard_*` – Versionen (auch Elternversionen) und Umgebungen, die ein Bericht benutzt, lassen sich nicht löschen.
 * `dependencies(suite, project)` – Liste für den Projekt-Export.
 """
 from __future__ import annotations
@@ -22,13 +24,22 @@ INDEX_RE = re.compile(r"^g-[0-9a-f]{8}$")
 
 # ---------------------------------------------------------------------------- Berichte durchsuchen
 def _walk_refs(o, out):
-    """Verweise in einem gespeicherten Request finden (Umschläge, Herkunftsangaben, Index-IDs)."""
+    """Verweise in einem gespeicherten Request finden (Umschläge, Herkunftsangaben, Bindungen, Index-IDs).
+    Gleiche Regel wie `refsIn` in server/lab.js."""
     if isinstance(o, dict):
         if o.get("schema") == "suite.shared-result/1" and SHARE_RE.match(str(o.get("id", ""))):
             out["shares"].add((o["id"], int(o.get("version") or 0)))
         if SHARE_RE.match(str(o.get("share", ""))) and o.get("version") is not None:
             try:
                 out["shares"].add((o["share"], int(o["version"])))
+            except (TypeError, ValueError):
+                pass
+        # Bindung {id, mode: pin|live|copy, version?, used?}: die benutzte Version zählt
+        if o.get("mode") in ("pin", "live", "copy") and SHARE_RE.match(str(o.get("id", ""))) and o.get("schema") is None:
+            v = o.get("used") if o.get("used") is not None else o.get("version")
+            try:
+                if v is not None:
+                    out["shares"].add((o["id"], int(v)))
             except (TypeError, ValueError):
                 pass
         if INDEX_RE.match(str(o.get("index", ""))):
@@ -51,23 +62,65 @@ def _report_dirs(suite: Suite, project: str | None):
             yield str(rid), lab
 
 
-def report_refs(suite: Suite, project: str | None = None) -> dict:
-    """{"shares": {(id, v): [Bericht/Ergebnis#Revision]}, "index": {g-id: [...]}}"""
+def report_refs(suite: Suite, project: str | None = None, parents: bool = True) -> dict:
+    """{"shares": {(id, v): [Bericht/Ergebnis#Revision]}, "index": {g-id: [...]}}
+
+    Gelesen werden die aktuellen Ergebnisse, ihre alten Revisionen (`history/`) und entfernte, aber ausgegebene
+    Ergebnisse (`lab/_removed/`, siehe server/lab.js). Mit `parents` kommen die Versionen dazu, aus denen ein
+    benutzter Datensatz abgeleitet oder mit denen er verbunden wurde (rekursiv)."""
     shares: dict = {}
     index: dict = {}
     for rid, lab in _report_dirs(suite, project):
-        for man in list(lab.glob("*/bundle.json")) + list(lab.glob("*/history/*/bundle.json")):
+        mans = (list(lab.glob("*/bundle.json")) + list(lab.glob("*/history/*/bundle.json"))
+                + list(lab.glob("_removed/*/bundle.json")) + list(lab.glob("_removed/*/history/*/bundle.json")))
+        for man in mans:
             m = _read(man)
             if not isinstance(m, dict):
                 continue
             out = {"shares": set(), "index": set()}
             _walk_refs((m.get("source") or {}).get("request"), out)
             where = f"{rid}/{m.get('slug', man.parent.name)}#{m.get('revision', 1)}"
+            if "_removed" in man.parts:
+                where += " (entfernt, aufbewahrt)"
             for s in out["shares"]:
                 shares.setdefault(s, []).append(where)
             for g in out["index"]:
                 index.setdefault(g, []).append(where)
+    if parents and shares:
+        shares = _with_parents(suite, project, shares)
     return {"shares": shares, "index": index}
+
+
+def _with_parents(suite: Suite, project, shares: dict) -> dict:
+    """Benutzte Datensatz-Versionen um ihre Eltern (derived_from) und verbundenen Datensätze (inputs, gepinnte
+    Verbindungen) ergänzen – sonst liesse sich die Elternversion eines benutzten abgeleiteten Datensatzes löschen."""
+    from labshare import Sharebox
+    box = Sharebox(suite, project)
+    out = {k: list(v) for k, v in shares.items()}
+    todo, seen = list(shares), set(shares)
+    while todo:
+        sid, v = todo.pop()
+        try:
+            env = box.get(sid, v or None)
+        except EnvError:
+            continue
+        head = env.get("dataset")
+        if not isinstance(head, dict):
+            continue
+        refs = {"shares": set(), "index": set()}
+        _walk_refs(head.get("provenance"), refs)
+        for k in refs["shares"]:
+            if k == (sid, v):
+                continue
+            lst = out.setdefault(k, [])
+            for w in out.get((sid, v), []):
+                w2 = w if " über " in w else f"{w} über {sid} v{v}"
+                if w2 not in lst:
+                    lst.append(w2)
+            if k not in seen:
+                seen.add(k)
+                todo.append(k)
+    return out
 
 
 def refs_in_request(request) -> dict:
@@ -125,8 +178,48 @@ def _raw_step(suite, project, prod: dict) -> dict:
             "detail": f"{mod} · Umgebung {eid} · Eintrag {item}"}
 
 
-def _dataset_steps(suite, project, head: dict, prod: dict) -> list[dict]:
-    """DP-02: Datensatz → Umgebung → je Quelldatei Blatt und Zellbereiche, Rohdatei mit SHA-256-Vergleich."""
+MAX_CHAIN_DEPTH = 8                     # abgeleitet aus abgeleitet aus … (die Datenaufbereitung erlaubt 6)
+
+
+def _file_steps(suite, project, files: list, prod: dict | None, checked: bool = True) -> list[dict]:
+    """Je Quelldatei Blatt und Zellbereiche; liegt die Rohdatei noch in der Umgebung, wird ihr SHA-256 verglichen."""
+    prod = prod or {}
+    if not files:
+        return [{"level": "raw", "title": "Keine Quelldatei angegeben", "ok": False,
+                 "detail": "z. B. eingefügte Werte ohne Datei"}]
+    envs = Environments(suite, prod["module"], project) if checked and prod.get("module") and prod.get("env") else None
+    steps = []
+    for f in files[:20]:
+        where = ", ".join(x for x in (f"Blatt {f['sheet']}" if f.get("sheet") else "",
+                                      "Bereiche " + ", ".join(map(str, f.get("ranges") or [])) if f.get("ranges") else "") if x)
+        st = {"level": "raw", "title": f"Quelldatei {f.get('name') or '?'}", "detail": where or "ganze Datei",
+              "sha256": f.get("sha256"), "ok": bool(f.get("sha256"))}
+        if not checked:
+            st["detail"] += " · gespeicherter SHA-256, Rohdatei nicht geprüft"
+        elif envs and f.get("raw"):
+            p = envs.base / prod["env"] / "raw" / str(f["raw"])
+            if p.exists() and re.match(r"^[0-9A-Za-z._-]{1,120}$", str(f["raw"])):
+                sha = hashlib.sha256(p.read_bytes()).hexdigest()
+                st.update(path=str(p), ok=sha == f.get("sha256"), sha_matches=sha == f.get("sha256"))
+            else:
+                st.update(ok=False, detail=st["detail"] + " · Rohdatei nicht mehr in der Umgebung")
+        steps.append(st)
+    return steps
+
+
+def _share_step(env: dict) -> dict:
+    p = env.get("producer") or {}
+    return {"level": "share", "title": f"Freigabe {env['id']} v{env['version']} ({env.get('kind')})",
+            "detail": f"von {p.get('module')} · {p.get('env_name') or p.get('env')} · {p.get('item_name') or p.get('item')}, "
+                      f"Modulversion {p.get('module_version') or '?'}, {env['created']}", "ok": True,
+            "protocol": next((s.get("protocol") for s in env.get("sources") or [] if isinstance(s, dict) and s.get("protocol")), None)}
+
+
+def _dataset_steps(suite, project, head: dict, prod: dict, depth: int = 0) -> list[dict]:
+    """DP-02: Datensatz → Umgebung → je Quelldatei Blatt und Zellbereiche, Rohdatei mit SHA-256-Vergleich.
+    Ein abgeleiteter Datensatz zeigt seine Schritte und dann die ganze Kette seines Elterndatensatzes (rekursiv bis
+    zur Rohdatei); fehlt die Elternversion, wird die im Datensatz gespeicherte Herkunft des Elters gezeigt."""
+    from labshare import Sharebox
     prov = head.get("provenance") or {}
     cols = head.get("columns") or []
     steps = [{"level": "dataset", "title": f"Datensatz „{head.get('title')}“: {head.get('rows')} Zeilen × {len(cols)} Spalten",
@@ -137,25 +230,35 @@ def _dataset_steps(suite, project, head: dict, prod: dict) -> list[dict]:
     if prod.get("module"):
         steps.append({"level": "env", "title": f"Umgebung {prod.get('env_name') or prod.get('env')} in {prod['module']}",
                       "detail": f"Eintrag {prod.get('item_name') or prod.get('item')}", "ok": True})
-    files = prov.get("files") or []
-    if not files:
-        steps.append({"level": "raw", "title": "Keine Quelldatei angegeben", "ok": False,
-                      "detail": "z. B. eingefügte Werte ohne Datei"})
-    envs = Environments(suite, prod["module"], project) if prod.get("module") and prod.get("env") else None
-    for f in files[:20]:
-        where = ", ".join(x for x in (f"Blatt {f['sheet']}" if f.get("sheet") else "",
-                                      "Bereiche " + ", ".join(map(str, f.get("ranges") or [])) if f.get("ranges") else "") if x)
-        st = {"level": "raw", "title": f"Quelldatei {f.get('name') or '?'}", "detail": where or "ganze Datei",
-              "sha256": f.get("sha256"), "ok": bool(f.get("sha256"))}
-        if envs and f.get("raw"):
-            p = envs.base / prod["env"] / "raw" / str(f["raw"])
-            if p.exists() and re.match(r"^[0-9A-Za-z._-]{1,120}$", str(f["raw"])):
-                sha = hashlib.sha256(p.read_bytes()).hexdigest()
-                st.update(path=str(p), ok=sha == f.get("sha256"), sha_matches=sha == f.get("sha256"))
-            else:
-                st.update(ok=False, detail=st["detail"] + " · Rohdatei nicht mehr in der Umgebung")
-        steps.append(st)
-    return steps
+    d = prov.get("derived_from")
+    if not (isinstance(d, dict) and d.get("share")):
+        return steps + _file_steps(suite, project, prov.get("files") or [], prod)
+    texts = [str(s.get("text") or s.get("op") or "") for s in prov.get("steps") or []]
+    steps.append({"level": "derived", "ok": True, "steps": len(texts),
+                  "title": f"Abgeleitet aus „{d.get('title') or d['share']}“ ({d['share']} v{d.get('version')})",
+                  "detail": "; ".join(texts[:12]) + (" …" if len(texts) > 12 else "") if texts else "ohne Schritte"})
+    for i in prov.get("inputs") or []:
+        if isinstance(i, dict) and i.get("share"):
+            steps.append({"level": "input", "ok": True, "title": f"Verbunden mit „{i.get('title') or i['share']}“ "
+                                                                  f"({i['share']} v{i.get('version')})",
+                          "detail": "zweiter Datensatz eines Schritts (Verbinden)"})
+    if depth >= MAX_CHAIN_DEPTH:
+        steps.append({"level": "end", "title": "Kette hier abgebrochen", "ok": False,
+                      "detail": f"mehr als {MAX_CHAIN_DEPTH} abgeleitete Stufen"})
+        return steps
+    try:
+        penv = Sharebox(suite, project).get(d["share"], d.get("version"))
+        if not isinstance(penv.get("dataset"), dict):
+            raise EnvError("Elternfreigabe ist kein Datensatz")
+    except EnvError as e:
+        steps.append({"level": "share", "title": f"Freigabe {d['share']} v{d.get('version')} nicht lesbar", "ok": False,
+                      "detail": f"{e} – gespeicherte Herkunft des Elterndatensatzes"})
+        p = prov.get("parent_provenance") or {}
+        while isinstance(p.get("parent_provenance"), dict) and p.get("parent_provenance") and not p.get("files"):
+            p = p["parent_provenance"]
+        return steps + _file_steps(suite, project, p.get("files") or [], None, checked=False)
+    steps.append(_share_step(penv))
+    return steps + _dataset_steps(suite, project, penv["dataset"], penv.get("producer") or {}, depth + 1)
 
 
 def chain(suite: Suite, project, ref: dict) -> list[dict]:
@@ -180,10 +283,7 @@ def chain(suite: Suite, project, ref: dict) -> list[dict]:
     if ref.get("share"):
         env = Sharebox(suite, project).get(ref["share"], ref.get("version"))
         p = env.get("producer") or {}
-        steps.append({"level": "share", "title": f"Freigabe {env['id']} v{env['version']} ({env.get('kind')})",
-                      "detail": f"von {p.get('module')} · {p.get('env_name') or p.get('env')} · {p.get('item_name') or p.get('item')}, "
-                                f"Modulversion {p.get('module_version') or '?'}, {env['created']}", "ok": True,
-                      "protocol": next((s.get("protocol") for s in env.get("sources") or [] if isinstance(s, dict) and s.get("protocol")), None)})
+        steps.append(_share_step(env))
         if isinstance(env.get("dataset"), dict):
             steps.extend(_dataset_steps(suite, project, env["dataset"], p))
             return steps

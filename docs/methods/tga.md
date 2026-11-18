@@ -1,6 +1,6 @@
 # TGA: methods and validation
 
-This document describes what the TGA module (`modules/tga/`, module version 0.12.0) computes, how, with which
+This document describes what the TGA module (`modules/tga/`, module version 0.13.0) computes, how, with which
 defaults and limits, which reference the code cites, and which automated test checks it. It is written so that you
 can decide whether a number from this module is fit to report. Statements refer to the code in
 `modules/tga/tga/*.py`; file names below are relative to `modules/tga/`.
@@ -45,9 +45,9 @@ shared text helpers in `sdk/python/labtable.py`.
 | Generic text/CSV | fallback | delimiter tab, `;`, `,` or space chosen by the most rows with the same number of numeric fields; decimal comma when tokens like `12,34` outnumber `12.34` and the comma is not the delimiter; the data block is the longest run of consecutive, mostly numeric rows (at least 5 rows); names and units from up to three lines above it (`Name [unit]`, `Name (unit)`, `Name/unit` or a separate unit row) |
 | NETZSCH Proteus ASCII | a `##` table header plus `#KEY: value` lines | `##Temp./°C;Time/min;Mass/%` style header |
 | TA Universal Analysis | `StartOfData` and `SigN` lines in the first 400 lines | column names from the `SigN` list |
-| TA TRIOS XLSX | `.xlsx`/`.xlsm`; each sheet parsed as a table | if more than one sheet parses, all have a time column and the same mass unit, the sheets are joined in sheet order into **one** run with one segment number per sheet; times are concatenated without offset |
+| TA TRIOS XLSX | `.xlsx`/`.xlsm`; each sheet parsed as a table | if more than one sheet parses, all have a time column and the same mass unit, the sheets are joined in sheet order into **one** run with one segment number per sheet. If a sheet's first time is not after the previous sheet's last time (each sheet restarts its clock), the sheet's times are shifted so that it starts one median time step (of the previous sheet) after the previous sheet's end; time is then continuous and strictly increasing. The offsets are stored (`sheet_time_offsets`) and shown as a note |
 | METTLER STARe TXT | first column name contains `Index` and a `Ts` column | time without unit and maximum > 600 is taken as seconds |
-| PerkinElmer Pyris TXT | a column named `Unsubtracted …` | see mass-column choice below |
+| PerkinElmer Pyris TXT | a column named `Unsubtracted …` | see mass-column choice below; the corrected (blank-subtracted) weight is preferred |
 | Shimadzu ASCII | a line `[Data]` | |
 | NETZSCH `.ngb-ss3`, `.ngb-bs3`, `.ngb-ds3` | file extension | only with the optional package pyngb (`requirements-optional.txt`: `pyngb>=0.6`); columns `time` (s), `sample_temperature`, `program_temperature` (°C), `mass` (mg), `dsc_signal` (µV), `dtg` (mg/min), `purge_flow`/`purge_flow_1` (ml/min), `segment`; units stored in the file take precedence over these defaults; `.ngb-ds3` is requested from pyngb as the corrected run (sample minus embedded correction) |
 | `.001`, `.tri`, other ZIP-like files | extension or `PK` signature | refused with a request to export as text |
@@ -59,14 +59,14 @@ Text encodings tried: UTF-16 (with BOM, or detected by zero bytes), UTF-8, cp125
 | Situation | What the code assumes |
 |---|---|
 | Time column without unit | minutes (METTLER exception above); `s`, `h`, `ms` are converted |
-| Temperature column without unit | °C. A Kelvin column **without** a unit label is not converted |
+| Temperature column without unit | Kelvin if the column name contains a separate `K` (e.g. `Temperature K`, `T_K`) or `kelvin`, or if the median of the first five values lies between 250 and 330 (room temperature in K); otherwise °C. Both guesses add a note to the run (`meta.read_notes`, shown in the info line, the file panel and the column dialog); a column without unit that starts above 330 is read as °C with a note. A unit chosen in the column-mapping dialog overrides the guess. A run without unit that really starts between 250 and 330 °C is misread as Kelvin unless the unit is set |
 | Temperature in K or °F | converted to °C |
 | Mass column without unit | % if 50 ≤ max ≤ 120, min ≥ −5 and no sample mass in the header; otherwise mg |
 | Mass in g or µg | converted to mg |
 | Mass in % and a sample mass in the header | converted to mg with *m₀* |
 | No sample mass anywhere | *m₀* = median of the first (up to) five mass values; recorded as `m0_from` |
 | Mass-change column (name contains change, loss, verlust, delta or änderung, and the first values are near 0) | absolute mass = *m₀* + Δm; refused if *m₀* is missing |
-| Several mass columns | scored: name contains "unsubtracted" +3, unit mg +2, g +1, % +0.5, name contains change/loss −2; columns named baseline/blank are ignored. For PerkinElmer files the **unsubtracted** weight is therefore used |
+| Several mass columns | scored: name does **not** contain "unsubtracted"/"uncorrected" +3, name contains "corrected" +1, unit mg +2, g +1, % +0.5, name contains change/loss −2; columns named baseline/blank are ignored. For PerkinElmer files the corrected weight (e.g. `Weight`) is therefore used; the unsubtracted weight only if no other mass column exists, with a note "ohne Leerkurvenkorrektur". The chosen column is stored as `meta.m_column` and shown in the file panel |
 | Several temperature columns | the one named sample/Probe/Ts is the sample temperature; the next becomes program temperature |
 | Columns without names | 2 columns: T, m; 3 or more: t, T, m (marked as guessed) |
 | Heating rate | from the header (a number followed by K/min, °C/min … in a line that mentions rate, heating, range, ramp, segment, method or a "to" range); else the median of dT/dt over points with \|dT/dt\| > 0.3 K/min, rounded to 0.1 K/min, only if positive |
@@ -89,7 +89,14 @@ T within 0.01 °C, mass within 0.001 mg, % within 0.02 and time within 0.001 min
 - `tests/test_tga.py::ReaderTest::test_shimadzu` (Shift-JIS)
 - `tests/test_tga.py::ReaderTest::test_kelvin_and_seconds_converted`
 - `tests/test_tga.py::ReaderTest::test_mapping_dialog_overrides_guess`
-- `tests/test_tga.py::ReaderTest::test_xlsx` (single sheet only; the multi-sheet join is not tested)
+- `tests/test_tga.py::ReaderTest::test_xlsx` (single sheet)
+- `tests/test_known_answers.py::ReaderFixes::test_trios_sheets_time_offset` – two sheets that each restart at t = 0:
+  joined time strictly increasing, second sheet starts one median step after the end of the first (± 10⁻⁶ min)
+- `tests/test_known_answers.py::ReaderFixes::test_perkinelmer_prefers_corrected_weight` – Pyris file with
+  `Unsubtracted Weight` = `Weight` + 0.2 mg: the `Weight` column is read (± 10⁻⁴ mg) and named
+- `tests/test_known_answers.py::ReaderFixes::test_perkinelmer_unsubtracted_only_is_flagged`
+- `tests/test_known_answers.py::ReaderFixes::test_kelvin_without_unit` – unitless column starting at 298.15 and a
+  column named `Temperature K` give °C within 0.01 K; an explicit °C in the mapping overrides the guess
 - `tests/test_tga.py::ReaderTest::test_binary_native_rejected_with_hint`
 - `tests/test_tga.py::ReaderTest::test_ngb_without_package_hint` (skipped when pyngb is installed)
 - `tests/test_tga.py::ReaderTest::test_ngb_mapping_with_fake_pyngb` (stand-in module; s → min conversion, *m₀*, extra columns)
@@ -194,30 +201,43 @@ Limits set by hand (in °C or min) replace steps 1–5; only the characteristics
 | Loss | L = m(a) − m(b) in percentage points; in mg from the mg curve |
 | DTG peak | point p of maximum loss rate in [a, b]: T_peak, t_peak, rate_peak (%/min), rate_peak_T (%/°C) |
 | Midpoint | temperature (and time) where the mass has fallen by L/2 from m(a), linear interpolation |
-| Tangent | through (x_p, m_p) with slope s = −r_p / β_step, where β_step = (T(b) − T(a)) / (t(b) − t(a)) is the mean heating rate over the step |
+| Inflection point | on the temperature axis: point q in [a, b] of largest −dm/dT (dm/dT from section 3, i.e. the local heating rate enters through the chain rule); reported as `T_inflection`. On the time axis (isothermal step): q = p |
+| Tangent | through (x_q, m_q) with slope s = dm/dT at q (time axis: s = −r_p). Fallback if dm/dT is undefined in the whole step: s = −r_p / β_step with β_step the mean heating rate of the step |
 | Baselines | straight lines fitted to w = max(5, 0.25·(b − a)) points before a and after b; a fitted line is used only if \|slope\| ≤ 0.1·\|s\|, otherwise a horizontal line through m(a) or m(b) |
 | Onset | intersection of the tangent with the baseline before the step: x_on = (c_base − c_tan) / (s − s_base) |
 | Endset | intersection of the tangent with the baseline after the step |
 
 x is the temperature when β_step > 0.3 K/min, otherwise time (then onset/endset are times). An onset is reported only
-if it lies between x(a) − 0.5·(x(b) − x(a)) and x_p; an endset only between x_p and x(b) + 0.5·(x(b) − x(a)).
+if it lies between x(a) − 0.5·(x(b) − x(a)) and x_q; an endset only between x_q and x(b) + 0.5·(x(b) − x(a)).
 Otherwise the value is left empty.
 
-The "inflection point" is taken as the point of maximum smoothed loss rate (from the DTG of section 3), and the
-tangent slope uses the step-average heating rate rather than the local dT/dt.
+The inflection point and the tangent slope are taken on the actual temperature axis (local dm/dT), so a heating rate
+that changes within the step does not bias the onset. Up to module 0.12.0 the tangent went through the DTG peak
+(maximum of dm/dt) with the slope −r_p/β_step (step-average heating rate); with a constant heating rate both give the
+same result (the synthetic oxalate onsets are unchanged to 0.001 K), with a varying heating rate the old construction
+was wrong (example in the validation below: 389.3 °C instead of 384.0 °C). The DTG peak T_p is still the maximum of
+dm/dt.
 
 **Reference:** ISO 11358-1:2022, cited in `steps.py` and in every report ("intersection of the tangent at the
-inflection point with the extended baseline before and after the step"). `refs.py` also contains ASTM E2550-21, but
-no computation or report cites it.
+inflection point of the TG curve over temperature with the extended baseline before and after the step").
+`refs.py` also contains ASTM E2550-21, but no computation or report cites it.
 
 **Validation:**
 
+- `tests/test_known_answers.py::OnsetKnownAnswer::test_constant_heating_rate` – a step with compact support
+  m(T) = 100 − L·S((T − T₀)/h), S′(u) = 15/16·(1 − u²)² (L = 40 %, T₀ = 400 °C, h = 30 K, flat baselines): the
+  inflection tangent meets the baselines analytically at T₀ ∓ 8h/15 = 384.0 / 416.0 °C; required within 0.1 K
+  (obtained 383.97 / 416.03 °C); inflection at 400.0 ± 0.1 °C.
+- `tests/test_known_answers.py::OnsetKnownAnswer::test_variable_heating_rate_uses_local_slope` – the same step with a
+  heating rate rising from 5 to 20 K/min across it (sigmoid in T): onset/endset within 0.1 K of 384.0 / 416.0 °C
+  (obtained 383.95 / 416.05 °C; the 0.12.0 construction gave 389.3 / 413.5 °C).
 - `tests/test_tga.py::StepTest::test_oxalate_three_steps_match_stoichiometry` – for each step
-  T_onset < T_peak < T_endset. **No test compares an onset or endset with an independently known value.**
+  T_onset < T_peak < T_endset.
 - `tests/test_golden.py::GoldenBundle::test_bundle_de` and `::test_bundle_en` – regression only: they fix the
   values of the synthetic oxalate run (onsets 160.7 / 459.4 / 675.7 °C, peaks 188.5 / 498.5 / 738.5 °C, endsets
   209.1 / 523.5 / 781.8 °C, losses 12.15 / 19.30 / 29.84 %). A change in the algorithm changes these numbers and
-  fails the test; the numbers themselves are not ground truth.
+  fails the test; the numbers themselves are not ground truth. (Unchanged by the 0.13.0 tangent change, because the
+  oxalate run has a constant heating rate.)
 
 ## 6 T at x % loss, residue, isothermal loss
 
@@ -257,30 +277,45 @@ m_start is the median of the first three points; m_end the median of the last th
 | Ash / filler – only with a switch | m_end |
 | Residue (filler, ash, carbon) – without a switch | m2, with a warning that carbon and ash are not separated |
 
-**ASTM D7582 template** (proximate analysis; defaults T1 = 107 °C, T2 = 950 °C):
+**ASTM D7582 template** (proximate analysis; defaults T1 = 107 °C, T2 = 950 °C). All rows are on the
+**as-determined basis**, i.e. in percent of the analysis sample as weighed, taken as the mass at the start
+(m_start); with s = 100/m_start:
 
 | Row | Value |
 |---|---|
-| Moisture | m_start − m(T1) |
-| Volatile matter | m(T1) − m2 (m2 as above) |
-| Ash – only with a switch | m_end |
-| Fixed carbon – only with a switch | 100 − moisture − volatiles − ash |
-| Dry basis | each row except moisture divided by (100 − moisture) · 100 |
+| Moisture M | s·(m_start − m(T1)) |
+| Volatile matter VM | s·(m(T1) − m2) (m2 as above) |
+| Ash A – only with a switch | s·m_end |
+| Fixed carbon FC – only with a switch | 100 − (M + VM + A) ("by difference", all on the same basis) |
+| Dry basis (column "trocken"/"dry") | X_d = X · 100 / (100 − M) for every row except moisture; FC_d = 100 − VM_d − A_d follows |
 
-Without a switch the D7582 template gives no ash and no fixed carbon and says so. The temperature limits are
+When the reference mass is the sample mass, m_start ≈ 100 % and s ≈ 1. If the protocol sets the reference mass
+elsewhere (e.g. at 120 °C), m_start ≠ 100 % and the module rescales to m_start and warns, so that the four
+as-determined values add up to 100 % and the bases are not mixed (up to 0.12.0 the rows were in percent of the
+reference mass while fixed carbon was 100 − …, which mixed the bases in that case). The dry-basis values were
+computed but not shown up to 0.12.0; they are now in the interface table and the report table, with a note on the
+basis. Without a switch the D7582 template gives no ash and no fixed carbon and says so. The temperature limits are
 defaults of the module and can be changed; they are not taken from the standards' text by the code.
 
 **Free limits:** losses between consecutive user limits (default 200, 400, 600 °C), the loss from the last limit to
 the end, and the end residue.
 
-**Reference:** ASTM E1131-20 (`astm-e1131`) and ASTM D7582 (`astm-d7582`, no edition year in the code).
+**Reference:** ASTM E1131-20 (`astm-e1131`) and ASTM D7582 (`astm-d7582`, edition year not recorded; marked
+"current edition" in `refs.py` for the user to fill in). That D7582 reports fixed carbon by difference on the
+as-determined basis and converts to the dry basis with 100/(100 − M) is the conventional proximate-analysis
+definition; the text of the standard was not available offline and was not compared.
 
 **Validation:**
 
 - `tests/test_tga.py::StepTest::test_e1131_composition` – synthetic filled elastomer (20 K/min, N₂ → air at 600 °C;
   0.8 % moisture, 12 % plasticiser, 48 % polymer, 30 % carbon that burns only in air): four rows, sum 100 ± 0.5,
   combustible carbon 30 ± 1.5 %.
-- Not covered: the D7582 template and free limits.
+- `tests/test_known_answers.py::D7582Basis::test_as_determined_and_dry` – synthetic coal (moisture 5 %, volatiles
+  30 % to 950 °C in N₂, fixed carbon 50 % burning after the switch to air, ash 15 %): M 5.00, VM 30.00, A 15.00
+  (± 0.01), FC 50.00 (± 0.02); dry VM 31.58, FC 52.63, A 15.79 (= X·100/95).
+- `tests/test_known_answers.py::D7582Basis::test_reference_mass_not_at_start_is_rescaled` – the same run with the
+  reference mass at 120 °C gives the same as-determined values, sum exactly 100, and a warning.
+- Not covered: free limits.
 
 ## 8 Stoichiometry (content from a step)
 
@@ -340,14 +375,20 @@ T_true = a + b·T_measured is fitted by least squares; with one pair only the of
 returned. Reference temperatures offered in the interface are ITS-90 fixed points: In 156.5985, Sn 231.928,
 Zn 419.527, Al 660.323, Ag 961.78 °C. The result is applied with the temperature calibration step of section 2.
 
-**Reference:** ITS-90 values: Preston-Thomas (1990), cited in `composition.py`. When the calibration step is used,
-the report adds ASTM E1582 (no edition year in the code) to the bibliography.
+**Reference:** ITS-90 values: Preston-Thomas (1990), cited in `composition.py`. When the temperature calibration step
+of section 2 is in the protocol, the methods text says that the temperature axis was corrected linearly
+(T′ = a + b·T, a and b set by the user) and cites ASTM E1582 there ("cf.", as the source for temperature calibration
+of thermogravimetric analyzers; the module does not implement the procedure of the standard itself). Up to 0.12.0
+E1582 was added to `refs.bib` without being cited in the text. Edition year not recorded ("current edition" note in
+`refs.py`).
 
 **Validation:**
 
 - `tests/test_tga.py::StepTest::test_oxalate_three_steps_match_stoichiometry` – the check passes on the synthetic run.
 - `tests/test_tga.py::ServerTest::test_flow` – the same through the HTTP interface.
 - Golden tests (regression): measured 12.15 / 19.30 / 29.84 % against 12.33 / 19.17 / 30.12 %.
+- `tests/test_known_answers.py::ReportFixes::test_e1582_cited_where_calibration_is_used` – with a `tcal` step the
+  methods text contains `\cite{tga-astm-e1582}` and `refs.bib` the entry.
 - Not covered: the two-point calibration.
 
 ## 10 Reference library
@@ -428,10 +469,13 @@ paired with the query step nearest to T_peak,ref + s (s from the best curve shif
 
 step = 100 · exp(−½ · mean of the penalties)
 
-**Hit score:** 0.6·curve + 0.4·step (mode "both"; "curve" or "steps" alone are also possible), multiplied by 0.85
-when the atmosphere classes (inert / oxidative) differ. Warnings are attached when atmospheres differ, when the
-heating rates differ by more than a factor 1.5, or when less than 80 % of the reference loss lies in the measured
-range. The 25 best hits are returned. The weights 0.6/0.4 and the widths 15 K, 4 %, 4 % are fixed in the code.
+**Hit score:** w·curve + (1 − w)·step (mode "both"; "curve" or "steps" alone are also possible), multiplied by 0.85
+when the atmosphere classes (inert / oxidative) differ. w defaults to 0.6 and can be set in the search options
+("Gewicht DTG-Kurve [%]", 0–100 %); the server passes it to the search (`w_curve`, refused outside 0–1; up to 0.12.0
+the server ignored it and always used 0.6) and returns it with the result; the report's methods text states the
+weighting used. Warnings are attached when atmospheres differ, when the heating rates differ by more than a factor
+1.5, or when less than 80 % of the reference loss lies in the measured range. The 25 best hits are returned. The
+widths 15 K, 4 %, 4 % are fixed in the code.
 
 **Reference:** principle after Schindler et al. (2017) (curve comparison plus comparison of characteristic values),
 cited in `search.py` and in the report. The specific scores and weights above are the module's own; the code cites
@@ -446,6 +490,9 @@ no source for them.
 - `tests/test_tga.py::ServerTest::test_flow` – the same through the HTTP interface, own reference ahead of the model
   library.
 - `tests/test_tga.py::BundleTest::test_search_hits_cited` – hits and the word "modell" reach the report.
+- `tests/test_tga.py::ServerTest::test_search_weight_passed` – for w = 1, 0 and 0.3 sent to `/api/search`, every
+  hit satisfies hqi = f·(w·curve + (1 − w)·step) within 0.02 (f = 0.85 for a different atmosphere, else 1); w = 1.5
+  is refused.
 
 Note: these tests use a query generated by the module itself, so they show self-consistency, not discrimination
 between similar real materials.
@@ -480,7 +527,8 @@ both the query and the library.
   1, 2, … (in order of detection), T₅ and the end residue; last row mean ± s with s the sample standard deviation
   (n − 1), over the runs where the value exists.
 - **Report** (`bundle.py`, several runs): T₅, loss and peak of the first step, end residue; last row mean ± s
-  (`numpy.std`, ddof = 1). The mean is computed from the values as printed in the table (1 or 2 decimals).
+  (`numpy.std`, ddof = 1), computed from the full-precision values (up to 0.12.0: from the values as printed in the
+  table, rounded to 1 or 2 decimals), then rounded to 2 decimals.
 
 Steps are matched by their position in the list. If one replicate has an extra small step, the columns compare
 different physical steps.
@@ -488,11 +536,15 @@ different physical steps.
 **Reference:** none cited.
 
 **Validation:** `tests/test_tga.py::BundleTest::test_single_and_comparison_bundle` builds a two-run comparison and
-checks that figures are produced. **No test checks the mean or s.**
+checks that figures are produced. `tests/test_known_answers.py::ReportFixes::test_replicate_mean_from_full_precision`
+– two synthetic oxalate runs (10 and 20 K/min): the mean ± s of the residue in the report table equals
+`numpy.mean`/`numpy.std(ddof=1)` of the unrounded residues.
 
 ## 14 Kinetics
 
-`tga/kinetics.py`; at least three runs with different heating rates over one step.
+`tga/kinetics.py`; at least three runs with different heating rates over one step. Options in `opts` of
+`kinetics.run_all` / `POST /api/kinetics` (not offered in the interface): `ofw` = `"e1641"` (default) or `"doyle"`;
+`lifetime` = `"toop"` (default) or `"model"`; `alpha_f`, `T_use`, `t_target_h`, `model`.
 
 ### Conversion
 
@@ -510,21 +562,42 @@ required. Temperatures and rates at α = 0.05, 0.10, …, 0.95 are interpolated 
 | Method | Regression | Eₐ from slope k |
 |---|---|---|
 | Friedman | ln(dα/dt)_α vs 1/T_α | Eₐ = −k·R |
-| Ozawa–Flynn–Wall | ln β vs 1/T_α | Eₐ = −k·R / 1.052 (Doyle approximation, constant factor) |
+| Ozawa–Flynn–Wall (default `ofw="e1641"`) | ln β vs 1/T_α | Eₐ = −k·R / b(x), iterated (below) |
+| Ozawa–Flynn–Wall (option `ofw="doyle"`) | ln β vs 1/T_α | Eₐ = −k·R / 1.052 (Doyle approximation, constant factor; uncorrected) |
 | Kissinger–Akahira–Sunose | ln(β/T_α²) vs 1/T_α | Eₐ = −k·R |
 | Starink | ln(β/T_α^1.92) vs 1/T_α | Eₐ = −k·R / 1.0008 |
 | Vyazovkin | minimise Φ(E) = Σᵢ Σⱼ≠ᵢ I(E,T_α,ᵢ)·βⱼ / (I(E,T_α,ⱼ)·βᵢ) | golden-section search |
 
-For Vyazovkin, I(E,T) = (E/R)·p(x), x = E/(RT), with the Senum–Yang rational approximation
-p(x) = e^(−x)/x · (x³ + 18x² + 88x + 96)/(x⁴ + 20x³ + 120x² + 240x + 120). The temperature integral runs from 0 to
-T_α (not over α-segments). The search interval is [max(5 kJ/mol, 0.3·E₀), min(1500 kJ/mol, 2.5·E₀)] with E₀ the KAS
-value at that α (at least 10 kJ/mol; 150 kJ/mol if KAS gives no value), tolerance 1 J/mol. The OFW factor is not
-iterated.
+**Temperature integral.** I(E,T) = ∫₀ᵀ exp(−E/RT′) dT′ = (E/R)·p(x), x = E/(RT), with the Senum–Yang rational
+approximation of 4th degree p(x) = e^(−x)/x · (x³ + 18x² + **86**x + 96)/(x⁴ + 20x³ + 120x² + 240x + 120).
+Up to 0.12.0 the code had **88**x in the numerator (a transcription error): p(x) was then 0.13 % too large at x = 30
+and 0.5 % at x = 10 instead of < 10⁻⁸ and < 10⁻⁶; the effect on Vyazovkin Eₐ was below 0.05 kJ/mol on the test
+series because the error varies slowly with x.
+
+**OFW iteration (ASTM E1641 procedure).** From ln β = const + ln p(x), the slope gives Eₐ = −R·k / b with
+b(x) = −d ln p/dx = e^(−x)/(x²·p(x)) (exact, because dp/dx = −e^(−x)/x²). Start: b = 1.052 (Doyle; in log₁₀ form
+0.457 as in the first step of E1641). Then repeat: x = Eₐ/(R·T_c), b = b(x), Eₐ = −R·k/b, until Eₐ changes by less
+than 0.01 % (at most 50 steps); T_c is the mean of the runs' T_α taken as 1/T_c = mean(1/T_α,i), the centre of the
+regression. b is computed from the Senum–Yang p(x), not read from the table in E1641 (that table was not available
+offline and was not compared); which temperature E1641 uses for x (possibly the one at the heating rate nearest the
+middle of the range) was not verified, the module uses the centre of the regression. Doyle's 1.052 equals b(x) at x ≈ 37; at x ≈ 30 the exact factor is
+1.065, so the uncorrected OFW value is about 1.2 % too high there (option `ofw="doyle"`, kept for comparison with
+software that reports the uncorrected value). The standard error is divided by the final b. Each OFW row carries
+the final `b`.
+
+**Vyazovkin.** This is the basic integral non-linear method (Vyazovkin 1997) in its form for linear heating: the
+integral runs from 0 to T_α with the Senum–Yang approximation, not stepwise over small Δα (the "advanced" method of
+Vyazovkin 2001, which is not implemented and no longer cited; up to 0.12.0 the code cited the 2001 paper). The 1997
+paper evaluates the integral for arbitrary temperature programs; the module assumes the constant heating rate β of
+each run. The search interval is [max(5 kJ/mol, 0.3·E₀), min(1500 kJ/mol, 2.5·E₀)] with E₀ the KAS value at that α
+(at least 10 kJ/mol; 150 kJ/mol if KAS gives no value), tolerance 1 J/mol.
 
 **Confidence interval** (Friedman, OFW, KAS, Starink): ±t·SE(k)·R (divided by the same factor as Eₐ), SE the standard
-error of the slope, t the two-sided 95 % Student value for n − 2 degrees of freedom (n = number of runs). The code
-tabulates t for 1–10 degrees of freedom (12.706 … 2.228), uses 2.0 for 11–30 and 1.96 above 30. With three runs
-(1 degree of freedom) t = 12.706. Vyazovkin values have no interval.
+error of the slope, t = t₀.₉₇₅ (two-sided 95 %) for ν = n − 2 degrees of freedom (n = number of runs), from the table
+in `tga/tdist.py`: exact values (6 decimals) for ν = 1–30, 40, 60, 120 and ∞, linear interpolation in 1/ν in between
+(error < 6·10⁻⁵ against scipy). Up to 0.12.0 t was tabulated only for ν = 1–10, 2.0 was used for 11–30 (true 2.201 …
+2.042) and 1.96 above 30. With three runs (ν = 1) t = 12.706. The Kissinger interval uses the same table. Vyazovkin
+values have no interval. The result carries `t95` and `dof`.
 
 **Summary:** mean, sample standard deviation, minimum and maximum of Eₐ over 0.1 ≤ α ≤ 0.9.
 
@@ -538,17 +611,32 @@ tabulates t for 1–10 degrees of freedom (12.706 … 2.228), uses 2.0 for 11–
   D1, D2, D3, D4, P2, P3 (f(α), g(α) in `kinetics.MODELS`, commented as ICTAC 2011 Table 1). Ranked by R².
 - **Master plot:** y(α) = (dα/dt)·exp(E/RT), normalised at α = 0.5, with E = mean Friedman Eₐ (else KAS), averaged
   over the runs for α = 0.1 … 0.9; compared with f(α)/f(0.5) of each model by RMS difference. The best model is used
-  below unless the user chooses one.
+  for the pre-exponential factor (and for the lifetime option `lifetime="model"`) unless the user chooses one.
 - **Pre-exponential factor:** ln A(α) = Friedman intercept − ln f(α) for the chosen model; the median over α is used
-  for the lifetime.
+  for the model-based lifetime option.
 - **Compensation effect:** straight line ln A = a·Eₐ + b through the Coats–Redfern results (at least three models).
 
 ### Lifetime estimate
 
-`kinetics.lifetime`: t_f = g(α_f) / k(T), k(T) = A·exp(−Eₐ/RT), with Eₐ the mean Friedman value (else KAS),
-ln A the median from the Friedman intercepts, the model from the master plot, α_f default 0.05, at 50, 100, 150 and
-200 °C by default. For a target life t* (in s): T_index = Eₐ / (R·(ln A − ln(g(α_f)/t*))) − 273.15. This is an Arrhenius
-extrapolation far below the measured temperatures; the report text says it is only an indication.
+**Default (`lifetime="toop"`, `kinetics.lifetime_toop`), model-free:**
+
+t_f(T) = (Eₐ/(R·β)) · p(Eₐ/(R·T_c)) · exp(Eₐ/(R·T))
+
+This is the Toop relation that ASTM E1877 builds on. It follows from g(α_f) = (A·Eₐ/(R·β))·p(x_c) (integral form at
+the temperature T_c where the dynamic run reaches α_f) and t_f = g(α_f)/(A·exp(−Eₐ/RT)), so A and the reaction
+model cancel. Eₐ is the OFW value at α_f (iterated as above, from a regression at exactly α_f); T_c is each run's
+temperature at α_f; ln[(Eₐ/(Rβ))·p(x_c)] (β in K/min, so t in min) is computed for every run and averaged (for
+consistent data all runs give the same value; the spread is returned as `lnC_spread`). Defaults: α_f = 0.05, T = 50,
+100, 150, 200 °C. Temperature index for a target life t* (h): T_index = Eₐ / (R·(ln(60·t*) − ln C)) − 273.15.
+
+**Option `lifetime="model"` (`kinetics.lifetime`, the 0.12.0 method):** t_f = g(α_f) / k(T), k(T) = A·exp(−Eₐ/RT),
+with Eₐ the mean Friedman value (else KAS) over α = 0.1–0.9, ln A the median from the Friedman intercepts, the model
+from the master plot.
+
+**Not checked against the standard.** The text of ASTM E1877 (and of the E1641 table it uses) was not available
+offline; the relation above was derived from the integral rate law, and whether E1877 prescribes exactly this
+choice of Eₐ, T_c and heating rate was not verified. The interface, the report text and this page say so. Either way
+it is an extrapolation far below the measured temperatures; the report text says it is only an indication.
 
 ### ICTAC data checks
 
@@ -562,12 +650,37 @@ Hard errors: fewer than three runs; two runs with the same heating rate (rounded
   then not meaningful).
 
 **References** (as cited in `kinetics.py` and in the report): Friedman (1964); Ozawa (1965); Flynn & Wall (1966);
-ASTM E1641-23; Akahira & Sunose (1971); Starink (2003); Vyazovkin (2001); Senum & Yang (1977); Kissinger (1957);
-Coats & Redfern (1964); ICTAC 2011 and 2014 recommendations; ASTM E1877-21 (lifetime). The docstring and warnings also
-name ICTAC 2020 and 2023; these entries exist in `refs.py` but are not added to the report.
+ASTM E1641-23; Akahira & Sunose (1971); Starink (2003); Vyazovkin (1997); Senum & Yang (1977); Kissinger (1957);
+Coats & Redfern (1964); ICTAC 2011 and 2014 recommendations; ASTM E1877-21 and Toop (1971) (lifetime; Toop only
+for the default method). The docstring and warnings also name ICTAC 2020 and 2023; these entries exist in `refs.py`
+but are not added to the report.
 
-**Validation** (synthetic series: one first-order step, Eₐ = 180 kJ/mol, DTG peak at 450 °C at 10 K/min, runs at
-5, 10, 20, 40 K/min, m₀ = 8 mg, small noise; `synth.kinetics_series`):
+**Validation, independent known answers** (`tests/test_known_answers.py`; data generated outside the module:
+first order from the exact temperature integral ∫₀ᵀ e^(−E/RT′)dT′ = T·E₂(E/RT) with `scipy.special.expn`, F2 and
+A2 by integrating dα/dT = (A/β)·e^(−E/RT)·f(α) with `scipy.integrate.solve_ivp`, rtol 10⁻¹⁰; Eₐ = 150 kJ/mol,
+A = 10¹⁰ s⁻¹, β = 2, 5, 10, 20 K/min, m = 10·(1 − 0.9α) mg, no noise, window 150–640 °C):
+
+- `KineticsKnownAnswer::test_isoconversional_methods_recover_ea` – mean Eₐ (α = 0.1–0.9) of Friedman, OFW (iterated),
+  KAS, Starink and Vyazovkin within 150 ± 0.75 kJ/mol (0.5 %) for F1, F2 and A2. Obtained (F1 / F2 / A2): Friedman
+  150.08 / 150.11 / 150.31, OFW 149.98 / 150.04 / 149.98, KAS 149.68 / 149.72 / 149.68, Starink 149.98 / 150.03 /
+  149.98, Vyazovkin 150.00 / 150.05 / 150.00.
+- `::test_kissinger_first_order` – Kissinger 150 ± 0.75 (obtained 149.87).
+- `::test_master_plot_finds_model` – the master plot selects F1, F2 and A2 respectively.
+- `::test_ofw_iteration_removes_doyle_bias` – iterated OFW within 0.5 %; the constant-1.052 option is more than
+  1.5 kJ/mol too high (obtained 152.2).
+- `::test_senum_yang_against_exact_temperature_integral` – p(x) within 10⁻⁶ (relative) of E₂(x)/x for x = 10–60.
+- `::test_ofw_factor_equals_exact_derivative` – b(x) within 2·10⁻⁵ of −d ln[E₂(x)/x]/dx (central difference) for
+  x = 10–60; b(37) = 1.052 ± 0.002.
+- `::test_toop_lifetime_first_order` – at α_f = 0.1 and 300 °C the default lifetime is within 5 % of the exact
+  first-order value −ln(0.9)/(A·e^(−E/RT)); the temperature index for that lifetime returns 300 °C; the model option
+  is within 10 %.
+- `StudentT::test_table_matches_scipy`, `::test_interpolation_in_inverse_df` – table within 10⁻⁶ of
+  `scipy.stats.t.ppf(0.975, ν)`, interpolated values within 10⁻⁴ (ν = 35 … 10⁶).
+- `StudentT::test_kinetics_uses_exact_t` – with 4 runs the KAS interval at α = 0.5 equals t₀.₉₇₅(2)·SE·R
+  (recomputed with numpy, relative 10⁻⁶).
+
+**Validation, module's own synthetic series** (one first-order step, Eₐ = 180 kJ/mol, DTG peak at 450 °C at
+10 K/min, runs at 5, 10, 20, 40 K/min, m₀ = 8 mg, small noise; `synth.kinetics_series`):
 
 - `tests/test_tga.py::KineticsTest::test_isoconversional_recovers_ea` – mean Eₐ (α = 0.1–0.9) of Friedman, OFW, KAS,
   Starink and Vyazovkin each within 180 ± 6 kJ/mol.
@@ -576,11 +689,13 @@ name ICTAC 2020 and 2023; these entries exist in `refs.py` but are not added to 
 - `tests/test_tga.py::KineticsTest::test_too_few_rates` – two runs are refused.
 - `tests/test_tga.py::ServerTest::test_kinetics_endpoint` – Friedman mean 180 ± 6 through the HTTP interface; two runs
   give an error.
+- `tests/test_known_answers.py::ReportFixes::test_kinetics_report_cites_matching_methods` – the report cites
+  Vyazovkin 1997 (not 2001) and Toop, and says that the lifetime was not checked against the standard.
 
-Values obtained on this series with module 0.12.0 (not asserted more tightly by the tests): Friedman 180.4, KAS 180.1,
-Starink 180.4, Vyazovkin 180.5, Kissinger 180.4, OFW 182.6 kJ/mol. The OFW offset of about +1.5 % comes from the
-constant 1.052 factor. **Not covered by tests:** confidence intervals, Coats–Redfern A values, pre-exponential factors,
-compensation effect, lifetime and temperature index, the ICTAC warnings, and any multi-step or non-first-order case.
+Values on this series with module 0.13.0: Friedman 180.4, KAS 180.1, Starink 180.4, Vyazovkin 180.5, Kissinger 180.4,
+OFW 180.5 kJ/mol (0.12.0: OFW 182.6 with the constant factor). **Not covered by tests:** Coats–Redfern A values,
+pre-exponential factors, compensation effect, the ICTAC warnings, multi-step cases and noisy data in the
+known-answer set.
 
 ## 15 Fraser–Suzuki deconvolution
 
@@ -727,18 +842,20 @@ Reproduced from `tga/refs.py` as they stand; missing fields are missing in the c
 - ASTM E1877-21 Standard Practice for Calculating Thermal Endurance of Materials from Thermogravimetric Decomposition
   Data. ASTM International, 2021. doi:10.1520/E1877-21.
 - ASTM E1582 Standard Test Method for Temperature Calibration of Thermogravimetric Analyzers. ASTM International.
+  Note: current edition; edition year not recorded in Folio Lab, to be filled in by the user. (Cited in the methods
+  text when the temperature calibration step is used.)
 - ASTM E2040 Standard Test Method for Mass Scale Calibration of Thermogravimetric Analyzers. ASTM International.
-  (Listed, not used.)
+  Note: current edition (year to be filled in). (Listed, not used.)
 - ASTM D7582 Standard Test Methods for Proximate Analysis of Coal and Coke by Macro Thermogravimetric Analysis. ASTM
-  International.
+  International. Note: current edition (year to be filled in).
 - ISO 11357-1:2023 Plastics – Differential scanning calorimetry (DSC) – Part 1: General principles. International
   Organization for Standardization, 2023.
 - ISO 11357-2:2020 Plastics – Differential scanning calorimetry (DSC) – Part 2: Determination of glass transition
   temperature and step height. International Organization for Standardization, 2020.
 - ASTM E967 Standard Test Method for Temperature Calibration of Differential Scanning Calorimeters and Differential
-  Thermal Analyzers. ASTM International.
+  Thermal Analyzers. ASTM International. Note: current edition (year to be filled in).
 - ASTM E793 Standard Test Method for Enthalpies of Fusion and Crystallization by Differential Scanning Calorimetry.
-  ASTM International.
+  ASTM International. Note: current edition (year to be filled in).
 - de Haseth, J. A.; Isenhour, T. L. (1977). Reconstruction of gas chromatograms from interferometric gas
   chromatography/infrared spectrometry data. Analytical Chemistry 49(13), 1977-1981. doi:10.1021/ac50021a024.
 - Savitzky, A.; Golay, M. J. E. (1964). Smoothing and differentiation of data by simplified least squares
@@ -768,8 +885,12 @@ Reproduced from `tga/refs.py` as they stand; missing fields are missing in the c
   materials. Research Report Chiba Institute of Technology (Science Technology) 16, 22-31.
 - Starink, M. J. (2003). The determination of activation energy from linear heating rate experiments: a comparison
   of the accuracy of isoconversion methods. Thermochimica Acta 404, 163-176. doi:10.1016/S0040-6031(03)00144-8.
-- Vyazovkin, S. (2001). Modification of the integral isoconversional method to account for variation in the
-  activation energy. Journal of Computational Chemistry 22(2), 178-183.
+- Vyazovkin, S. (1997). Evaluation of activation energy of thermally stimulated solid-state reactions under
+  arbitrary variation of temperature. Journal of Computational Chemistry 18, 393-402. (Replaces the 2001 paper cited
+  up to 0.12.0, which describes the advanced Δα method that the code does not implement.)
+- Toop, D. J. (1971). Theory of life testing and use of thermogravimetric analysis to predict the thermal life of
+  wire enamels. IEEE Transactions on Electrical Insulation EI-6. (Issue, pages and DOI not verified, therefore
+  omitted.)
 - Coats, A. W.; Redfern, J. P. (1964). Kinetic parameters from thermogravimetric data. Nature 201, 68-69.
   doi:10.1038/201068a0.
 - Doyle, C. D. (1962). Estimating isothermal life from thermogravimetric data. Journal of Applied Polymer Science 6,
@@ -802,31 +923,37 @@ Reproduced from `tga/refs.py` as they stand; missing fields are missing in the c
 - **No real instrument files in the tests.** Every reader was built from documented export formats and tested with
   synthetic files written by the tests. The module contains no `tests/README` and no test data from a real
   instrument, so no format can be considered verified with a real file. NETZSCH `.ngb` reading is tested only with a
-  replaced `read_ngb`. The TRIOS multi-sheet join is not tested. Check the first runs from your instrument against
-  the instrument software before reporting values.
-- **Synthetic validation only.** All accuracy tests use noise-free or lightly noisy synthetic data generated with the
-  same assumptions the methods make (single-step first-order kinetics, Gaussian DSC peaks, Fraser–Suzuki DTG peaks).
-  They show that the code does what it is meant to do, not how it performs on real, overlapping or noisy data.
-- **Onset and endset** are checked only for their order (onset < peak < endset) and by regression against stored
-  values; no test compares them with an independent reference value. The construction uses the point of maximum
-  smoothed rate as the inflection point and the step-average heating rate for the tangent slope; results depend on
-  the DTG window (default 4 K) and on the baseline rule of section 5.
-- **Reader guesses:** a Kelvin column without a unit label is read as °C; a mass column without a unit in the range
-  50–120 is read as %; for PerkinElmer files the unsubtracted weight is chosen. Use the column-mapping dialog when in
-  doubt and check the run's info line.
+  replaced `read_ngb`. The TRIOS multi-sheet join is tested only with a synthetic workbook. Check the first runs
+  from your instrument against the instrument software before reporting values.
+- **Synthetic validation only.** All accuracy tests use noise-free or lightly noisy synthetic data (single-step
+  kinetics of known form, Gaussian DSC peaks, Fraser–Suzuki DTG peaks, smooth TG steps). The kinetics known-answer
+  data are generated independently of the module's approximations, but they are still ideal single-step data. The
+  tests show that the code does what it is meant to do, not how it performs on real, overlapping or noisy data.
+- **Onset and endset** are checked against an analytic tangent construction on noise-free synthetic steps
+  (section 5). Results on real data depend on the DTG window (default 4 K) and on the baseline rule of section 5.
+- **Reader guesses:** a temperature column without unit is read as Kelvin when it starts at 250–330 or its name says
+  K, otherwise as °C (a note is shown in both cases); a mass column without a unit in the range 50–120 is read as %;
+  for PerkinElmer files the corrected weight is preferred and the unsubtracted one is used only when nothing else is
+  there (with a note). Use the column-mapping dialog when in doubt and check the run's info line.
 - **Library search** narrows down, it does not identify. The built-in library is modelled from published step
   values, not measured (section 10); step positions depend on heating rate, sample mass, crucible and atmosphere.
   The search tests use queries generated by the module itself.
 - **Mixture fit:** fractions are tested only as a sum, on model curves; the score is a non-centred share of explained
   squared norm.
-- **Kinetics:** OFW uses the constant Doyle factor 1.052 without iteration (about +1.5 % on the test series); the
-  Vyazovkin implementation integrates from 0 to T_α (not the stepwise integral over α intervals) and has no confidence
-  interval; for 11–30 degrees of freedom the t value is approximated by 2.0; A values, compensation effect and
-  lifetime are untested; the lifetime is an extrapolation and depends on the chosen reaction model.
-- **Composition:** the D7582 template, free limits, residue at a chosen temperature, isothermal loss, buoyancy
-  correction, resampling, blank subtraction, averaging, the two-point calibration and the comparison statistics have
-  no tests. Masses at temperature limits are taken at the first point at or above the limit, without interpolation.
-- **Replicates:** steps are matched by their order; the report computes mean ± s from rounded table values.
+- **Kinetics:** the OFW iteration follows the procedure of ASTM E1641 but computes b(x) from the Senum–Yang p(x)
+  instead of the standard's table and evaluates x at the centre of the regression; neither was compared with the
+  standard's text. The Vyazovkin implementation is the basic method (integral from 0 to T_α, linear heating; not the
+  Δα method) and has no confidence interval. A values and the compensation effect are untested.
+- **Lifetime (ASTM E1877):** not checked against the text of the standard. The default uses the model-free Toop
+  relation with the OFW Eₐ at the failure conversion; it is an extrapolation far below the measured temperatures.
+- **Composition:** free limits, residue at a chosen temperature, isothermal loss, buoyancy correction, resampling,
+  blank subtraction, averaging and the two-point calibration have no tests. Masses at temperature limits are taken
+  at the first point at or above the limit, without interpolation. The D7582 basis rules (as-determined, fixed
+  carbon by difference, dry = ·100/(100 − M)) follow the usual proximate-analysis convention; the standard's text was
+  not compared.
+- **Edition years** of ASTM E1582, E2040, D7582, E967 and E793 are not recorded; the bibliography entries say
+  "current edition" and must be completed by the user before publication.
+- **Replicates:** steps are matched by their order.
 - **DSC:** no own calibration step (ASTM E967); the instrument calibration is used unchecked.
 - **Gas analysis** is not included in the report.
 - **No uncertainty propagation** for losses, contents, onset temperatures or deconvolution parameters; only the

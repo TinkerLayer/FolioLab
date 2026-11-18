@@ -5,9 +5,11 @@ Snapshot content:
 - top-level fields (module, title, slug, lang, summary, ...), without the build time ("created");
 - the item list (kind, id, caption/title, label, cites, ...); for the values item only key and plain value;
 - every text file (.tex, .bib, ...) as lines with trailing whitespace stripped;
-- CSV data: header, row count, first and last row;
-- figures and other binary files: type and size only (compared within a tolerance, default +-25 %), because
-  matplotlib output is not byte-stable;
+- CSV data: header, row count, first and last row; numbers in those rows are compared to 6 significant digits, and
+  |x| < 1e-12 counts as 0 (floating-point noise such as 3.7e-17 instead of 1.2e-17 differs between numpy builds);
+- figures and other binary files: type and size only, compared within a factor of 2 (BINARY_RATIO). Matplotlib
+  output is not byte-stable, and the same figure differs by about 30 % in size between matplotlib releases (font
+  subsetting); a factor of 2 still catches an empty or missing plot;
 - the source: request (long number lists shortened) and the names and sizes of the source files.
 Volatile strings (date-time stamps, absolute paths, random hex ids) are replaced by placeholders; the build time
 ("created") is dropped.
@@ -32,7 +34,9 @@ from pathlib import Path
 
 UPDATE_ENV = "FOLIO_GOLDEN_UPDATE"
 TEXT_EXT = {".tex", ".bib", ".txt", ".md", ".json"}
-BINARY_TOL = 0.25
+BINARY_RATIO = 2.0
+CSV_DIGITS = 6
+CSV_ZERO = 1e-12
 MAX_DIFF_LINES = 80
 
 # Plain dates are kept: the data carry fixed dates (urldate/accessed of sources, measurement dates) that must not be
@@ -107,16 +111,39 @@ def dumps(snap: dict) -> str:
     return json.dumps(snap, ensure_ascii=False, sort_keys=True, indent=1) + "\n"
 
 
-def compare(snap: dict, ref: dict, tol: float = BINARY_TOL) -> str:
+def _num_cell(c: str) -> str:
+    try:
+        v = float(c)
+    except ValueError:
+        return c
+    if v != v or v in (float("inf"), float("-inf")):
+        return c
+    if abs(v) < CSV_ZERO:
+        return "0"
+    return f"{v:.{CSV_DIGITS}g}"
+
+
+def _norm_row(row):
+    """CSV row with every number rounded to CSV_DIGITS significant digits (compare only; the stored text is kept)."""
+    if not isinstance(row, str):
+        return row
+    return ",".join(_num_cell(c) for c in row.split(","))
+
+
+def compare(snap: dict, ref: dict, ratio: float = BINARY_RATIO) -> str:
     """Empty string if equal; otherwise a short report with a unified diff of the differing part."""
     a, b = copy.deepcopy(snap), copy.deepcopy(ref)
     problems = []
     fa, fb = a.get("files") or {}, b.get("files") or {}
     for name in sorted(set(fa) & set(fb)):
         x, y = fa[name], fb[name]
+        if x.get("type") == "csv" and y.get("type") == "csv":
+            for k in ("first", "last"):
+                x[k], y[k] = _norm_row(x.get(k)), _norm_row(y.get(k))
         if "size" in x and "size" in y and "lines" not in x:
-            if abs(x["size"] - y["size"]) > tol * max(y["size"], 1):
-                problems.append(f"{name}: size {x['size']} B, reference {y['size']} B (outside +-{tol:.0%})")
+            lo, hi = sorted((max(x["size"], 1), max(y["size"], 1)))
+            if hi > ratio * lo:
+                problems.append(f"{name}: size {x['size']} B, reference {y['size']} B (more than a factor {ratio:g})")
             x["size"] = y["size"] = "<within tolerance>"
     ta, tb = dumps(a), dumps(b)
     if ta != tb:
@@ -127,7 +154,7 @@ def compare(snap: dict, ref: dict, tol: float = BINARY_TOL) -> str:
     return "\n".join(problems)
 
 
-def check(bundle: dict, ref_path, tol: float = BINARY_TOL) -> None:
+def check(bundle: dict, ref_path, ratio: float = BINARY_RATIO) -> None:
     """Compare the bundle with the reference file; with FOLIO_GOLDEN_UPDATE=1 write the reference instead.
 
     Raises AssertionError (with a unified diff) on a mismatch or a missing reference."""
@@ -141,6 +168,6 @@ def check(bundle: dict, ref_path, tol: float = BINARY_TOL) -> None:
     if not ref_path.exists():
         raise AssertionError(f"reference {ref_path} missing; create it with {UPDATE_ENV}=1")
     ref = json.loads(ref_path.read_text(encoding="utf-8"))
-    msg = compare(json.loads(dumps(snap)), ref, tol)
+    msg = compare(json.loads(dumps(snap)), ref, ratio)
     if msg:
         raise AssertionError(f"bundle differs from {ref_path.name} (regenerate with {UPDATE_ENV}=1 if intended):\n{msg}")

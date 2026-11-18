@@ -1,7 +1,7 @@
 """Kommandozeilenaufruf fuer Stapelverarbeitung (Spezifikation 9.1).
 
 Beispiel:
-  python -m flps.cli "Messung UNgekocht.flps" --form "ISO 527-2 Typ 5B" --dicke 0.1 --v 1 --weg traverse
+  python -m flps.cli messung.flps --form "ISO 527-2 Typ 5B" --dicke 0.1 --v 1 --weg traverse
   python -m flps.cli *.flps --a0 0.2 --l0 10 --aus Ausgaben --ueberschreiben
   python -m flps.cli a.flps b.flps --form "DIN 50125 B 6×30" --werkstoff-ref S235JR --vergleich
   python -m flps.cli rohr.flps --manuell --rohr 10 1 --l0 50 --gruppe "alle Metalle"

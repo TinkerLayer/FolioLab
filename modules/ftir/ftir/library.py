@@ -2,8 +2,14 @@
 
 Jede Bibliothek liegt in <ausgaben>/bibliotheken/<id>/ als meta.json (Einträge mit Name, Kategorie, CAS, Quelle,
 Bemerkung) und data.npz (für die Suche vorbereitete Spektren auf dem Raster 400–4000 cm⁻¹, Abstand 2 cm⁻¹, sowie
-das eingelesene Spektrum selbst). Vorbereitung für die Suche: in Absorbanz umrechnen, auf das Raster mitteln,
+das eingelesene Spektrum selbst). Vorbereitung für die Suche (prep): in Absorbanz umrechnen, auf das Raster mitteln,
 Basislinie (Gummiband) abziehen, Maximum 1. Ausserhalb des gemessenen Bereichs bleibt der Wert leer (NaN).
+
+Probe und Referenzen durchlaufen dieselbe Vorbereitung prep. Die Bearbeitungsschritte des Benutzers (Protokoll,
+z. B. eine ALS-Basislinie) gelten nur für die Probe und laufen vor prep; Referenzen werden so vorbereitet, wie sie in
+die Bibliothek kamen (Open Specy: Intensitäten der Datei nobaseline.rds; eigene Bibliotheken: das
+bearbeitete Spektrum zum Zeitpunkt des Hinzufügens). Das Gummiband in prep wird deshalb auf beide angewendet, auch
+wenn die Probe schon eine Basislinienkorrektur hat.
 """
 from __future__ import annotations
 
@@ -137,13 +143,14 @@ class Library:
     def peaklists(self):
         if self._pk is None or self._pk[0] != self.version:
             from . import peaks as PK
+            from .search import PEAK_PARAMS      # dieselben Parameter wie für die Probe (auch S/N-Kriterium)
             out = []
             for g in self.G:
                 v = np.isfinite(g)
                 if v.sum() < 12:
                     out.append(([], []))
                     continue
-                p = PK.find(GRID[v], g[v].astype(float), "A", {"prominence": 1.5, "distance": 6, "max": 40, "snr": 0})
+                p = PK.find(GRID[v], g[v].astype(float), "A", PEAK_PARAMS)
                 out.append(([q["x"] for q in p], [q["rel"] for q in p]))
             self._pk = (self.version, out)
         return self._pk[1]

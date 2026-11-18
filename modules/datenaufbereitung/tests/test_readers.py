@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import datetime as dt
+import importlib.util
 import io
 import json
 import sys
 import threading
 import unittest
+from unittest import mock
 import urllib.error
 import urllib.request
 import zipfile
@@ -23,6 +25,7 @@ sys.path.insert(0, str(ROOT.parents[1] / "sdk" / "python"))
 from daten import readers as R  # noqa: E402
 from daten import sheet as SH  # noqa: E402
 
+HAS_PYARROW = importlib.util.find_spec("pyarrow") is not None      # Parquet is optional
 HEAD = ["Zeit", "Temperatur", "Probe"]
 UNITS = ["min", "°C", ""]
 ROWS = [[0, 25.5, "A"], [5, 30.25, "A"], [10, 1234.5, "B"]]
@@ -85,6 +88,19 @@ def ods_bytes():
     return buf.getvalue()
 
 
+def ods_doc(tables: str) -> bytes:
+    content = ('<?xml version="1.0" encoding="UTF-8"?><office:document-content '
+               'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
+               'xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" '
+               'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><office:body><office:spreadsheet>'
+               f'{tables}</office:spreadsheet></office:body></office:document-content>')
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("mimetype", "application/vnd.oasis.opendocument.spreadsheet")
+        z.writestr("content.xml", content)
+    return buf.getvalue()
+
+
 def parquet_bytes():
     import pyarrow as pa
     import pyarrow.parquet as pq
@@ -115,12 +131,49 @@ class FormatsTest(unittest.TestCase):
         self.assertTrue(cases["csv de"].meta["dec_comma"])
         self.assertEqual((cases["csv de"].meta["header"], cases["csv de"].meta["units"]), (0, 1))
         no_units = [EXPECT[0]] + EXPECT[2:]
-        self.assertEqual(grid(R.load_bytes(parquet_bytes(), "t.parquet")[0]), no_units)
         records = [dict(zip(HEAD, r)) for r in ROWS]
         for d in (records, {k: [r[i] for r in ROWS] for i, k in enumerate(HEAD)},
                   {"columns": HEAD, "data": ROWS}):
             self.assertEqual(grid(R.load_bytes(json.dumps(d).encode(), "t.json")[0]), no_units)
         self.assertEqual(grid(R.load_bytes(json.dumps([HEAD] + ROWS).encode(), "t.json")[0]), no_units)
+
+    @unittest.skipUnless(HAS_PYARROW, "Parquet: pyarrow nicht installiert")
+    def test_same_grid_from_parquet(self):
+        no_units = [EXPECT[0]] + EXPECT[2:]
+        self.assertEqual(grid(R.load_bytes(parquet_bytes(), "t.parquet")[0]), no_units)
+
+    def test_parquet_without_pyarrow_is_a_clean_error(self):
+        """pyarrow is optional: without it reading Parquet gives a German ReadError, not ModuleNotFoundError."""
+        with mock.patch.dict(sys.modules, {"pyarrow": None, "pyarrow.parquet": None}):
+            with self.assertRaises(R.ReadError) as cm:
+                R.load_bytes(b"PAR1\x00\x00PAR1", "t.parquet")
+        self.assertEqual(str(cm.exception), R.PARQUET_MISSING)
+        self.assertIn("pip install pyarrow", R.PARQUET_MISSING)
+
+    def test_ods_long_empty_runs_keep_positions(self):
+        """A value after more than 1024 repeated empty cells stays in its column (was moved left before 0.3.0)."""
+        row = ('<table:table-row><table:table-cell office:value-type="float" office:value="1"><text:p>1</text:p>'
+               '</table:table-cell><table:table-cell table:number-columns-repeated="1500"/>'
+               '<table:table-cell office:value-type="float" office:value="2"><text:p>2</text:p></table:table-cell>'
+               '</table:table-row>')
+        sh = R.load_bytes(ods_doc(f'<table:table table:name="Breit">{row}</table:table>'), "breit.ods")[0]
+        self.assertEqual(sh.cols, 1502)
+        self.assertEqual((sh.num[0, 0], sh.num[0, 1501]), (1.0, 2.0))
+        many = ('<table:table-row table:number-rows-repeated="200000"><table:table-cell office:value-type="float" '
+                'office:value="3"><text:p>3</text:p></table:table-cell></table:table-row>')
+        sh = R.load_bytes(ods_doc(f'<table:table table:name="Lang">{many}</table:table>'), "lang.ods")[0]
+        self.assertEqual(sh.rows, R.MAX_ODS_REPEAT)
+        self.assertTrue(sh.meta.get("truncated"))
+        self.assertTrue(any("200000" in n.replace("'", "").replace(" ", "") for n in sh.notes), sh.notes)
+
+    def test_time_zones(self):
+        """Datetimes with a time zone are stored as UTC seconds; naive ones as wall-clock time."""
+        utc = dt.datetime(2024, 3, 31, 0, 30, tzinfo=dt.timezone(dt.timedelta(hours=1)))
+        t, x, _ = SH.classify(utc)
+        self.assertEqual(t, SH.DATE)
+        self.assertEqual(x, (dt.datetime(2024, 3, 30, 23, 30) - dt.datetime(1970, 1, 1)).total_seconds())
+        t, x, _ = SH.classify(dt.datetime(2024, 3, 31, 0, 30))
+        self.assertEqual(x, (dt.datetime(2024, 3, 31, 0, 30) - dt.datetime(1970, 1, 1)).total_seconds())
 
     def test_xlsx_details(self):
         sheets = R.load_bytes(xlsx_bytes(), "mappe.xlsx")

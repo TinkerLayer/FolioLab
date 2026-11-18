@@ -12,12 +12,18 @@ How the resulting numbers are traced back to the raw file in a report is describ
 
 State the software and the module version:
 
-> Data were prepared with Folio Lab 0.1.0, module Datenaufbereitung 0.2.0.
+> Data were prepared with Folio Lab 0.2.0, module Datenaufbereitung 0.3.0.
 
 The Folio Lab version is in `package.json`; a report result records it as `provenance.suite_version`. The module version is in `modules/datenaufbereitung/module.json`
-(`"version": "0.2.0"`, identical to `daten/__init__.py`). Every dataset also records the module version that read
-the file (`provenance.module_version`). If you use an outlier test or smoothing, also cite the method source listed
-in that section. The methods text in a report bundle does this automatically.
+(`"version": "0.3.0"`, identical to `daten/__init__.py`). Every dataset records the version of the module process
+that computed it (`provenance.module_version`; a derived dataset that is computed again gets the version of the
+process that recomputed it). A report bundle carries the same version (`module_version`), so the report records the
+version that actually ran, not the one in `module.json` at the time of saving (see [provenance.md](provenance.md)).
+If you use an outlier test or smoothing, also cite the method source listed in that section. The methods text in a
+report bundle does this automatically.
+
+Version 0.3.0 changed results in several places; they are listed at the end of each section and summarised under
+[Changes in 0.3.0](#changes-in-030).
 
 ## Contents
 
@@ -34,7 +40,8 @@ in that section. The methods text in a report bundle does this automatically.
 11. [Templates and batches](#11-templates-and-batches)
 12. [Exports](#12-exports)
 13. [Dataset versioning and derived datasets](#13-dataset-versioning-and-derived-datasets)
-14. [Known limitations](#known-limitations)
+14. [Changes in 0.3.0](#changes-in-030)
+15. [Known limitations](#known-limitations)
 
 Test paths below are relative to the project root. Module tests run with
 `python -m unittest discover -s tests` from `modules/datenaufbereitung` with `PYTHONPATH=../../sdk/python;.`.
@@ -49,11 +56,14 @@ Code: `daten/readers.py`, `daten/sheet.py`, `sdk/python/labtable.py`.
 |---|---|
 | `.xlsx`, `.xlsm` | openpyxl, read-only, stored values (`data_only`). A formula without a cached value is read as empty and noted. Hidden sheets are noted. Merged ranges are read. |
 | `.xls` | xlrd. |
-| `.ods` | Python standard library (zip + XML). Repeated rows are capped at 100 000, repeated columns at 1 024. |
+| `.ods` | Python standard library (zip + XML). Runs of repeated empty cells keep their width, so a value after them stays in its column (up to the 16 384-column limit; more columns are refused). A *filled* row repeated more than 100 000 times is read 100 000 times; this is noted on the page and stored in the dataset provenance (`truncations`). Trailing empty rows are not stored. |
 | `.csv`, `.txt`, `.tsv`, `.dat`, `.asc`, `.prn` | Text decoding and dialect detection as below. |
 | `.json` | Own dataset format `suite.dataset/1`; pandas `split`, `columns`, `records`; plain rows. |
-| `.parquet` | pyarrow. |
+| `.parquet` | pyarrow – an **optional** dependency, not installed with the module. Without it, reading or exporting Parquet gives the message "Parquet braucht das Python-Paket pyarrow (pip install pyarrow)." (HTTP 400 from the module server); all other formats work. |
 | Pasted cells | Cells copied from a spreadsheet. |
+
+Date-time cells with a time zone (Parquet timestamps with a zone, for example) are stored as UTC; date-time cells
+without one keep their wall-clock time (see [section 3](#3-dates-and-times)).
 
 **Text decoding** (`labtable.decode`): a UTF-16 byte-order mark, or UTF-16 without one when detected, then
 `utf-8-sig`, `cp1252`, `latin-1`, in that order.
@@ -68,7 +78,11 @@ row and a header row above it are recognised.
 
 | Test | Checks |
 |---|---|
-| `modules/datenaufbereitung/tests/test_readers.py::FormatsTest::test_same_grid_from_every_format` | The same table written as xlsx, ods, csv, json and parquet gives the same cell grid. |
+| `modules/datenaufbereitung/tests/test_readers.py::FormatsTest::test_same_grid_from_every_format` | The same table written as xlsx, ods, csv and json gives the same cell grid. |
+| `…/test_readers.py::FormatsTest::test_same_grid_from_parquet` | The same grid from Parquet (skipped without pyarrow). |
+| `…/test_readers.py::FormatsTest::test_parquet_without_pyarrow_is_a_clean_error` | With pyarrow made unavailable, reading Parquet raises the German message above, not `ModuleNotFoundError`. |
+| `…/test_readers.py::FormatsTest::test_ods_long_empty_runs_keep_positions` | A value after 1 500 repeated empty cells stays in column 1 502; a filled row repeated 200 000 times is read 100 000 times and the cut is recorded. |
+| `…/test_readers.py::FormatsTest::test_time_zones` | `2024-03-31 00:30+01:00` → UTC 2024-03-30 23:30; a naive date-time keeps its wall-clock value. |
 | `…/test_readers.py::FormatsTest::test_xlsx_details` | Merged cells, hidden sheets, formulas without cached value. |
 | `…/test_readers.py::FormatsTest::test_ods_repeats_and_spans` | ODS repeated rows/columns and spans. |
 | `…/test_readers.py::FormatsTest::test_refusals_and_refs` | Unsupported files are refused; cell references. |
@@ -116,7 +130,21 @@ Rules:
 
 * For `<` and `>` with a unit, the limit is converted to the column unit if the dimension matches.
 * For `±`, the uncertainty is converted with the same factor but **without** a temperature offset.
-* The `±` value is stored as given. The code does not interpret it as a standard or an expanded uncertainty.
+* The `±` value is stored as given. Its **type** is a column property (`u_type`, set in *Column properties* in the
+  page or by the `colprop` step) and is "nicht angegeben" (not stated) unless chosen:
+
+  | `u_type` | Meaning | Extra field |
+  |---|---|---|
+  | (empty) | not stated (default) | – |
+  | `u` | standard uncertainty u | – |
+  | `U` | expanded uncertainty U | coverage factor `u_k` (required, 0 < k < 100) |
+  | `sd` | standard deviation s | – |
+  | `se` | standard error of the mean | – |
+  | `ci` | half-width of a confidence interval | level `u_level` in % (required, 0–100) |
+
+  The type is stored on the uncertainty column, shown as a check chip (a warning while it is not stated), in the
+  XLSX "Protokoll" column table, in the report methods text ("Art der angegebenen Unsicherheit") and in JSON. It is
+  only recorded; no value is converted between types. Averaging replicates sets `se` on the SE column it creates.
 * A `±` uncertainty goes into the linked uncertainty column (only into empty cells) or into a new column `u(name)`.
 * The flag reason for `<` values reads "Wert = Grenze (…)" (value = limit).
 
@@ -130,6 +158,9 @@ Rules:
 | `sdk/python/tests/test_labtable.py::NumberTest::test_formats` | Decimal comma, grouping, exponent forms. |
 | `sdk/python/tests/test_labtable.py::NumberTest::test_not_numbers` | Text that must not be read as a number. |
 | `…/test_manual.py::ManualModelTest::test_parse_entry` | Sequential entry in measurement sheets (see below). |
+| `sdk/python/tests/test_labdataset.py::DatasetTest::test_uncertainty_type` | Default "nicht angegeben"; `U` with k = 2 → "erweiterte Unsicherheit U (k = 2)"; k is dropped for `ci`; unknown types and k ≤ 0 refused. |
+| `…/test_clean.py::TimesAndReadingTest::test_uncertainty_type_from_recipe` | `colprop` with `u_type: "U", u_k: 2` on a value column lands on its `u(m)` column; U without k and unknown types are refused. |
+| `…/test_clean.py::ScientificFixesTest::test_uncertainty_type_chip` | Chip "info" with "k = 2" when stated, "warn" with "nicht angegeben" otherwise. |
 
 ### Sequential entry (measurement sheets)
 
@@ -144,7 +175,7 @@ Code: `daten/parse.py`, `daten/recipe.py`.
 
 | Form | Example | Notes |
 |---|---|---|
-| ISO date-time | `2024-03-01 12:30`, `2024-03-01T12:30:05.5` | A time-zone suffix is accepted but **ignored**. |
+| ISO date-time | `2024-03-01 12:30`, `2024-03-01T12:30:05.5`, `2024-03-31T00:30+01:00`, `…Z`, `… +0000` | With a time-zone suffix the value is converted to **UTC**; without one it is local wall-clock time as written. |
 | German date | `01.03.24`, `01.03.2024 12:30:05` | Two-digit years get +2000. |
 | Time of day | `12:30`, `12:30:05` | Hours up to 47 are accepted. |
 | Excel date cell | – | Read as a date. |
@@ -155,13 +186,28 @@ Code: `daten/parse.py`, `daten/recipe.py`.
 * **Past midnight**: for times of day, a step backwards of more than 12 h adds one day.
 * The start time is stored as a condition named "<column> Start".
 * A date column whose finite values are all below 2 × 86 400 s is treated as time-of-day only.
-* There is no time-zone or daylight-saving handling.
+* **Time zones.** A column whose values all carry an offset is read in UTC; the start condition ends in " UTC" and
+  elapsed times across a daylight-saving change are correct. A column without offsets (the usual case, and every
+  spreadsheet date cell) is **assumed to be local wall-clock time as written, without daylight-saving correction**;
+  the column note says "Ortszeit ohne Zeitzone, keine Sommerzeit-Korrektur". A column that mixes both gets a warning
+  (the two groups are an offset apart).
+* **Daylight-saving warnings** (`parse.dst_check`, local and mixed columns only) are shown on the page as
+  "ACHTUNG …" notes and stored in the dataset provenance (`warnings`) and the report methods text:
+  * time running backwards (end of summer time, or wrong order);
+  * a step that differs from the median step by about one hour (± max(60 s, 10 % of the median step)), only when
+    the median step is below 3 000 s;
+  * a range of absolute dates that covers 00:00–05:00 of a changeover Sunday under the EU rule (last Sunday of March
+    and October, since 1996) or the USA/Canada rule (second Sunday of March, first Sunday of November, since 2007).
+    Other regions and earlier rules are not checked.
+  The values are not corrected; the user decides (for example by entering times with an offset).
 
 **Validation**
 
 | Test | Expected |
 |---|---|
 | `…/test_clean.py::FormatTest::test_times` | `12:00:05` → 43 205 s; times 23:50, 00:00, 00:10 → [0, 10, 20] min with start 23:50:00. |
+| `…/test_clean.py::TimesAndReadingTest::test_offsets_are_converted_to_utc` | `2024-03-31T00:30+01:00`, `2024-03-30T23:30Z` and `… +0000` give the same UTC second; the naive text is one hour later; offsets across the EU change give 30-min steps; mixed columns are "mixed"; EU change 2024 = 31.03.2024. |
+| `…/test_clean.py::TimesAndReadingTest::test_dst_jump_in_local_times_is_warned` | Local times 01:00, 01:30, 03:00 … on 31.03.2024 warn about a 1 h step and the changeover date; the same instants with offsets give [0, 30, 60, 90] min without a warning and a start "… UTC". |
 | `…/test_clean.py::FormatTest::test_colprop_symbol_kind_and_raw_time` | Symbol, quantity kind and raw time columns. |
 
 ## 4. From marked sheet to dataset
@@ -171,8 +217,12 @@ Code: `daten/recipe.py`, `sdk/python/labdataset.py`.
 * The marks (data block, header rows, units row, roles, metadata cells, repeats, wide → long, transpose) form a
   **recipe**. The recipe is stored in the dataset's provenance and can be replayed.
 * A column is a number column when numbers plus recognised markers make up at least 50 % of its filled cells.
-* Unreadable cells become NaN with a `parse_error` flag. The raw text is kept for at most 5 000 unreadable cells
-  per column. Flags are kept for at most 20 000 cells per column.
+* Unreadable cells become NaN with a `parse_error` flag that keeps the cell text (at most 200 characters). Reading
+  flags (unreadable cells and markers) are stored for at most 200 000 cells per column and kind (`MAX_CELL_FLAGS`
+  in `recipe.py`; at most 5 000 000 cells fit into a dataset). When more occur, the values are still read; the page
+  shows "GEKÜRZT: …" and the dataset provenance records `truncations` = [{what, kept, total, from_row}], which also
+  appear in the XLSX "Protokoll" and the report methods text. (Before 0.3.0, raw text was kept for the first 5 000
+  unreadable cells and flags for 20 000 cells per column; the rest was dropped without a note.)
 * Units are cleaned before lookup (for example `std` → h, `sec` → s, `l` → L). An unknown unit is refused.
 * Column roles: x, y, uncertainty, group, label, condition, or none.
 * Metadata cells become **conditions** (at most 40 per dataset) or constant columns.
@@ -207,6 +257,7 @@ The quantity kind of a column must fit its unit; otherwise it is inferred from t
 | `sdk/python/tests/test_labdataset.py::DatasetTest::test_kinds_si_and_mask` | Kinds, SI conversion, used-row mask. |
 | `sdk/python/tests/test_labdataset.py::DatasetTest::test_refusals` | Invalid keys, units, infinite values. |
 | `…/test_clean.py::CleanTest::test_replay_gives_same_dataset` | Replaying the stored recipe and steps gives the same dataset. |
+| `…/test_clean.py::TimesAndReadingTest::test_flag_truncation_is_reported` | With the cap set to 3, a column with 6 `n.d.` cells keeps 3 flags and records {kept 3, total 6, from_row 8}; all 12 rows stay. |
 
 ## 5. Units and unit conversion
 
@@ -275,10 +326,16 @@ Flags follow their rows through filtering, sorting and trimming.
   * standard deviation s = √(Σ(xᵢ − x̄)² / (n − 1)); NaN if n ≤ 1
   * n = number of finite values
   * standard error SE = s / √n
-* SE becomes the uncertainty of the mean column.
+* SE becomes the uncertainty of the mean column; the SE column has `u_type` = `se`.
 * Uncertainty and text columns that are neither *by* nor value columns are dropped.
 * For temperatures, s and SE get the kind "temperature difference".
-* **All flags are cleared after averaging.**
+* **Flags go to the means** (since 0.3.0; before, all flags were cleared). For each group, every flag of a used
+  (not excluded) row on a kept column, or without a column, becomes one flag of the same code on the mean row, with
+  the rule "Mittelwert enthält markierte Werte (<first rule>)" and the reason "aus Zeile(n) …" (1-based source rows).
+  So a mean that contains a value at the detection limit, an unexcluded outlier, an interpolated or converted value
+  keeps that information. Flags of cells without a value (`missing`, `parse_error`, or NaN) are not carried: those
+  cells only reduce n. Flags of columns that are dropped are counted in the step text. Excluded rows were already
+  left out of the means and are named in the step text.
 
 ### Smooth (Savitzky–Golay)
 
@@ -298,8 +355,10 @@ Flags follow their rows through filtering, sorting and trimming.
 * Only used rows of the other dataset are taken. Its x is converted to the unit of x here. For duplicate x values,
   the first one is kept.
 * Linear interpolation (`numpy.interp`). Outside the range of the other x the value is NaN (no extrapolation).
-* Rows whose x is not exactly an x of the other dataset get an `interpolated` flag (at most 20 000).
-* A note "linear interpoliert aus … v…" names the source dataset and its version.
+* Rows whose x is not exactly an x of the other dataset get an `interpolated` flag (at most 20 000 per column; when
+  more rows are interpolated, the step text says "GEKÜRZT: …" with the count).
+* A note "linear interpoliert aus … v…" names the source dataset and its version. The dataset provenance lists the
+  joined dataset and its version under `inputs`; they are part of the version signature and of the provenance chain.
 
 **Validation**
 
@@ -310,6 +369,7 @@ Flags follow their rows through filtering, sorting and trimming.
 | `…/test_clean.py::CleanTest::test_duplicates_flagged_not_removed` | Duplicates flagged, row count unchanged. |
 | `…/test_clean.py::CleanTest::test_replicates` | Means k = [1.1, 2.1, 3.0]; s = √0.02; SE = 0.1; n = [2, 2, 1]. |
 | `…/test_clean.py::CleanTest::test_replicates_default_leaves_uncertainty_out` | Uncertainty columns are not averaged. |
+| `…/test_clean.py::ScientificFixesTest::test_replicate_means_keep_flags` | An outlier in row 2 and a `below_lod` in row 6 go to the means of their groups ("aus Zeile(n) 2", "aus Zeile(n) 6"); the missing cell and the excluded row give no flag; SE has `u_type` `se`. |
 | `…/test_clean.py::CleanTest::test_join_interpolates_and_labels` | Result [300, 305, …, 330, nan]; rows 1, 3, 5 flagged `interpolated`. |
 | `…/test_clean.py::CleanTest::test_smooth_savgol` | Equal to scipy `savgol_filter(mode="interp")` within 1e-10 when scipy is installed; error against the true curve < 0.05. |
 | `…/test_clean.py::CleanTest::test_replay_gives_same_dataset` | Steps replay to the same dataset. |
@@ -327,17 +387,20 @@ Common rules for all tests:
 
 | Test | Statistic | Default | Minimum n | Iterated |
 |---|---|---|---|---|
-| Grubbs | G = max\|xᵢ − x̄\| / s | α = 0.05, two-sided | 3 | yes |
-| Dixon Q | r₁₀ = gap / range | α = 0.05 (0.10, 0.05, 0.01) | 3 (maximum 10) | no |
+| Grubbs | G = max\|xᵢ − x̄\| / s | α = 0.05 per step, two-sided | 3 | sequential (default) or single pass |
+| Dixon Q | r₁₀ = gap / range | two-sided α = 0.05 (0.10, 0.05, 0.01); one-sided α 0.05, 0.025, 0.005 | 3 (maximum 10) | no |
 | Tukey / IQR | fences Q1 − k·IQR, Q3 + k·IQR | k = 1.5 | 4 | no |
-| Hampel / MAD | \|xᵢ − median\| > k · 1.4826 · MAD | k = 3 | 3 | no |
-| Fit residual | externally studentized residual | degree 1, k = 3 | degree + 3 | yes, at most max(1, ⌊n/4⌋) points |
+| Hampel / MAD | \|xᵢ − median\| > k · 1.4826 · MAD | k = 3, whole column | 3 | no |
+| Fit residual | externally studentised residual | degree 1, k = 3 (rule of thumb) | degree + 3 | yes, at most max(1, ⌊n/4⌋) points |
+
+k must be greater than 0 (refused otherwise).
 
 ### Statistical helpers
 
 * Student t quantiles: the regularized incomplete beta function by continued fraction, inverted by bisection on
   [−1000, 1000] until the interval is narrower than 10⁻¹².
-* Quartiles: `numpy.percentile` with linear interpolation.
+* Quartiles: `numpy.percentile` with its default linear interpolation, which is sample quantile **definition 7** of
+  Hyndman and Fan (1996).
 
 ### Grubbs
 
@@ -348,13 +411,22 @@ Common rules for all tests:
   G_crit = ((n − 1) / √n) · √( t² / (n − 2 + t²) )
 
   with t = t₁₋α/(2n), n−2 for the two-sided test and t = t₁₋α/n, n−2 for a one-sided test.
-* If G > G_crit, the point is flagged, removed from the sample, and the test is repeated on the rest. This continues
-  until no point exceeds G_crit, n < 3 or s = 0. There is no cap on the number of rounds. α is the same in every
-  round.
+* **Sequential procedure (default, "sequenziell (α je Schritt)")**: if G > G_crit, the point is flagged, set aside,
+  and the test is repeated on the rest with the **same α in every step**, until a step is not significant, n < 3 or
+  s = 0. There is no cap on the number of steps. The flag reason names the step ("Schritt 2"), and the rule reads
+  "α = 0,05 je Schritt, …, sequenziell". This is repeated application of a single-outlier test, as discussed in
+  ASTM E178 (edition not checked; not cited in the bundle). Its error rate is **not controlled at α** as a whole:
+  under the null hypothesis the first step has level α, but once a real outlier has been set aside each further step
+  can flag a good value with probability about α, and masking and swamping are not controlled. When more than one
+  value is flagged, the step text adds "sequenziell mit α je Schritt – die Fehlerrate des ganzen Verfahrens ist
+  nicht α". For a procedure with a stated overall level, use the generalized ESD test (not implemented).
+* **Single pass** (untick "sequenziell"; `iterate: false`): only the most extreme value is tested once at α.
 * The flag stores α.
 * References as cited in the code: `grubbs1969` Grubbs, Frank E. 1969. "Procedures for Detecting Outlying
   Observations in Samples". Technometrics 11, 1-21. doi:10.1080/00401706.1969.10490657; and `nist-esh` NIST/SEMATECH.
-  "e-Handbook of Statistical Methods". https://www.itl.nist.gov/div898/handbook/ (accessed 2026-11-17).
+  "e-Handbook of Statistical Methods". https://www.itl.nist.gov/div898/handbook/, doi:10.18434/M32189 (accessed
+  2026-11-17). The e-Handbook is cited for the Grubbs test (it has a section on it, with the example used in the
+  tests); since 0.3.0 it is no longer cited for the fit residual.
 
 ### Dixon Q
 
@@ -362,9 +434,8 @@ Common rules for all tests:
 
   Q_low = (x₍₂₎ − x₍₁₎) / (x₍ₙ₎ − x₍₁₎), Q_high = (x₍ₙ₎ − x₍ₙ₋₁₎) / (x₍ₙ₎ − x₍₁₎)
 
-  Both ends are compared with the same critical value.
 * n outside 3–10 is an error. A range of 0 gives no flags.
-* Critical values (table `DIXON_Q` in `clean.py`, comment "Rorabacher (1991), Table"):
+* Critical values (table `DIXON_Q` in `clean.py`, attributed to Rorabacher 1991):
 
   | n | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
   |---|---|---|---|---|---|---|---|---|
@@ -372,9 +443,28 @@ Common rules for all tests:
   | α = 0.05 | 0.970 | 0.829 | 0.710 | 0.625 | 0.568 | 0.526 | 0.493 | 0.466 |
   | α = 0.01 | 0.994 | 0.926 | 0.821 | 0.740 | 0.680 | 0.634 | 0.598 | 0.568 |
 
+  **Not checked against the publication** (it was not available when this was written). The values were checked
+  numerically instead: for a normal parent,
+  P(Q_high > c) = n(n − 1) ∫∫_{a<b} φ(a) φ(b) [Φ(b − c(b − a)) − Φ(a)]^(n−2) da db, and the two-sided level is
+  α = P(max(Q_low, Q_high) > c) ≈ 2 P(Q_high > c) (both ends exceed c only when c < 0.5, with probability below
+  10⁻⁴ here). Solving for c (grid quadrature and, for n = 3–7, adaptive integration; a Monte Carlo simulation
+  agrees) reproduces every table value within 0.003 **as two-sided levels**, except **n = 4, α = 0.01**: the table
+  has 0.926, the computation gives 0.921. The table value is kept (not replaced by a computed one); at n = 4 it is
+  slightly conservative. Computed values, for reference:
+
+  | n | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+  |---|---|---|---|---|---|---|---|---|
+  | α = 0.10 | 0.9413 | 0.7655 | 0.6424 | 0.5624 | 0.5074 | 0.4671 | 0.4362 | 0.4118 |
+  | α = 0.05 | 0.9702 | 0.8297 | 0.7102 | 0.6275 | 0.5689 | 0.5256 | 0.4922 | 0.4656 |
+  | α = 0.01 | 0.9940 | 0.9207 | 0.8232 | 0.7427 | 0.6811 | 0.6336 | 0.5963 | 0.5661 |
+
+* **Sides.** α in the table is two-sided. *Two-sided* (default): the end with the larger ratio is tested, and only
+  that end can be flagged (before 0.3.0 both ends were compared with the two-sided value and both could be flagged).
+  *Only maximum* / *only minimum*: that end is tested one-sided at α, using the two-sided column 2α, so the one-sided
+  levels are 0.05, 0.025 and 0.005.
+* **Untabulated α is refused** with "Dixon: α = … ist für den … Test nicht tabelliert … – kein Ersatzwert" (before
+  0.3.0 the 0.05 column was used silently). The page offers only the tabulated levels for the chosen side.
 * Not iterated.
-* If α is not one of 0.10, 0.05, 0.01, the table for 0.05 is used, but the rule text and the flag record the α that
-  was entered (see Known limitations).
 * References as cited in the code: `dean1951` Dean, R. B.; Dixon, W. J. 1951. "Simplified Statistics for Small
   Numbers of Observations". Analytical Chemistry 23, 636-638. doi:10.1021/ac60052a025; and `rorabacher1991`
   Rorabacher, David B. 1991. "Statistical Treatment for Rejection of Deviant Values: Critical Values of Dixon's Q
@@ -383,18 +473,30 @@ Common rules for all tests:
 
 ### Tukey / IQR
 
-* IQR = Q3 − Q1. Values outside [Q1 − k·IQR, Q3 + k·IQR] are flagged.
-* Quartiles by linear interpolation (`numpy.percentile` default), not Tukey's hinges.
-* Reference as cited in the code: `tukey1977` Tukey, John W. 1977. Exploratory Data Analysis. Addison-Wesley.
+* IQR = Q3 − Q1. Values outside [Q1 − k·IQR, Q3 + k·IQR] (Tukey's fences) are flagged.
+* Quartiles: `numpy.percentile` with linear interpolation, i.e. Hyndman–Fan definition 7 (position (n − 1)p + 1).
+  These are **not** Tukey's hinges, so the fences can differ slightly from a textbook box plot: for 1, 2, …, 8 the
+  quartiles are 2.75 and 6.25, the hinges 2.5 and 6.5. The rule text says "Quartile nach Hyndman–Fan Typ 7".
+* References as cited in the code: `tukey1977` Tukey, John W. 1977. Exploratory Data Analysis. Addison-Wesley (for
+  the fences); `hyndman1996` Hyndman, Rob J.; Fan, Yanan 1996. "Sample Quantiles in Statistical Packages". The
+  American Statistician 50, 361-365 (for the quartile definition; no DOI given because it was not verified).
 
 ### Hampel / MAD
 
 * MAD = median(|xᵢ − median(x)|). A value is flagged when |xᵢ − median| > k · 1.4826 · MAD.
 * If MAD = 0, nothing is flagged.
-* With a window w > 0, the median and MAD are taken over the w finite values before and after each point (by
-  position, not by x distance), truncated at the ends.
+* 1.4826 ≈ 1/Φ⁻¹(0.75) scales the MAD to estimate σ of a normal distribution.
+* Window w = 0 (default): one median and MAD for the whole column (or group).
+* Window w > 0 **by position** (no x column chosen): the median and MAD are taken over the w finite values before
+  and after each point, truncated at the ends. The spacing of x is ignored; the rule text says "nach Position,
+  x-Abstand nicht berücksichtigt".
+* Window w > 0 **in x units** ("Fenster in" an x column; `x` in the step): the window of point i holds all finite
+  values with |xⱼ − xᵢ| ≤ w, so unequal spacing and gaps are respected. Values without a finite x are not tested
+  (counted in the step text).
 * Reference as cited in the code: `hampel1974` Hampel, Frank R. 1974. "The Influence Curve and Its Role in Robust
   Estimation". Journal of the American Statistical Association 69, 383-393. doi:10.1080/01621459.1974.10482962.
+  Whether this paper is the best source for the MAD-based identifier as implemented (moving window, factor 1.4826)
+  was **not checked** against its content.
 
 ### Fit residual
 
@@ -410,9 +512,13 @@ Common rules for all tests:
 * The point with the largest |tᵢ| is flagged if |tᵢ| > k (default 3). The fit is repeated without it. At most
   max(1, ⌊n/4⌋) points are flagged. The loop needs n − p − 1 ≥ 1.
 * n < d + 3 is an error.
-* k is a fixed threshold. It is not converted from a significance level and has no correction for testing n points.
+* tᵢ is the externally studentised (deleted) residual; k is a threshold on |tᵢ|. The default 3 is a **rule of
+  thumb**, not a significance level: under normal errors each |tᵢ| follows a t distribution with n − p − 1 degrees of
+  freedom, but no correction is made for testing n points, so the chance of at least one false flag grows with n.
+  The rule text says "extern studentisiertes Residuum |t| > k = 3, Faustregel, kein Signifikanzniveau".
 * If the polynomial cannot follow the curve, the ends of the curve are flagged. Choose the degree to suit the data.
-* Reference as cited in the code: `nist-esh` (see Grubbs).
+* No source is cited (before 0.3.0 the NIST e-Handbook was cited here; whether it covers deleted residuals with this
+  threshold was not verified, so the citation was dropped).
 
 **Validation**
 
@@ -424,7 +530,13 @@ Common rules for all tests:
 | `…/test_clean.py::OutlierTest::test_iqr_hampel_residual` | IQR and Hampel flag index 5; fit residual with k = 2.5 flags index 4; a masked outlier is found at index 10 with degree 3. |
 | `…/test_clean.py::OutlierTest::test_by_group` | Dixon per group flags row 4. |
 | `…/test_clean.py::OutlierTest::test_flags_never_remove_rows_and_exclusion_is_separate` | Flagging keeps the row count; only exclusion changes the used rows. |
-| `tools/e2e_datasets.py` | Fit residual (degree 3, k = 3) on a test sheet flags row 11. |
+| `tools/e2e_datasets.py` | Fit residual (degree 3, k = 3) on a test sheet flags row 11; the methods text calls k a rule of thumb and cites no source for it. |
+| `…/test_clean.py::ScientificFixesTest::test_dixon_untabulated_alpha_refused_and_sides` | α = 0.02, 0.2, 0.001 (two-sided) and 0.01 (one-sided) refused; two-sided flags only the low end (Q = 0.455) of the n = 10 example; one-sided *min* at 0.05 uses 0.412 and flags it, at 0.025 (0.466) not; with Q_low = 0.45 and Q_high = 0.46 (both > 0.412) only the high end is flagged. |
+| `…/test_clean.py::ScientificFixesTest::test_dixon_table_matches_null_distribution` | The integral above (grid quadrature, scipy `ndtr`; skipped without scipy) puts the true two-sided critical value within ±0.003 of each table value, and between 0.918 and 0.924 for n = 4, α = 0.01. |
+| `…/test_clean.py::ScientificFixesTest::test_grubbs_sequential_and_single_pass` | NIST example flags index 7 in both modes; rule texts "je Schritt … sequenziell" and "ein Durchgang". |
+| `…/test_clean.py::ScientificFixesTest::test_iqr_quartiles_are_hyndman_fan_type_7` | 1 … 8, 30: Q1 = 3, Q3 = 7, fences −3 and 13, only 30 flagged; 1 … 8 with k = 1: fences 2.75 − 3.5 and 6.25 + 3.5. |
+| `…/test_clean.py::ScientificFixesTest::test_hampel_window_in_x_units` | x = 0, 1, 2, 3, 10 … 14 and y with 9.0 at x = 14: window ±2 in x flags only the last point (median 5.0, MAD 1.4826 · 0.1, 3 values); ±1.5 flags nothing; the positional rule text says the x spacing is ignored. |
+| `…/test_clean.py::ScientificFixesTest::test_residual_rule_text` | Rule text names the studentised residual and the rule of thumb; k ≤ 0 refused. |
 
 ## 9. Exclusion semantics
 
@@ -440,7 +552,8 @@ Code: `daten/clean.py` (`exclude`), `sdk/python/labdataset.py` (`used_mask`).
 * A row with any `excluded` flag is not *used* (`used_mask` is False). Excluded rows stay in the dataset.
 * The Calculator, the Elemental Calculator, TGA and FTIR leave out excluded rows. The Calculator and the Elemental
   Calculator also leave out rows with a gap in any chosen column.
-* The CSV export contains all rows and has no marker for excluded rows (see [Exports](#12-exports)).
+* The CSV export contains all rows and, by default, the columns "verwendet" (1/0) and "Markierungen" (see
+  [Exports](#12-exports)).
 
 **Validation**
 
@@ -461,10 +574,13 @@ Code: `daten/clean.py` (`checks`). Shown as chips for every version.
 | x monotonic | the x column (role x, otherwise the first number column) |
 | Gaps | a step \|Δx\| > 3 × median \|Δx\| |
 | n per group | for group, label and text condition columns with 2–60 distinct values; a warning if n < 3 |
-| Impossible values | negative SI values for kinds that cannot be negative: mass, length, area, volume, amount, concentration, mass concentration, density, molar mass, frequency, temperature, rate constant, activity, resistance |
+| Impossible values | negative SI values for kinds that cannot be negative: mass, area, volume, amount, concentration, mass concentration, density, molar mass, frequency, (absolute) temperature, rate constant, activity, resistance. **Length is not checked** (positions, displacements and ΔL are signed). Columns whose name, symbol or key marks a difference or change are skipped for every kind: a leading Δ, δ, ∆ or "d" followed by a capital letter (dL, dT; case-sensitive, so "Dichte" is still checked), "delta", or a word such as Änderung, Differenz, Verschiebung, Verlust, Zunahme, Abnahme, change, difference, displacement, shift, loss, gain, drift. Uncertainty columns are skipped. |
+| Type of uncertainty | for every uncertainty column: its `u_type` text; a warning while it is "nicht angegeben" |
 | Units | number columns without a unit |
 
-Test: `…/test_clean.py::OutlierTest::test_checks`.
+Tests: `…/test_clean.py::OutlierTest::test_checks`, `…/test_clean.py::ScientificFixesTest::test_signed_quantities_not_impossible`
+(ΔL, a position and "Massenänderung" with negative values give no chip; a negative mass and a negative density do),
+`…/test_clean.py::ScientificFixesTest::test_uncertainty_type_chip`.
 
 ## 11. Templates and batches
 
@@ -501,18 +617,22 @@ Code: `daten/export.py`.
 
 | Format | Content |
 |---|---|
-| CSV | Header "name [unit]", comma separator, full float precision (`repr`), empty for NaN. All rows, without a flag or exclusion column. |
-| XLSX | Sheet "Daten": names row, units row, values. Sheet "Protokoll": title, rows, columns, SHA-256 of the data, source files with SHA-256, sheet and ranges, reading recipe, cleaning steps with row counts, conditions, columns, flags (at most 100 000). |
+| CSV | Header "name [unit]", comma separator, full float precision (`repr`), empty for NaN. All rows. By default two columns follow the data: **"verwendet"** (1 = used, 0 = excluded by a recorded decision) and **"Markierungen"** (every flag of the row: kind, column, "ausgeschlossen: reason" or the reason). Request `flags: false` for the data columns only. Re-import drops the two columns. |
+| XLSX | Sheet "Daten": names row, units row, values. Sheet "Protokoll": title, rows, columns, SHA-256 of the data, source files with SHA-256, sheet and ranges, reading recipe, cleaning steps with row counts, conditions, truncations ("GEKÜRZT"), columns with the type of uncertainty, flags (at most 100 000; a line says when more exist – all are in JSON). |
 | JSON | `{schema, header, data}`. Lossless. On re-import the data hash is checked. |
-| Parquet | Columns "name [unit]" as float64 or string. The full dataset header is in the schema metadata key `suite.dataset`. |
+| Parquet | Optional (pyarrow, see [Readers](#1-readers)). Columns "name [unit]" as float64 or string. The full dataset header is in the schema metadata key `suite.dataset`. |
 
-Round trips are compared with a relative tolerance of 10⁻¹².
+An unknown format is refused with HTTP 400. Round trips are compared with a relative tolerance of 10⁻¹².
 
 **Validation**
 
 | Test | Expected |
 |---|---|
-| `…/test_share.py::ExportTest::test_round_trips` | JSON and Parquet read back to the same dataset. |
+| `…/test_share.py::ExportTest::test_round_trips` | CSV, XLSX and JSON (and Parquet when pyarrow is installed) read back to the same dataset. |
+| `…/test_share.py::ExportTest::test_csv_keeps_cleaning_state` | The excluded row ends with `0,Ausreisser in c (ausgeschlossen: Luftblase)`, a used row with `1,`; `flags=False` has no such columns; re-import equals the dataset. |
+| `…/test_share.py::ExportTest::test_parquet_round_trip` | Parquet round trip (skipped without pyarrow). |
+| `…/test_share.py::ExportTest::test_parquet_without_pyarrow` | With pyarrow unavailable, Parquet export raises the German message. |
+| `…/test_share.py::ShareServerTest::test_template_batch_export_bundle` | Through the server: exports give HTTP 200; Parquet without pyarrow gives HTTP 400 with the German message (no `ModuleNotFoundError`); an unknown format gives 400; `flags: false` works. |
 | `…/test_share.py::ExportTest::test_xlsx_protocol_sheet` | "Protokoll" sheet content. |
 | `tools/e2e_datasets.py` | Exports round-trip in the full chain. |
 
@@ -521,45 +641,93 @@ Round trips are compared with a relative tolerance of 10⁻¹².
 Code: `daten/datasets.py`, `sdk/python/labshare.py`, `sdk/python/labdataset.py`. Details of storage and integrity are
 in [provenance.md](provenance.md).
 
-* Saving publishes a new **version** only if the signature changed: data hash, title, or column key, name, unit,
-  role or kind; or the dataset meta. **Flags are not part of the signature** (see Known limitations).
+* Saving publishes a new **version** only if the signature changed (`datasets._sig`): data hash, **flags hash**
+  (flags and exclusions, see [provenance.md](provenance.md)), title, column key, name, unit, role, kind, symbol,
+  uncertainty link, note and uncertainty type; conditions; for a derived dataset the parent and parent version and
+  the joined datasets with their versions; or the dataset meta. Since 0.3.0 a change of flags or exclusions alone
+  gives a new version, and a live child whose result differs only in flags is published again.
+* Version numbers are never reused, also after a version was deleted (tombstones, see provenance.md).
 * Autosave runs 4 s after the last change, and only if something changed.
 * A dataset made with **Convert and clean** is a *derived* dataset. It stores its parent, the parent version, the
   mode (follow or pinned) and the operations (at most 40).
 * **Follow** (live): when the parent gets a new version, the child is computed again. Chains up to 6 levels are
   followed. If a step fails, the child keeps its last version and stores the error.
 * **Pinned**: the child stays at its parent version until the user brings it to the new one.
-* The provenance of a derived dataset records each step with rows, flags and excluded rows before and after, and the
-  provenance of the parent.
+* The provenance of a derived dataset records each step with rows, flags and excluded rows before and after, the
+  provenance of the parent, and the module version of the process that computed it. Its provenance chain shows the
+  derivation and then the parent's full chain down to the raw file (see provenance.md).
+
+### Report bundle and Refresh
+
+* "In den Bericht" offers two choices: **this version** (`mode: "pin"`, default) and **newest version**
+  (`mode: "live"`). The mode is stored in the bundle request.
+* Refresh of a *pinned* bundle rebuilds the same version (from the dataset kept in the bundle, else from the
+  project). Bundles made before 0.3.0 have no mode and are treated as pinned.
+* Refresh of a *live* bundle loads the newest version of the dataset from the active project. If it is newer, the
+  summary and the methods text say "Aktualisiert: Datensatz … von Version a auf die neueste Version b". If the
+  newest version cannot be read, the kept version is used and that is said instead.
+* The bundle carries `module_version` (this process) and `source.kind = "dataset"`: the file kept under `source/`
+  is the dataset version (`datensatz.json`), so the report's `source_sha256` is the hash of that version, not of the
+  raw file (that hash is in the dataset provenance).
+* The methods text also states the type of uncertainty of each uncertainty column, every truncation ("GEKÜRZT")
+  and the daylight-saving warnings of the dataset.
 
 **Validation**
 
 | Test | Expected |
 |---|---|
+| `…/test_datasets.py::DatasetServerTest::test_flag_only_change_is_a_new_version_and_live_child_follows` | Same values with a new exclusion → version 2 (`data_hash` equal); the live child gets version 2 with the exclusion; publishing again is unchanged; the recomputed child records module version 9.9.9 (the recomputing process), its first version 0.3.0. |
+| `…/test_share.py::BundleTest::test_bundle_pieces_and_pdflatex_safety` | `module_version`, `source.kind = "dataset"`, mode `pin`; NIST e-Handbook with doi 10.18434/M32189 in the bib for Grubbs; "Art der angegebenen Unsicherheit: c: nicht angegeben". |
+| `…/test_share.py::BundleTest::test_bundle_states_uncertainty_type_and_refresh_note` | "erweiterte Unsicherheit U (k = 2)" and the refresh note in the methods text; summary "folgt der neuesten Version". |
+| `…/test_share.py::ShareServerTest::test_template_batch_export_bundle` | After a new version of the share, a pinned bundle refreshes to the old version, a live bundle to the new one with "von Version a auf die neueste Version b". |
 | `…/test_datasets.py::DatasetServerTest::test_publish_versions_open_and_live_child` | Saving unchanged data keeps the version; a live child follows to v2; a pinned child moves to v2 on request; a broken formula keeps the latest version 1 and records an error. |
 | `…/test_datasets.py::DatasetServerTest::test_connected_table_follows_in_place` | A live connected table is replaced in place. |
 
 ---
 
+## Changes in 0.3.0
+
+Results that can differ from 0.2.0 when the same data are processed again:
+
+| Where | 0.2.0 | 0.3.0 |
+|---|---|---|
+| Dixon, α not 0.10/0.05/0.01 | 0.05 column used silently | refused with a message |
+| Dixon, two-sided | both ends compared with the two-sided value; both could be flagged | only the end with the larger ratio |
+| Dixon, sides | – | *only maximum* / *only minimum* at one-sided α 0.05, 0.025, 0.005 |
+| Average replicates | all flags cleared | flags carried to the means ("aus Zeile(n) …") |
+| Impossible values | negative lengths and Δ-columns flagged as impossible | lengths and difference/change columns not checked |
+| Times with an offset (`+01:00`, `Z`) | offset ignored | converted to UTC |
+| Local times across a DST change | no notice | warning on the page, in the provenance and the methods text |
+| ODS: value after > 1 024 repeated empty cells | moved left to the wrong column | stays in its column |
+| Reading flags per column | raw text for the first 5 000 unreadable cells, flags for 20 000 cells, the rest dropped without a note | up to 200 000 per column and kind; any cut is reported and stored |
+| Flags only changed | no new version; live children not republished | new version; live children republished |
+| CSV export | no cleaning state | columns "verwendet" and "Markierungen" (default) |
+| Fit residual citation | NIST e-Handbook | no source (rule of thumb stated) |
+| IQR citation | Tukey 1977 | Tukey 1977 and Hyndman & Fan 1996 (quartile definition) |
+| NIST citation | no DOI | doi:10.18434/M32189 |
+| Bundle Refresh | always the same version | pinned (default) or newest version, with a note |
+
 ## Known limitations
 
-* **Dixon α**: an α other than 0.10, 0.05 or 0.01 silently uses the 0.05 table, while the rule text and the flag
-  record the α entered (`clean.py`, `op_outliers`).
-* **Dixon r₁₀ only**: the same ratio is used for all n from 3 to 10, and both ends are tested against one critical
-  value. The code does not state whether α is one- or two-sided.
-* **Iterated Grubbs** uses the same α in every round, with no correction such as the generalized ESD procedure. The
-  overall false-positive rate is therefore not α.
-* **Fit residual** uses a fixed threshold k, not a significance level, and does not correct for testing n points.
-* **IQR** quartiles use linear interpolation, which can differ slightly from Tukey's hinges.
-* **Hampel** windows count neighbours by position and ignore x spacing.
-* **"Impossible values"** treats every length as non-negative, so negative displacements or positions are warned.
-* **Averaging replicates clears all flags** of the averaged rows.
-* **Flags are not in the version signature.** A change that only alters flags or exclusions does not create a new
-  version, and a live child whose result differs only in flags is not republished.
-* **CSV export** has no exclusion marker. Use XLSX, JSON or Parquet when exclusions matter.
-* **Times**: time-zone suffixes are ignored; there is no daylight-saving handling.
-* **`±` values** are stored as given; the type of uncertainty (standard, expanded, coverage factor) is not recorded.
-* **Silent caps**: raw text is kept for at most 5 000 unreadable cells per column and flags for at most 20 000 cells
-  per column when reading; ODS repeats are capped at 100 000 rows and 1 024 columns.
+* **Dixon table not checked against the publication.** The values agree with an independent computation of the
+  null distribution within 0.003, except n = 4, α = 0.01 (0.926 vs 0.921); the table value is kept.
+* **Dixon r₁₀ only**: the same ratio is used for all n from 3 to 10 (Dixon's r₁₁, r₂₁, r₂₂ for larger n are not
+  implemented); one-sided tests are limited to α = 0.05, 0.025, 0.005.
+* **Sequential Grubbs** uses the same α in every step. Its overall error rate is not α (see section 8); the
+  generalized ESD procedure is not implemented. Use the single pass when one suspect value is tested.
+* **Fit residual** uses a rule-of-thumb threshold k, not a significance level, and does not correct for testing n
+  points. No source is cited.
+* **IQR** quartiles are Hyndman–Fan type 7, not Tukey's hinges.
+* **Hampel** by position ignores the x spacing; choose an x column for a window in x units.
+* **Impossible values** are not checked for lengths at all, so a negative thickness or diameter is not warned. The
+  difference-name rule is a heuristic on names and symbols.
+* **Times without a zone** are taken as local wall-clock time. Daylight-saving changes are only *detected* (EU and
+  USA/Canada rules since 1996/2007, three heuristics), never corrected. Other regions are not checked.
+* **`±` type** is only recorded, not used: no conversion between u, U, s, SE or confidence intervals.
+* **Caps** (all reported): 200 000 reading flags per column and kind; 20 000 `interpolated` flags per joined
+  column; ODS filled-row repeats read 100 000 times; 100 000 flags listed in the XLSX "Protokoll"; 50 000 flags per
+  cleaning step (refused).
+* **Parquet** needs the optional package pyarrow.
 * **`.xls`** reading has no test of its own.
+* A column whose every cell is "value ± u" is guessed as a text label; mark it as y to read it.
 * Step texts, notes and the methods text are in German, also in an English report.

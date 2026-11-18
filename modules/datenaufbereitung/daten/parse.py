@@ -137,7 +137,7 @@ def marker(text: str, col_unit: str = "") -> dict | None:
 
 
 # ----------------------------------------------------------------------------- dates and times
-_ISO = re.compile(r"^\s*(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?\s*(?:Z|[+-]\d{2}:?\d{2})?\s*$")
+_ISO = re.compile(r"^\s*(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?\s*(Z|[+-]\d{2}:?\d{2})?\s*$")
 _DE = re.compile(r"^\s*(\d{1,2})\.(\d{1,2})\.(\d{2}|\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?\s*$")
 _TIME = re.compile(r"^\s*(\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?\s*$")
 _EPOCH = _dt.datetime(1970, 1, 1)
@@ -147,51 +147,138 @@ def _frac(s) -> float:
     return float("0." + s) if s else 0.0
 
 
-def time_of(text: str):
-    """Text → (seconds since 1970, time_only) or None."""
+def _offset_s(tz: str) -> int:
+    """'Z', '+01:00', '-0530' → seconds east of UTC."""
+    if tz.upper() == "Z":
+        return 0
+    sign = -1 if tz[0] == "-" else 1
+    hh, mm = int(tz[1:3]), int(tz[-2:])
+    if hh > 23 or mm > 59:
+        raise ValueError("Zeitzone ungültig")
+    return sign * (hh * 3600 + mm * 60)
+
+
+def time_info(text: str):
+    """Text → (seconds since 1970, time_only, has_offset) or None. A date-time with a time-zone suffix (Z, +01:00)
+    is converted to UTC; without one it is read as local wall-clock time as written (no daylight-saving correction)."""
     t = str(text or "")
     try:
         m = _ISO.match(t)
         if m:
-            y, mo, d, h, mi, s, f = m.groups()
+            y, mo, d, h, mi, s, f, tz = m.groups()
             dt = _dt.datetime(int(y), int(mo), int(d), int(h or 0), int(mi or 0), int(s or 0))
-            return (dt - _EPOCH).total_seconds() + _frac(f), False
+            sec = (dt - _EPOCH).total_seconds() + _frac(f)
+            if tz:
+                return sec - _offset_s(tz), False, True
+            return sec, False, False
         m = _DE.match(t)
         if m:
             d, mo, y, h, mi, s, f = m.groups()
             y = int(y) + (2000 if len(y) == 2 else 0)
             dt = _dt.datetime(y, int(mo), int(d), int(h or 0), int(mi or 0), int(s or 0))
-            return (dt - _EPOCH).total_seconds() + _frac(f), False
+            return (dt - _EPOCH).total_seconds() + _frac(f), False, False
         m = _TIME.match(t)
         if m:
             h, mi, s, f = m.groups()
             if int(h) > 47 or int(mi) > 59 or int(s or 0) > 59:
                 return None
-            return int(h) * 3600 + int(mi) * 60 + int(s or 0) + _frac(f), True
+            return int(h) * 3600 + int(mi) * 60 + int(s or 0) + _frac(f), True, False
     except ValueError:
         return None
     return None
 
 
-def time_column(texts) -> tuple[np.ndarray, bool] | None:
-    """A text column that holds dates/times (≥ 80 % of the filled cells) → (seconds, time_only), else None."""
-    vals, filled, ok, only = [], 0, 0, True
+def time_of(text: str):
+    """Text → (seconds since 1970 (UTC when the text has a time-zone offset), time_only) or None."""
+    r = time_info(text)
+    return None if r is None else (r[0], r[1])
+
+
+def time_column(texts) -> tuple[np.ndarray, bool, str] | None:
+    """A text column that holds dates/times (≥ 80 % of the filled cells) → (seconds, time_only, tz), else None.
+    tz: "utc" (every value had an offset, converted to UTC), "local" (none had one) or "mixed"."""
+    vals, filled, ok, only, aware, naive = [], 0, 0, True, 0, 0
     for x in texts:
         s = str(x or "").strip()
         if not s:
             vals.append(math.nan)
             continue
         filled += 1
-        r = time_of(s)
+        r = time_info(s)
         if r is None:
             vals.append(math.nan)
             continue
         ok += 1
         only &= r[1]
+        aware += r[2]
+        naive += not r[2]
         vals.append(r[0])
     if filled < 2 or ok < 0.8 * filled:
         return None
-    return np.array(vals, float), bool(only)
+    return np.array(vals, float), bool(only), "utc" if aware and not naive else "mixed" if aware else "local"
+
+
+def _last_sunday(y: int, mo: int) -> _dt.date:
+    d = _dt.date(y + (mo == 12), mo % 12 + 1, 1) - _dt.timedelta(days=1)
+    return d - _dt.timedelta(days=(d.weekday() - 6) % 7)
+
+
+def _nth_sunday(y: int, mo: int, n: int) -> _dt.date:
+    d = _dt.date(y, mo, 1)
+    return d + _dt.timedelta(days=(6 - d.weekday()) % 7 + 7 * (n - 1))
+
+
+def dst_dates(y: int) -> list[tuple[_dt.date, str]]:
+    """Daylight-saving changes in common use: EU (last Sunday of March / October, since 1996) and USA/Canada
+    (second Sunday of March / first Sunday of November, since 2007)."""
+    out = []
+    if y >= 1996:
+        out += [(_last_sunday(y, 3), "EU Beginn"), (_last_sunday(y, 10), "EU Ende")]
+    if y >= 2007:
+        out += [(_nth_sunday(y, 3, 2), "USA Beginn"), (_nth_sunday(y, 11, 1), "USA Ende")]
+    return out
+
+
+def dst_check(abs_s, rel_s, tz: str) -> list[str]:
+    """Warnings for date/time columns read as local time without a zone (`tz` = "local" or "mixed"):
+    a step back in time, a step that differs from the typical step by about one hour, or a range that covers a
+    daylight-saving change (EU or USA rule, 00:00–05:00 local on that Sunday). Elapsed times across such a change
+    can be off by one hour. `abs_s`: seconds since 1970 (None for times of day only), `rel_s`: elapsed seconds."""
+    out = []
+    if tz == "mixed":
+        out.append("Zeitangaben teils mit, teils ohne Zeitzone – die Werte mit Zeitzone sind in UTC, die anderen "
+                   "Ortszeit; Zeitspannen zwischen beiden sind falsch")
+    if tz == "utc":
+        return out
+    r = np.asarray(rel_s, float)
+    r = r[np.isfinite(r)]
+    if r.size > 2:
+        d = np.diff(r)
+        back = int((d < 0).sum())
+        med = float(np.median(np.abs(d))) if d.size else 0.0
+        tol = max(60.0, 0.1 * med)
+        hour = int(((np.abs(d - med - 3600) < tol) | (np.abs(d - med + 3600) < tol)).sum()) if 0 < med < 3000 else 0
+        if back:
+            out.append(f"Zeit läuft {back}-mal rückwärts – Zeitumstellung (Sommerzeit-Ende) oder falsche Reihenfolge?")
+        if hour:
+            out.append(f"{hour} Schritt(e) weichen um etwa 1 h vom üblichen Abstand ab – vermutlich eine "
+                       f"Sommerzeit-Umstellung; die Zeitspannen danach sind um 1 h verschoben")
+    if abs_s is not None:
+        a = np.asarray(abs_s, float)
+        a = a[np.isfinite(a)]
+        if a.size > 1:
+            t0, t1 = (_EPOCH + _dt.timedelta(seconds=float(a.min()))), (_EPOCH + _dt.timedelta(seconds=float(a.max())))
+            for y in range(t0.year, min(t1.year, t0.year + 50) + 1):
+                for day, what in dst_dates(y):
+                    w0 = _dt.datetime(day.year, day.month, day.day, 0, 0)
+                    if t0 <= w0 + _dt.timedelta(hours=5) and t1 >= w0:
+                        out.append(f"Zeitraum überspannt eine mögliche Sommerzeit-Umstellung ({what} {day:%d.%m.%Y}) – "
+                                   f"die Zeiten sind Ortszeit ohne Zeitzone, Zeitspannen darüber können um 1 h falsch sein")
+                        break
+                else:
+                    continue
+                break
+    return out
 
 
 def auto_unit(span_s: float) -> str:
@@ -205,6 +292,15 @@ def auto_unit(span_s: float) -> str:
 
 
 _FACT = {"s": 1.0, "min": 60.0, "h": 3600.0, "d": 86400.0, "ms": 1e-3}
+
+
+def unit_seconds(unit: str) -> float:
+    """Seconds per `unit` (a time unit readable by labcalc)."""
+    if unit in _FACT:
+        return _FACT[unit]
+    from labcalc import units as U
+    f, d, _ = U.parse_unit(unit)
+    return f
 
 
 def elapsed(seconds: np.ndarray, time_only: bool, unit: str | None = None):

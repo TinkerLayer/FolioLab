@@ -141,10 +141,10 @@ def write_datasheet(r: Result, folder: Path) -> Path:
         rows.append(["Bruch", "kein Bruch erkannt", "–", "–", "–"])
     pl = kv["plateau"]
     plF = pl["mittel"] * r.a0 if (stress and pl["mittel"] is not None) else pl["mittel"]
-    rows.append(["Plateau-Mittel (80–100 % der Zeit bis Fmax)", fmt(plF, 1), sig(plF),
+    rows.append(["Plateau-Mittel (80–100 % der Zeit von t₀ bis Fmax)", fmt(plF, 1), sig(plF),
                  f"{fmt(pl['t_von'], 1)}–{fmt(pl['t_bis'], 1)}", "–"])
     h = kv["hold"]
-    rows.append([f"Haltezeit über {fmt(h['schwelle'] * 100, 0, '%')} von {'Rm' if stress else 'Fmax'}",
+    rows.append([f"Haltezeit über {fmt(h['schwelle'] * 100, 0, '%')} von {'Rm' if stress else 'Fmax'} (zusammenhängend)",
                  f"> {fmt(h['grenze'] * (r.a0 if stress else 1), 1)}", f"> {fmt(h['grenze'], 0)}" if stress else "–",
                  fmt(h["dauer"], 1), "–"])
     if kv["ratio"]:

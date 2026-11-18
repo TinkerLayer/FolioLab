@@ -1,8 +1,9 @@
 """Bearbeitungsschritte für Spektren. Jeder Schritt ist ein dict {"op": ..., Parameter}; die Liste (das Protokoll)
 wird immer auf das Originalspektrum angewendet, in der Oberfläche, im Export und im Bericht gleich.
 
-Numerik ohne SciPy: Savitzky-Golay über Kleinste-Quadrate-Koeffizienten, ALS-Basislinie (Eilers & Boelens) mit
-eigenem Löser für das fünfbandige Gleichungssystem, Gummiband als untere konvexe Hülle.
+Numerik ohne SciPy: Savitzky-Golay über Kleinste-Quadrate-Koeffizienten, ALS-Basislinie (Eilers & Boelens 2005) mit
+eigenem Löser für das fünfbandige Gleichungssystem und λ bezogen auf 1 cm⁻¹ Punktabstand, Gummiband als untere
+konvexe Hülle, einfache ATR-Korrektur über die Eindringtiefe d_p ∝ λ (Harrick 1967).
 """
 from __future__ import annotations
 
@@ -41,11 +42,15 @@ OPS = {
                                                               ["poly", "Polynom, iterativ"],
                                                               ["points", "Stützpunkte von Hand"]]),
         P("lam", "ALS: Steifigkeit log₁₀ λ", default=6, min=2, max=10, step=0.5),
+        P("lam_ref", "ALS: λ bezogen auf", "select", "cm1",
+          options=[["cm1", "1 cm⁻¹ Punktabstand (unabhängig vom Raster)"], ["point", "je Datenpunkt (wie bis Version 1.4)"]]),
         P("p", "ALS: Asymmetrie p", default=0.01, min=0.0005, max=0.2, step=0.005),
         P("deg", "Polynom: Grad", default=3, min=1, max=8, step=1),
         P("interp", "Stützpunkte: Verbindung", "select", "spline", options=[["linear", "linear"], ["spline", "Spline"]]),
         P("pts", "Stützpunkte [cm⁻¹]", "points", [])]},
-    "co2": {"de": "CO₂-Banden überbrücken", "en": "Bridge CO₂ bands", "needs": "", "params": []},
+    "co2": {"de": "CO₂-Banden überbrücken", "en": "Bridge CO₂ bands", "needs": "", "params": [
+        P("ranges", "Bereiche", "select", "narrow",
+          options=[["narrow", "eng: 2390–2280 und 680–655 cm⁻¹"], ["wide", "weit: 2400–2250 und 720–630 cm⁻¹ (wie bis 1.4)"]])]},
     "atr": {"de": "ATR-Korrektur (Eindringtiefe)", "en": "ATR correction (penetration depth)", "needs": "A", "params": [
         P("ref", "Bezugswellenzahl [cm⁻¹]", default=1000, min=100, max=5000)]},
     "normalize": {"de": "Normieren", "en": "Normalise", "needs": "", "params": [
@@ -63,7 +68,15 @@ OPS = {
         P("points", "Fensterbreite [Punkte, ungerade]", default=11, min=5, max=101, step=2)]},
 }
 
-CO2_RANGES = [(2400.0, 2250.0), (720.0, 630.0)]
+# Atmosphärisches CO₂: asymmetrische Streckschwingung ν₃ (Bandenzentrum ≈ 2349 cm⁻¹, P- und R-Zweig) und
+# Deformationsschwingung ν₂ (Q-Zweig ≈ 667 cm⁻¹). "narrow" (Standard) umfasst nur diese Banden, damit Probenbanden
+# daneben (Isocyanat ≈ 2270, Polystyrol 698, Calcit 712 cm⁻¹) erhalten bleiben; "wide" sind die Bereiche bis 1.4.
+CO2_SETS = {"narrow": [(2390.0, 2280.0), (680.0, 655.0)], "wide": [(2400.0, 2250.0), (720.0, 630.0)]}
+CO2_RANGES = CO2_SETS["narrow"]
+# Erwartete Lage des grössten CO₂-Ausschlags je Bereich (ν₃: P/R-Zweige 2330–2370; ν₂: Q-Zweig 662–672 cm⁻¹)
+CO2_PEAK = {0: (2330.0, 2370.0), 1: (662.0, 672.0)}
+CO2_FLANK = 15.0          # cm⁻¹ ausserhalb des Bereichs, in denen eine Probenbande die Brücke stören würde
+ALS_REF_STEP = 1.0        # cm⁻¹: λ gilt für diesen Punktabstand und wird mit (1 cm⁻¹/Δν̃)⁴ umgerechnet
 
 
 @dataclass
@@ -71,6 +84,7 @@ class Proc:
     spectrum: Spectrum
     steps: list = field(default_factory=list)       # lesbare Beschreibung je Schritt
     baseline: np.ndarray | None = None              # zuletzt abgezogene Basislinie (auf spectrum.x)
+    warnings: list = field(default_factory=list)    # Hinweise der Schritte [{"kind", "de", "en"}]
 
 
 # ----------------------------------------------------------------------------- Numerik
@@ -156,8 +170,21 @@ def _penta_solve(a0, a1, a2, b):
     return xs
 
 
+def als_lambda(x: np.ndarray, log_lam: float, ref: str = "cm1") -> float:
+    """λ für als_baseline. ref "cm1": log_lam gilt für 1 cm⁻¹ Punktabstand; bei Abstand h wird λ = 10^log_lam · (1/h)⁴
+    verwendet. Begründung: Σ wᵢ(yᵢ − zᵢ)² + λ Σ(Δ²zᵢ)² ≈ (1/h)·[∫w(y − z)² dν̃ + λh⁴ ∫(z'')² dν̃]; die Glättung hängt
+    also von λh⁴ ab, und dieselbe Kurve wird bei jedem Raster gleich steif. ref "point": λ = 10^log_lam je Datenpunkt
+    (Verhalten bis Version 1.4; dieselbe Zahl glättet bei feinerem Raster weniger)."""
+    lam = 10 ** float(log_lam)
+    if ref == "point":
+        return lam
+    h = float(np.median(np.diff(x))) if len(x) > 1 else ALS_REF_STEP
+    return lam * (ALS_REF_STEP / h) ** 4 if h > 0 else lam
+
+
 def als_baseline(y: np.ndarray, lam: float = 1e6, p: float = 0.01, niter: int = 10) -> np.ndarray:
-    """Asymmetrische Glättung nach Eilers & Boelens (2005): Punkte über der Kurve zählen mit p, darunter mit 1-p."""
+    """Asymmetrische Glättung nach Eilers & Boelens (2005): minimiert Σ wᵢ(yᵢ − zᵢ)² + λ Σ(Δ²zᵢ)² mit wᵢ = p über der
+    Kurve (yᵢ > zᵢ) und 1 − p darunter; λ wirkt je Datenpunkt (Umrechnung auf cm⁻¹: als_lambda)."""
     n = len(y)
     if n < 5:
         return np.full(n, float(np.min(y)))
@@ -179,7 +206,8 @@ def als_baseline(y: np.ndarray, lam: float = 1e6, p: float = 0.01, niter: int = 
 
 
 def poly_baseline(x: np.ndarray, y: np.ndarray, deg: int = 3, niter: int = 100) -> np.ndarray:
-    """Iterativ angepasstes Polynom (Lieber & Mahadevan-Jansen 2003): Punkte über der Kurve werden abgeschnitten."""
+    """Iterativ angepasstes Polynom ("modified polyfit", Lieber & Mahadevan-Jansen 2003, Applied Spectroscopy 57,
+    1363–1367): Punkte über der Kurve werden auf die Kurve gesetzt und neu angepasst."""
     t = (x - x.mean()) / ((x.max() - x.min()) / 2 or 1)
     yy = y.copy()
     fit = yy
@@ -239,8 +267,10 @@ def baseline_of(x, y, st) -> np.ndarray:
     if m == "rubber":
         return rubberband(x, y)
     if m == "als":
-        lam = 10 ** float(st.get("lam", 6))
-        return als_baseline(y, lam, float(st.get("p", 0.01)))
+        ref = st.get("lam_ref", "cm1")
+        if ref not in ("cm1", "point"):
+            raise OpError(f"ALS: unbekannter Bezug für λ „{ref}“")
+        return als_baseline(y, als_lambda(x, float(st.get("lam", 6)), ref), float(st.get("p", 0.01)))
     if m == "poly":
         return poly_baseline(x, y, int(st.get("deg", 3)))
     if m == "points":
@@ -262,9 +292,13 @@ def describe_step(st: dict, lang: str = "de") -> str:
             (f", Grad {st.get('order', 2)}" if st.get("method", "sg") == "sg" else "")
     if op == "baseline":
         m = st.get("method", "rubber")
-        extra = {"rubber": "Gummiband", "als": f"ALS, log λ = {st.get('lam', 6)}, p = {st.get('p', 0.01)}",
+        lref = "je Punkt" if st.get("lam_ref", "cm1") == "point" else "für 1 cm⁻¹ Punktabstand"
+        extra = {"rubber": "Gummiband", "als": f"ALS, log λ = {st.get('lam', 6)} ({lref}), p = {st.get('p', 0.01)}",
                  "poly": f"Polynom Grad {st.get('deg', 3)}", "points": f"{len(st.get('pts') or [])} Stützpunkte"}.get(m, m)
         return f"{name}: {extra}"
+    if op == "co2":
+        rs = CO2_SETS.get(st.get("ranges", "narrow"), CO2_RANGES)
+        return f"{name}: " + ", ".join(f"{hi:.0f}–{lo:.0f}" for hi, lo in rs) + " cm⁻¹"
     if op == "atr":
         return f"{name}: Bezug {st.get('ref', 1000)} cm⁻¹"
     if op == "normalize":
@@ -290,7 +324,47 @@ def _num(st, key, dflt):
     return v
 
 
-def apply_step(sp: Spectrum, st: dict, i: int = 0) -> tuple[Spectrum, np.ndarray | None]:
+ABS_LIKE = ("A", "LR", "KM", "au")       # Banden zeigen nach oben, Werte proportional zur Absorption (oder unbekannt)
+_UNIT_DE = {"T": "Transmission", "R": "Reflexion", "D1": "Ableitungen", "D2": "Ableitungen"}
+
+
+def co2_overlap(x, y, yunit, lo, hi, k) -> dict | None:
+    """Prüft, ob im überbrückten CO₂-Bereich mehr als CO₂ liegt; gibt dann einen Hinweis zurück.
+
+    Kriterien (in Richtung der Banden, d. h. −y bei T/R): (1) In den 15 cm⁻¹ breiten Flanken direkt ausserhalb des
+    Bereichs weicht die Kurve um mehr als max(5σ, 20 % des Ausschlags im Bereich) von der Geraden durch die Flanken
+    ab – eine Probenbande reicht über die Grenze. (2) Der grösste Ausschlag im Bereich liegt nicht dort, wo CO₂
+    absorbiert (ν₃: 2330–2370, ν₂: 662–672 cm⁻¹). σ: Rauschen (quality.py) der ganzen Kurve."""
+    s = -np.asarray(y, float) if yunit in ("T", "R") else np.asarray(y, float)
+    fl = ((x >= lo - CO2_FLANK) & (x < lo)) | ((x > hi) & (x <= hi + CO2_FLANK))
+    inside = (x >= lo) & (x <= hi)
+    if fl.sum() < 4 or inside.sum() < 3:
+        return None
+    c = np.polyfit(x[fl], s[fl], 1)
+    d_in = s[inside] - np.polyval(c, x[inside])
+    d_fl = s[fl] - np.polyval(c, x[fl])
+    amp = float(np.max(np.abs(d_in)))
+    from . import quality as Q
+    sigma = float(Q.assess(x, s, "A")["sigma"]) if len(x) >= 30 else 0.0
+    reasons = []
+    if float(np.max(d_fl)) > max(5 * sigma, 0.2 * amp) and float(np.max(d_fl)) > 0:
+        reasons.append(("eine Bande reicht über die Bereichsgrenze", "a band extends across the range limit"))
+    pk_lo, pk_hi = CO2_PEAK.get(k, (lo, hi))
+    if amp > 5 * sigma:
+        xp = float(x[inside][np.argmax(np.abs(d_in))])
+        if not pk_lo <= xp <= pk_hi:
+            reasons.append((f"der grösste Ausschlag liegt bei {xp:.0f} cm⁻¹, nicht bei CO₂ ({pk_hi:.0f}–{pk_lo:.0f})",
+                            f"the largest feature is at {xp:.0f} cm⁻¹, not at CO₂ ({pk_hi:.0f}–{pk_lo:.0f})"))
+    if not reasons:
+        return None
+    return {"kind": "co2_overlap", "range": [hi, lo],
+            "de": f"CO₂-Überbrückung {hi:.0f}–{lo:.0f} cm⁻¹: womöglich wird eine Probenbande entfernt ("
+                  + "; ".join(r[0] for r in reasons) + "). Spektrum vor und nach dem Schritt vergleichen.",
+            "en": f"CO₂ bridge {hi:.0f}–{lo:.0f} cm⁻¹: a sample band may be removed ("
+                  + "; ".join(r[1] for r in reasons) + "). Compare the spectrum before and after this step."}
+
+
+def apply_step(sp: Spectrum, st: dict, i: int = 0, warn: list | None = None) -> tuple[Spectrum, np.ndarray | None]:
     op = st.get("op")
     if op not in OPS:
         raise OpError(f"Schritt {i + 1}: unbekannter Bearbeitungsschritt „{op}“")
@@ -334,8 +408,11 @@ def apply_step(sp: Spectrum, st: dict, i: int = 0) -> tuple[Spectrum, np.ndarray
             return sp.copy(y=y - base + 100.0), base               # Basislinie auf 100 %
         return sp.copy(y=y - base), base
     if op == "co2":
+        sel = st.get("ranges", "narrow")
+        if sel not in CO2_SETS:
+            raise OpError(f"Schritt {i + 1}: unbekannte CO₂-Bereiche „{sel}“")
         yy = y.copy()
-        for hi, lo in CO2_RANGES:
+        for k, (hi, lo) in enumerate(CO2_SETS[sel]):
             m = (x >= lo) & (x <= hi)
             if m.sum() < 2:
                 continue
@@ -343,9 +420,18 @@ def apply_step(sp: Spectrum, st: dict, i: int = 0) -> tuple[Spectrum, np.ndarray
             a, b = max(0, idx[0] - 3), min(len(x), idx[-1] + 4)
             ya, yb = float(np.mean(y[a:idx[0] + 1])), float(np.mean(y[idx[-1]:b]))
             yy[m] = np.interp(x[m], [x[idx[0]], x[idx[-1]]], [ya, yb])
+            if warn is not None:
+                w = co2_overlap(x, y, sp.yunit, lo, hi, k)
+                if w:
+                    warn.append(w)
         return sp.copy(y=yy), None
     if op == "atr":
+        # Einfache ATR-Korrektur: Eindringtiefe d_p = λ / (2π n₁ √(sin²θ − (n₂/n₁)²)) (Harrick 1967) ist bei festem
+        # Einfallswinkel und konstanten Brechzahlen proportional zur Wellenlänge, also zu 1/ν̃; bei schwacher Absorption
+        # ist die Absorbanz proportional zu d_p. Korrektur auf die Eindringtiefe bei ν̃_ref: y · ν̃/ν̃_ref.
         ref = _num(st, "ref", 1000)
+        if ref <= 0:
+            raise OpError(f"Schritt {i + 1}: Bezugswellenzahl muss grösser als 0 sein")
         return sp.copy(y=y * x / ref), None
     if op == "normalize":
         mode = st.get("mode", "max")
@@ -362,12 +448,19 @@ def apply_step(sp: Spectrum, st: dict, i: int = 0) -> tuple[Spectrum, np.ndarray
             d = float(abs(np.trapezoid(y, x)) if hasattr(np, "trapezoid") else abs(np.trapz(y, x)))
             out = y / d if d else y
         else:
+            if sp.yunit not in ABS_LIKE:
+                raise OpError(f"Schritt {i + 1} (Normieren auf eine Bande): nur für absorbanzartige Spektren (Absorbanz, "
+                              f"log(1/R), Kubelka-Munk, Intensität), nicht für {_UNIT_DE.get(sp.yunit, sp.yunit)}. "
+                              "Vorher „In Absorbanz umrechnen“ anwenden.")
             at = _num(st, "at", 1720)
             m = np.abs(x - at) <= 5
             if not m.any():
                 raise OpError(f"Schritt {i + 1}: {at:g} cm⁻¹ liegt ausserhalb des Spektrums.")
-            v = float(np.max(-y[m]) if sp.yunit in ("T", "R") else np.max(y[m]))
-            out = y / v if v else y
+            v = float(np.max(y[m]))
+            if not v > 0:
+                raise OpError(f"Schritt {i + 1}: bei {at:g} cm⁻¹ ist keine positive Bande (Maximum {v:.3g}); "
+                              "Normieren darauf nicht möglich.")
+            out = y / v
         return sp.copy(y=out), None
     if op == "offset":
         if st.get("mode", "min") == "min":
@@ -384,14 +477,14 @@ def apply_step(sp: Spectrum, st: dict, i: int = 0) -> tuple[Spectrum, np.ndarray
 
 def apply(sp: Spectrum, pipeline: list | None, lang: str = "de") -> Proc:
     cur = sp
-    steps, base = [], None
+    steps, base, warns = [], None, []
     for i, st in enumerate(pipeline or []):
         if not isinstance(st, dict):
             raise OpError(f"Schritt {i + 1}: ungültig")
-        cur, b = apply_step(cur, st, i)
+        cur, b = apply_step(cur, st, i, warns)
         if b is not None:
             base = (cur.x.copy(), b)
         elif base is not None and (len(base[0]) != len(cur.x) or not np.array_equal(base[0], cur.x)):
             base = None
         steps.append(describe_step(st, lang))
-    return Proc(cur, steps, base[1] if base is not None else None)
+    return Proc(cur, steps, base[1] if base is not None else None, warns)

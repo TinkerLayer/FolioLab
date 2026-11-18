@@ -45,6 +45,8 @@ class Alloy:
     cite: dict | None = None    # strukturierte Quelle (labcite), sonst gilt der Freitext source
     curve: list | None = None   # eigene Kurve [[Dehnung %, Spannung MPa], ...] statt der idealisierten
     oid: str = ""        # id im Speicher der eigenen Werkstoffe
+    value_type: str = ""  # Wertart von Rm und Rp (data/alloys.json "wertart"), z. B. "Rm Mindestwert, Rp Mindestwert"
+    check_note: str = ""  # nicht leer: Wert oder Quelle nicht geprüft (data/alloys.json "nicht_geprueft")
 
     @property
     def ratio(self) -> float | None:
@@ -99,8 +101,13 @@ def parse_curve(text_or_list) -> list | None:
             except ValueError:
                 continue   # Kopfzeile
     else:
+        if not isinstance(text_or_list, (list, tuple)):
+            raise ValueError("Kurve: Text oder Liste von Punkten erwartet")
         for p in text_or_list:
-            pts.append((float(p[0]), float(p[1])))
+            try:
+                pts.append((float(p[0]), float(p[1])))
+            except (TypeError, ValueError, IndexError, KeyError):
+                raise ValueError(f"Kurve: Punkt {p!r} ist kein Zahlenpaar") from None
     pts = [(e, s) for e, s in pts if math.isfinite(e) and math.isfinite(s) and e >= 0]
     pts.sort()
     out = []
@@ -158,7 +165,8 @@ def own_from_dict(d: dict) -> Alloy:
                  category=str(d.get("category") or OWN_CATEGORY).strip()[:40] or OWN_CATEGORY,
                  basis=str(d.get("basis") or "").strip()[:200], url=str((cite or {}).get("url") or d.get("url") or ""),
                  year=str((cite or {}).get("year") or d.get("year") or ""), accessed=str((cite or {}).get("accessed") or ""),
-                 own=True, cite=cite, curve=curve, oid=str(d.get("id") or ""))
+                 own=True, cite=cite, curve=curve, oid=str(d.get("id") or ""),
+                 check_note="keine Quelle angegeben (importiert)" if d.get("no_source") else "")
 
 
 def merge_own(builtin: list[Alloy], own_rows: list[dict], strict: bool = False) -> tuple[list[Alloy], list[str]]:
@@ -198,8 +206,20 @@ def load_alloys(path: str | Path | None = None) -> list[Alloy]:
             rm_min=r.get("Rm_min"), rm_max=r.get("Rm_max"), source=r.get("quelle", ""),
             category=r.get("kategorie", "Aluminium"), basis=r.get("basis", ""),
             url=r.get("url", "") or "", year=str(r.get("jahr") or ""), accessed=r.get("abgerufen", "") or "",
+            value_type=_value_type(r.get("wertart")), check_note=str(r.get("nicht_geprueft") or ""),
         ))
     return out
+
+
+VALUE_TYPES = {"min": "Mindestwert", "typ": "Typwert", "mitte": "Mitte der Spanne", "max": "Höchstwert",
+               "unklar": "unklar"}
+
+
+def _value_type(w) -> str:
+    """{"Rm": "mitte", "Rp": "min"} -> "Rm Mitte der Spanne, Rp Mindestwert"."""
+    if not isinstance(w, dict):
+        return ""
+    return ", ".join(f"{k} {VALUE_TYPES.get(v, v)}" for k, v in w.items() if v)
 
 
 def categories(alloys: list[Alloy]) -> list[str]:
@@ -232,12 +252,47 @@ def find(alloys: list[Alloy], name: str | None) -> Alloy | None:
 
 
 # --- 5.2 Idealisierte Kurve ------------------------------------------------------
+AG_FRACTION = 0.55      # Gleichmassdehnung ε_u ≈ 0,55·A (Festlegung der Spezifikation 5.2, ohne Quelle)
+NECK_DROP = 0.07        # Abfall von Rm bis zum Bruch nach ε_u: 7 % (Festlegung der Spezifikation 5.2, ohne Quelle)
+
+
+def curve_model(a: Alloy) -> dict:
+    """Parameter der idealisierten Kurve eines Werkstoffs ohne eigene Kurve (nur zur Orientierung).
+
+    Elastischer Anteil immer mit dem E-Modul des Werkstoffs. Mit Rp (Rp0,2 bzw. Streckspannung) bis zur
+    Gleichmassdehnung ε_u = 0,55·A die Ramberg-Osgood-Beziehung (Ramberg & Osgood 1943, NACA TN 902) in der Form mit
+    0,2 % Dehngrenze, ε = σ/E + 0,002·(σ/Rp)^n, mit n so gewählt, dass die Kurve bei ε_u Rm erreicht:
+    n = ln((ε_u − Rm/E)/0,002) / ln(Rm/Rp). Danach linear auf 0,93·Rm bei A. Rückfälle, wenn die Kennwerte das nicht
+    zulassen: "linear-E" (Rp ≥ Rm: elastisch bis Rp, dann waagrecht), "bilinear-E" (n ≤ 1 oder ε_u zu klein: elastisch bis
+    Rp, dann gerade bis Rm bei ε_u), "sekante" (A kleiner als die elastische Dehnung: Gerade durch (A, Rm), die
+    Kennwerte passen nicht zu linearer Elastizität). Ohne Rp: elastisch mit E bis Rm, dann waagrecht bis A ("linear-E"),
+    oder "sekante", wenn Rm/E ≥ A."""
+    E = a.e_gpa * 1000.0
+    Rm, A = a.rm, a.a_pct / 100.0
+    if not a.rp:
+        return {"kind": "sekante" if Rm / E >= A else "linear-E", "E": E, "Rm": Rm, "A": A, "Rp": Rm}
+    Rp = min(a.rp, Rm)
+    if Rp / E >= A:
+        return {"kind": "sekante", "E": E, "Rm": Rm, "A": A, "Rp": Rp}
+    ey = Rp / E + 0.002
+    ag = AG_FRACTION * A
+    if ag <= ey:  # Gleichmassdehnung vor dem Ende der 0,2-%-Dehngrenze: Mitte zwischen ihr und A, höchstens A
+        ag = min(0.5 * (ey + A), A)
+    out = {"E": E, "Rm": Rm, "A": A, "Rp": Rp, "ag": ag}
+    if Rm <= Rp * (1 + 1e-9):
+        return {**out, "kind": "linear-E"}
+    ep_u = ag - Rm / E
+    n = math.log(ep_u / 0.002) / math.log(Rm / Rp) if ep_u > 0.002 else 0.0
+    if n <= 1.0:
+        return {**out, "kind": "bilinear-E"}
+    return {**out, "kind": "ramberg-osgood", "n": n}
+
+
 def ideal_curve(a: Alloy, eps: np.ndarray) -> np.ndarray:
     """sigma(eps) in MPa, eps dimensionslos. Ausserhalb 0..A ist der Wert NaN.
 
-    Modell der Spezifikation fuer Werkstoffe mit Rp. Ohne Rp (sproede Werkstoffe, Elastomere,
-    Papier, Holz, Faserverbund) linear bis Rm bei A. Hat der Werkstoff eine eigene Kurve (aus einer Quelle
-    digitalisiert oder gemessen), wird sie linear interpoliert statt idealisiert.
+    Idealisierte Kurve zur Orientierung (curve_model); keine Messkurve. Hat der Werkstoff eine eigene Kurve (aus einer
+    Quelle digitalisiert oder gemessen), wird sie linear interpoliert statt idealisiert.
     """
     if a.curve:
         c = np.asarray(a.curve, dtype=float)
@@ -245,29 +300,35 @@ def ideal_curve(a: Alloy, eps: np.ndarray) -> np.ndarray:
         x = eps * 100.0
         s = np.interp(x, c[:, 0], c[:, 1])
         return np.where((x >= 0) & (x <= c[-1, 0]), s, np.nan)
-    E = a.e_gpa * 1000.0
-    Rm, A = a.rm, a.a_pct / 100.0
+    p = curve_model(a)
+    E, Rm, A, Rp = p["E"], p["Rm"], p["A"], p["Rp"]
     eps = np.asarray(eps, dtype=float)
     s = np.full_like(eps, np.nan)
-    if not a.rp:
-        m = (eps >= 0) & (eps <= A)
-        s[m] = Rm * eps[m] / A
+    inside = (eps >= 0) & (eps <= A)
+    kind = p["kind"]
+    if kind == "sekante":
+        s[inside] = Rm * eps[inside] / A
         return s
-    Rp = a.rp
-    ey = Rp / E + 0.002
-    ag = 0.55 * A
-    if ey >= A:  # sehr kleine Bruchdehnung: linear bis Rm
-        m = (eps >= 0) & (eps <= A)
-        s[m] = Rm * eps[m] / A
+    if not a.rp:                                     # elastisch bis Rm, dann waagrecht bis A
+        s[inside] = np.minimum(E * eps[inside], Rm)
         return s
-    if ag <= ey:  # Gleichmassdehnung liegt vor dem elastischen Ende
-        ag = 0.5 * (ey + A)
-    m1 = (eps >= 0) & (eps <= ey)
-    s[m1] = Rp * eps[m1] / ey
-    m2 = (eps > ey) & (eps <= ag)
-    s[m2] = Rp + (Rm - Rp) * ((eps[m2] - ey) / (ag - ey)) ** 0.45
+    ag = p["ag"]
+    m1 = inside & (eps <= ag)
+    if kind == "linear-E":
+        s[m1] = np.minimum(E * eps[m1], Rp)
+    elif kind == "bilinear-E":
+        ey = Rp / E
+        e = eps[m1]
+        s[m1] = np.where(e <= ey, E * e, Rp + (Rm - Rp) * (e - ey) / (ag - ey))
+    else:                                            # Ramberg-Osgood, numerisch invertiert
+        n = p["n"]
+        sg = np.linspace(0.0, Rm, 4001)
+        with np.errstate(divide="ignore"):
+            eg = sg / E + 0.002 * np.exp(n * np.log(np.where(sg > 0, sg / Rp, 1.0)))
+        eg[0] = 0.0
+        s[m1] = np.interp(eps[m1], eg, sg)
     m3 = (eps > ag) & (eps <= A)
-    s[m3] = Rm - 0.07 * Rm * (eps[m3] - ag) / (A - ag)
+    s[m3] = Rm - NECK_DROP * Rm * (eps[m3] - ag) / (A - ag)
     return s
 
 
@@ -300,30 +361,40 @@ def classify_rm(rm: float, a: Alloy) -> tuple[str, str]:
     return "Werkstoff darunter", basis
 
 
+STATUS_ORDER = {"Kandidat": 0, "zurückgestuft (Verfestigungsverhältnis)": 1, "unwahrscheinlich": 2, "ausgeschlossen": 3}
+RANK_CRITERION = ("Rang: zuerst nach Status (Kandidat, zurückgestuft, unwahrscheinlich, ausgeschlossen), bei gleichem "
+                  "Status nach |ΔRm| = |Rm − Rm_Werkstoff| / Rm_Werkstoff. Das Verfestigungsverhältnis geht nur in den "
+                  "Status ein (zurückgestuft), nicht in den Abstand.")
+RATIO_BASIS = ("Gemessenes Verhältnis Rm/Fliessbeginn (Abweichungsschwelle auf der Kurve) gegen Rm/Rp0,2 bzw. Rm/ReH "
+               "der Quelle: nicht gleichartig, nur zur Orientierung.")
+
+
 def compare(rm: float | None, yield_stress: float | None, fmax_n: float | None,
             alloys: list[Alloy], group: str | None = None) -> dict:
     """Rangliste der naechsten Kandidaten innerhalb der Vergleichsgruppe.
-    Eine Uebereinstimmung in Rm ist keine Identifikation."""
+    Eine Uebereinstimmung in Rm ist keine Identifikation.
+
+    Alle relativen Abweichungen beziehen sich auf den Wert des Werkstoffs: ΔRm = (Rm − Rm_W)/Rm_W,
+    ΔVerh. = (Verh. − Verh._W)/Verh._W. Rangfolge siehe RANK_CRITERION."""
     ratio = (rm / yield_stress) if (rm and yield_stress) else None
     rows = []
     for a in alloys:
         row = {
             "name": a.name, "category": a.category, "Rp": a.rp, "Rm": a.rm, "A": a.a_pct, "E": a.e_gpa,
             "Rm_min": a.rm_min, "Rm_max": a.rm_max, "ratio": a.ratio, "source": a.source, "basis": a.basis,
-            "own": a.own,
+            "own": a.own, "value_type": a.value_type, "check_note": a.check_note,
         }
         if rm:
-            row["d_rm_pct"] = 100.0 * (rm - a.rm) / rm
+            row["d_rm_pct"] = 100.0 * (rm - a.rm) / a.rm
             row["rm_class"], row["rm_basis"] = classify_rm(rm, a)
-            d_rel = abs(a.rm - rm) / rm
+            d_rel = abs(rm - a.rm) / a.rm
             d_ratio = None
             if ratio and a.ratio:
-                d_ratio = abs(a.ratio - ratio) / ratio
-                row["d_ratio_pct"] = 100.0 * (a.ratio - ratio) / ratio
-                row["score"] = math.hypot(d_rel, d_ratio)
+                d_ratio = abs(ratio - a.ratio) / a.ratio
+                row["d_ratio_pct"] = 100.0 * (ratio - a.ratio) / a.ratio
             else:
                 row["d_ratio_pct"] = None
-                row["score"] = d_rel
+            row["score"] = d_rel                  # Abstand für die Rangfolge: nur Rm
             if d_rel > RM_EXCLUDE_TOL:
                 status = "ausgeschlossen"
             elif d_rel > RM_CANDIDATE_TOL:
@@ -340,13 +411,14 @@ def compare(rm: float | None, yield_stress: float | None, fmax_n: float | None,
             row["d_equiv_mm"] = math.sqrt(4.0 * area / math.pi)
         rows.append(row)
     if rm:
-        for i, r in enumerate(sorted(rows, key=lambda r: r["_d_rel"]), 1):
+        for i, r in enumerate(sorted(rows, key=lambda r: (r["_d_rel"], r["name"])), 1):
             r["rank_rm"] = i
-        rows.sort(key=lambda r: r["score"])
+        rows.sort(key=lambda r: (STATUS_ORDER.get(r["status"], 9), r["_d_rel"], r["name"]))
         for i, r in enumerate(rows, 1):
             r["rank"] = i
             r.pop("_d_rel", None)
     return {"measured_ratio": ratio, "rows": rows, "group": group or DEFAULT_GROUP,
+            "criterion": RANK_CRITERION, "ratio_basis": RATIO_BASIS,
             "hinweis": "Kandidaten, keine Identifikation: eine Übereinstimmung in Rm allein bestimmt den Werkstoff nicht."}
 
 
@@ -357,12 +429,15 @@ def reference_comparison(rm: float | None, yield_stress: float | None, e_schein:
         return None
     out = {"name": ref.name, "category": ref.category, "Rp": ref.rp, "Rm": ref.rm, "A": ref.a_pct,
            "E": ref.e_gpa, "Rm_min": ref.rm_min, "Rm_max": ref.rm_max, "basis": ref.basis, "source": ref.source,
-           "ratio": ref.ratio, "own": ref.own, "curve": bool(ref.curve)}
+           "ratio": ref.ratio, "own": ref.own, "curve": bool(ref.curve), "value_type": ref.value_type,
+           "check_note": ref.check_note}
     if rm:
         out["d_rm_pct"] = 100.0 * (rm - ref.rm) / ref.rm
         out["rm_class"], out["rm_basis"] = classify_rm(rm, ref)
     if yield_stress and ref.rp:
+        # Fliessbeginn (Abweichungsschwelle) gegen Rp0,2/ReH der Quelle: nicht gleichartig, nur zur Orientierung
         out["d_rp_pct"] = 100.0 * (yield_stress - ref.rp) / ref.rp
+        out["d_rp_basis"] = "Fliessbeginn (Schwelle) gegen Rp0,2 bzw. ReH: nicht gleichartig, nur zur Orientierung"
     if e_schein:
         out["e_ratio"] = e_schein / ref.e_gpa
     return out

@@ -12,6 +12,7 @@ import labdataset as DS
 from labbundle import Bundle, booktabs, num, tex_escape
 from labcalc import units as U
 
+from . import __version__
 from . import clean as C
 from .export import FLAG_NAMES
 
@@ -107,7 +108,18 @@ def figure(ds: DS.Dataset):
     return fig, xc, ys
 
 
-def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str]) -> str:
+def u_texts(ds: DS.Dataset, lang: str) -> list[str]:
+    """"name: type" for every column with an uncertainty, e.g. "Masse: erweiterte Unsicherheit U (k = 2)"."""
+    out = []
+    by_key = {c["key"]: c for c in ds.columns}
+    for c in ds.columns:
+        if c.get("u") and c["u"] in by_key:
+            u = by_key[c["u"]]
+            out.append(f"{c['name']}: " + DS.u_type_text(u if u.get("u_type") or not c.get("u_type") else c, lang))
+    return out
+
+
+def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str], note: str = "") -> str:
     h = ds.header
     chain = _chain(h.get("provenance") or {})
     files = next((p.get("files") for p in chain if p.get("files")), []) or []
@@ -144,6 +156,20 @@ def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str]) -
         parts.append(tx((f"Ausgeschlossen wurden {len(rows)} Zeile(n) (" if de else f"{len(rows)} row(s) were excluded (")
                         + ", ".join(str(r) for r in rows[:30]) + (" ..." if len(rows) > 30 else "") + ")"
                         + ((": " + "; ".join(reasons[:6])) if reasons else "") + "."))
+    ut = u_texts(ds, lang)
+    if ut:
+        parts.append(tx(("Art der angegebenen Unsicherheit: " if de else "Type of the stated uncertainty: ")
+                        + "; ".join(ut[:8]) + "."))
+    cut = [t for p in chain for t in (p.get("truncations") or [])]
+    if cut:
+        parts.append(tx(("GEKÜRZT: " if de else "TRUNCATED: ") + "; ".join(
+            f"{t.get('what', '')} ({t.get('kept')} " + ("von " if de else "of ") + f"{t.get('total')})" for t in cut[:6]) + "."))
+    warn = [w for p in chain for w in (p.get("warnings") or [])]
+    if warn:
+        parts.append(tx(("Hinweise beim Lesen: " if de else "Notes from reading: ") + "; ".join(str(w) for w in warn[:6])
+                        + ("" if str(warn[min(5, len(warn) - 1)]).endswith(".") else ".")))
+    if note:
+        parts.append(tx(note + ("" if note.endswith(".") else ".")))
     sid, ver = meta.get("share") or "", meta.get("version")
     parts.append(tx((f"Der Datensatz „{h['title']}“" if de else f"The dataset “{h['title']}”")
                     + (f" (Version {ver}, Kennung {sid}" if de else f" (version {ver}, ID {sid}") + f", SHA-256 {h['data_hash'][:16]}...)"
@@ -152,17 +178,23 @@ def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str]) -
     return "\n\n".join(parts) + "\n"
 
 
-def build(ds: DS.Dataset, meta: dict, request: dict, describe=None) -> dict:
+def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = "") -> dict:
+    """`request["mode"]`: "pin" (Refresh keeps this version) or "live" (Refresh moves to the newest version);
+    `note`: what Refresh changed (version moved, newest version unreadable), shown in the summary and methods."""
     lang = request.get("lang") or "de"
     de = lang == "de"
     inc = {k: True for k in ("figures", "tables", "values", "data", "citations", "text")}
     inc.update(request.get("include") or {})
     h = ds.header
     title = request.get("title") or h["title"]
+    live = request.get("mode") == "live"
     b = Bundle("datenaufbereitung", "Datenaufbereitung" if de else "Data preparation", title, lang=lang,
                slug=request.get("slug") or None,
-               summary=(f"{ds.rows} Zeilen × {len(ds.columns)} Spalten, v{meta.get('version')}" if de
-                        else f"{ds.rows} rows × {len(ds.columns)} columns, v{meta.get('version')}"))
+               summary=(f"{ds.rows} Zeilen × {len(ds.columns)} Spalten, v{meta.get('version')}"
+                        + (" (folgt der neuesten Version)" if live else " (feste Version)") if de
+                        else f"{ds.rows} rows × {len(ds.columns)} columns, v{meta.get('version')}"
+                        + (" (follows the newest version)" if live else " (fixed version)"))
+               + (f"; {note}" if note else ""))
     nums = [c for c in ds.columns if c["dtype"] == "number"]
     used = ds.used_mask()
     # sources of the methods in the recipe
@@ -260,7 +292,7 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None) -> dict:
                        str(int((~used).sum()))),
                       ("version", "Version", str(meta.get("version") or ""), str(meta.get("version") or ""))])
     if inc["text"]:
-        b.add_text("methodik", methods(ds, meta, lang, describe, cites), "Methodik" if de else "Methods")
+        b.add_text("methodik", methods(ds, meta, lang, describe, cites, note), "Methodik" if de else "Methods")
     raw = None
     try:
         from .export import to_json
@@ -269,8 +301,13 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None) -> dict:
         raw = None
     files = {"datensatz.json": raw} if raw is not None and len(raw) <= MAX_EMBED else {}
     b.set_source({**{k: v for k, v in request.items() if k != "source"}, "share": meta.get("share"),
-                  "version": meta.get("version"), "embedded": bool(files)}, files)
-    return b.to_dict()
+                  "version": meta.get("version"), "mode": "live" if live else "pin", "embedded": bool(files)}, files)
+    d = b.to_dict()
+    d["module_version"] = __version__        # the version of this running process (the hub records it as is)
+    d["source"]["kind"] = "dataset"          # source files are the dataset version (datensatz.json), not raw files
+    if note:
+        d["refresh_note"] = note
+    return d
 
 
 def rebuild_dataset(source: dict) -> DS.Dataset | None:

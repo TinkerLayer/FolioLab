@@ -18,7 +18,7 @@ shared core `sdk/python/labcalc/`. The module code is in `modules/elementrechner
 ## How to cite results from this module
 
 State the Folio Lab version and the Elementrechner version. The module version is the `version` field in
-`modules/elementrechner/module.json`, also `elementrechner.__version__`; it is currently 0.10.0. When you send a
+`modules/elementrechner/module.json`, also `elementrechner.__version__`; it is currently 0.11.0. When you send a
 result to a report, the hub writes a `bundle.json` with a `provenance` block that records the Folio Lab version
 (`suite_version`) and the module version (`module_version`).
 
@@ -39,9 +39,9 @@ These entries are the references to give for tabulated values. The data files ca
 * **Standard state:** 298.15 K and p° = 10⁵ Pa (1 bar), `thermo.py:25-27`. Standard concentration c° = 1 mol/L
   (`thermo.py:28`). Ions in solution follow the convention ΔfH°, ΔfG°, S° of H⁺(aq) = 0 (header of `thermo.json`).
 * **Constants:** each one is a literal in the module that uses it.
-  * R = 8.314462618 J/(mol K), "CODATA 2022 (exakt aus N_A und k)", `chem.py:964`. Also used by `thermo.py`,
+  * R = N_A·k = 8.31446261815324 J/(mol K), exact in the 2019 SI, computed at full double precision (`chem.R_GAS`). Also used by `thermo.py`,
     `redox.py` and `gas.py:9`.
-  * F = 96485.33212 C/mol, `redox.py:23`.
+  * F = N_A·e = 96485.33212331001 C/mol, exact in the 2019 SI (`chem.FARADAY`, used by `redox.py` and the report).
   * k_B = 1.380649·10⁻²³ J/K and h = 6.62607015·10⁻³⁴ J s, both exact (SI 2019), `kinetics.py:16-18`.
   * N_A = 6.02214076·10²³ mol⁻¹, exact; m_u c² = 931.49410372 MeV and mₑ = 5.485799090441·10⁻⁴ u (CODATA 2022);
     1 Ci = 3.7·10¹⁰ Bq; 1 a = 365.2422 d as in NUBASE2020; all in `nuclear.py:22-26`.
@@ -825,7 +825,7 @@ The expected values are hand calculations of the definitions. No published worke
 * **Molar volume:** Vm = RT/p. The docstring gives "IUPAC-STP: 0 °C, 100 kPa -> 22,711 L/mol".
 * **Gas density:** ρ = pM/(RT), with M from the formula.
 * **Dalton:** pᵢ = xᵢ·p. Mole fractions are normalised, with a note.
-* **Constant:** R = 8.314462618 J/(mol K), "CODATA 2022, exakt" (`gas.py:3, 9`).
+* **Constant:** R = N_A·k (exact, full precision; `gas.R` = `chem.R_GAS`).
 * **Scope:** ideal gas only; real-gas equations are not included.
 * **Refused:** T ≤ 0 K, values ≤ 0, unknown units, or not exactly one unknown.
 

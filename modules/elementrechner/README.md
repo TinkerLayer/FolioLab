@@ -13,7 +13,7 @@ The module keeps three kinds of values apart and labels each one:
 * **estimated** values from group-contribution methods (Benson, Joback) and other increment schemes. These are used
   only when no tabulated value exists.
 
-Module version: see `module.json` (currently 0.10.0). Feature list: [FEATURES.md](FEATURES.md). Methods, formulas,
+Module version: see `module.json` (currently 0.11.0). Feature list: [FEATURES.md](FEATURES.md). Methods, formulas,
 defaults, limits and test references: [docs/methods/elementrechner.md](../../docs/methods/elementrechner.md).
 
 ## Starting

@@ -961,7 +961,8 @@ def unsaturation(sp: Species | str) -> float | None:
 
 
 # ----------------------------------------------------------------------------- Stöchiometrie
-R_GAS = 8.314462618  # J/(mol K), CODATA 2022 (exakt aus N_A und k)
+R_GAS = 6.02214076e23 * 1.380649e-23   # J/(mol K), exakt: R = N_A·k (SI 2019), volle Genauigkeit
+FARADAY = 6.02214076e23 * 1.602176634e-19   # C/mol, exakt: F = N_A·e (SI 2019)
 
 
 def amount(entry: dict, sp: Species) -> dict:

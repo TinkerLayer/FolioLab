@@ -350,7 +350,26 @@ def regress(lhs, rhs, params, ctx):
         y = Yv[mask]
         sst = float(np.sum((y - y.mean()) ** 2))
         r2 = 1 - best_s / sst if sst > 0 else 1.0
-        return dict(zip(params, (float(v) for v in best_p))), r2, int(mask.sum())
+        # Unsicherheiten wie im Anpassen-Werkzeug: Kovarianz (SSE/(n − p))·(JᵀJ)⁺ am Optimum (Jacobi-Matrix mit
+        # Vorwärtsdifferenzen), 95 % mit dem Student-t-Quantil; Konvergenz nach dem Gradientenkriterium.
+        m = int(mask.sum())
+        dof = m - n
+        J = np.empty((m, n))
+        f0 = model(best_p)[mask]
+        for k in range(n):
+            h = 1e-7 * max(1.0, abs(best_p[k]))
+            q = best_p.copy()
+            q[k] += h
+            J[:, k] = (model(q)[mask] - f0) / h
+        conv = F.converged(J, f0 - y, y) if n else True
+        u = [None] * n
+        if dof > 0 and n and np.all(np.isfinite(J)):
+            cov = (best_s / dof) * np.linalg.pinv(J.T @ J)
+            u = [float(math.sqrt(cov[k, k])) if cov[k, k] >= 0 else None for k in range(n)]
+        t = F.stats.t_ppf(0.975, dof) if dof > 0 else None
+        info = {"u": dict(zip(params, u)), "t": t, "dof": dof, "converged": bool(conv),
+                "ci": {p: (t * v if (t is not None and v is not None) else None) for p, v in zip(params, u)}}
+        return dict(zip(params, (float(v) for v in best_p))), r2, m, info
 
 
 def _first_local(used, *cands):
@@ -702,10 +721,17 @@ def compute(req: dict, resolve=None) -> dict:
                 else:
                     params = params_of.get(rid, [])
                     a, b = nd["node"]
-                    vals, r2, npts = regress(a, b, params, ctx)
+                    vals, r2, npts, info = regress(a, b, params, ctx)
                     ctx.names.update(vals)
                     out[rid] = {"type": "regression", "params": vals, "r2": r2, "n": npts, "html": nd["html"],
-                                "param_text": {k: E.fmt_num(v, 6) for k, v in vals.items()}}
+                                "param_text": {k: E.fmt_num(v, 6) for k, v in vals.items()},
+                                "u": info["u"], "ci": info["ci"], "t": info["t"], "dof": info["dof"],
+                                "converged": info["converged"],
+                                "u_text": {k: (E.fmt_num(v, 2) if v is not None else None) for k, v in info["u"].items()},
+                                "ci_text": {k: (E.fmt_num(v, 2) if v is not None else None) for k, v in info["ci"].items()}}
+                    if not info["converged"]:
+                        out[rid]["warn"] = ("Anpassung nicht konvergiert (Gradientenkriterium) – Werte unzuverlässig; "
+                                            "Startwerte über Schieberegler oder anderes Modell versuchen")
                 pending.remove(rid)
                 progress = True
             except _EVAL_ERR as e:

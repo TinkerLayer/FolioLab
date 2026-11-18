@@ -1,7 +1,9 @@
 """Kleine Statistik ohne SciPy: unvollständige Betafunktion, Student-t (Verteilung und Quantil).
 
-Gleiche Verfahren wie in der Datenaufbereitung (DP-08, Numerical Recipes 6.4): Kettenbruch für I_x(a, b), Quantil
-durch Bisektion auf der Verteilungsfunktion (Fehler < 1e-12).
+Gleiche Verfahren wie in der Datenaufbereitung (DP-08): Kettenbruch für I_x(a, b) nach Press, W. H.; Teukolsky, S. A.;
+Vetterling, W. T.; Flannery, B. P.: Numerical Recipes: The Art of Scientific Computing, 3. Auflage, Cambridge
+University Press 2007, Abschnitt 6.4 (sources.REFS["press2007"]); Quantil durch Bisektion auf der Verteilungsfunktion
+(Fehler < 1e-12).
 """
 from __future__ import annotations
 

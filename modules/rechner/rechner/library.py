@@ -308,9 +308,12 @@ EQ("hard_HV", C, S, "HV = 0.1891*F/(d_V**2*MPa1)", "Vickershärte", "Vickers har
 EQ("hard_HB", C, S, "HB = 0.102*2*F/(pi*D_k*(D_k - sqrt(D_k**2 - d_B**2))*MPa1)", "Brinellhärte", "Brinell hardness",
    {"HB": "number|Brinellhärte|Brinell hardness", "F": "force|Prüfkraft|Test force", "D_k": "length|Kugeldurchmesser|Ball diameter",
     "d_B": "length|Eindruckdurchmesser|Indentation diameter"}, auto=False)
-EQ("hard_Rm", C, S, "R_m = 3.3*HV*MPa1", "Zugfestigkeit aus Vickershärte (Näherung Stahl)", "Tensile strength from HV (steel, approx.)",
+EQ("hard_Rm", C, S, "R_m = 3.3*HV*MPa1", "Zugfestigkeit aus Vickershärte (Faustformel Stahl, ≈)", "Tensile strength from HV (steel rule of thumb, ≈)",
    {"R_m": "stress|Zugfestigkeit|Tensile strength", "HV": "number|Vickershärte|Vickers hardness"}, auto=False,
-   note="grobe Näherung für unlegierte und niedriglegierte Stähle")
+   note="Faustformel (Faktor 3,3 nicht gegen die Tabellen der ISO 18265 geprüft); nur Richtwert für unlegierte und niedriglegierte Stähle "
+        "mittlerer Festigkeit; für verbindliche Werte die Umwertungstabellen der Norm verwenden",
+   note_en="rule of thumb (factor 3.3 not checked against the ISO 18265 tables); indicative only for unalloyed and low-alloy steels "
+           "of medium strength; use the conversion tables of the standard for binding values")
 
 # =============================================================================================== Geometrie
 C, S = "Geometrie", "Flächen"
@@ -517,7 +520,13 @@ EQ("ch_massfrac", C, S, "w_m = m_i/m", "Massenanteil", "Mass fraction",
    {"w_m": "number|Massenanteil|Mass fraction", "m_i": "mass|Masse der Komponente|Component mass", "m": "mass|Gesamtmasse|Total mass"}, auto=False)
 S = "Säuren und Basen"
 EQ("ch_pH", C, S, "pH = -log10(c_H/c_std)", "pH-Wert", "pH value", {"pH": "number|pH-Wert|pH", "c_H": "concentration|Oxoniumkonzentration|H₃O⁺ concentration"})
-EQ("ch_pOH", C, S, "pH + pOH = 14", "pH und pOH (25 °C)", "pH and pOH (25 °C)", {"pH": "number|pH-Wert|pH", "pOH": "number|pOH-Wert|pOH"}, auto=False)
+EQ("ch_pOH", C, S, "pH + pOH = 14", "pH und pOH (25 °C)", "pH and pOH (25 °C)", {"pH": "number|pH-Wert|pH", "pOH": "number|pOH-Wert|pOH"}, auto=False,
+   note="setzt pKw = 14 voraus, also Wasser bei 25 °C; bei anderer Temperatur „pH und pOH (pKw)“ mit dem pKw dieser Temperatur verwenden",
+   note_en="assumes pKw = 14, i.e. water at 25 °C; at other temperatures use “pH and pOH (pKw)” with the pKw of that temperature")
+EQ("ch_pOH_pKw", C, S, "pH + pOH = pKw", "pH und pOH (pKw)", "pH and pOH (pKw)",
+   {"pH": "number|pH-Wert|pH", "pOH": "number|pOH-Wert|pOH", "pKw": "number|pKw (14,00 bei 25 °C)|pKw (14.00 at 25 °C)"},
+   auto=False, note="pKw nimmt mit steigender Temperatur ab; Wert für die Temperatur der Lösung aus einer Tabelle einsetzen",
+   note_en="pKw decreases with rising temperature; insert the tabulated value for the solution temperature")
 EQ("ch_hh", C, S, "pH = pKa + log10(c_A/c_HA)", "Henderson-Hasselbalch (Puffer)", "Henderson–Hasselbalch (buffer)",
    {"pH": "number|pH-Wert|pH", "pKa": "number|pKs-Wert|pKa", "c_A": "concentration|Konzentration Base|Base concentration",
     "c_HA": "concentration|Konzentration Säure|Acid concentration"}, auto=False)

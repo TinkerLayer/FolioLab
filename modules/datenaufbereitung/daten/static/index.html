@@ -359,6 +359,12 @@ const DP_T = {
     // DP-06: Symbol, Grössenart, Datum/Zeit; Markierungen beim Lesen
     "mk.colprop": "Symbol und Grösse …", "cp.h": "Symbol und Grösse: {c}", "cp.sym": "Formelzeichen (z. B. σ, T, c)", "cp.kind": "Grössenart", "cp.kind0": "aus der Einheit",
     "cp.time": "Datum/Uhrzeit", "cp.elapsed": "Zeit seit dem ersten Wert (Start als Bedingung)", "cp.raw": "Rohwert lassen (Excel-Tageszahl)", "cp.tunit": "Einheit der Zeit", "cp.auto": "automatisch",
+    "cp.u": "Unsicherheit (±)", "cp.utype": "Art der Unsicherheit dieser Spalte bzw. ihrer ±-Spalte", "cp.ut_none": "nicht angegeben",
+    "cp.ut_u": "Standardunsicherheit u", "cp.ut_UU": "erweiterte Unsicherheit U (mit k)", "cp.ut_sd": "Standardabweichung s",
+    "cp.ut_se": "Standardfehler des Mittelwerts", "cp.ut_ci": "Konfidenzintervall, halbe Breite (mit Niveau)",
+    "cp.uk": "Erweiterungsfaktor k (nur U)", "cp.ul": "Niveau in % (nur Konfidenzintervall)",
+    "cp.uhint": "Steht in Tabelle, Bericht und Export; ohne Angabe bleibt sie „nicht angegeben“.",
+    "cp.uk_need": "Für U den Erweiterungsfaktor k angeben", "cp.ul_need": "Für das Konfidenzintervall das Niveau (0–100 %) angeben",
     "fl.outlier": "Ausreisser", "fl.below_lod": "< NWG", "fl.above_range": "> Messbereich", "fl.missing": "fehlt", "fl.duplicate": "doppelt", "fl.excluded": "ausgeschlossen",
     "fl.interpolated": "interpoliert", "fl.parse_error": "Lesefehler", "fl.note": "umgerechnet",
     "mk.flagt": "{n} Zellen: {c} – Beispiele: {e}", "mk.since": "seit {s}",
@@ -373,6 +379,7 @@ const DP_T = {
     "cl.by": "gleiche Werte in", "cl.window": "Fenster", "cl.order": "Grad", "cl.keep": "Original behalten", "cl.partner": "Datensatz", "cl.x": "x hier", "cl.x2": "x dort",
     "cl.take": "übernehmen", "cl.prefix": "Vorsilbe", "cl.pin": "bei dieser Version bleiben", "cl.method": "Verfahren", "cl.group": "je", "cl.nogroup": "alle zusammen",
     "cl.alpha": "α", "cl.k": "k", "cl.sided": "Seite", "cl.two": "zweiseitig", "cl.max": "nur Maximum", "cl.min": "nur Minimum", "cl.xcol": "über",
+    "cl.iterate": "sequenziell (α je Schritt)", "cl.hx": "Fenster in", "cl.byrow": "Zeilen (Position)",
     "cl.rows": "Zeilen (z. B. 3, 7, 12–15)", "cl.codes": "alle Markierungen", "cl.reason": "Grund (Pflicht)", "cl.reason_ph": "z. B. Blase im Probekörper",
     "cl.m_grubbs": "Grubbs (normalverteilt, n ≥ 3)", "cl.m_dixon": "Dixon-Q (kleine Serien, n 3–10)", "cl.m_iqr": "Tukey/IQR (verteilungsfrei)", "cl.m_hampel": "Hampel/MAD (robust, auch gleitend)",
     "cl.m_residual": "Fit-Residuum (Abweichung von einer Kurve)", "cl.notext": "(Text)", "cl.badrows": "Zeilenangabe „{s}“ nicht lesbar",
@@ -383,7 +390,7 @@ const DP_T = {
     "ds.check": "Prüfung", "ds.check_b": "Prüfen", "ds.steps_n": "{n} Schritte im Protokoll", "ds.export": "Exportieren", "ds.export_t": "Mit Einheiten; XLSX enthält ein Blatt „Protokoll“ (Dateien, Rezept, Schritte, Markierungen).",
     "ds.exported": "{f} gespeichert ({b})", "ds.report": "An Bericht senden …", "ds.report_na": "Berichte gibt es nur, wenn das Modul aus Folio Lab geöffnet ist.",
     "rp.figures": "Abbildung (Vorschau mit Markierungen)", "rp.tables": "Tabellen (Spalten, erste Zeilen, Markierungen)", "rp.values": "Kennwerte als \\labval (Zeilen, verwendet, ausgeschlossen, Version)",
-    "rp.data": "Daten als CSV (für pgfplots)", "rp.citations": "Quellen der Verfahren (Grubbs, Dixon, …)", "rp.text": "Methodik-Text (Herkunft, Schritte, Ausschlüsse)", "rp.scope": "Datensatz „{t}“ v{v}",
+    "rp.data": "Daten als CSV (für pgfplots)", "rp.citations": "Quellen der Verfahren (Grubbs, Dixon, …)", "rp.text": "Methodik-Text (Herkunft, Schritte, Ausschlüsse)", "rp.scope": "Datensatz „{t}“ v{v} (Aktualisieren behält diese Version)", "rp.live": "Datensatz „{t}“, neueste Version (Aktualisieren folgt neuen Versionen)",
     // DP-09: Vorlagen und Stapel
     "tp.save": "Als Vorlage speichern …", "tp.name": "Name der Vorlage", "tp.saved": "Vorlage „{n}“ gespeichert", "tp.menu": "Vorlagen und Stapel …", "tp.h": "Vorlagen und Stapel",
     "tp.t": "Eine Vorlage merkt sich die Markierungen eines Blatts (Kopf, Einheiten, Rollen, Metadaten). Vor dem Anwenden prüft sie, ob Kopf und Einheiten an derselben Stelle stehen; die Zahl der Zeilen darf sich ändern.",
@@ -456,6 +463,12 @@ const DP_T = {
     "r.x": "x", "r.y": "y", "r.uncertainty": "Uncertainty", "r.group": "Group", "r.label": "Label", "r.condition": "Condition", "r.ignore": "ignore", "r.none": "–",
     "mk.colprop": "Symbol and quantity …", "cp.h": "Symbol and quantity: {c}", "cp.sym": "Symbol (e.g. σ, T, c)", "cp.kind": "Quantity kind", "cp.kind0": "from the unit",
     "cp.time": "Date/time", "cp.elapsed": "Time since the first value (start as a condition)", "cp.raw": "Keep the raw value (Excel day number)", "cp.tunit": "Time unit", "cp.auto": "automatic",
+    "cp.u": "Uncertainty (±)", "cp.utype": "Type of uncertainty of this column or its ± column", "cp.ut_none": "not stated",
+    "cp.ut_u": "standard uncertainty u", "cp.ut_UU": "expanded uncertainty U (with k)", "cp.ut_sd": "standard deviation s",
+    "cp.ut_se": "standard error of the mean", "cp.ut_ci": "confidence interval, half-width (with level)",
+    "cp.uk": "Coverage factor k (U only)", "cp.ul": "Level in % (confidence interval only)",
+    "cp.uhint": "Shown in the table, report and export; without a choice it stays “not stated”.",
+    "cp.uk_need": "Give the coverage factor k for U", "cp.ul_need": "Give the level (0–100 %) for the confidence interval",
     "fl.outlier": "outlier", "fl.below_lod": "< LOD", "fl.above_range": "> range", "fl.missing": "missing", "fl.duplicate": "duplicate", "fl.excluded": "excluded",
     "fl.interpolated": "interpolated", "fl.parse_error": "read error", "fl.note": "converted",
     "mk.flagt": "{n} cells: {c} – examples: {e}", "mk.since": "since {s}",
@@ -469,6 +482,7 @@ const DP_T = {
     "cl.by": "equal values in", "cl.window": "window", "cl.order": "order", "cl.keep": "keep original", "cl.partner": "Dataset", "cl.x": "x here", "cl.x2": "x there",
     "cl.take": "take", "cl.prefix": "prefix", "cl.pin": "stay at this version", "cl.method": "Method", "cl.group": "per", "cl.nogroup": "all together",
     "cl.alpha": "α", "cl.k": "k", "cl.sided": "side", "cl.two": "two-sided", "cl.max": "maximum only", "cl.min": "minimum only", "cl.xcol": "over",
+    "cl.iterate": "sequential (α per step)", "cl.hx": "window in", "cl.byrow": "rows (position)",
     "cl.rows": "Rows (e.g. 3, 7, 12–15)", "cl.codes": "all flags", "cl.reason": "Reason (required)", "cl.reason_ph": "e.g. bubble in the specimen",
     "cl.m_grubbs": "Grubbs (normal data, n ≥ 3)", "cl.m_dixon": "Dixon Q (small series, n 3–10)", "cl.m_iqr": "Tukey/IQR (distribution-free)", "cl.m_hampel": "Hampel/MAD (robust, also moving)",
     "cl.m_residual": "Fit residual (deviation from a curve)", "cl.notext": "(text)", "cl.badrows": "Rows “{s}” not readable",
@@ -478,7 +492,7 @@ const DP_T = {
     "ds.check": "Checks", "ds.check_b": "Check", "ds.steps_n": "{n} steps in the log", "ds.export": "Export", "ds.export_t": "With units; XLSX has a “Protokoll” sheet (files, recipe, steps, flags).",
     "ds.exported": "{f} saved ({b})", "ds.report": "Send to report …", "ds.report_na": "Reports are available when the module is opened from Folio Lab.",
     "rp.figures": "Figure (preview with flags)", "rp.tables": "Tables (columns, first rows, flags)", "rp.values": "Values as \\labval (rows, used, excluded, version)",
-    "rp.data": "Data as CSV (for pgfplots)", "rp.citations": "Sources of the methods (Grubbs, Dixon, …)", "rp.text": "Methods text (origin, steps, exclusions)", "rp.scope": "Dataset “{t}” v{v}",
+    "rp.data": "Data as CSV (for pgfplots)", "rp.citations": "Sources of the methods (Grubbs, Dixon, …)", "rp.text": "Methods text (origin, steps, exclusions)", "rp.scope": "Dataset “{t}” v{v} (Refresh keeps this version)", "rp.live": "Dataset “{t}”, newest version (Refresh follows new versions)",
     "tp.save": "Save as template …", "tp.name": "Template name", "tp.saved": "Template “{n}” saved", "tp.menu": "Templates and batch …", "tp.h": "Templates and batch",
     "tp.t": "A template remembers the marks of a sheet (header, units, roles, metadata). Before applying it checks that header and units are in the same place; the number of rows may change.",
     "tp.none": "No templates yet. Mark a sheet, then choose “Save as template …” in the Mark section.", "tp.apply": "Apply to this sheet", "tp.del": "Delete", "tp.del_q": "Delete template “{n}”?",
@@ -1608,17 +1622,30 @@ function colpropDialog(ser) {
       <label class="small"><input type="radio" name="cpTime" value="elapsed" ${old.time !== "raw" ? "checked" : ""}> ${esc(tr("cp.elapsed"))}</label>
       <label class="small"><input type="radio" name="cpTime" value="raw" ${old.time === "raw" ? "checked" : ""}> ${esc(tr("cp.raw"))}</label>
       <label for="cpTU">${esc(tr("cp.tunit"))}</label><select id="cpTU">${["", "s", "min", "h", "d"].map((u) => `<option value="${u}" ${u === tu ? "selected" : ""}>${esc(u || tr("cp.auto"))}</option>`).join("")}</select>` : ""}
+    <details ${old.u_type ? "open" : ""}><summary class="small">${esc(tr("cp.u"))}</summary>
+      <label for="cpUT">${esc(tr("cp.utype"))}</label><select id="cpUT" style="width:100%">${["", "u", "U", "sd", "se", "ci"].map((u) => `<option value="${u}" ${u === (old.u_type || "") ? "selected" : ""}>${esc(tr("cp.ut_" + (u === "U" ? "UU" : u || "none")))}</option>`).join("")}</select>
+      <label for="cpUK">${esc(tr("cp.uk"))}</label><input type="text" id="cpUK" class="s" value="${esc(old.u_k ?? "")}" placeholder="2">
+      <label for="cpUL">${esc(tr("cp.ul"))}</label><input type="text" id="cpUL" class="s" value="${esc(old.u_level ?? "")}" placeholder="95">
+      <div class="small">${esc(tr("cp.uhint"))}</div></details>
     <div class="row" style="justify-content:flex-end"><button data-x>${esc(tr("dp.cancel"))}</button><button class="primary" data-go>${esc(tr("dp.take"))}</button></div>`);
   d.querySelector("[data-x]").onclick = () => d.close();
   d.querySelector("[data-go]").onclick = () => {
     const sym = d.querySelector("#cpSym").value.trim(), kind = d.querySelector("#cpKind").value;
     const tm = d.querySelector("input[name=cpTime]:checked");
+    const ut = d.querySelector("#cpUT").value, fl = (id) => { const n = parseFloat(d.querySelector(id).value.replace(",", ".")); return isFinite(n) ? n : null; };
+    const uk = fl("#cpUK"), ul = fl("#cpUL");
+    if (ut === "U" && !(uk > 0)) return toast(tr("cp.uk_need"), true);
+    if (ut === "ci" && !(ul > 0 && ul < 100)) return toast(tr("cp.ul_need"), true);
     d.close();
     ser.forEach((j, i) => {
       const o = steps().find((x) => x.op === "colprop" && x.series === j) || {};
       const st = { ...o, op: "colprop", series: j, kind };
       if (i === 0 || ser.length === 1) st.symbol = sym;           // a symbol belongs to one column
       if (tm) { st.time = tm.value; st.time_unit = d.querySelector("#cpTU").value; }
+      delete st.u_k; delete st.u_level;
+      if (ut || o.u_type !== undefined) st.u_type = ut;            // what the ± / uncertainty is (empty: not stated)
+      if (ut === "U") st.u_k = uk;
+      if (ut === "ci") st.u_level = ul;
       addStep(st);
     });
   };
@@ -1844,9 +1871,10 @@ function dsReport(id, ver) {
   const d = dsById(id), title = d ? d.title : id;
   window.Lab.sendToReport({
     module: "datenaufbereitung", title,
-    scopes: [{ id: "ds", label: tr("rp.scope", { t: title, v: ver }) }],
+    // pin: Refresh keeps this version; live: Refresh moves to the newest version of the dataset and says so
+    scopes: [{ id: "pin", label: tr("rp.scope", { t: title, v: ver }) }, { id: "live", label: tr("rp.live", { t: title }) }],
     include: ["figures", "tables", "values", "data", "citations", "text"].map((k) => ({ id: k, label: tr("rp." + k) })),
-    build: ({ lang, include, title: t }) => api("api/bundle", { share: id, version: ver, lang, include, title: t }).then((j) => { delete j._status; return j; }),
+    build: ({ scope, lang, include, title: t }) => api("api/bundle", { share: id, version: ver, mode: scope === "live" ? "live" : "pin", lang, include, title: t }).then((j) => { delete j._status; return j; }),
   });
 }
 function dsRows(list) {
@@ -2196,10 +2224,13 @@ function clRow(o) {
     f = opts("method", m, ["grubbs", "dixon", "iqr", "hampel", "residual"].map((x) => [x, tr("cl.m_" + x)]), true) + csel("col", o.col || (nums.find((c) => c.role === "y") || nums[0] || {}).key, nums)
       + (m === "residual" ? lab(tr("cl.xcol"), csel("x", o.x || (nums.find((c) => c.role === "x") || nums[0] || {}).key, nums)) + lab(tr("cl.order"), inp("degree", o.degree ?? 1)) : "")
       + lab(tr("cl.group"), csel("by", o.by || "", groups.length ? groups : cols, tr("cl.nogroup")))
-      + (m === "grubbs" || m === "dixon" ? lab(tr("cl.alpha"), opts("alpha", o.alpha ?? 0.05, [[0.1, "0,10"], [0.05, "0,05"], [0.01, "0,01"]])) : "")
-      + (m === "grubbs" ? opts("sided", o.sided || "two", [["two", tr("cl.two")], ["max", tr("cl.max")], ["min", tr("cl.min")]]) : "")
+      + (m === "grubbs" ? lab(tr("cl.alpha"), opts("alpha", o.alpha ?? 0.05, [[0.1, "0,10"], [0.05, "0,05"], [0.01, "0,01"]])) : "")
+      // Dixon: only tabulated α (two-sided table; one-sided α = half of it)
+      + (m === "dixon" ? lab(tr("cl.alpha"), opts("alpha", o.alpha ?? 0.05, (o.sided || "two") === "two" ? [[0.1, "0,10"], [0.05, "0,05"], [0.01, "0,01"]] : [[0.05, "0,05"], [0.025, "0,025"], [0.005, "0,005"]])) : "")
+      + (m === "grubbs" || m === "dixon" ? opts("sided", o.sided || "two", [["two", tr("cl.two")], ["max", tr("cl.max")], ["min", tr("cl.min")]], m === "dixon") : "")
+      + (m === "grubbs" ? chk("iterate", o.iterate !== false, tr("cl.iterate")) : "")
       + (m === "iqr" || m === "hampel" || m === "residual" ? lab(tr("cl.k"), inp("k", o.k ?? (m === "iqr" ? 1.5 : 3))) : "")
-      + (m === "hampel" ? lab(tr("cl.window") + " ±", inp("window", o.window ?? 0)) : "");
+      + (m === "hampel" ? lab(tr("cl.window") + " ±", inp("window", o.window ?? 0)) + lab(tr("cl.hx"), csel("x", o.x || "", nums, tr("cl.byrow"))) : "");
   } else if (k === "exclude") {
     f = lab(tr("cl.rows"), inp("rows", o.rows && o.rows.length ? rowsText(o.rows) : "", "w")) + `<span>${esc(tr("cl.codes"))}: ${CL_CODES.map((c) => `<label><input type="checkbox" data-pk="${c}" ${(o.codes || []).includes(c) ? "checked" : ""}> ${esc(tr("fl." + c))}</label>`).join(" ")}</span>`
       + lab(tr("cl.reason"), inp("reason", o.reason, "w", tr("cl.reason_ph")));
@@ -2227,11 +2258,17 @@ function clCollect(row, loose) {
   } else if (k === "outliers") {
     o.method = v("method"); o.col = v("col");
     if (v("by")) o.by = v("by");
-    if (g("alpha")) o.alpha = num("alpha", 0.05);
     if (g("sided")) o.sided = v("sided");
+    if (g("alpha")) o.alpha = num("alpha", 0.05);
+    if (o.method === "dixon" && loose) {                       // side changed: keep α on the matching table column
+      const two = [0.1, 0.05, 0.01], one = [0.05, 0.025, 0.005], cur = (o.sided || "two") === "two" ? two : one;
+      if (!cur.includes(o.alpha)) o.alpha = cur[Math.max(0, (o.sided === "two" ? one : two).indexOf(o.alpha))] ?? 0.05;
+    }
+    if (g("iterate")) o.iterate = v("iterate");
     if (g("k")) o.k = num("k", o.method === "iqr" ? 1.5 : 3);
-    if (g("window")) o.window = Math.max(0, Math.round(num("window", 0)));
     if (g("x")) o.x = v("x");
+    if (g("window")) { const w = Math.max(0, num("window", 0)); o.window = o.method === "hampel" && o.x ? w : Math.round(w); }
+    if (o.method === "hampel" && !o.x) delete o.x;
     if (g("degree")) o.degree = Math.round(num("degree", 1));
   } else if (k === "exclude") {
     o.rows = loose ? (() => { try { return parseRows(v("rows")); } catch (e) { return []; } })() : parseRows(v("rows"));

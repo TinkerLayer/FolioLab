@@ -296,7 +296,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="row"><button id="pkCopy">Tabelle kopieren</button><button id="pkCsv">CSV speichern</button></div>
 
       <details class="lab-fold" data-fold="bands"><summary><span data-i18n="ft.f_bands">Bandenflächen</span> <span class="cnt" id="bdCnt"></span></summary>
-      <div class="small">Bereich mit dem Werkzeug <b>R</b> im Spektrum aufziehen oder hier eingeben. Fläche über einer Geraden zwischen den Grenzen (oder über null).</div>
+      <div class="small">Bereich mit dem Werkzeug <b>R</b> im Spektrum aufziehen oder hier eingeben. Fläche über einer Geraden zwischen den Grenzen (oder über null); Transmission und Reflexion werden dafür in Absorbanz bzw. log(1/R) umgerechnet.</div>
       <div class="row3">
         <div><label for="bdFrom">von [cm⁻¹]</label><input type="number" id="bdFrom"></div>
         <div><label for="bdTo">bis [cm⁻¹]</label><input type="number" id="bdTo"></div>
@@ -354,7 +354,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
     </section>
 
     <section class="pane" data-pane="mischung" hidden>
-      <div class="small">Sucht Kombinationen aus 2–4 Referenzen, deren gewichtete Summe das Spektrum am besten erklärt (nicht-negative Gewichte, gleiche Bibliotheken und Bereiche wie die Suche). Anteile beziehen sich auf die Absorbanz, nicht auf die Masse. Mehr Komponenten werden nur genommen, wenn sie spürbar besser passen.</div>
+      <div class="small">Sucht Kombinationen aus 2–4 Referenzen, deren gewichtete Summe das Spektrum am besten erklärt (nicht-negative Gewichte, gleiche Bibliotheken und Bereiche wie die Suche). Die Prozente sind Flächenanteile am angepassten, normierten Absorbanzspektrum (spektraler Beitrag), keine Massen- oder Volumenanteile. Mehr Komponenten werden nur genommen, wenn sie spürbar besser passen.</div>
       <div class="row2">
         <div><label for="mMax">Höchstens</label><select id="mMax"><option value="2">2 Komponenten</option><option value="3" selected>3 Komponenten</option><option value="4">4 Komponenten (langsamer)</option></select></div>
         <div></div>
@@ -761,7 +761,7 @@ async function analyse(o) {
   if (o.search && !o.searchStale && o.search.hits.length) st.search = { hits: [{ name: o.search.hits[0].name, hqi: o.search.hits[0].hqi }] };
   const j = await withBusy(() => api("api/analyse", { id: o.id, ...st }));
   if (j.error) { toast(j.error, true); return; }
-  o.peaks = j.peaks || []; o.groups = j.groups; o.bandRes = j.bands || []; o.ratioRes = j.ratios || [];
+  o.peaks = j.peaks || []; o.groups = j.groups; o.bandRes = j.bands || []; o.ratioRes = j.ratios || []; o.assignCtx = j.assign_context || null;
   o.eqRes = j.equations || []; o.vars = j.variables || [];
 }
 async function refresh(o) {
@@ -850,7 +850,7 @@ function seriesFor() {
   }
   if (S.mode === "mix" && o.mix && o.mix.combos[o.mixSel]) {
     const g = gridX(), c = o.mix.combos[o.mixSel];
-    c.components.forEach((k, i) => list.push({ x: g, y: k.y, color: COLORS[(i + 2) % COLORS.length], width: 0.9, fill: true, label: `${k.name} (${fx(100 * k.frac, 0)} %)` }));
+    c.components.forEach((k, i) => list.push({ x: g, y: k.y, color: COLORS[(i + 2) % COLORS.length], width: 0.9, fill: true, label: `${k.name} (${fx(100 * k.frac, 0)} % Fläche)` }));
     list.push({ x: g, y: o.mix.query, color: COL.ink, width: 1.3, label: o.name, kind: "q" });
     list.push({ x: g, y: c.fit, color: COL.accent2, width: 1.2, dash: [5, 3], label: `Anpassung (HQI ${fx(c.hqi, 1)})` });
     const res = c.residual.map(v => v === null ? null : v - 0.18);
@@ -1355,7 +1355,7 @@ async function askText(title, label, value) {
 
 // ---------------------------------------------------------------- Bearbeiten (Schritte mit Vorschau)
 const VIS = {   // Parameter, die nur bei bestimmten Einstellungen gelten
-  baseline: { lam: (p) => p.method === "als", p: (p) => p.method === "als", deg: (p) => p.method === "poly", interp: (p) => p.method === "points", pts: (p) => p.method === "points" },
+  baseline: { lam: (p) => p.method === "als", lam_ref: (p) => p.method === "als", p: (p) => p.method === "als", deg: (p) => p.method === "poly", interp: (p) => p.method === "points", pts: (p) => p.method === "points" },
   smooth: { order: (p) => p.method === "sg" },
   normalize: { at: (p) => p.mode === "peak" },
   offset: { value: (p) => p.mode === "value" },
@@ -1368,9 +1368,9 @@ const OP_HELP = {
   interp: "Gleichmässiger Punktabstand, z. B. um Spektren verschiedener Geräte zu vergleichen.",
   smooth: "Savitzky-Golay erhält Bandenlagen und -höhen besser als ein gleitender Mittelwert.",
   baseline: "Gummiband: untere konvexe Hülle, ohne Parameter. ALS: flexibel, für gekrümmte Basislinien. Polynom: iterativ unter das Spektrum. Stützpunkte: mit Werkzeug B ins Spektrum klicken.",
-  co2: "Ersetzt die CO₂-Banden (2400–2250 und 720–630 cm⁻¹) durch eine Gerade.",
-  atr: "Gleicht die wellenlängenabhängige Eindringtiefe aus (A · ν̃/ν̃ref), damit ATR-Spektren Transmissionsspektren ähneln.",
-  normalize: "Macht Spektren unterschiedlicher Schichtdicke oder Konzentration vergleichbar.",
+  co2: "Ersetzt die CO₂-Banden durch eine Gerade: eng (Standard) 2390–2280 und 680–655 cm⁻¹; weit 2400–2250 und 720–630 cm⁻¹ (entfernt auch Probenbanden wie Polystyrol 698 oder Calcit 712). Liegt eine Probenbande im Bereich, erscheint ein Hinweis.",
+  atr: "Einfache ATR-Korrektur: A · ν̃/ν̃ref, weil die Eindringtiefe proportional zur Wellenlänge ist (Harrick 1967). Brechzahlen und ihre Dispersion gehen nicht ein; Bandenverschiebungen bleiben.",
+  normalize: "Macht Spektren unterschiedlicher Schichtdicke oder Konzentration vergleichbar. „Bande bei …“ nur für Absorbanz (vorher umrechnen).",
   offset: "Verschiebt das Spektrum senkrecht.",
   scale: "Multipliziert alle Werte.",
   deriv: "Ableitungen trennen überlappende Banden und entfernen Basislinien (2. Ableitung: Minima an den Bandenlagen).",
@@ -1584,7 +1584,7 @@ async function showPeakDetail(q) {
   const el = $("#pkDetail");
   el.hidden = false;
   el.innerHTML = `<b>${fx(q.x, 1)} cm⁻¹</b> · ${STR_DE[q.strength] || q.strength}${q.shape ? ", breit" : ""} · FWHM ${fmt(q.fwhm, 0)} cm⁻¹ · λ ${fx(1e4 / q.x, 2)} µm${q.manual ? " · von Hand gesetzt" : ""}<div class="small">mögliche Zuordnungen …</div>`;
-  const j = await api("api/assign", { x: q.x, strength: q.strength });
+  const j = await api("api/assign", { x: q.x, strength: q.strength, fwhm: q.fwhm, context: (cur() || {}).assignCtx || null });
   if (S.hlPeak !== q.x) return;
   el.innerHTML = el.innerHTML.replace(/<div class="small">.*<\/div>$/, "") +
     (j.assign && j.assign.length ? `<ol>${j.assign.map(a => `<li>${esc(a)}</li>`).join("")}</ol>` : `<div class="small">Keine Zuordnung in der Tabelle.</div>`);
@@ -1747,11 +1747,11 @@ function updateMix() {
   const m = o.mix;
   if (!m) { $("#mList").innerHTML = `<div class="empty">Noch nicht gerechnet.</div>`; $("#mDetail").hidden = true; return; }
   if (!m.combos.length) { $("#mList").innerHTML = `<div class="empty">${esc(m.note || "Keine Kombination gefunden.")}</div>`; $("#mDetail").hidden = true; return; }
-  $("#mList").innerHTML = m.combos.map((c, i) => `<div class="combo ${i === o.mixSel ? "sel" : ""}" data-i="${i}"><div class="h"><span>${c.components.map(k => esc(k.name)).join(" + ")}</span><span class="hqi">${fx(c.hqi, 1)}</span></div><div class="c">${c.components.map(k => `${fx(100 * k.frac, 0)} %`).join(" / ")} · ${c.n} Komponente${c.n > 1 ? "n" : ""}</div></div>`).join("");
+  $("#mList").innerHTML = m.combos.map((c, i) => `<div class="combo ${i === o.mixSel ? "sel" : ""}" data-i="${i}"><div class="h"><span>${c.components.map(k => esc(k.name)).join(" + ")}</span><span class="hqi">${fx(c.hqi, 1)}</span></div><div class="c">Flächenanteile ${c.components.map(k => `${fx(100 * k.frac, 0)} %`).join(" / ")} · ${c.n} Komponente${c.n > 1 ? "n" : ""}</div></div>`).join("");
   $$("#mList .combo").forEach(d => d.addEventListener("click", () => { o.mixSel = +d.dataset.i; S.mode = "mix"; S.view = keepX(); updateMix(); updateMode(); draw(); }));
   const c = m.combos[o.mixSel];
   $("#mDetail").hidden = false;
-  $("#mDetail").innerHTML = `<b>HQI ${fx(c.hqi, 1)}</b> (Bestimmtheit der Anpassung)<table class="res" style="margin-top:6px"><thead><tr><th class="l">Komponente</th><th class="l">Bibliothek</th><th>Anteil</th></tr></thead><tbody>` +
+  $("#mDetail").innerHTML = `<b>HQI ${fx(c.hqi, 1)}</b> (Bestimmtheit der Anpassung)<table class="res" style="margin-top:6px"><thead><tr><th class="l">Komponente</th><th class="l">Bibliothek</th><th title="Anteil an der Fläche des angepassten Absorbanzspektrums, kein Massenanteil">Flächenanteil</th></tr></thead><tbody>` +
     c.components.map(k => `<tr><td class="wrap">${esc(k.name)}</td><td class="l">${esc(k.lib_name)}</td><td>${fx(100 * k.frac, 1)} %</td></tr>`).join("") + `</tbody></table>`;
 }
 function updateMode() {
@@ -1981,7 +1981,7 @@ async function eqDialog(e) {
     <label for="eqLab">Bedeutung</label><input type="text" id="eqLab" value="${esc(e.label || "")}" placeholder="z. B. Carbonylindex (SAUB)">
     <label for="eqExpr">Formel</label><input type="text" id="eqExpr" value="${esc(e.expr)}" placeholder="z. B. area(1650, 1850)/area(1420, 1500)" style="font-family:ui-monospace,Consolas,monospace">
     <div class="vars">${ins.map(([t, d]) => `<button type="button" data-ins="${esc(t)}" title="${esc(d)}">${esc(t)}</button>`).join("")}</div>
-    <div class="small" style="margin-top:4px">Flächen und Höhen in den Einheiten des bearbeiteten Spektrums; <code class="eq">A(ν)</code> rechnet Transmission und Reflexion in Absorbanz um.</div>
+    <div class="small" style="margin-top:4px">Flächen und Höhen auf dem bearbeiteten Spektrum; Transmission und Reflexion werden dafür in Absorbanz bzw. log(1/R) umgerechnet, ebenso in <code class="eq">A(ν)</code>.</div>
     ${srcBlock(e.source || { type: "article" }, "Quelle der Gleichung (empfohlen, wird im Bericht zitiert)", hasSrc(e.source))}`;
   const r = await dialogCheck(e.id ? "Gleichung bearbeiten" : "Neue Gleichung", html, "Speichern", async (b) => {
     const s = readSrc(b);
@@ -2226,8 +2226,31 @@ function updateAll() {
 function updateQuality() {
   const o = cur(), q = o && o.data && o.data.quality;
   const w = q ? q.warnings || [] : [];
-  $("#qNote").hidden = !w.length;
-  $("#qNote").innerHTML = w.map(x => `<div>${esc(x.de)}</div>`).join("");
+  const ro = (o && o.info && o.info.meta && o.info.meta.read_opts) || null;
+  const guess = w.some(x => x.kind === "guess_x" || x.kind === "guess_y") || !!ro;
+  $("#qNote").hidden = !w.length && !guess;
+  $("#qNote").innerHTML = w.map(x => `<div>${esc(x.de)}</div>`).join("") +
+    (guess ? `<div>${ro ? "Einheiten beim Einlesen gewählt. " : ""}<button type="button" id="qUnits">Einheiten …</button></div>` : "");
+  const b = $("#qUnits");
+  if (b) b.addEventListener("click", () => chooseUnits(o));
+}
+// Einheiten wählen, wenn die Datei x- oder y-Einheit nicht angibt (sonst geraten, siehe Hinweis)
+async function chooseUnits(o) {
+  if (!o || !META.read_units) return;
+  const ro = (o.info.meta && o.info.meta.read_opts) || {};
+  const opt = (m, v) => Object.entries(m).map(([k, l]) => `<option value="${esc(k)}"${k === (v || "auto") ? " selected" : ""}>${esc(l)}</option>`).join("");
+  const body = `<div class="small">Gilt nur, wo die Datei keine Einheit angibt. „automatisch“: x-Werte bis 50 gelten als Wellenlänge in µm, sonst als Wellenzahl in cm⁻¹; die y-Einheit wird aus den Werten geraten.</div>
+    <label for="ruX">x-Achse</label><select id="ruX">${opt(META.read_units.x, ro.xunit)}</select>
+    <label for="ruY">y-Werte</label><select id="ruY">${opt(META.read_units.y, ro.yunit)}</select>`;
+  const r = await dialog("Einheiten beim Einlesen", body, [{ value: "cancel", label: "Abbrechen" }, { value: "ok", label: "Neu einlesen", primary: true }]);
+  if (r !== "ok") return;
+  const j = await withBusy(() => api("api/reread", { id: o.id, xunit: $("#ruX").value, yunit: $("#ruY").value }));
+  if (j.error) return toast(j.error, true);
+  o.info = j.spectrum;
+  try { await refresh(o); } catch (e) { toast(e.message, true); }
+  if (o.search) o.searchStale = true;
+  if (o.mix) o.mixStale = true;
+  updateAll();
 }
 
 // ---------------------------------------------------------------- Ereignisse

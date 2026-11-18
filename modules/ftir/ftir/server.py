@@ -44,7 +44,7 @@ from . import samples as SM
 from . import search as SR
 from .analysis import FUNCTIONS_DOC, arr, run
 from .library import GRID, MODEL_ID, Libraries, prep
-from .readers import YUNITS, ReadError, Spectrum, load_bytes, to_csv, to_jcamp
+from .readers import XUNIT_CHOICES, YUNIT_CHOICES, YUNITS, ReadError, Spectrum, load_bytes, to_csv, to_jcamp
 
 STATIC = Path(__file__).resolve().parent / "static"
 ROOT = Path(__file__).resolve().parents[1]
@@ -117,8 +117,30 @@ def add_item(sp: Spectrum, raw: bytes, fname: str, idx: int, iid: str | None = N
     with STATE.lock:
         STATE.items[iid] = Item(sp, raw, fname, idx)
     if keep:
-        STATE.envs.remember(iid, raw, fname, idx, sp.name)
+        ro = (sp.meta or {}).get("read_opts")
+        if ro:                                         # Einheitenwahl beim Einlesen geht mit der Umgebung mit
+            STATE.envs.remember(iid, raw, fname, idx, sp.name, read=ro)
+        else:
+            STATE.envs.remember(iid, raw, fname, idx, sp.name)
     return describe(iid)
+
+
+def reread(req) -> dict:
+    """Spektrum mit gewählten Einheiten neu einlesen (für Dateien, die x- oder y-Einheit nicht angeben)."""
+    iid = str(req.get("id") or "")
+    it = item(iid)
+    opts = {"xunit": req.get("xunit") or "auto", "yunit": req.get("yunit") or "auto"}
+    sps = load_bytes(it.raw, it.fname, opts)
+    if it.idx >= len(sps):
+        raise ReadError(f"{it.fname}: Spektrum {it.idx + 1} fehlt")
+    sp = sps[it.idx]
+    sp.name = it.sp.name
+    with STATE.lock:
+        STATE.items[iid] = Item(sp, it.raw, it.fname, it.idx)
+        for k in [k for k in STATE.cache if k[0] == iid]:
+            STATE.cache.pop(k, None)
+    STATE.envs.set_extra(iid, read=sp.meta.get("read_opts"))
+    return {"spectrum": describe(iid)}
 
 
 def describe(iid) -> dict:
@@ -227,9 +249,9 @@ def reload_env() -> list[dict]:
         STATE.items.clear()
         STATE.cache.clear()
     out = []
-    for iid, raw, fname, idx, name, _extra in STATE.envs.stored():
+    for iid, raw, fname, idx, name, extra in STATE.envs.stored():
         try:
-            sp = load_bytes(raw, fname)[idx]
+            sp = load_bytes(raw, fname, extra.get("read") or None)[idx]
         except (ReadError, IndexError, ValueError):
             continue
         if name:
@@ -238,8 +260,8 @@ def reload_env() -> list[dict]:
     return out
 
 
-def load_file(data: bytes, name: str) -> list[dict]:
-    sps = load_bytes(data, name)
+def load_file(data: bytes, name: str, opts: dict | None = None) -> list[dict]:
+    sps = load_bytes(data, name, opts)
     return [add_item(sp, data, name, i) for i, sp in enumerate(sps)]
 
 
@@ -329,6 +351,7 @@ def meta_payload() -> dict:
         "out_root": str(STATE.out_root),
         "own_refs": STATE.libs.OWN_REFS,
         "eq_functions": FUNCTIONS_DOC,
+        "read_units": {"x": XUNIT_CHOICES, "y": YUNIT_CHOICES},
     }
 
 
@@ -336,8 +359,11 @@ def spectrum_payload(iid, pipeline, preview=False) -> dict:
     it = item(iid)
     proc = processed(iid, pipeline)
     sp = proc.spectrum
+    q = QA.assess(sp.x, sp.y, sp.yunit)
+    # Hinweise zum Einlesen (geratene Einheiten) und zu Bearbeitungsschritten (z. B. CO₂-Brücke) vor denen zur Qualität
+    q["warnings"] = list((it.sp.meta or {}).get("warnings") or []) + list(proc.warnings) + list(q["warnings"])
     out = {"id": iid, "name": it.sp.name, "x": sp.x.astype(np.float32), "y": sp.y.astype(np.float32), "yunit": sp.yunit,
-           "steps": proc.steps, "orig": it.sp.describe(), "n": len(sp.x), "quality": QA.assess(sp.x, sp.y, sp.yunit)}
+           "steps": proc.steps, "orig": it.sp.describe(), "n": len(sp.x), "quality": q}
     if preview and pipeline:
         before = processed(iid, pipeline[:-1]).spectrum
         out["before"] = {"x": before.x.astype(np.float32), "y": before.y.astype(np.float32), "yunit": before.yunit}
@@ -446,7 +472,9 @@ def export(req) -> dict:
     (folder / "spektrum.csv").write_text(to_csv(sp), encoding="utf-8")
     files += ["spektrum.jdx", "spektrum.csv"]
     if a.peaks:
-        _csv(folder / "banden.csv", ["Wellenzahl_cm-1", "y", "rel_Intensitaet", "Staerke", "FWHM_cm-1", "Flaeche", "Zuordnung"],
+        fl = "" if sp.yunit not in PK.AREA_BASIS else "_" + PK.AREA_BASIS[sp.yunit]   # T/R: auf A bzw. log(1/R)
+        _csv(folder / "banden.csv", ["Wellenzahl_cm-1", "y", "rel_Intensitaet", "Staerke", "FWHM_cm-1" + fl, "Flaeche" + fl,
+                                     "Zuordnung"],
              [[p["x"], p["y"], p["rel"], p["strength"], p["fwhm"], p["area"], " | ".join(p.get("assign") or [])] for p in a.peaks])
         files.append("banden.csv")
     if a.groups:
@@ -456,7 +484,8 @@ def export(req) -> dict:
                           for e in c.get("evidence") or [])] for c in a.groups["classes"]])
         files.append("gruppen.csv")
     if a.bands:
-        _csv(folder / "flaechen.csv", ["Bande", "von", "bis", "Flaeche", "Hoehe", "Lage", "Schwerpunkt"],
+        fl = "" if sp.yunit not in PK.AREA_BASIS else "_" + PK.AREA_BASIS[sp.yunit]
+        _csv(folder / "flaechen.csv", ["Bande", "von", "bis", "Flaeche" + fl, "Hoehe" + fl, "Lage", "Schwerpunkt"],
              [[r["name"], r["lo"], r["hi"], r["area"], r["height"], r["pos"], r.get("centroid")] for r in a.bands] +
              [[f"Verhältnis {r['name']}", None, None, r["value"], None, None, None] for r in a.ratios])
         files.append("flaechen.csv")
@@ -472,7 +501,8 @@ def export(req) -> dict:
             fig(C.fig_search(GRID, q, hits, "de", a.name), "suche.png")
     m = state.get("mixture") or {}
     if m.get("components"):
-        _csv(folder / "mischung.csv", ["Komponente", "Bibliothek", "Anteil_Prozent", "Quelle"],
+        _csv(folder / "mischung.csv", ["Komponente", "Bibliothek", "Flaechenanteil_Prozent (spektraler Beitrag, kein Massenanteil)",
+                                       "Quelle"],
              [[c["name"], c.get("lib_name"), 100 * c["frac"], c.get("source")] for c in m["components"]] + [["HQI", "", m["hqi"], ""]])
         files.append("mischung.csv")
         if m.get("query") is not None:
@@ -498,7 +528,10 @@ def export(req) -> dict:
         if line not in srcs:
             srcs.append(line)
     if any(str(h.get("lib")).startswith("openspecy") for h in used):
-        srcs.insert(0, "Open Specy: Cowger W. et al. (2025), Analytical Chemistry, doi:10.1021/acs.analchem.5c00962")
+        srcs.insert(0, "Open Specy: Cowger W. et al. (2021), Microplastic spectral classification needs an open source "
+                       "community: Open Specy to the rescue!, Analytical Chemistry 93, 7543–7548, "
+                       "doi:10.1021/acs.analchem.1c00123; Cowger W. et al. (2025), Open Specy 1.0, Analytical Chemistry, "
+                       "doi:10.1021/acs.analchem.5c00962 (Angaben nicht geprüft)")
     if srcs:
         lines += ["", "Quellen der Referenzspektren:"] + [f"  {x}" for x in srcs]
     (folder / "protokoll.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -568,7 +601,10 @@ class Handler(BaseHTTPRequestHandler):
         qs = parse_qs(url.query)
         if p == "/api/load":
             name = unquote(qs.get("name", ["Spektrum.csv"])[0])
-            return self._json({"spectra": load_file(self._body(), name)})
+            opts = {"xunit": qs.get("xunit", ["auto"])[0], "yunit": qs.get("yunit", ["auto"])[0]}
+            return self._json({"spectra": load_file(self._body(), name, opts)})
+        if p == "/api/reread":                         # Einheiten wählen, wenn die Datei sie nicht angibt
+            return self._json(reread(self._req()))
         if p == "/api/sample":
             which = self._req().get("which") or "pet"
             data, name = SM.make(which)
@@ -618,11 +654,14 @@ class Handler(BaseHTTPRequestHandler):
             st["search"] = {"hits": ((req.get("search") or {}).get("hits") or [])[:1]}   # nur für hqi1
             a = run(it.sp, st, "de")
             return self._json({"peaks": a.peaks, "groups": a.groups, "bands": a.bands, "ratios": a.ratios,
-                               "yunit": a.sp.yunit, "equations": a.equations,
+                               "yunit": a.sp.yunit, "equations": a.equations, "assign_context": a.assign_context,
                                "variables": [{"name": k, **v} for k, v in a.variables.items()]})
         if p == "/api/assign":
             req = self._req()
-            return self._json({"assign": GR.assign(float(req.get("x")), req.get("strength") or "m", "de", n=6)})
+            fw = req.get("fwhm")
+            ctx = req.get("context") if isinstance(req.get("context"), dict) else None
+            return self._json({"assign": GR.assign(float(req.get("x")), req.get("strength") or "m", "de", n=6,
+                                                   fwhm=float(fw) if fw is not None else None, context=ctx)})
         if p == "/api/grouptable":
             return self._json({"table": GR.table("de")})
         if p == "/api/integrate":
@@ -678,6 +717,7 @@ class Handler(BaseHTTPRequestHandler):
             name = unquote(qs.get("name", ["Referenz.jdx"])[0])
             category = unquote(qs.get("category", [""])[0])
             label = unquote(qs.get("label", [""])[0]).strip()
+            raw = self._body()                 # erst lesen: eine Ablehnung vor dem Lesen bricht unter Windows die Verbindung ab
             cite = None
             if qs.get("cite"):
                 try:
@@ -687,7 +727,7 @@ class Handler(BaseHTTPRequestHandler):
             from .library import clean_cite
             cite = clean_cite(cite)            # prüfen, bevor etwas gespeichert wird
             lib = L.own_refs() if lid == L.OWN_REFS else L.get(lid)
-            sps = load_bytes(self._body(), name)
+            sps = load_bytes(raw, name)
             added, failed = [], []
             with L.lock:
                 for sp in sps:
@@ -797,6 +837,8 @@ class Handler(BaseHTTPRequestHandler):
                 state = x.get("state") or {}
                 items.append((it.raw, it.fname, it.idx, state))
                 rx = {"name": it.fname, "idx": it.idx, "label": it.sp.name, "state": state}
+                if (it.sp.meta or {}).get("read_opts"):          # Einheitenwahl beim Einlesen (Bericht liest neu ein)
+                    rx["read"] = it.sp.meta["read_opts"]
                 src = (it.sp.meta or {}).get("dataset") or {}
                 if src.get("share"):                   # DP-13: Datensatz-Version für Herkunft und Aufbewahrung (labprov)
                     rx["dataset"] = {"share": src["share"], "version": src.get("version"), "title": src.get("title")}
@@ -820,6 +862,8 @@ class Handler(BaseHTTPRequestHandler):
             st = dict(state)
             if x.get("label"):
                 st["_label"] = x["label"]
+            if x.get("read"):
+                st["_read"] = x["read"]
             labelled.append((raw, fname, idx, st))
         request = {"items": req_items, "lang": req.get("lang", "de"), "include": req.get("include") or {},
                    "title": req.get("title") or None, "slug": req.get("slug") or None}

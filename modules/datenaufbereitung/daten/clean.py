@@ -14,6 +14,7 @@ DP-08  outliers (Grubbs, Dixon Q, Tukey/IQR, Hampel/MAD, fit residual) → `outl
 from __future__ import annotations
 
 import math
+import re
 
 import numpy as np
 
@@ -21,6 +22,7 @@ import labdataset as DS
 from labcalc import units as U
 
 MAX_FLAGS = 50_000
+MAX_INTERP_FLAGS = 20_000          # "interpolated" flags per joined column; more are reported in the step text
 
 
 class CleanError(ValueError):
@@ -41,18 +43,25 @@ SOURCES = {
                "volume": "23", "pages": "636-638", "doi": "10.1021/ac60052a025"},
     "iqr": {"key": "tukey1977", "type": "book", "authors": "Tukey, John W.", "year": "1977",
             "title": "Exploratory Data Analysis", "container": "Addison-Wesley"},
+    # the quartiles are numpy's linear interpolation = definition 7 in this paper (not Tukey's hinges)
+    "quantile7": {"key": "hyndman1996", "type": "article", "authors": "Hyndman, Rob J.; Fan, Yanan", "year": "1996",
+                  "title": "Sample Quantiles in Statistical Packages", "container": "The American Statistician",
+                  "volume": "50", "pages": "361-365"},
     "hampel": {"key": "hampel1974", "type": "article", "authors": "Hampel, Frank R.", "year": "1974",
                "title": "The Influence Curve and Its Role in Robust Estimation",
                "container": "Journal of the American Statistical Association", "volume": "69", "pages": "383-393",
                "doi": "10.1080/01621459.1974.10482962"},
-    "residual": {"key": "nist-esh", "type": "web", "authors": "NIST/SEMATECH", "accessed": "2026-11-17",
-                 "title": "e-Handbook of Statistical Methods", "url": "https://www.itl.nist.gov/div898/handbook/"},
+    "nist": {"key": "nist-esh", "type": "web", "authors": "NIST/SEMATECH", "accessed": "2026-11-17",
+             "title": "e-Handbook of Statistical Methods", "url": "https://www.itl.nist.gov/div898/handbook/",
+             "doi": "10.18434/M32189"},
     "savgol": {"key": "savitzky1964", "type": "article", "authors": "Savitzky, Abraham; Golay, Marcel J. E.",
                "year": "1964", "title": "Smoothing and Differentiation of Data by Simplified Least Squares Procedures",
                "container": "Analytical Chemistry", "volume": "36", "pages": "1627-1639", "doi": "10.1021/ac60214a047"},
 }
-METHOD_SOURCES = {"grubbs": ["grubbs", "residual"], "dixon": ["dixon0", "dixon"], "iqr": ["iqr"], "hampel": ["hampel"],
-                  "residual": ["residual"], "smooth": ["savgol"]}
+# The fit-residual test has no cited source: the externally studentised residual is a standard regression diagnostic
+# and its threshold k is a rule of thumb (methods page, "Fit residual").
+METHOD_SOURCES = {"grubbs": ["grubbs", "nist"], "dixon": ["dixon0", "dixon"], "iqr": ["iqr", "quantile7"],
+                  "hampel": ["hampel"], "residual": [], "smooth": ["savgol"]}
 
 
 def _de(x, nd=3) -> str:
@@ -283,14 +292,43 @@ def op_replicates(t: Table, op: dict, ctx=None) -> str:
                  {"key": kn, "name": f"n({c['name']})"[:120], "unit": "", "dtype": "number", "role": "",
                   "note": "Anzahl Werte je Gruppe"},
                  {"key": kse, "name": f"SE({c['name']})"[:120], "unit": c.get("unit", ""), "kind": c.get("kind", ""),
-                  "dtype": "number", "role": "uncertainty", "note": "Standardfehler s/√n"}]
+                  "dtype": "number", "role": "uncertainty", "note": "Standardfehler s/√n", "u_type": "se"}]
         if (c.get("kind") or "") in ("temperature",):              # a spread of temperatures is a difference
             cols[-3]["kind"] = cols[-1]["kind"] = "temp_diff"
         data.update({k: mean, ks: s, kn: n, kse: se})
     rows_in, nex = t.n, int((~used).sum())
-    t.cols, t.data, t.n, t.flags = cols, data, len(keep), []
+    # Flags of the averaged rows go to the mean (excluded rows were left out above): a mean that contains a flagged
+    # value (outlier not excluded, value = detection limit, interpolated, converted …) carries a flag of the same code
+    # on the same column, naming the source rows. Flags of cells that held no value (missing, unreadable) only show in
+    # n; flags of columns that are not kept are dropped and counted.
+    vset, bset = set(vals), set(by)
+    new_flags, dropped = {}, 0
+    for gi, (g, _) in enumerate(keep):
+        members = set(groups[g])
+        for f in t.flags:
+            if f["row"] not in members or f.get("excluded"):
+                continue
+            c = f.get("col")
+            if c and c not in vset and c not in bset:
+                dropped += 1
+                continue
+            if f["code"] in ("missing", "parse_error") or (c in vset and not np.isfinite(t.data[c][f["row"]])):
+                continue
+            rec = new_flags.setdefault((gi, c or "", f["code"]), {"rows": [], "rules": []})
+            rec["rows"].append(f["row"] + 1)
+            if f.get("rule") and f["rule"] not in rec["rules"]:
+                rec["rules"].append(f["rule"])
+    flags = []
+    for (gi, c, code), rec in sorted(new_flags.items()):
+        rows = sorted(set(rec["rows"]))
+        flags.append({"row": gi, **({"col": c} if c else {}), "code": code,
+                      "rule": ("Mittelwert enthält markierte Werte" + (f" ({rec['rules'][0]})" if rec["rules"] else ""))[:300],
+                      "reason": (f"aus Zeile(n) {', '.join(map(str, rows[:20]))}" + (" …" if len(rows) > 20 else ""))[:300]})
+    t.cols, t.data, t.n, t.flags = cols, data, len(keep), flags
     return (f"Wiederholungen gemittelt: {len(keep)} Gruppen aus {rows_in} Zeilen" +
-            (f" ({nex} ausgeschlossene Zeile(n) nicht gemittelt)" if nex else ""))
+            (f"; {nex} ausgeschlossene Zeile(n) vor dem Mitteln weggelassen" if nex else "") +
+            (f"; {len(flags)} Markierung(en) auf die Mittelwerte übertragen" if flags else "") +
+            (f"; {dropped} Markierung(en) nicht gemittelter Spalten entfallen" if dropped else ""))
 
 
 # ----------------------------------------------------------------------------- DP-07 join, smooth
@@ -314,11 +352,13 @@ def op_join(t: Table, op: dict, ctx=None) -> str:
         raise CleanError("Verbinden: Spalten des zweiten Datensatzes wählen")
     title = other.header.get("title") or sid
     ver = env.get("version")
+    if isinstance(getattr(ctx, "inputs", None), list):            # the version actually used (also for live joins)
+        ctx.inputs.append({"share": sid, "version": ver, "title": str(title)[:160]})
     order = np.argsort(x2, kind="stable")
     x2s = x2[order]
     exact = np.isin(x, x2s)
     lo, hi = (np.nanmin(x2s), np.nanmax(x2s)) if np.isfinite(x2s).any() else (math.nan, math.nan)
-    added = []
+    added, cut = [], []
     for k in keys:
         try:
             c2 = other.col(k)
@@ -340,12 +380,16 @@ def op_join(t: Table, op: dict, ctx=None) -> str:
                        "kind": c2.get("kind", ""), "dtype": "number", "role": "y",
                        "note": f"linear interpoliert aus „{title}“ v{ver} auf {cx['name']}"[:200]})
         t.data[key] = y
-        for i in np.where(np.isfinite(y) & ~exact)[0][:20000]:
+        rows = np.where(np.isfinite(y) & ~exact)[0]
+        for i in rows[:MAX_INTERP_FLAGS]:
             t.add_flag({"row": int(i), "col": key, "code": "interpolated", "rule": f"linear aus „{title}“ v{ver}"[:200]})
+        if rows.size > MAX_INTERP_FLAGS:
+            cut.append(f"„{key}“: {rows.size} interpolierte Werte, nur die ersten {MAX_INTERP_FLAGS} markiert")
         added.append(key)
     outside = int((np.isfinite(x) & ((x < lo) | (x > hi))).sum())
     return (f"Verbunden mit „{title}“ v{ver} über {cx['name']}: " + ", ".join(added) +
-            (f"; {outside} Zeile(n) ausserhalb des Bereichs leer" if outside else ""))
+            (f"; {outside} Zeile(n) ausserhalb des Bereichs leer" if outside else "") +
+            ("; GEKÜRZT: " + "; ".join(cut) if cut else ""))
 
 
 def sg_coeffs(w: int, p: int) -> np.ndarray:
@@ -471,8 +515,13 @@ def grubbs_crit(n: int, alpha: float, sided: str = "two") -> float:
 
 
 def grubbs(x, alpha: float = 0.05, sided: str = "two", iterate: bool = True) -> list[dict]:
-    """Grubbs' test (Grubbs 1969): G = max |x − mean| / s against the critical value from Student's t.
-    `sided`: two | max | min. Iterated: the outlier is set aside and the rest tested again."""
+    """Grubbs' test (Grubbs 1969; NIST/SEMATECH e-Handbook, Grubbs' test): G = max |x − mean| / s against the critical
+    value from Student's t. `sided`: two | max | min.
+    `iterate` (default): the sequential procedure – the flagged value is set aside and the rest tested again with
+    the same α in every step (α per step, until a step is not significant). The error rate of the whole procedure is
+    not controlled at α: once a real outlier has been set aside, each further step can flag a good value with
+    probability α, and masking/swamping are not controlled (ASTM E178 discusses repeated application).
+    `iterate=False`: a single test of the most extreme value."""
     x = np.asarray(x, float)
     idx = np.where(np.isfinite(x))[0]
     out = []
@@ -494,20 +543,43 @@ def grubbs(x, alpha: float = 0.05, sided: str = "two", iterate: bool = True) -> 
     return out
 
 
-# Rorabacher (1991), Table: critical Q (r10) for n = 3 … 10
+# Critical values of r10 for n = 3 … 10 as tabulated by Rorabacher (1991) (values as reproduced in the code since
+# DP-08; the publication was not available offline, so the transcription is NOT checked against it). α is the
+# TWO-SIDED level: the larger of the two end ratios is compared, P(max(Q_low, Q_high) > Q_crit) = α. An independent
+# numerical computation for a normal parent (methods page, section Dixon Q; test_dixon_table_matches_null_distribution)
+# reproduces the table within 0.003, except n = 4, α = 0.01 (0.926 here, ≈ 0.921 computed) – kept, not replaced.
 DIXON_Q = {0.10: [0.941, 0.765, 0.642, 0.560, 0.507, 0.468, 0.437, 0.412],
            0.05: [0.970, 0.829, 0.710, 0.625, 0.568, 0.526, 0.493, 0.466],
            0.01: [0.994, 0.926, 0.821, 0.740, 0.680, 0.634, 0.598, 0.568]}
+# One-sided test of a named end at level α uses the two-sided column 2α (P of both ends exceeding is 0 for Q > 0.5
+# and below 10⁻⁴ otherwise for these n), so only α = 0.05, 0.025, 0.005 are tabulated one-sided.
+DIXON_ONE = {0.05: 0.10, 0.025: 0.05, 0.005: 0.01}
 
 
-def dixon(x, alpha: float = 0.05) -> list[dict]:
-    """Dixon's Q test (r10 = gap/range; Dean & Dixon 1951, critical values Rorabacher 1991) for 3 … 10 values,
-    both ends."""
+def _alpha_key(alpha: float, table) -> float | None:
+    return next((a for a in table if abs(a - alpha) < 1e-12), None)
+
+
+def dixon(x, alpha: float = 0.05, sided: str = "two") -> list[dict]:
+    """Dixon's Q test (r10 = gap/range; Dean & Dixon 1951, critical values Rorabacher 1991) for 3 … 10 values.
+    sided="two" (default): the end with the larger ratio is tested at the two-sided α (0.10, 0.05, 0.01);
+    "max" / "min": only the highest / lowest value, one-sided α (0.05, 0.025, 0.005). Other α are refused, never replaced."""
     x = np.asarray(x, float)
     idx = np.where(np.isfinite(x))[0]
     n = idx.size
-    if alpha not in DIXON_Q:
-        raise CleanError("Dixon: α = 0,10, 0,05 oder 0,01")
+    if sided not in ("two", "max", "min"):
+        raise CleanError(f"Dixon: Seite „{sided}“ unbekannt (zweiseitig, nur Maximum, nur Minimum)")
+    if sided == "two":
+        a2 = _alpha_key(alpha, DIXON_Q)
+        if a2 is None:
+            raise CleanError(f"Dixon: α = {_de(float(alpha))} ist für den zweiseitigen Test nicht tabelliert "
+                             f"(nur 0,10, 0,05 oder 0,01) – kein Ersatzwert")
+    else:
+        a1 = _alpha_key(alpha, DIXON_ONE)
+        if a1 is None:
+            raise CleanError(f"Dixon: α = {_de(float(alpha))} ist für den einseitigen Test nicht tabelliert "
+                             f"(nur 0,05, 0,025 oder 0,005) – kein Ersatzwert")
+        a2 = DIXON_ONE[a1]
     if not 3 <= n <= 10:
         raise CleanError(f"Dixon-Q-Test nur für 3 bis 10 Werte (hier {n}) – Grubbs verwenden")
     o = idx[np.argsort(x[idx], kind="stable")]
@@ -515,17 +587,21 @@ def dixon(x, alpha: float = 0.05) -> list[dict]:
     rng = v[-1] - v[0]
     if rng <= 0:
         return []
-    crit = DIXON_Q[alpha][n - 3]
-    out = []
-    for j, gap in ((0, v[1] - v[0]), (n - 1, v[-1] - v[-2])):
-        q = gap / rng
-        if q > crit:
-            out.append({"i": int(o[j]), "Q": float(q), "crit": crit, "n": n})
-    return out
+    crit = DIXON_Q[a2][n - 3]
+    lo, hi = (0, float((v[1] - v[0]) / rng)), (n - 1, float((v[-1] - v[-2]) / rng))
+    if sided == "max":
+        j, q = hi
+    elif sided == "min":
+        j, q = lo
+    else:
+        j, q = hi if hi[1] >= lo[1] else lo
+    return [{"i": int(o[j]), "Q": q, "crit": crit, "n": n}] if q > crit else []
 
 
 def iqr(x, k: float = 1.5) -> tuple[list[dict], float, float]:
-    """Tukey fences: outside [Q1 − k·IQR, Q3 + k·IQR] (quartiles by linear interpolation)."""
+    """Tukey's fences (Tukey 1977): outside [Q1 − k·IQR, Q3 + k·IQR]. The quartiles are numpy.percentile with linear
+    interpolation, i.e. sample quantile definition 7 of Hyndman & Fan (1996) – NOT Tukey's hinges, so the fences can
+    differ slightly from a textbook box plot."""
     x = np.asarray(x, float)
     v = x[np.isfinite(x)]
     if v.size < 4:
@@ -535,8 +611,11 @@ def iqr(x, k: float = 1.5) -> tuple[list[dict], float, float]:
     return [{"i": int(i), "v": float(x[i])} for i in np.where(np.isfinite(x) & ((x < lo) | (x > hi)))[0]], float(lo), float(hi)
 
 
-def hampel(x, k: float = 3.0, window: int = 0) -> list[dict]:
-    """Hampel identifier: |x − median| > k · 1,4826 · MAD; `window` > 0: moving median over ±window rows."""
+def hampel(x, k: float = 3.0, window: float = 0, xs=None) -> list[dict]:
+    """Hampel identifier: |x − median| > k · 1,4826 · MAD (MAD scaled to estimate σ of a normal distribution).
+    `window` > 0 without `xs`: moving median over the ±window neighbouring finite values (by position, the spacing of
+    x is ignored). With `xs` (same length): the window holds all finite values with |xs_j − xs_i| ≤ window, in the
+    unit of xs (unequal spacing respected); values without a finite xs are not tested."""
     x = np.asarray(x, float)
     fin = np.where(np.isfinite(x))[0]
     out = []
@@ -549,6 +628,17 @@ def hampel(x, k: float = 3.0, window: int = 0) -> list[dict]:
         if mad > 0:
             out = [{"i": int(i), "med": float(med), "mad": float(mad)} for i in fin if abs(x[i] - med) > k * mad]
         return out
+    if xs is not None:
+        xs = np.asarray(xs, float)
+        fin = fin[np.isfinite(xs[fin])]
+        for i in fin:
+            w = x[fin[np.abs(xs[fin] - xs[i]) <= window]]
+            med = np.median(w)
+            mad = 1.4826 * np.median(np.abs(w - med))
+            if mad > 0 and abs(x[i] - med) > k * mad:
+                out.append({"i": int(i), "med": float(med), "mad": float(mad), "n": int(w.size)})
+        return out
+    window = int(window)
     for p, i in enumerate(fin):
         w = x[fin[max(0, p - window):p + window + 1]]
         med = np.median(w)
@@ -560,9 +650,11 @@ def hampel(x, k: float = 3.0, window: int = 0) -> list[dict]:
 
 def residual(x, y, k: float = 3.0, degree: int = 1) -> list[dict]:
     """Points far from a polynomial fit: externally studentized (deleted) residual
-    t_i = e_i / (s_(i) √(1 − h_ii)) with s_(i) the scatter of the fit without point i (NIST/SEMATECH e-Handbook).
-    The worst point above k is flagged, the fit repeated without it, until none is left (at most a quarter of the
-    points) – so a large outlier cannot hide itself by inflating the scatter."""
+    t_i = e_i / (s_(i) √(1 − h_ii)) with s_(i) the scatter of the fit without point i (a standard regression
+    diagnostic; no source is cited for it here). `k` is the threshold on |t_i| – default 3, a rule of thumb, not a
+    significance level and without a correction for testing n points. The worst point above k is flagged, the fit
+    repeated without it, until none is left (at most a quarter of the points) – so a large outlier cannot hide itself
+    by inflating the scatter."""
     x, y = np.asarray(x, float), np.asarray(y, float)
     ok = list(np.where(np.isfinite(x) & np.isfinite(y))[0])
     p = degree + 1
@@ -615,43 +707,65 @@ def op_outliers(t: Table, op: dict, ctx=None) -> str:
     by = op.get("by") or None
     alpha = float(op.get("alpha") or 0.05)
     k = float(op.get("k") or (1.5 if method == "iqr" else 3.0))
-    found = []
+    if not (math.isfinite(k) and k > 0):
+        raise CleanError("Ausreisser: k muss grösser als 0 sein")
+    sides = dict(two="zweiseitig", max="nur Maximum", min="nur Minimum")
+    sided = str(op.get("sided") or "two")
+    iterate = op.get("iterate", True) is not False
+    found, extra = [], ""
     if method == "residual":
         xk = str(op.get("x") or "")
         deg = int(op.get("degree") or 1)
         x = t.num(xk)
-        rule = f"Fit-Residuum (Polynom Grad {deg} über {t.find(xk)[1]['name']}, k = {_de(k)})"
+        rule = (f"Fit-Residuum (Polynom Grad {deg} über {t.find(xk)[1]['name']}; extern studentisiertes Residuum "
+                f"|t| > k = {_de(k)}, Faustregel, kein Signifikanzniveau)")
     elif method == "grubbs":
-        sided = op.get("sided") or "two"
-        rule = f"Grubbs (α = {_de(alpha)}, {dict(two='zweiseitig', max='nur Maximum', min='nur Minimum').get(sided, sided)})"
+        rule = (f"Grubbs (α = {_de(alpha)}" + (" je Schritt" if iterate else "") + f", {sides.get(sided, sided)}, "
+                + ("sequenziell: Wert beiseitelegen und erneut prüfen" if iterate else "ein Durchgang") + ")")
     elif method == "dixon":
-        rule = f"Dixon-Q (r10, α = {_de(alpha)})"
+        rule = f"Dixon-Q (r10, α = {_de(alpha)}, {sides.get(sided, sided)}" + (", Ende mit grösserem Q" if sided == "two" else "") + ")"
     elif method == "iqr":
-        rule = f"Tukey/IQR (k = {_de(k)})"
+        rule = f"Tukey-Zäune (k = {_de(k)}; Quartile nach Hyndman–Fan Typ 7, lineare Interpolation)"
     else:
-        w = int(op.get("window") or 0)
-        rule = f"Hampel/MAD (k = {_de(k)}" + (f", Fenster ±{w} Zeilen)" if w else ", gesamt)")
+        w = float(op.get("window") or 0)
+        xk = str(op.get("x") or "") if w > 0 else ""
+        x = t.num(xk) if xk else None
+        if xk:
+            cx = t.find(xk)[1]
+            rule = f"Hampel/MAD (k = {_de(k)}, Fenster ±{_de(w, 6)} {cx.get('unit') or ''} in „{cx['name']}“)".replace("  ", " ")
+        else:
+            rule = f"Hampel/MAD (k = {_de(k)}" + (f", Fenster ±{int(w)} Werte nach Position, x-Abstand nicht berücksichtigt)" if w else ", gesamt)")
     for g in _groups(t, by, used):
         if method == "grubbs":
-            for r in grubbs(y[g], alpha, op.get("sided") or "two", op.get("iterate", True) is not False):
-                found.append((g[r["i"]], f"G = {_de(r['G'], 4)} > G_krit = {_de(r['crit'], 4)} (n = {r['n']})"))
+            res = grubbs(y[g], alpha, sided, iterate)
+            for step, r in enumerate(res, 1):
+                found.append((g[r["i"]], f"G = {_de(r['G'], 4)} > G_krit = {_de(r['crit'], 4)} (n = {r['n']}"
+                                         + (f", Schritt {step}" if iterate else "") + ")"))
+            if iterate and len(res) > 1:
+                extra = "; sequenziell mit α je Schritt – die Fehlerrate des ganzen Verfahrens ist nicht α"
         elif method == "dixon":
-            for r in dixon(y[g], alpha if alpha in DIXON_Q else 0.05):
+            for r in dixon(y[g], alpha, sided):
                 found.append((g[r["i"]], f"Q = {_de(r['Q'], 3)} > Q_krit = {_de(r['crit'], 3)} (n = {r['n']})"))
         elif method == "iqr":
             res, lo, hi = iqr(y[g], k)
             for r in res:
                 found.append((g[r["i"]], f"ausserhalb [{_de(lo, 4)}; {_de(hi, 4)}]"))
         elif method == "hampel":
-            for r in hampel(y[g], k, int(op.get("window") or 0)):
+            w = float(op.get("window") or 0)
+            for r in hampel(y[g], k, w, x[g] if x is not None else None):
                 found.append((g[r["i"]], f"|x − Median| > {_de(k)} · {_de(r['mad'], 3)} (Median {_de(r['med'], 4)})"))
+            if x is not None:
+                nox = int((np.isfinite(y[g]) & ~np.isfinite(x[g])).sum())
+                if nox:
+                    extra += f"; {nox} Wert(e) ohne x nicht geprüft"
         else:
             for r in residual(x[g], y[g], k, int(op.get("degree") or 1)):
                 found.append((g[r["i"]], f"studentisiertes Residuum {_de(r['r'], 3)}"))
     for i, why in found:
         t.add_flag({"row": int(i), "col": key, "code": "outlier", "rule": rule[:300], "reason": why[:300],
                     **({"alpha": alpha} if method in ("grubbs", "dixon") else {})})
-    return f"Ausreisser in „{c['name']}“ nach {rule}" + (f" je {t.find(by)[1]['name']}" if by else "") + f": {len(found)} markiert"
+    return (f"Ausreisser in „{c['name']}“ nach {rule}" + (f" je {t.find(by)[1]['name']}" if by else "")
+            + f": {len(found)} markiert" + extra)
 
 
 def op_exclude(t: Table, op: dict, ctx=None) -> str:
@@ -692,10 +806,22 @@ OPS = {"trim": op_trim, "filter": op_filter, "sort": op_sort, "drop_empty": op_d
 
 
 # ----------------------------------------------------------------------------- check chips (DP-08)
-NONNEG = {"mass": "Masse", "length": "Länge", "area": "Fläche", "volume": "Volumen", "amount": "Stoffmenge",
+# Kinds that cannot be negative. "length" is not here: a length unit also measures positions, displacements and
+# elongation changes (ΔL), which are signed. Columns whose name or symbol marks a difference or change (Δ…, δ…,
+# "Änderung", "Differenz", "change", …) are skipped for every kind, e.g. a mass change Δm or ΔT in K.
+NONNEG = {"mass": "Masse", "area": "Fläche", "volume": "Volumen", "amount": "Stoffmenge",
           "concentration": "Konzentration", "mass_conc": "Massenkonzentration", "density": "Dichte",
           "molar_mass": "molare Masse", "frequency": "Frequenz", "temperature": "absolute Temperatur",
           "rate_const": "Geschwindigkeitskonstante", "activity": "Aktivität", "resistance": "Widerstand"}
+_SIGNED_PREFIX = re.compile(r"^\s*(?:Δ|δ|∆|d(?=[A-Z]))")                 # ΔL, δm, dL (case-sensitive: not "Dichte")
+_SIGNED_WORD = re.compile(r"^\s*delta(?![a-z])|änderung|aenderung|differenz|verschiebung|verlust|zunahme|abnahme|"
+                          r"change|difference|displacement|shift|loss|gain|drift", re.I)
+
+
+def signed_name(c: dict) -> bool:
+    """Name or symbol says the column is a difference or change, so negative values are possible."""
+    return any(_SIGNED_PREFIX.search(s) or _SIGNED_WORD.search(s)
+               for s in (str(c.get(f) or "") for f in ("name", "symbol", "key")))
 
 
 def checks(ds: DS.Dataset) -> list[dict]:
@@ -753,7 +879,7 @@ def checks(ds: DS.Dataset) -> list[dict]:
                             + (" …" if vals.size > 8 else "")})
     for c in nums:
         k = c.get("kind") or ""
-        if k in NONNEG:
+        if k in NONNEG and c.get("role") != "uncertainty" and not signed_name(c):
             try:
                 si = ds.si(c["key"])[used]
             except (DS.DatasetError, U.UnitError):
@@ -762,6 +888,11 @@ def checks(ds: DS.Dataset) -> list[dict]:
             if bad:
                 out.append({"key": "impossible:" + c["key"], "level": "bad",
                             "text": f"„{c['name']}“: {bad} Wert(e) unter null ({NONNEG[k]} kann nicht negativ sein)"})
+    ukeys = {c.get("u") for c in ds.columns if c.get("u")}
+    for c in nums:                                          # what a ± / uncertainty column holds (default: not stated)
+        if c.get("role") == "uncertainty" or c["key"] in ukeys:
+            out.append({"key": "utype:" + c["key"], "level": "info" if c.get("u_type") else "warn",
+                        "text": f"„{c['name']}“: {DS.u_type_text(c)}"})
     nounit = [c["name"] for c in nums if not c.get("unit") and (c.get("kind") or "number") == "number"
               and c.get("role") not in ("group", "label") and not str(c.get("note") or "").startswith("Anzahl")]
     if nounit:

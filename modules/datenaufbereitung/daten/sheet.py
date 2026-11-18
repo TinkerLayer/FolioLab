@@ -91,8 +91,9 @@ def classify(v, dec_comma: bool | None = None, text_numbers: bool = False):
         f = float(v)
         return (NUM, f, None) if math.isfinite(f) else (EMPTY, math.nan, None)
     if isinstance(v, _dt.datetime):
-        naive = v.replace(tzinfo=None) if v.tzinfo else v
-        return DATE, (naive - _EPOCH).total_seconds(), v.isoformat(sep=" ")
+        if v.tzinfo is not None and v.utcoffset() is not None:      # with a time zone (Parquet, ODS): UTC seconds
+            return DATE, (v - _EPOCH.replace(tzinfo=_dt.timezone.utc)).total_seconds(), v.isoformat(sep=" ")
+        return DATE, (v.replace(tzinfo=None) - _EPOCH).total_seconds(), v.isoformat(sep=" ")   # local wall-clock time
     if isinstance(v, _dt.date):
         return DATE, (_dt.datetime(v.year, v.month, v.day) - _EPOCH).total_seconds(), v.isoformat()
     if isinstance(v, _dt.time):

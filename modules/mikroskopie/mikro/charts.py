@@ -223,18 +223,29 @@ def fig_hist(values: np.ndarray, lang="de", thr: dict | None = None, unit_label=
     return fig
 
 
+def _weights(rows):
+    return np.array([float(r.get("Weight", 1.0) or 1.0) for r in rows], dtype=float)
+
+
 def fig_sizes(rows: list[dict], unit: str, lang="de", key="ECD"):
+    """Anzahlverteilung (Q0). Mit Randkorrektur zaehlt jedes Partikel mit seinem Gewicht (Miles-Lantuéjoul)."""
+    from .measure import wquantile
     fig, ax = plt.subplots(figsize=(6.4, 3.2))
     v = np.array([r[key] for r in rows], dtype=float)
+    w = _weights(rows)
+    corr = bool(v.size) and not np.allclose(w, 1.0)
     if v.size:
         bins = max(5, min(40, int(math.sqrt(v.size)) * 2))
-        ax.hist(v, bins=bins, color="#1a73e8", alpha=0.85, edgecolor="white")
-        d50 = float(np.median(v))
-        ax.axvline(d50, color="#d93025", lw=1.4, ls="--", label=f"D50 = {_fmt(round(d50, 3), lang)} {unit}")
+        ax.hist(v, bins=bins, weights=w, color="#1a73e8", alpha=0.85, edgecolor="white")
+        d50 = wquantile(v, w, (0.5,))[0]
+        ax.axvline(d50, color="#d93025", lw=1.4, ls="--", label=f"D50 (Q0) = {_fmt(round(d50, 3), lang)} {unit}")
         ax.legend(frameon=False, fontsize=8)
     lab = {"ECD": ("Äquivalentdurchmesser", "Equivalent circle diameter"), "Feret": ("Feret-Durchmesser", "Feret diameter")}
     ax.set_xlabel(f"{lab.get(key, (key, key))[0 if lang == 'de' else 1]} [{unit}]")
-    ax.set_ylabel("Anzahl" if lang == "de" else "Count")
+    ylab = ("Anzahl" if lang == "de" else "Count")
+    if corr:
+        ylab += " (randkorrigiert)" if lang == "de" else " (edge-corrected)"
+    ax.set_ylabel(ylab)
     _style(ax)
     fig.tight_layout()
     return fig
@@ -250,23 +261,24 @@ def overlay_bins(a: np.ndarray, b: np.ndarray, n: int | None = None) -> np.ndarr
     return np.linspace(lo, hi, n + 1)
 
 
-def fig_sizes_overlay(ecd, other, unit: str, lang="de", names=("Partikel", "Datensatz")):
+def fig_sizes_overlay(ecd, other, unit: str, lang="de", names=("Partikel", "Datensatz"), weights=None):
     """I-04: Grössenverteilung der Partikel mit einer Vergleichsverteilung aus einem Datensatz (relative Häufigkeit,
-    gemeinsame Klassen) und den D50 beider."""
+    gemeinsame Klassen, beide anzahlgewichtet Q0; Partikel mit den Gewichten der Randkorrektur) und den D50 beider."""
+    from .measure import wquantile
     a = np.asarray(ecd, dtype=float)
     b = np.asarray(other, dtype=float)
+    wa = np.ones_like(a) if weights is None else np.asarray(weights, dtype=float)
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
     if a.size and b.size:
         edges = overlay_bins(a, b)
-        for v, col, name, kw in ((a, "#1a73e8", names[0], {"alpha": 0.55, "edgecolor": "white"}),
-                                 (b, "#e37400", names[1], {"histtype": "step", "lw": 1.8})):
-            w = np.full(v.size, 100.0 / v.size)
-            ax.hist(v, bins=edges, weights=w, color=col, label=f"{name} (n = {v.size})", **kw)
-            d50 = float(np.percentile(v, 50))
-            ax.axvline(d50, color=col, lw=1.3, ls="--", label=f"D50 = {_fmt(round(d50, 3), lang)} {unit}")
+        for v, wv, col, name, kw in ((a, wa, "#1a73e8", names[0], {"alpha": 0.55, "edgecolor": "white"}),
+                                     (b, np.ones_like(b), "#e37400", names[1], {"histtype": "step", "lw": 1.8})):
+            ax.hist(v, bins=edges, weights=wv * 100.0 / wv.sum(), color=col, label=f"{name} (n = {v.size})", **kw)
+            d50 = wquantile(v, wv, (0.5,))[0]
+            ax.axvline(d50, color=col, lw=1.3, ls="--", label=f"D50 (Q0) = {_fmt(round(d50, 3), lang)} {unit}")
         ax.legend(frameon=False, fontsize=8)
     ax.set_xlabel(("Äquivalentdurchmesser / Länge" if lang == "de" else "Equivalent diameter / length") + f" [{unit}]")
-    ax.set_ylabel(("Relative Häufigkeit" if lang == "de" else "Relative frequency") + " [%]")
+    ax.set_ylabel(("Relative Häufigkeit (Anzahl)" if lang == "de" else "Relative frequency (number)") + " [%]")
     _style(ax)
     fig.tight_layout()
     return fig
@@ -295,17 +307,20 @@ def fig_profile(dist: np.ndarray, vals: np.ndarray, unit: str, lang="de"):
     return fig
 
 
-def fig_compare(series: list[tuple[str, np.ndarray]], unit: str, lang="de"):
-    """Summenverteilung des Aequivalentdurchmessers je Bild."""
+def fig_compare(series: list, unit: str, lang="de"):
+    """Summenverteilung Q0 des Aequivalentdurchmessers je Bild; series: (Name, Werte) oder (Name, Werte, Gewichte)."""
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
     colors = ["#1a73e8", "#d93025", "#188038", "#9334e6", "#e37400", "#007b83"]
-    for i, (name, v) in enumerate(series):
-        v = np.sort(np.asarray(v, dtype=float))
+    for i, s in enumerate(series):
+        name, v = s[0], np.asarray(s[1], dtype=float)
+        w = np.ones_like(v) if len(s) < 3 or s[2] is None else np.asarray(s[2], dtype=float)
+        o = np.argsort(v, kind="stable")
+        v, w = v[o], w[o]
         if v.size:
-            ax.step(v, np.arange(1, v.size + 1) / v.size * 100, where="post", color=colors[i % len(colors)],
+            ax.step(v, np.cumsum(w) / w.sum() * 100, where="post", color=colors[i % len(colors)],
                     lw=1.5, label=f"{name} (n = {v.size})")
     ax.set_xlabel(("Äquivalentdurchmesser" if lang == "de" else "Equivalent circle diameter") + f" [{unit}]")
-    ax.set_ylabel(("Summenhäufigkeit" if lang == "de" else "Cumulative frequency") + " [%]")
+    ax.set_ylabel(("Summenhäufigkeit Q0" if lang == "de" else "Cumulative frequency Q0") + " [%]")
     ax.set_ylim(0, 102)
     ax.legend(frameon=False, fontsize=8)
     _style(ax)

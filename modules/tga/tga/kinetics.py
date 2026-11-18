@@ -4,19 +4,29 @@ Umsatz α einer gewählten Stufe aus der Masse: α(T) = (m(T₀) − m(T)) / (m(
 
 Isokonversionsverfahren (Eₐ in Abhängigkeit von α, mit Vertrauensbereich aus der Regression):
 - Friedman (1964): ln(dα/dt)_α = ln[A f(α)] − Eₐ/(R T_α)
-- Ozawa-Flynn-Wall (Ozawa 1965; Flynn & Wall 1966; ASTM E1641): ln β = konst − 1,052 Eₐ/(R T_α) (Doyle-Näherung)
+- Ozawa-Flynn-Wall (Ozawa 1965; Flynn & Wall 1966; ASTM E1641): ln β = konst + ln p(x), x = Eₐ/(R T_α).
+  Erste Schätzung mit Doyles Konstante 1,052 (= 0,457·ln 10); danach wie in ASTM E1641 iterativ verfeinert:
+  Eₐ = −R·k / b(x), b(x) = −d ln p/dx = e^(−x)/(x² p(x)) bei x = Eₐ/(R T_c), 1/T_c = Mittel der 1/T_α (Mitte der
+  Regression; die Wahl von T in der Norm wurde nicht geprüft), bis sich Eₐ um < 0,01 % ändert.
+  b(x) wird aus der exakten Ableitung von p(x) mit p nach Senum & Yang berechnet, nicht aus der Tabelle der Norm
+  (die Tabellenwerte der Norm wurden nicht verglichen). Ohne Iteration (Option ofw="doyle") bleibt das
+  unkorrigierte OFW-Ergebnis, das für x ≈ 30 um etwa +1 % zu hoch liegt.
 - Kissinger-Akahira-Sunose (1971): ln(β/T_α²) = konst − Eₐ/(R T_α)
 - Starink (2003): ln(β/T_α^1,92) = konst − 1,0008 Eₐ/(R T_α)
-- Vyazovkin (2001), integral, ohne Näherung im Verfahren: Minimum von Σᵢ Σⱼ≠ᵢ I(E,Tᵢ)βⱼ / (I(E,Tⱼ)βᵢ), Temperatur-
-  integral nach Senum & Yang (1977)
+- Vyazovkin (1997), integrales nichtlineares Verfahren (Grundform): Minimum von Σᵢ Σⱼ≠ᵢ I(E,Tᵢ)βⱼ / (I(E,Tⱼ)βᵢ) mit dem
+  Temperaturintegral I(E,T) = ∫₀ᵀ exp(−E/RT') dT' für lineares Heizen, genähert nach Senum & Yang (1977). Das
+  Integral läuft von 0 bis T_α, nicht schrittweise über kleine Δα (das wäre das erweiterte Verfahren, Vyazovkin 2001).
 Dazu Kissinger (1957) aus den DTG-Spitzen, Coats-Redfern (1964) je Reaktionsmodell für einen Lauf, Master-Plot
-y(α)/y(0,5) gegen f(α)/f(0,5), Kompensationseffekt und Lebensdauer nach der Arrhenius-Extrapolation (ASTM E1877).
+y(α)/y(0,5) gegen f(α)/f(0,5), Kompensationseffekt und Lebensdauer (ASTM E1877, Toop-Beziehung; gegen den Text der
+Norm nicht geprüft).
 """
 from __future__ import annotations
 
 import math
 
 import numpy as np
+
+from .tdist import t95 as _t95
 
 R = 8.314462618  # J/(mol K), CODATA 2022
 
@@ -39,11 +49,7 @@ MODELS = {
     "P3": ("Potenzgesetz n = 1/3", lambda a: 3 * a ** (2 / 3), lambda a: a ** (1 / 3)),
 }
 ALPHAS = np.round(np.arange(0.05, 0.951, 0.05), 3)
-T_CRIT = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228}
-
-
-def _t95(dof: int) -> float:
-    return T_CRIT.get(dof, 1.96 if dof > 30 else 2.0)
+DOYLE = 1.052          # Doyle-Näherung: d ln p/dx ≈ −1,052 (log₁₀: 0,4567), ASTM E1641 erste Iteration (b = 0,457)
 
 
 class KinError(ValueError):
@@ -108,9 +114,46 @@ def _reg(x, y):
     return {"k": float(k), "d": float(d), "se": se, "r2": r2, "n": n}
 
 
+def _sy_q(x):
+    # Senum & Yang (1977), 4. Grad: Zähler x³ + 18x² + 86x + 96 (bis 0.12.0 stand hier fälschlich 88x; damit war p(x)
+    # bei x = 30 um 0,13 % zu gross statt < 1e-8; geprüft gegen p(x) = E₂(x)/x in tests/test_known_answers.py).
+    return (x ** 3 + 18 * x ** 2 + 86 * x + 96) / (x ** 4 + 20 * x ** 3 + 120 * x ** 2 + 240 * x + 120)
+
+
 def senum_yang(x):
+    """p(x) = ∫ₓ^∞ e^(−u)/u² du nach Senum & Yang (1977), 4. Ordnung."""
     x = np.asarray(x, float)
-    return np.exp(-x) / x * (x ** 3 + 18 * x ** 2 + 88 * x + 96) / (x ** 4 + 20 * x ** 3 + 120 * x ** 2 + 240 * x + 120)
+    return np.exp(-x) / x * _sy_q(x)
+
+
+def ofw_b(x: float) -> float:
+    """b(x) = −d ln p/dx = e^(−x)/(x² p(x)) (exakt, da dp/dx = −e^(−x)/x²), p nach Senum & Yang.
+
+    Entspricht dem in ASTM E1641 tabellierten Faktor b (dort für log₁₀: b/ln 10); Doyles Konstante 1,052 ist der
+    Wert für x ≈ 37."""
+    return 1.0 / (x * float(_sy_q(x)))
+
+
+def ofw_energy(T: np.ndarray, betas: np.ndarray, iterate: bool = True) -> dict | None:
+    """Ozawa-Flynn-Wall: Regression ln β gegen 1/T_α; Eₐ mit Doyle-Faktor, dann (iterate) iterativ verfeinert
+    wie in ASTM E1641 mit b(x) bei 1/T_c = Mittel der 1/T_α (Mitte der Regression)."""
+    o = _reg(1 / np.asarray(T, float), np.log(np.asarray(betas, float)))
+    if not o:
+        return None
+    b = DOYLE
+    E = -o["k"] * R / b
+    it = 0
+    if iterate and E > 0:
+        ok = np.isfinite(T)
+        Tc = 1.0 / float(np.mean(1.0 / np.asarray(T, float)[ok]))
+        for it in range(1, 51):
+            b = ofw_b(E / (R * Tc))
+            E_new = -o["k"] * R / b
+            done = abs(E_new - E) <= 1e-4 * abs(E)
+            E = E_new
+            if done:
+                break
+    return {"E": E, "se": o["se"] * R / b, "r2": o["r2"], "d": o["d"], "b": b, "iterations": it}
 
 
 def _I(E, T):
@@ -149,7 +192,8 @@ def _vyazovkin(Ts: np.ndarray, betas: np.ndarray, E0: float) -> float | None:
     return (a + c) / 2
 
 
-def isoconversional(convs: list[dict], alphas=ALPHAS) -> dict:
+def isoconversional(convs: list[dict], alphas=ALPHAS, ofw: str = "e1641") -> dict:
+    """ofw: "e1641" (Vorgabe, iterativ verfeinert) oder "doyle" (konstanter Faktor 1,052, unkorrigiert)."""
     if len(convs) < 3:
         raise KinError("Für Isokonversionsverfahren mindestens drei Läufe mit verschiedenen Heizraten laden (ICTAC 2011).")
     betas = np.array([c["beta"] for c in convs])
@@ -168,9 +212,9 @@ def isoconversional(convs: list[dict], alphas=ALPHAS) -> dict:
         f = _reg(x, np.log(RR[:, k]))
         if f:
             rows["friedman"] = (-f["k"] * R, f["se"] * R, f["r2"], f["d"])
-        o = _reg(x, np.log(betas))
+        o = ofw_energy(T, betas, iterate=(ofw != "doyle"))
         if o:
-            rows["ofw"] = (-o["k"] * R / 1.052, o["se"] * R / 1.052, o["r2"], o["d"])
+            rows["ofw"] = (o["E"], o["se"], o["r2"], o["d"], o["b"])
         ka = _reg(x, np.log(betas / T ** 2))
         if ka:
             rows["kas"] = (-ka["k"] * R, ka["se"] * R, ka["r2"], ka["d"])
@@ -180,6 +224,8 @@ def isoconversional(convs: list[dict], alphas=ALPHAS) -> dict:
         for mname, v in rows.items():
             out[mname].append({"alpha": float(al), "E": v[0] / 1000, "ci": t95 * v[1] / 1000 if math.isfinite(v[1]) else None,
                                "r2": v[2], "intercept": v[3], "T": [float(x_) for x_ in T]})
+            if mname == "ofw":
+                out[mname][-1]["b"] = v[4]
         E0 = rows.get("kas", (150e3,))[0]
         Ev = _vyazovkin(T, betas, max(10e3, E0))
         if Ev:
@@ -191,7 +237,7 @@ def isoconversional(convs: list[dict], alphas=ALPHAS) -> dict:
             summary[mname] = {"mean": float(Es.mean()), "sd": float(Es.std(ddof=1)) if len(Es) > 1 else 0.0,
                               "min": float(Es.min()), "max": float(Es.max())}
     return {"alphas": [float(a) for a in alphas], "methods": out, "summary": summary, "betas": betas.tolist(),
-            "warnings": checks(convs, summary)}
+            "warnings": checks(convs, summary), "ofw": "doyle" if ofw == "doyle" else "e1641", "t95": t95, "dof": dof}
 
 
 def checks(convs: list[dict], summary: dict) -> list[str]:
@@ -294,7 +340,8 @@ def compensation(cr: list[dict]) -> dict | None:
 
 
 def lifetime(E_kJ: float, lnA: float, alpha_f: float = 0.05, model: str = "F1", T_use=None, t_target_h: float | None = None) -> dict:
-    """Arrhenius-Extrapolation (ASTM E1877): t_f = g(α_f)/k(T); Temperaturindex für eine Ziel-Lebensdauer."""
+    """Modellabhängige Arrhenius-Extrapolation: t_f = g(α_f)/k(T), k = A·exp(−E/RT) mit A aus den Friedman-
+    Achsenabschnitten und dem gewählten Modell (Option lifetime="model"); Temperaturindex für eine Ziel-Lebensdauer."""
     g = MODELS[model][2]
     ga = float(g(np.array([alpha_f]))[0])
     E = E_kJ * 1000
@@ -303,10 +350,43 @@ def lifetime(E_kJ: float, lnA: float, alpha_f: float = 0.05, model: str = "F1", 
     for Tc in T_use or [50, 100, 150, 200]:
         k = A * math.exp(-E / (R * (Tc + 273.15)))
         rows.append({"T": float(Tc), "t_h": ga / k / 3600.0})
-    out = {"alpha_f": alpha_f, "model": model, "rows": rows}
+    out = {"alpha_f": alpha_f, "model": model, "rows": rows, "method": "model"}
     if t_target_h:
         k = ga / (t_target_h * 3600.0)
         out["T_index"] = E / (R * (math.log(A) - math.log(k))) - 273.15
+        out["t_target_h"] = t_target_h
+    return out
+
+
+def lifetime_toop(convs: list[dict], alpha_f: float = 0.05, T_use=None, t_target_h: float | None = None) -> dict | None:
+    """Lebensdauer ohne Reaktionsmodell aus Eₐ und der Temperatur T_c, bei der der Versagensumsatz α_f im
+    dynamischen Lauf (Heizrate β) erreicht wird (Toop-Beziehung, Grundlage von ASTM E1877):
+
+        t_f(T) = (Eₐ/(R β)) · p(Eₐ/(R T_c)) · exp(Eₐ/(R T))
+
+    (aus g(α_f) = (A Eₐ/(R β)) p(x_c) und t_f = g(α_f)/(A e^(−Eₐ/RT)); gilt für jedes Modell). Eₐ = OFW-Wert bei α_f,
+    iterativ verfeinert (ASTM E1641). ln[(Eₐ/Rβ)·p(x_c)] wird für jeden Lauf berechnet und gemittelt (für
+    widerspruchsfreie Daten sind alle gleich). Gegen den Text von ASTM E1877 nicht geprüft."""
+    af = np.array([float(alpha_f)])
+    T = np.array([at_alpha(c, af)["T"][0] for c in convs])
+    b = np.array([c["beta"] for c in convs])
+    ok = np.isfinite(T)
+    if ok.sum() < 3:
+        return None
+    o = ofw_energy(T[ok], b[ok], iterate=True)
+    if not o or o["E"] <= 0:
+        return None
+    E = o["E"]
+    lnC = np.log(E / (R * b[ok]) * senum_yang(E / (R * T[ok])))      # ln(min), β in K/min
+    lc = float(np.mean(lnC))
+    rows = []
+    for Tu in T_use or [50, 100, 150, 200]:
+        rows.append({"T": float(Tu), "t_h": math.exp(lc + E / (R * (Tu + 273.15))) / 60.0})
+    out = {"alpha_f": float(alpha_f), "method": "toop", "rows": rows, "E": E / 1000, "lnC_min": lc,
+           "lnC_spread": float(np.ptp(lnC)), "Tc": [float(x) - 273.15 for x in T[ok]], "betas": b[ok].tolist(),
+           "model": None, "checked_against_standard": False}
+    if t_target_h:
+        out["T_index"] = E / (R * (math.log(t_target_h * 60.0) - lc)) - 273.15
         out["t_target_h"] = t_target_h
     return out
 
@@ -318,7 +398,7 @@ def run_all(runs, T_lo: float, T_hi: float, opts: dict | None = None) -> dict:
     res = {"range": [T_lo, T_hi], "runs": [{"name": c["name"], "beta": c["beta"], "loss": c["loss"]} for c in convs],
            "curves": [{"name": c["name"], "beta": c["beta"], "T": (c["T"] - 273.15)[::max(1, len(c["T"]) // 400)].tolist(),
                        "a": c["a"][::max(1, len(c["a"]) // 400)].tolist()} for c in convs]}
-    iso = isoconversional(convs)
+    iso = isoconversional(convs, ofw=o.get("ofw") or "e1641")
     res["iso"] = iso
     try:
         res["kissinger"] = kissinger(convs)
@@ -335,9 +415,14 @@ def run_all(runs, T_lo: float, T_hi: float, opts: dict | None = None) -> dict:
         A = preexp(iso, convs, res["model"])
         res["lnA"] = A
         lnA_mid = float(np.median([x["lnA"] for x in A])) if A else None
-        if lnA_mid is not None:
-            res["lifetime"] = lifetime(Eref, lnA_mid, float(o.get("alpha_f", 0.05)), res["model"],
-                                       o.get("T_use"), o.get("t_target_h"))
-            res["lifetime"]["E"] = Eref
-            res["lifetime"]["lnA"] = lnA_mid
+        if o.get("lifetime") == "model":
+            if lnA_mid is not None:
+                res["lifetime"] = lifetime(Eref, lnA_mid, float(o.get("alpha_f", 0.05)), res["model"],
+                                           o.get("T_use"), o.get("t_target_h"))
+                res["lifetime"]["E"] = Eref
+                res["lifetime"]["lnA"] = lnA_mid
+    if o.get("lifetime", "toop") == "toop":
+        lt = lifetime_toop(convs, float(o.get("alpha_f", 0.05)), o.get("T_use"), o.get("t_target_h"))
+        if lt:
+            res["lifetime"] = lt
     return res

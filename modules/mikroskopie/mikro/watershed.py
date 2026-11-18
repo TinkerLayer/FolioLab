@@ -3,7 +3,7 @@
 1. Euklidische Distanztransformation (exakt, separierbar: Zeilenabstand, dann Minimum über Spaltenversätze;
    Verfahren nach Saito & Toriwaki 1994).
 2. Marker = h-Maxima der Distanzkarte (morphologische Rekonstruktion durch Dilatation von f − h unter f;
-   Soille 2003): Maxima, die weniger als h Pixel über ihrem Sattel liegen, verschmelzen – das verhindert
+   Soille 2004): Maxima, die weniger als h Pixel über ihrem Sattel liegen, verschmelzen – das verhindert
    Übersegmentierung an rauen Rändern.
 3. Flutung der invertierten Distanzkarte von den Markern aus, Stufe für Stufe (Immersion nach Vincent & Soille 1991);
    Pixel, die zwei Becken zugleich erreichen, werden Trennlinie. Die Linien trennen auch in 8er-Nachbarschaft.
@@ -16,14 +16,16 @@ import numpy as np
 
 from .label import label
 
-REFS = ["vincent1991", "soille2003", "saito1994"]
+REFS = ["vincent1991", "soille2004", "saito1994"]
 # Format wie threshold.REFERENCES. DOIs am 17.11.2026 gegen Crossref geprüft (MI-02).
+# Soille: 2. Auflage (Springer 2003), zitiert wird der korrigierte 2. Druck von 2004, zu dem die DOI gehört; Schlüssel
+# und Jahr daher 2004 (bis Version 1.2.0 hiess der Schlüssel soille2003).
 REFERENCES = {
     "vincent1991": dict(entry_type="article", author="Vincent, Luc and Soille, Pierre",
                         title="Watersheds in digital spaces: an efficient algorithm based on immersion simulations",
                         journal="IEEE Transactions on Pattern Analysis and Machine Intelligence", year="1991",
                         volume="13", number="6", pages="583--598", doi="10.1109/34.87344"),
-    "soille2003": dict(entry_type="book", author="Soille, Pierre",
+    "soille2004": dict(entry_type="book", author="Soille, Pierre",
                        title="Morphological Image Analysis: Principles and Applications", edition="2",
                        publisher="Springer", address="Berlin", year="2004", doi="10.1007/978-3-662-05088-0"),
     "saito1994": dict(entry_type="article", author="Saito, Toyofumi and Toriwaki, Jun-Ichiro",

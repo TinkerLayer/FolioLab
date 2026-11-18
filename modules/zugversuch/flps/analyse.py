@@ -35,6 +35,7 @@ SHAPES = load_shapes()
 MANUAL_SHAPE = "Frei"
 
 YIELD_DETENTS = (0.005, 0.01, 0.02, 0.05)
+PLATEAU_FRACTION = 0.8      # Plateau: von 80 % bis 100 % der Zeit vom Kraftanstieg t0 bis zum Maximum
 
 PHASES = ["Setzen", "elastisch", "plastisch", "Abfall", "Bruch", "nach Bruch"]
 
@@ -190,7 +191,11 @@ def line_fit(t: np.ndarray, y: np.ndarray, lo: int, hi: int) -> LineFit:
 
 def grow_fit_window(t: np.ndarray, y: np.ndarray, center: int, tol: float, start: int = 3) -> LineFit:
     """Start mit `start` Punkten beidseits der groessten Steigung, abwechselnd links und rechts
-    wachsen, solange die groesste Abweichung unter der Toleranz bleibt."""
+    wachsen, solange die groesste Abweichung unter der Toleranz bleibt.
+
+    Gierige Suche: jeder Schritt wird nur behalten, wenn die neue Gerade die Toleranz einhaelt, und die Suche endet,
+    sobald keine Seite mehr wachsen kann. Das Ergebnis ist ein zusammenhaengendes Fenster um die Startstelle, nicht
+    notwendig das laengste Fenster, das die Toleranz einhaelt."""
     n = len(y)
     lo, hi = max(0, center - start), min(n - 1, center + start)
     best = line_fit(t, y, lo, hi)
@@ -215,6 +220,31 @@ def find_yield(t: np.ndarray, y: np.ndarray, fit: LineFit, threshold_abs: float)
         if dev[i] > threshold_abs:
             return i
     return None
+
+
+# --- 4.7 Haltezeit ------------------------------------------------------------------
+def hold_run(t: np.ndarray, y: np.ndarray, imax: int, limit: float) -> dict:
+    """Haltezeit: zusammenhaengender Abschnitt um das Maximum, in dem y >= limit bleibt.
+
+    dauer = t(letzter Punkt) - t(erster Punkt) dieses Abschnitts; ein Punkt unter der Grenze beendet ihn. Zusaetzlich
+    (nur zur Information): spanne = erster bis letzter Punkt ueber der Grenze ueberhaupt (frühere Definition, schliesst
+    Einbrueche ein), summe = Summe der Dauern aller Abschnitte ueber der Grenze, abschnitte = deren Anzahl."""
+    mask = np.asarray(y) >= limit
+    idx = np.where(mask)[0]
+    out = {"dauer": 0.0, "von": None, "bis": None, "idx_von": None, "idx_bis": None,
+           "spanne": float(t[idx[-1]] - t[idx[0]]) if len(idx) else 0.0, "summe": 0.0, "abschnitte": 0}
+    if not len(idx):
+        return out
+    starts = idx[np.concatenate([[True], np.diff(idx) > 1])]
+    ends = idx[np.concatenate([np.diff(idx) > 1, [True]])]
+    out["abschnitte"] = int(len(starts))
+    out["summe"] = float(np.sum(t[ends] - t[starts]))
+    if not mask[imax]:
+        return out
+    k = int(np.searchsorted(starts, imax, side="right") - 1)
+    i0, i1 = int(starts[k]), int(ends[k])
+    out.update(dauer=float(t[i1] - t[i0]), von=float(t[i0]), bis=float(t[i1]), idx_von=i0, idx_bis=i1)
+    return out
 
 
 # --- Ergebnis -----------------------------------------------------------------------
@@ -440,23 +470,36 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
         kv["drop"] = None
         _warn(warnings, "4.6", "Kein Bruch erkannt: die Kraft fällt nie unter das untere Bruchkriterium. "
                                "Der aktive Abschnitt endet am letzten Messpunkt.", "info")
-    hold_mask = y >= cfg.hold_threshold * ymax
-    hi_idx = np.where(hold_mask)[0]
+    # Haltezeit: zusammenhaengender Abschnitt um das Maximum über der Halteschwelle (Einbrüche beenden ihn)
     kv["hold"] = {"schwelle": cfg.hold_threshold, "grenze": cfg.hold_threshold * ymax,
-                  "dauer": float(t[hi_idx[-1]] - t[hi_idx[0]]) if len(hi_idx) else 0.0,
-                  "von": float(t[hi_idx[0]]) if len(hi_idx) else None,
-                  "bis": float(t[hi_idx[-1]]) if len(hi_idx) else None}
+                  **hold_run(t, y, imax, cfg.hold_threshold * ymax)}
+    # Plateau: letzte 20 % der Zeit bis zum Maximum, gezählt ab dem Kraftanstieg t0 (wie tmax und die Dehnung)
     tm = float(t[imax])
-    pm = (t >= 0.8 * tm) & (t <= tm)
-    kv["plateau"] = {"t_von": 0.8 * tm, "t_bis": tm, "mittel": float(y[pm].mean()) if pm.any() else None}
+    t_ref = max(float(t0), 0.0)
+    t_von = t_ref + PLATEAU_FRACTION * (tm - t_ref)
+    pm = (t >= t_von) & (t <= tm)
+    kv["plateau"] = {"t_von": t_von, "t_bis": tm, "t_ref": t_ref, "anteil": PLATEAU_FRACTION,
+                     "mittel": float(y[pm].mean()) if (pm.any() and tm > t_ref) else None}
     kv["phases"] = None  # wird unten gefuellt
     kv["break_duration_text"] = (f"< {fmt(prep.dt, 1, 's')} (ein Abtastintervall, bei {fmt(prep.rate_hz, 1, 'Hz')} "
                                  f"nicht aufgelöst)") if break_idx is not None else "–"
     if a0:
         kv["Rm"] = ymax
     if strain is not None:
-        kv["strain_max_pct"] = float(strain[imax] * 100)
-        kv["strain_break_pct"] = float(strain[break_idx] * 100) if break_idx is not None else None
+        # Gesamtdehnungen unter Last (ISO 6892-1: Agt bei Höchstkraft, At beim Bruch) und die plastischen Anteile
+        # Ag = Agt − y_max/m_E, A = At − y_Bruch/m_E (Extensometerverfahren: der elastische Anteil wird abgezogen).
+        # m_E ist die Steigung des linearen Abschnitts in derselben Dehnung (dy/dε = k·L0/v), also dieselbe
+        # Nachgiebigkeit wie in der gemessenen Dehnung.
+        m_e = fit.k * l0 / v if fit.k > 0 else None
+        agt = float(strain[imax] * 100)
+        at = float(strain[break_idx] * 100) if break_idx is not None else None
+        kv["strain_max_pct"] = agt                 # alter Schlüssel, = Agt
+        kv["strain_break_pct"] = at                # alter Schlüssel, = At
+        kv["Agt_pct"] = agt
+        kv["At_pct"] = at
+        kv["Ag_pct"] = agt - 100.0 * ymax / m_e if m_e else None
+        kv["A_pct"] = (at - 100.0 * float(y[break_idx]) / m_e) if (m_e and at is not None) else None
+        kv["E_fit"] = m_e                          # MPa (Spannung) bzw. N (Kraft) je Dehnung 1
 
     # 4.8 scheinbarer Modul
     e_schein = None
@@ -619,22 +662,21 @@ def equation_variables(r: "Result") -> dict:
             put("sbreak", br["y"], "MPa", "Spannung vor dem Bruch")
     if kv.get("drop"):
         put("drop", kv["drop"]["pct"], "%", "Abfall Maximum bis Bruch")
-    put("hold", kv["hold"]["dauer"], "s", "Haltezeit über der Halteschwelle")
-    put("ratio", kv.get("ratio"), "", "Verhältnis Maximum/Fliessbeginn")
+    put("hold", kv["hold"]["dauer"], "s", "Haltezeit über der Halteschwelle (zusammenhängend um das Maximum)")
+    put("ratio", kv.get("ratio"), "", "Verhältnis Maximum/Fliessbeginn (Schwelle, keine Rp0,2)")
     put("E", r.e_schein_gpa, "GPa", "Elastizitätsmodul (scheinbar)")
     put("A0", r.a0, "mm²", "Ausgangsquerschnitt")
     put("L0", r.l0, "mm", "Messlänge")
     put("v", r.config.speed_mm_min, "mm/min", "Prüfgeschwindigkeit")
     put("k", kv["fit"]["k_N_s"], "N/s", "Steigung des linearen Abschnitts")
     if r.strain is not None:
-        put("Ag", kv.get("strain_max_pct"), "%", "Dehnung bei Höchstkraft")
-        put("A", kv.get("strain_break_pct"), "%", "Dehnung vor dem Bruch")
-    if r.v_mm_s:
-        end = r.break_idx if r.break_idx is not None else len(r.t) - 1
-        sel = slice(0, end + 1)
-        x = np.clip(r.t[sel] - r.t0, 0, None) * r.v_mm_s           # Weg in mm ab Kraftanstieg
-        put("Wbreak", float(np.trapezoid(r.force[sel], x)) / 1000.0 if hasattr(np, "trapezoid")
-            else float(np.trapz(r.force[sel], x)) / 1000.0, "J", "Arbeit bis zum Bruch (aus Traversenweg)")
+        put("Agt", kv.get("Agt_pct"), "%", "Gesamtdehnung bei Höchstkraft Agt")
+        put("Ag", kv.get("Ag_pct"), "%", "plastische Dehnung bei Höchstkraft Ag (Agt ohne elastischen Anteil)")
+        put("At", kv.get("At_pct"), "%", "Gesamtdehnung beim Bruch At (unter Last)")
+        put("A", kv.get("A_pct"), "%", "Bruchdehnung A (At ohne elastischen Anteil beim Bruch)")
+    w = work_to_break(r)
+    if w is not None:
+        put("Wbreak", w[0], "J", "Arbeit bis zum Bruch " + w[1])
     ref = r.reference
     if ref is not None:
         put("Rm_ref", ref.rm, "MPa", f"Rm von {ref.name}")
@@ -643,6 +685,35 @@ def equation_variables(r: "Result") -> dict:
         put("A_ref", ref.a_pct, "%", f"Bruchdehnung von {ref.name}")
         put("E_ref", ref.e_gpa, "GPa", f"E-Modul von {ref.name}")
     return v
+
+
+def _trapz(y, x) -> float:
+    return float(np.trapezoid(y, x)) if hasattr(np, "trapezoid") else float(np.trapz(y, x))
+
+
+def measured_elongation_mm(r: "Result") -> np.ndarray | None:
+    """Gemessene Verlängerung ΔL in mm im aktiven Abschnitt, wenn es sie gibt: nur bei Messungen aus einem Datensatz
+    mit Weg- oder Dehnungsspalte (Weg in µm, Code 4). Der Weg einer .flps-Datei ist in keiner Einheit bestätigt."""
+    o = r.device.get("origin") or {}
+    if not ((o.get("roles") or {}).get("ext") and r.device.get("displacement_unit_code") == 4):
+        return None
+    return np.asarray(r.prep.displacement[:len(r.t)], dtype=float) / 1000.0
+
+
+def work_to_break(r: "Result") -> tuple[float, str] | None:
+    """Arbeit bis zum Bruch W = ∫ F dL in J, vom ersten Punkt bis zum Bruchpunkt (ohne Bruch: bis zum Ende).
+
+    Mit gemessener Verlängerung (Datensatz mit Weg oder Dehnung) über deren Verlauf, sonst über den Traversenweg
+    x = max(t − t0, 0)·v. Ohne beides: None."""
+    end = r.break_idx if r.break_idx is not None else len(r.t) - 1
+    sel = slice(0, end + 1)
+    dl = measured_elongation_mm(r)
+    if dl is not None:
+        return _trapz(r.force[sel], dl[sel]) / 1000.0, "(aus der gemessenen Verlängerung, ∫F dL)"
+    if r.v_mm_s:
+        x = np.clip(r.t[sel] - r.t0, 0, None) * r.v_mm_s           # Weg in mm ab Kraftanstieg
+        return _trapz(r.force[sel], x) / 1000.0, "(aus dem Traversenweg v·(t − t0))"
+    return None
 
 
 def evaluate_equations(defs, variables: dict, lang: str = "de") -> list:

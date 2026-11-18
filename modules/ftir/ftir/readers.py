@@ -95,19 +95,32 @@ def _check(sp: Spectrum, name: str) -> Spectrum:
     return make_uniform(sp)
 
 
-def guess_yunit(y: np.ndarray, hint: str = "") -> tuple[str, np.ndarray]:
-    """y-Einheit aus Spaltenname oder Werten: Prozent-Transmission, Transmission als Bruchteil oder Absorbanz."""
-    h = (hint or "").lower()
+def _hint_unit(h: str) -> str | None:
+    """y-Einheit aus einem Spaltennamen oder YUNITS-Text; None = keine Angabe."""
+    h = (h or "").lower()
+    if re.search(r"abs|extinkt|^\s*a\s*$|\(a\)", h):
+        return "A"
+    if re.search(r"kubelka|k-?m\b", h):
+        return "KM"
+    if re.search(r"refl|%\s*r\b|remission", h):
+        return "R"
+    if re.search(r"%\s*t|trans", h):
+        return "T"
+    return None
+
+
+def _scale_pct(unit: str, y: np.ndarray) -> np.ndarray:
+    """Transmission/Reflexion als Bruchteil (Maximum ≤ 1,5) in Prozent umrechnen."""
+    if unit in ("T", "R") and y.size and float(np.nanmax(y)) <= 1.5:
+        return y * 100
+    return y
+
+
+def guess_from_values(y: np.ndarray) -> tuple[str, np.ndarray]:
+    """y-Einheit nur aus den Werten (wenn die Datei nichts angibt): Median 20–110 und Maximum ≤ 130 → T in %;
+    Median 0,5–1,05, Maximum ≤ 1,25, Minimum ≥ −0,05 und Banden nach unten → T als Bruchteil (×100); sonst A."""
     y = np.asarray(y, dtype=float)
     mx = float(np.nanmax(y)) if y.size else 0.0
-    if re.search(r"abs|extinkt|^\s*a\s*$|\(a\)", h):
-        return "A", y
-    if re.search(r"kubelka|k-?m\b", h):
-        return "KM", y
-    if re.search(r"refl|%\s*r\b|remission", h):
-        return "R", y * 100 if mx <= 1.5 else y
-    if re.search(r"%\s*t|trans", h):
-        return "T", y * 100 if mx <= 1.5 else y
     med, mn = float(np.nanmedian(y)), float(np.nanmin(y))
     if 20 < med <= 110 and mx <= 130:
         return "T", y
@@ -116,16 +129,111 @@ def guess_yunit(y: np.ndarray, hint: str = "") -> tuple[str, np.ndarray]:
     return "A", y
 
 
-def x_to_cm1(x: np.ndarray, unit: str = "") -> np.ndarray:
-    u = (unit or "").upper().replace(" ", "")
+def guess_yunit(y: np.ndarray, hint: str = "") -> tuple[str, np.ndarray]:
+    """y-Einheit aus Spaltenname oder Werten: Prozent-Transmission, Transmission als Bruchteil oder Absorbanz."""
+    y = np.asarray(y, dtype=float)
+    u = _hint_unit(hint)
+    if u:
+        return u, _scale_pct(u, y)
+    return guess_from_values(y)
+
+
+# Wahl der Einheiten beim Einlesen (Oberfläche: „Einheiten“), gilt nur dort, wo die Datei keine Angabe macht
+XUNIT_CHOICES = {"auto": "automatisch", "cm-1": "Wellenzahl [cm⁻¹]", "um": "Wellenlänge [µm]", "nm": "Wellenlänge [nm]"}
+YUNIT_CHOICES = {"auto": "automatisch", "A": "Absorbanz", "T": "Transmission", "R": "Reflexion", "KM": "Kubelka-Munk",
+                 "LR": "log(1/R)", "au": "Intensität [w. E.]"}
+X_MICRON_MAX = 50.0          # ohne Angabe: grösster x-Wert ≤ 50 → Wellenlänge in µm (FTIR-Wellenzahlen sind grösser)
+
+
+def _opts(opts) -> dict:
+    o = dict(opts or {})
+    xu, yu = str(o.get("xunit") or "auto"), str(o.get("yunit") or "auto")
+    if xu not in XUNIT_CHOICES:
+        raise ReadError(f"Unbekannte x-Einheit „{xu}“ (möglich: {', '.join(XUNIT_CHOICES)})")
+    if yu not in YUNIT_CHOICES:
+        raise ReadError(f"Unbekannte y-Einheit „{yu}“ (möglich: {', '.join(YUNIT_CHOICES)})")
+    return {"xunit": xu, "yunit": yu}
+
+
+def warn(meta: dict, kind: str, de: str, en: str, **extra):
+    """Hinweis zum Einlesen; erscheint in der Oberfläche unter dem Spektrum (wie die Hinweise zur Signalqualität)."""
+    w = {"kind": kind, "de": de, "en": en, **extra}
+    if w not in meta.setdefault("warnings", []):
+        meta["warnings"].append(w)
+
+
+_XNAME = {"cm-1": ("Wellenzahl in cm⁻¹", "wavenumber in cm⁻¹"), "um": ("Wellenlänge in µm", "wavelength in µm"),
+          "nm": ("Wellenlänge in nm", "wavelength in nm")}
+
+
+def x_axis(x: np.ndarray, declared: str | None, meta: dict, opts=None) -> np.ndarray:
+    """x-Werte → cm⁻¹. declared: in der Datei angegebene Einheit ("cm-1", "um", "nm") oder None (keine Angabe).
+    Ohne Angabe gilt die Wahl des Benutzers (opts["xunit"]); sonst die Regel: grösster Wert ≤ 50 → µm, sonst cm⁻¹.
+    Eine geratene Einheit wird als Hinweis vermerkt (meta["warnings"], meta["x_unit"])."""
     x = np.asarray(x, dtype=float)
-    if u.startswith("MICRO") or u in ("UM", "µM", "MICRON", "MICRONS"):
+    o = _opts(opts)
+    if declared:
+        u = declared
+        meta["x_unit"] = u
+    elif o["xunit"] != "auto":
+        u = o["xunit"]
+        meta["x_unit"] = u + " (gewählt)"
+    else:
+        mx = float(np.nanmax(x)) if x.size else 0.0
+        u = "um" if 0 < mx <= X_MICRON_MAX else "cm-1"
+        meta["x_unit"] = u + " (geraten)"
+        de, en = _XNAME[u]
+        rule = (f"grösster Wert {mx:.4g} ≤ {X_MICRON_MAX:g}" if u == "um" else f"grösster Wert {mx:.4g} > {X_MICRON_MAX:g}")
+        rule_en = (f"largest value {mx:.4g} ≤ {X_MICRON_MAX:g}" if u == "um" else f"largest value {mx:.4g} > {X_MICRON_MAX:g}")
+        warn(meta, "guess_x", f"x-Einheit nicht angegeben, geraten: {de} ({rule}). Falls falsch, unter „Einheiten“ wählen.",
+             f"x unit not stated, guessed: {en} ({rule_en}). If wrong, choose it under “Units”.", unit=u)
+    if u == "um":
         return 1e4 / x
-    if u.startswith("NANO") or u == "NM":
+    if u == "nm":
         return 1e7 / x
-    if not u and len(x) and 0 < np.nanmax(x) <= 50:          # ohne Angabe: Werte bis 50 sind Mikrometer
-        return 1e4 / x
     return x
+
+
+def y_values(y: np.ndarray, declared: str | None, hint: str, meta: dict, opts=None) -> tuple[str, np.ndarray]:
+    """y-Einheit: Angabe der Datei (declared) oder ein eindeutiger Spaltenname (hint); sonst die Wahl des Benutzers;
+    sonst aus den Werten geraten (guess_from_values, mit Hinweis). T und R als Bruchteil werden in % umgerechnet."""
+    y = np.asarray(y, dtype=float)
+    o = _opts(opts)
+    u = declared or _hint_unit(hint)
+    if u:
+        return u, _scale_pct(u, y)
+    if o["yunit"] != "auto":
+        meta["y_unit"] = o["yunit"] + " (gewählt)"
+        return o["yunit"], _scale_pct(o["yunit"], y)
+    u, yy = guess_from_values(y)
+    meta["y_unit"] = u + " (geraten)"
+    de, en = {"A": ("Absorbanz", "absorbance"), "T": ("Transmission in %", "transmittance in %")}[u]
+    frac = u == "T" and float(np.nanmax(y)) <= 1.5
+    warn(meta, "guess_y", f"y-Einheit nicht angegeben, aus den Werten geraten: {de}"
+         + (" (Bruchteil, ×100)" if frac else "") + ". Falls falsch, unter „Einheiten“ wählen.",
+         f"y unit not stated, guessed from the values: {en}" + (" (fraction, ×100)" if frac else "")
+         + ". If wrong, choose it under “Units”.", unit=u)
+    return u, yy
+
+
+def _unit_text(unit: str) -> str | None:
+    """Einheitentext einer Datei (JCAMP XUNITS) → "cm-1", "um", "nm" oder None (fehlt oder unbekannt)."""
+    u = (unit or "").upper().replace(" ", "")
+    if u.startswith("MICRO") or u in ("UM", "µM", "MICRON", "MICRONS"):
+        return "um"
+    if u.startswith("NANO") or u == "NM":
+        return "nm"
+    if u in ("1/CM", "CM-1", "CM^-1", "WAVENUMBERS", "WAVENUMBER") or u.startswith("1/CM"):
+        return "cm-1"
+    return None
+
+
+def x_to_cm1(x: np.ndarray, unit: str = "") -> np.ndarray:
+    """Ältere Schnittstelle: Einheitentext (MICRO…, NANO…, 1/CM) → cm⁻¹; ohne Angabe die Regel von x_axis."""
+    u = (unit or "").upper().replace(" ", "")
+    declared = ("um" if u.startswith("MICRO") or u in ("UM", "µM", "MICRON", "MICRONS") else
+                "nm" if u.startswith("NANO") or u == "NM" else "cm-1" if u else None)
+    return x_axis(x, declared, {})
 
 
 # ----------------------------------------------------------------------------- CSV / TXT
@@ -165,7 +273,7 @@ def _parse_rows(lines, delim):
     return rows, header
 
 
-def read_table(text: str, name: str) -> list[Spectrum]:
+def read_table(text: str, name: str, opts=None) -> list[Spectrum]:
     lines = text.splitlines()
     best = None
     for delim in (";", "\t", ",", None):
@@ -185,19 +293,22 @@ def read_table(text: str, name: str) -> list[Spectrum]:
     _, rows, width, header = best
     a = np.array(rows, dtype=float)
     hdr = list(header or [])
-    xunit = hdr[0] if hdr else ""
-    x = x_to_cm1(a[:, 0], "MICRO" if re.search(r"µm|um\b|micro|mikro", xunit, re.I) else
-                 "NANO" if re.search(r"\bnm\b|nano", xunit, re.I) else "")
+    xunit = str(hdr[0]) if hdr else ""
+    xdecl = ("um" if re.search(r"µm|\bum\b|micro|mikro", xunit, re.I) else
+             "nm" if re.search(r"\bnm\b|nano", xunit, re.I) else
+             "cm-1" if re.search(r"cm\s*\^?\s*[-⁻]\s*[1¹]|1\s*/\s*cm|wave\s*number|wellenzahl", xunit, re.I) else None)
     stem = Path(name).stem
     out = []
     for j in range(1, width):
         y = a[:, j]
         if np.isfinite(y).sum() < 10:
             continue
-        col = hdr[j] if j < len(hdr) else ""
-        unit, yv = guess_yunit(y, col)
+        col = str(hdr[j]) if j < len(hdr) else ""
+        meta = {"format": "CSV/TXT", "column": col or f"{j + 1}"}
+        x = x_axis(a[:, 0], xdecl, meta, opts)
+        unit, yv = y_values(y, None, col, meta, opts)
         nm = stem if width == 2 else f"{stem} – {col or f'Spalte {j + 1}'}"
-        out.append(_check(Spectrum(nm, x, yv, unit, {"format": "CSV/TXT", "column": col or f"{j + 1}"}), name))
+        out.append(_check(Spectrum(nm, x, yv, unit, meta), name))
     if not out:
         raise ReadError(f"{name}: keine Intensitätsspalte gefunden")
     return out
@@ -271,7 +382,7 @@ def _key(k: str) -> str:
     return re.sub(r"[\s\-_/]", "", k).upper()
 
 
-def _jcamp_block(d: dict, fname: str, idx: int) -> Spectrum | None:
+def _jcamp_block(d: dict, fname: str, idx: int, opts=None) -> Spectrum | None:
     form = d.get("_form", "").replace(" ", "").upper()
     lines = d.get("_lines") or []
     if not lines:
@@ -312,21 +423,12 @@ def _jcamp_block(d: dict, fname: str, idx: int) -> Spectrum | None:
             return None
         a = np.array(nums[: len(nums) // 2 * 2]).reshape(-1, 2)
         x, y = a[:, 0] * xf, a[:, 1] * yf
-    x = x_to_cm1(x, d.get("XUNITS", "1/CM"))
-    yu = d.get("YUNITS", "").upper()
-    if "ABSORB" in yu:
-        unit, y = "A", y
-    elif "TRANSM" in yu:
-        unit, y = "T", (y * 100 if np.nanmax(y) <= 1.5 else y)
-    elif "KUBELKA" in yu:
-        unit = "KM"
-    elif "REFLECT" in yu:
-        unit, y = "R", (y * 100 if np.nanmax(y) <= 1.5 else y)
-    elif "LOG(1/R)" in yu.replace(" ", ""):
-        unit = "LR"
-    else:
-        unit, y = guess_yunit(y, yu)
     meta = {"format": "JCAMP-DX"}
+    x = x_axis(x, _unit_text(d.get("XUNITS", "")), meta, opts)
+    yu = d.get("YUNITS", "").upper()
+    ydecl = ("A" if "ABSORB" in yu else "T" if "TRANSM" in yu else "KM" if "KUBELKA" in yu else
+             "R" if "REFLECT" in yu else "LR" if "LOG(1/R)" in yu.replace(" ", "") else None)
+    unit, y = y_values(y, ydecl, yu, meta, opts)
     for k, nm in (("ORIGIN", "origin"), ("OWNER", "owner"), ("DATE", "date"), ("LONGDATE", "date"),
                   ("SPECTROMETERDATASYSTEM", "instrument"), ("SPECTROMETER/DATASYSTEM", "instrument"),
                   ("RESOLUTION", "resolution"), ("CASNAME", "cas_name"), ("CASREGISTRYNO", "cas"),
@@ -353,7 +455,7 @@ def _jcamp_block(d: dict, fname: str, idx: int) -> Spectrum | None:
     return _check(Spectrum(title, x, y, unit, meta), fname)
 
 
-def read_jcamp(text: str, name: str) -> list[Spectrum]:
+def read_jcamp(text: str, name: str, opts=None) -> list[Spectrum]:
     out, cur, collecting = [], None, False
     for raw in text.splitlines():
         line = raw.split("$$")[0].rstrip()
@@ -365,7 +467,7 @@ def read_jcamp(text: str, name: str) -> list[Spectrum]:
             k, v = _key(m.group(1)), m.group(2).strip()
             if k == "TITLE":
                 if cur and cur.get("_lines"):
-                    sp = _jcamp_block(cur, name, len(out))
+                    sp = _jcamp_block(cur, name, len(out), opts)
                     if sp:
                         out.append(sp)
                 cur = {"TITLE": v}
@@ -378,7 +480,7 @@ def read_jcamp(text: str, name: str) -> list[Spectrum]:
                 continue
             if k == "END":
                 if cur and cur.get("_lines"):
-                    sp = _jcamp_block(cur, name, len(out))
+                    sp = _jcamp_block(cur, name, len(out), opts)
                     if sp:
                         out.append(sp)
                 cur = None
@@ -387,7 +489,7 @@ def read_jcamp(text: str, name: str) -> list[Spectrum]:
         elif collecting and cur is not None and line.strip():
             cur["_lines"].append(line)
     if cur and cur.get("_lines"):
-        sp = _jcamp_block(cur, name, len(out))
+        sp = _jcamp_block(cur, name, len(out), opts)
         if sp:
             out.append(sp)
     if not out:
@@ -428,7 +530,7 @@ def to_csv(sp: Spectrum, lang: str = "de") -> str:
 _SPA_Y = {17: "A", 16: "T", 11: "R", 12: "LR", 20: "KM"}
 
 
-def read_spa(data: bytes, name: str) -> list[Spectrum]:
+def read_spa(data: bytes, name: str, opts=None) -> list[Spectrum]:
     if len(data) < 600:
         raise ReadError(f"{name}: zu kurz für eine OMNIC-Datei")
     title = data[30:30 + 256].split(b"\0")[0].decode("latin-1", "replace").strip() or Path(name).stem
@@ -465,15 +567,21 @@ def read_spa(data: bytes, name: str) -> list[Spectrum]:
             raise ReadError(f"{name}: OMNIC-Datei nicht lesbar")
         y = np.frombuffer(data, "<f4", count=n, offset=dpos).astype(float)
         x = np.linspace(mx, mn, n)
-    if unit in ("T", "R") and np.nanmax(y) <= 1.5:
-        y = y * 100
-    if unit == "au":
-        unit, y = guess_yunit(y)
-    return [_check(Spectrum(title, x, y, unit, {"format": "Thermo OMNIC (.spa)"}), name)]
+    meta = {"format": "Thermo OMNIC (.spa)", "x_unit": "cm-1"}
+    unit, y = y_values(y, None if unit == "au" else unit, "", meta, opts)
+    return [_check(Spectrum(title, x, y, unit, meta), name)]
 
 
 # ----------------------------------------------------------------------------- GRAMS / Galactic .spc
-_SPC_Y = {2: "A", 3: "KM", 128: "T", 129: "R"}
+# Galactic SPC: fytype 2 Absorbanz, 3 Kubelka-Munk, 10 log(1/R), 128 Transmission, 129 Reflexion; andere -> raten
+_SPC_Y = {2: "A", 3: "KM", 10: "LR", 128: "T", 129: "R"}
+# fxtype: 0 beliebig (Einheit nicht angegeben), 1 Wellenzahl cm⁻¹, 2 µm, 3 nm, 13 Raman-Verschiebung cm⁻¹;
+# alle anderen Codes (Zeit, Frequenz, Masse, Temperatur, Kanal …) sind keine IR-Achse und werden abgelehnt
+_SPC_X = {0: None, 1: "cm-1", 2: "um", 3: "nm", 13: "cm-1"}
+_SPC_X_OTHER = {4: "Sekunden", 5: "Minuten", 6: "Hz", 7: "kHz", 8: "MHz", 9: "Masse (m/z)", 10: "ppm", 11: "Tage",
+                12: "Jahre", 14: "eV", 15: "Textbeschriftung", 16: "Diodennummer", 17: "Kanal", 18: "Grad",
+                19: "°F", 20: "°C", 21: "K", 22: "Datenpunkte", 23: "ms", 24: "µs", 25: "ns", 26: "GHz", 27: "cm",
+                28: "m", 29: "mm", 30: "Stunden", 255: "Interferogramm"}
 
 
 def _spc_meta(data: bytes, name: str) -> dict:
@@ -508,7 +616,7 @@ def _spc_meta(data: bytes, name: str) -> dict:
     return meta
 
 
-def read_spc(data: bytes, name: str) -> list[Spectrum]:
+def read_spc(data: bytes, name: str, opts=None) -> list[Spectrum]:
     if len(data) < 544:
         raise ReadError(f"{name}: zu kurz für eine SPC-Datei")
     if data[1] != 0x4B:
@@ -546,14 +654,19 @@ def read_spc(data: bytes, name: str) -> list[Spectrum]:
         else:
             y = np.frombuffer(data, "<i4", count=n, offset=off).astype(float) * 2.0 ** (exp - 32)
             off += 4 * n
-        xs = x_to_cm1(xs, {2: "MICRO", 3: "NANO"}.get(fxtype, "1/CM"))
-        unit = _SPC_Y.get(fytype)
-        if unit in ("T", "R") and np.nanmax(y) <= 1.5:
-            y = y * 100
-        if unit is None:
-            unit, y = guess_yunit(y)
+        m = dict(meta)
+        if fxtype not in _SPC_X:
+            raise ReadError(f"{name}: SPC-x-Achse vom Typ {fxtype} ({_SPC_X_OTHER.get(fxtype, 'unbekannt')}) ist keine "
+                            "Wellenzahl oder Wellenlänge; nicht als IR-Spektrum lesbar.")
+        if fxtype == 13:
+            warn(m, "spc_raman", "SPC-x-Achse ist eine Raman-Verschiebung (cm⁻¹): Bandenzuordnung und Bibliotheken "
+                 "gelten für IR-Spektren.", "SPC x axis is a Raman shift (cm⁻¹): band assignments and libraries are for "
+                 "IR spectra.")
+        m["spc_fxtype"] = int(fxtype)
+        xs = x_axis(xs, _SPC_X[fxtype], m, opts)
+        unit, y = y_values(y, _SPC_Y.get(fytype), "", m, opts)
         nm = (cmnt or Path(name).stem) + (f" ({k + 1})" if nsub > 1 else "")
-        out.append(_check(Spectrum(nm, xs, y, unit, dict(meta)), name))
+        out.append(_check(Spectrum(nm, xs, y, unit, m), name))
     if not out:
         raise ReadError(f"{name}: keine Daten in der SPC-Datei")
     return out
@@ -569,19 +682,27 @@ def _text(data: bytes) -> str:
     return data.decode("latin-1", "replace")
 
 
-def load_bytes(data: bytes, name: str) -> list[Spectrum]:
-    """Alle Spektren einer Datei."""
+def load_bytes(data: bytes, name: str, opts: dict | None = None) -> list[Spectrum]:
+    """Alle Spektren einer Datei. opts: {"xunit": "auto"|"cm-1"|"um"|"nm", "yunit": "auto"|"A"|"T"|…} – die Wahl
+    des Benutzers für Einheiten, die die Datei nicht angibt (sonst wird geraten und ein Hinweis vermerkt)."""
+    o = _opts(opts)
     ext = Path(name).suffix.lower()
     if data[:4] == b"\x0a\x0a\xfe\xfe":                               # Bruker OPUS, Endung meist .0, .1, …
         from . import opus
-        return opus.read(data, name)
-    if ext == ".spa":
-        return read_spa(data, name)
-    if ext in (".spc", ".fir") or (len(data) > 2 and data[1] == 0x4B and data[:1] != b"#"):
-        return read_spc(data, name)
-    text = _text(data)
-    if ext in (".jdx", ".dx", ".jcamp", ".jcm") or text.lstrip().startswith("##"):
-        return read_jcamp(text, name)
-    if "\0" in text[:2000]:
-        raise ReadError(f"{name}: unbekanntes Binärformat (unterstützt: JCAMP-DX, .spa, .spc/.fir, Bruker OPUS, CSV/TXT)")
-    return read_table(text, name)
+        sps = opus.read(data, name, o)
+    elif ext == ".spa":
+        sps = read_spa(data, name, o)
+    elif ext in (".spc", ".fir") or (len(data) > 2 and data[1] == 0x4B and data[:1] != b"#"):
+        sps = read_spc(data, name, o)
+    else:
+        text = _text(data)
+        if ext in (".jdx", ".dx", ".jcamp", ".jcm") or text.lstrip().startswith("##"):
+            sps = read_jcamp(text, name, o)
+        elif "\0" in text[:2000]:
+            raise ReadError(f"{name}: unbekanntes Binärformat (unterstützt: JCAMP-DX, .spa, .spc/.fir, Bruker OPUS, CSV/TXT)")
+        else:
+            sps = read_table(text, name, o)
+    if o["xunit"] != "auto" or o["yunit"] != "auto":
+        for sp in sps:
+            sp.meta["read_opts"] = dict(o)
+    return sps

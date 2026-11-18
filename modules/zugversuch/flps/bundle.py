@@ -29,8 +29,10 @@ from .analyse import PHASES, Result, specimen_label  # noqa: E402
 from .export import charts as C  # noqa: E402
 
 FIG = (6.4, 3.6)
+RO_KEY = "ramberg-osgood-1943"   # Modell der idealisierten Werkstoffkurven (flps/alloys.py, curve_model)
 
-# Normen der Probenformen -> Literaturangabe. Ausgabejahr nur, wo es sicher ist.
+# Normen der Probenformen -> Literaturangabe. Ausgabejahr nur, wo es sicher ist; ohne Jahr steht im Literatureintrag
+# "Ausgabe prüfen". Die Masse von data/specimens.json für ISO 527-2 folgen der Ausgabe 2012 (Feld "ausgabe" dort).
 NORMS = {
     "ISO 527-2": ("iso527-2", "ISO 527-2", "Plastics -- Determination of tensile properties -- Part 2: Test conditions for moulding and extrusion plastics", "2012"),
     "ISO 527-3": ("iso527-3", "ISO 527-3", "Plastics -- Determination of tensile properties -- Part 3: Test conditions for films and sheets", "2018"),
@@ -54,7 +56,7 @@ T = {
         "fig_curve": "{q}-Zeit-Verlauf der Messung {n} nach Phasen mit Fliessbeginn ({thr}\\,\\% von {ref}), Maximum und Bruch.",
         "fig_fit": "Messpunkte der Messung {n} gegen die verlängerte Ausgleichsgerade des linearen Abschnitts.",
         "fig_dev": "Abweichung der Messpunkte von der Ausgleichsgeraden mit der Schwelle des Fliessbeginns ({thr}\\,\\% von {ref}).",
-        "fig_field": "Gemessene Spannungs-Dehnungs-Kurve im idealisierten Feld der Vergleichsgruppe {g}{refpart}. Dehnung aus dem {src}.",
+        "fig_field": "Gemessene Spannungs-Dehnungs-Kurve im Feld der Vergleichsgruppe {g}{refpart}; die Werkstoffkurven sind idealisiert und dienen nur der Orientierung. Dehnung aus dem {src}.",
         "fig_cand": "Fliessbeginn und Zugfestigkeit der Messung im Vergleich mit den nächstliegenden Werkstoffen der Gruppe {g}.",
         "fig_field_key": " Die Zahlen an den Kurvenenden bezeichnen die Werkstoffe im Schlüssel; Kennwerte aus den angegebenen Quellen.",
         "tab_src": "Werkstoffe des Spannungs-Dehnungs-Felds {g} mit den Kennwerten, aus denen ihre Kurven idealisiert sind (Nummern wie im Diagramm){cont}.",
@@ -65,7 +67,7 @@ T = {
         "fig_ov_time": "Überlagerter Verlauf der Messungen {n}.",
         "fig_ov_strain": "Überlagerte Spannungs-Dehnungs-Kurven der Messungen {n}.",
         "fig_kpis": "Kennwerte der Messungen {n} im Vergleich.",
-        "tab_kv": "Kennwerte der Messung {n}.", "tab_ref": "Messung {n} im Vergleich mit dem Referenzwerkstoff {r} (Sollwerte, nicht gemessen).",
+        "tab_kv": "Kennwerte der Messung {n}.", "tab_ref": "Messung {n} im Vergleich mit dem Referenzwerkstoff {r} (Sollwerte, nicht gemessen). Abweichung = (Messung $-$ Referenz)/Referenz. Der Fliessbeginn ist eine Abweichungsschwelle, keine $R_{{p0,2}}$; seine Abweichung von der Referenz dient nur der Orientierung.",
         "tab_cmp": "Kennwerte der Messungen im Vergleich.",
         "col_q": "Kennwert", "col_v": "Wert", "col_meas": "gemessen", "col_ref": "Referenz", "col_dev": "Abweichung",
         "col_name": "Messung",
@@ -74,7 +76,10 @@ T = {
                  "max_s": "Zugfestigkeit $R_m$", "max_f": "Maximalkraft $F_\\mathrm{{max}}$", "brk": "vor dem Bruch",
                  "drop": "Abfall Maximum bis Bruch", "hold": "Haltezeit über {h}\\,\\%", "ratio": "Verhältnis Maximum/Fliessbeginn",
                  "e": "Elastizitätsmodul (scheinbar)", "k": "Steigung linearer Abschnitt", "r2": "Bestimmtheitsmaß $R^2$",
-                 "rate": "Abtastrate", "fmax": "Maximalkraft"},
+                 "rate": "Abtastrate", "fmax": "Maximalkraft",
+                 "agt": "Gesamtdehnung bei Höchstkraft $A_{gt}$", "ag": "Plastische Dehnung bei Höchstkraft $A_g$",
+                 "at": "Gesamtdehnung beim Bruch $A_t$", "a": "Bruchdehnung $A$ ($A_t$ ohne elastischen Anteil)",
+                 "app": " (scheinbar)", "yield_ref": "Fliessbeginn ({thr}\\,\\%) / $R_{{p0,2}}$ (nicht gleichartig)"},
         "methods_t": "Methodik", "results_t": "Ergebnisse",
         "src_trav": "Traversenweg (scheinbar)", "src_probe": "Weg an der Probe",
         "phase": {"Setzen": "Setzen", "elastisch": "elastisch", "plastisch": "plastisch", "Abfall": "Abfall"},
@@ -84,7 +89,7 @@ T = {
         "fig_curve": "{q}--time curve of measurement {n} by phase, with yield onset ({thr}\\,\\% of {ref}), maximum and break.",
         "fig_fit": "Data points of measurement {n} against the extended regression line of the linear section.",
         "fig_dev": "Deviation of the data points from the regression line, with the yield-onset threshold ({thr}\\,\\% of {ref}).",
-        "fig_field": "Measured stress--strain curve within the idealised field of the comparison group {g}{refpart}. Strain from the {src}.",
+        "fig_field": "Measured stress--strain curve within the field of the comparison group {g}{refpart}; the material curves are idealised, for orientation only. Strain from the {src}.",
         "fig_cand": "Yield onset and tensile strength of the measurement compared with the closest materials of the group {g}.",
         "fig_field_key": " Numbers at the curve ends identify the materials in the key; property values from the sources given.",
         "tab_src": "Materials of the stress--strain field {g} with the property values their curves are idealised from (numbers as in the figure){cont}.",
@@ -95,7 +100,7 @@ T = {
         "fig_ov_time": "Overlaid curves of the measurements {n}.",
         "fig_ov_strain": "Overlaid stress--strain curves of the measurements {n}.",
         "fig_kpis": "Key values of the measurements {n} compared.",
-        "tab_kv": "Key values of measurement {n}.", "tab_ref": "Measurement {n} compared with the reference material {r} (nominal values, not measured).",
+        "tab_kv": "Key values of measurement {n}.", "tab_ref": "Measurement {n} compared with the reference material {r} (nominal values, not measured). Deviation = (measurement $-$ reference)/reference. The yield onset is a deviation threshold, not $R_{{p0.2}}$; its deviation from the reference is for orientation only.",
         "tab_cmp": "Key values of the measurements compared.",
         "col_q": "Quantity", "col_v": "Value", "col_meas": "measured", "col_ref": "reference", "col_dev": "deviation",
         "col_name": "Measurement",
@@ -104,7 +109,10 @@ T = {
                  "max_s": "Tensile strength $R_m$", "max_f": "Maximum force $F_\\mathrm{{max}}$", "brk": "Before break",
                  "drop": "Drop maximum to break", "hold": "Hold time above {h}\\,\\%", "ratio": "Ratio maximum/yield onset",
                  "e": "Elastic modulus (apparent)", "k": "Slope of linear section", "r2": "Coefficient of determination $R^2$",
-                 "rate": "Sampling rate", "fmax": "Maximum force"},
+                 "rate": "Sampling rate", "fmax": "Maximum force",
+                 "agt": "Total extension at maximum force $A_{gt}$", "ag": "Plastic extension at maximum force $A_g$",
+                 "at": "Total extension at fracture $A_t$", "a": "Percentage elongation after fracture $A$ ($A_t$ minus elastic part)",
+                 "app": " (apparent)", "yield_ref": "Yield onset ({thr}\\,\\%) / $R_{{p0.2}}$ (not like with like)"},
         "methods_t": "Methods", "results_t": "Results",
         "src_trav": "crosshead displacement (apparent)", "src_probe": "displacement measured on the specimen",
         "phase": {"Setzen": "settling", "elastisch": "elastic", "plastisch": "plastic", "Abfall": "drop"},
@@ -120,7 +128,8 @@ _EN = [
     ("Gerade aus dem Fitfenster", "Line from fit window"), ("Fitfenster", "Fit window"), ("Messpunkte", "Data points"),
     ("Rp0,2 bzw. Streckspannung", "Rp0.2 or yield stress"), ("(Messung)", "(measurement)"), ("Referenzwerkstoff", "Reference material"),
     ("Referenz", "Reference"), ("(Kurven aus Quellen)", "(curves from sources)"),
-    ("(Kurve aus Quelle)", "(curve from source)"), ("(idealisiert)", "(idealised)"), ("obere Grenze", "upper bound"),
+    ("(Kurve aus Quelle)", "(curve from source)"), ("(idealisiert, zur Orientierung)", "(idealised, for orientation)"),
+    ("(idealisiert)", "(idealised)"), ("obere Grenze", "upper bound"),
     ("untere Grenze", "lower bound"), ("Fliessbeginn", "Yield onset"), ("Zugfestigkeit", "Tensile strength"),
     ("zurückgestuft", "downgraded"), ("unwahrscheinlich", "unlikely"), ("Kandidat", "Candidate"),
     ("Schwelle", "Threshold"), ("vor Bruch", "before break"), ("Bruch", "Break"), ("Setzen", "Settling"),
@@ -191,6 +200,18 @@ def _safe_url(u: str) -> bool:
     return bool(u) and u.startswith(("http://", "https://")) and not any(c in u for c in "{}\\ \n")
 
 
+_VT_EN = (("Mitte der Spanne", "middle of the range"), ("Mindestwert", "minimum"), ("Höchstwert", "maximum"),
+          ("Typwert", "typical"), ("unklar", "unclear"))
+
+
+def _value_type_text(s: str, lang: str) -> str:
+    if lang == "de":
+        return s
+    for de, en in _VT_EN:
+        s = s.replace(de, en)
+    return s
+
+
 def _mat_cite(b: Bundle, a, lang: str) -> str:
     """Literaturangabe der Kennwerte eines Vergleichswerkstoffs (Quelle und Basis aus data/alloys.json)."""
     key = "mat-" + slugify(a.name, 30)
@@ -204,8 +225,13 @@ def _mat_cite(b: Bundle, a, lang: str) -> str:
                 extra["note"] = tex_escape("; ".join(x for x in (note, a.basis) if x))
             return labcite.to_bib(b, key, rec, extra)
     url = getattr(a, "url", "")
+    note = a.source or ("Quelle nicht angegeben" if lang == "de" else "source not given")
+    if getattr(a, "value_type", ""):
+        note += ("; Wertart: " if lang == "de" else "; value type: ") + _value_type_text(a.value_type, lang)
+    if getattr(a, "check_note", ""):
+        note += ("; nicht geprüft: " if lang == "de" else "; not checked: ") + a.check_note
     b.add_citation(key, "misc", title=tex_escape(T[lang]["mat_title"].format(n=a.name)),
-                   howpublished=tex_escape(a.basis), note=tex_escape(a.source or ("Quelle nicht angegeben" if lang == "de" else "source not given")),
+                   howpublished=tex_escape(a.basis), note=tex_escape(note),
                    year=tex_escape(getattr(a, "year", "")),
                    url=url if _safe_url(url) else "", urldate=getattr(a, "accessed", "") if _safe_url(url) else "")
     return key
@@ -232,8 +258,18 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
             b.add_citation(key, "misc", title=f"{number}: {title}", author="{" + number.split()[0] + "}",
                            year=year, note="" if year else ("Ausgabe prüfen" if lang == "de" else "check edition"))
             cites["norm"] = key
+        if r.kv.get("A_pct") is not None:       # A = At − elastischer Anteil (Extensometerverfahren, ISO 6892-1)
+            key, number, title, year = NORMS["ISO 6892-1"]
+            b.add_citation(key, "misc", title=f"{number}: {title}", author="{" + number.split()[0] + "}", year=year)
+            cites["iso6892"] = key
         if r.reference is not None:
             cites["mat"] = _mat_cite(b, r.reference, lang)
+        if st and r.comparison and r.strain is not None:
+            b.add_citation(RO_KEY, "techreport", author="Ramberg, Walter and Osgood, William R.",
+                           title="Description of stress-strain curves by three parameters",
+                           institution="National Advisory Committee for Aeronautics", type="Technical Note",
+                           number="902", year="1943")
+            cites["ro"] = RO_KEY
         if st and r.comparison:
             # jede Vergleichskurve im Feld und jeder Kandidat mit eigener Quelle
             cites["field"] = [_mat_cite(b, a, lang) for a in C.field_members(r)]
@@ -275,7 +311,15 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
     if kv["drop"]:
         vals.append(("drop", L["rows"]["drop"], num(kv["drop"]["pct"], 1, lang, "%"), f"{kv['drop']['pct']:.1f} %"))
     vals.append(("hold", "Haltezeit" if lang == "de" else "Hold time", num(kv["hold"]["dauer"], 1, lang, "s"), f"{kv['hold']['dauer']:.1f} s"))
-    vals.append(("ratio", L["rows"]["ratio"], num(kv["ratio"], 2, lang), f"{kv['ratio']:.2f}"))
+    hthr = kv["hold"]["schwelle"] * 100
+    vals.append(("holdthr", "Halteschwelle" if lang == "de" else "Hold threshold", num(hthr, 0, lang) + r"\,\%", f"{hthr:.0f} %"))
+    if kv["ratio"] is not None:
+        vals.append(("ratio", L["rows"]["ratio"], num(kv["ratio"], 2, lang), f"{kv['ratio']:.2f}"))
+    tol =kv["fit"]["tol"]
+    vals.append(("tol", "Toleranz Fitfenster" if lang == "de" else "Fit-window tolerance", num(tol, 2, lang, u), f"{tol:.2f} {u}"))
+    for key, rk, kk in (("Agt", "agt", "Agt_pct"), ("Ag", "ag", "Ag_pct"), ("At", "at", "At_pct"), ("A", "a", "A_pct")):
+        if kv.get(kk) is not None:
+            vals.append((key, L["rows"][rk], num(kv[kk], 2, lang, "%"), f"{kv[kk]:.2f} %"))
     if r.e_schein_gpa is not None:
         vals.append(("E", L["rows"]["e"], num(r.e_schein_gpa, 1, lang, "GPa"), f"{r.e_schein_gpa:.1f} GPa"))
     if r.a0:
@@ -289,7 +333,7 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
     if r.reference is not None:
         vals.append(("refRm", "$R_m$ Referenz" if lang == "de" else "Reference $R_m$", num(r.reference.rm, 0, lang, "MPa"), f"{r.reference.rm:.0f} MPa"))
         if r.ref_cmp and r.ref_cmp.get("d_rm_pct") is not None:
-            vals.append(("refdRm", "ΔRm", num(r.ref_cmp["d_rm_pct"], 1, lang, "%"), f"{r.ref_cmp['d_rm_pct']:.1f} %"))
+            vals.append(("refdRm", "dRm (Referenz)" if lang == "de" else "dRm (reference)",num(r.ref_cmp["d_rm_pct"], 1, lang, "%"), f"{r.ref_cmp['d_rm_pct']:.1f} %"))
     if inc.get("values", True):
         b.add_values(vals)
 
@@ -346,6 +390,10 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
         rows.append([R["ratio"], num(kv["ratio"], 2, lang)])
         if r.e_schein_gpa is not None:
             rows.append([R["e"], num(r.e_schein_gpa, 1, lang, "GPa")])
+        app = R["app"] if r.config.displacement_source != "probe" else ""
+        for rk, kk in (("agt", "Agt_pct"), ("ag", "Ag_pct"), ("at", "At_pct"), ("a", "A_pct")):
+            if kv.get(kk) is not None:
+                rows.append([R[rk] + app, num(kv[kk], 2, lang, "%")])
         rows.append([R["k"], num(kv["fit"]["k_N_s"], 3, lang, "N/s")])
         rows.append([R["r2"], num(kv["fit"]["r2"], 5, lang)])
         b.add_table("kennwerte", booktabs([L["col_q"], L["col_v"]], rows), L["tab_kv"].format(n=n))
@@ -353,7 +401,7 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
             ref = r.reference
             rr = [[R["max_s"], num(kv["Rm"], 0, lang), num(ref.rm, 0, lang), num(100 * (kv["Rm"] - ref.rm) / ref.rm, 1, lang, "%")]]
             if y and ref.rp:
-                rr.append([R["yield"].format(thr=thr) + " / $R_{p0,2}$" if lang == "de" else R["yield"].format(thr=thr) + " / $R_{p0.2}$",
+                rr.append([R["yield_ref"].format(thr=thr),
                            num(y["y"], 0, lang), num(ref.rp, 0, lang), num(100 * (y["y"] - ref.rp) / ref.rp, 1, lang, "%")])
             if r.e_schein_gpa is not None:
                 rr.append([R["e"] + " [GPa]", num(r.e_schein_gpa, 1, lang), num(ref.e_gpa, 1, lang),
@@ -405,13 +453,21 @@ def _source_tables(b: Bundle, r: Result, lang: str, cites: dict, per_table: int 
     rows = []
     for nr, a in entries:
         key = _mat_cite(b, a, lang)
-        rows.append((key, [nr, tex_escape(a.name), num(a.rp, 0, lang) if a.rp else "--", num(a.rm, 0, lang),
+        mark = "*" if getattr(a, "check_note", "") else ""
+        rows.append((key, [nr, tex_escape(a.name) + mark, num(a.rp, 0, lang) if a.rp else "--", num(a.rm, 0, lang),
                            num(a.a_pct, 0, lang), num(a.e_gpa, 1, lang), cite([key], sep="")]))
+    star = any(getattr(a, "check_note", "") for _, a in entries)
+    star_txt = (" Mit * markierte Einträge sind nicht geprüft (Grund in der Literaturangabe)." if lang == "de" else
+                " Entries marked * are not checked (reason in the reference).") if star else ""
+    wood = any(a.category == "Holz" for _, a in entries)
+    wood_txt = (" Holz: $E$ ist der Biege-Elastizitätsmodul, nicht der Zug-Elastizitätsmodul." if lang == "de" else
+                " Wood: $E$ is the modulus of elasticity in bending, not in tension.") if wood else ""
     for k in range(0, len(rows), per_table):
         chunk = rows[k:k + per_table]
         b.add_table("werkstoffe" + (f"-{k // per_table + 1}" if k else ""),
                     booktabs(L["h_src"], [row for _, row in chunk], "rlrrrrl", small=True, escape_header=False),
-                    L["tab_src"].format(g=tex_escape(r.group), cont=L["cont"] if k else ""), cites=[key for key, _ in chunk])
+                    L["tab_src"].format(g=tex_escape(r.group), cont=L["cont"] if k else "") + star_txt + wood_txt,
+                    cites=[key for key, _ in chunk])
 
 
 def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
@@ -444,19 +500,36 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
                 m.append(f"Die Kraft wurde mit {V('rate')} aufgezeichnet; die Prüfgeschwindigkeit ist nicht dokumentiert.")
         if st:
             m.append(f"Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $ {V('A0')}.")
-        m.append("Der lineare Abschnitt wurde als längstes Zeitfenster bestimmt, in dem die Messpunkte innerhalb einer "
-                 "festen Toleranz auf einer Geraden liegen. Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster, "
-                 f"der um mehr als {V('thr')} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine "
-                 "Festlegung und keine Dehngrenze $R_{p0,2}$.")
+        m.append("Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen "
+                 "Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als "
+                 f"{V('tol')} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann "
+                 "(gierige Suche, nicht notwendig das längste solche Fenster). Als Fliessbeginn gilt der erste Messpunkt "
+                 f"nach diesem Fenster, der um mehr als {V('thr')} des Maximums von der verlängerten Geraden abweicht. "
+                 "Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$.")
+        m.append(f"Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens "
+                 f"{V('holdthr')} des Maximums beträgt.")
+        if r.kv.get("A_pct") is not None:
+            iso_c = (" " + _cite_cmd([cites["iso6892"]])) if "iso6892" in cites else ""
+            m.append("Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die "
+                     "plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren" + iso_c + " aus den "
+                     "Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung "
+                     "geteilt durch die Steigung des linearen Abschnitts derselben Kurve).")
         if c.displacement_source != "probe" and r.e_schein_gpa is not None:
             m.append("Ob der Weg an der Probe gemessen wurde, ist nicht dokumentiert; der berechnete Modul ist deshalb ein "
                      "scheinbarer Wert." if o else
                      "Die Dehnung stammt aus dem Traversenweg und enthält die Nachgiebigkeit des Aufbaus; der daraus "
                      "berechnete Modul ist ein scheinbarer Wert.")
         if cites.get("field"):
+            ro_c = ("~" + _cite_cmd([cites["ro"]])) if "ro" in cites else ""
             m.append(f"Verglichen wurde mit den {len(r.alloys)} Werkstoffen der Gruppe {tex_escape(r.group)}; "
                      "ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ "
-                     f"idealisiert und keine Messkurven (Kennwerte nach{cite(cites['field'])}).")
+                     "idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood" + ro_c + " durch "
+                     "$R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne "
+                     "$R_{p0,2}$ elastisch bis $R_m$). Sie dienen nur der Orientierung und sind keine Messkurven "
+                     f"(Kennwerte nach{cite(cites['field'])}).")
+            m.append("Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ "
+                     "bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den "
+                     "Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist.")
         res = []
         if st:
             res.append(f"Die Probe erreichte eine Zugfestigkeit von {V('Rm')} (Maximalkraft {V('Fmax')} nach {V('tmax')}).")
@@ -465,7 +538,12 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
         if r.kv["yield"]:
             res.append(f"Der Fliessbeginn lag bei {V('yield')}, das Verhältnis von Maximum zu Fliessbeginn bei {V('ratio')}.")
         if r.kv["drop"]:
-            res.append(f"Vom Maximum bis zum Bruch fiel die Last um {V('drop')}; die Last blieb {V('hold')} über 90\\,\\% des Maximums.")
+            res.append(f"Vom Maximum bis zum Bruch fiel die Last um {V('drop')}; die Last blieb {V('hold')} ohne "
+                       f"Unterbrechung über {V('holdthr')} des Maximums.")
+        if r.kv.get("A_pct") is not None:
+            app = " (scheinbar, Weg nicht an der Probe gemessen)" if c.displacement_source != "probe" else ""
+            res.append(f"Die Gesamtdehnung beim Bruch betrug $A_t = $ {V('At')}, die Bruchdehnung nach Abzug des "
+                       f"elastischen Anteils $A = $ {V('A')}{app}.")
         if r.reference is not None and st:
             mat_c = (" " + _cite_cmd([cites["mat"]])) if "mat" in cites else ""
             res.append(f"Gegenüber dem Referenzwerkstoff {tex_escape(r.reference.name)} ($R_m = $ {V('refRm')}{mat_c}) "
@@ -492,19 +570,35 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
                 m.append(f"Force was recorded at {V('rate')}; the test speed was not documented.")
         if st:
             m.append(f"Stress refers to the initial cross-section $A_0 = $ {V('A0')}.")
-        m.append("The linear section was determined as the longest time window in which the data points lie on a straight "
-                 "line within a fixed tolerance. Yield onset is the first point after this window that deviates from the "
-                 f"extended line by more than {V('thr')} of the maximum. This threshold is a convention, not a proof "
-                 "stress $R_{p0.2}$.")
+        m.append("The linear section was found by growing a window from the point of steepest slope, one data point at a "
+                 "time to the left and to the right, as long as all points of the window deviate from their regression "
+                 f"line by less than {V('tol')}; the search stops when neither side can grow (a greedy search, not "
+                 "necessarily the longest such window). Yield onset is the first point after this window that deviates "
+                 f"from the extended line by more than {V('thr')} of the maximum. This threshold is a convention, not a "
+                 "proof stress $R_{p0.2}$.")
+        m.append(f"The hold time is the duration of the contiguous section around the maximum in which the load stays at "
+                 f"or above {V('holdthr')} of the maximum.")
+        if r.kv.get("A_pct") is not None:
+            iso_c = (" " + _cite_cmd([cites["iso6892"]])) if "iso6892" in cites else ""
+            m.append("Strain was counted from the foot point of the regression line. The percentage elongation after "
+                     "fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer "
+                     "method" + iso_c + " from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part "
+                     "(stress divided by the slope of the linear section of the same curve).")
         if c.displacement_source != "probe" and r.e_schein_gpa is not None:
             m.append("Whether the displacement was measured on the specimen is not documented, so the calculated modulus is "
                      "an apparent value." if o else
                      "Strain was derived from the crosshead displacement and includes the compliance of the set-up; the "
                      "modulus calculated from it is an apparent value.")
         if cites.get("field"):
+            ro_c = ("~" + _cite_cmd([cites["ro"]])) if "ro" in cites else ""
             m.append(f"The measurement was compared with the {len(r.alloys)} materials of the group "
                      f"{tex_escape(r.group)}; their stress--strain curves are idealised from $R_{{p0.2}}$, $R_m$, $A$ and $E$ "
-                     f"and are not measured curves (property values from{cite(cites['field'])}).")
+                     "(elastic with $E$, then the Ramberg--Osgood relation" + ro_c + " through $R_{p0.2}$ and $R_m$ at "
+                     "$0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$). They are "
+                     f"for orientation only and are not measured curves (property values from{cite(cites['field'])}).")
+            m.append("Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ "
+                     "relative to the material value; the ratio of maximum to yield onset only lowers the status, because "
+                     "the yield onset is a threshold, not $R_{p0.2}$.")
         res = []
         if st:
             res.append(f"The specimen reached a tensile strength of {V('Rm')} (maximum force {V('Fmax')} after {V('tmax')}).")
@@ -513,8 +607,12 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
         if r.kv["yield"]:
             res.append(f"Yield onset was at {V('yield')}; the ratio of maximum to yield onset was {V('ratio')}.")
         if r.kv["drop"]:
-            res.append(f"From the maximum to the break the load dropped by {V('drop')}; it stayed above 90\\,\\% of the "
-                       f"maximum for {V('hold')}.")
+            res.append(f"From the maximum to the break the load dropped by {V('drop')}; it stayed above {V('holdthr')} "
+                       f"of the maximum for {V('hold')} without interruption.")
+        if r.kv.get("A_pct") is not None:
+            app = " (apparent; displacement not measured on the specimen)" if c.displacement_source != "probe" else ""
+            res.append(f"The total extension at fracture was $A_t = $ {V('At')}, the percentage elongation after fracture "
+                       f"without the elastic part $A = $ {V('A')}{app}.")
         if r.reference is not None and st:
             mat_c = (" " + _cite_cmd([cites["mat"]])) if "mat" in cites else ""
             res.append(f"Compared with the reference material {tex_escape(r.reference.name)} ($R_m = $ {V('refRm')}{mat_c}), "
@@ -566,7 +664,8 @@ def _multi(b: Bundle, results: list[Result], lang: str, inc: dict, keep: set[str
             nm = _norm(r)
             if nm:
                 key, number, title, year = nm
-                b.add_citation(key, "misc", title=f"{number}: {title}", author="{" + number.split()[0] + "}", year=year)
+                b.add_citation(key, "misc", title=f"{number}: {title}", author="{" + number.split()[0] + "}", year=year,
+                               note="" if year else ("Ausgabe prüfen" if lang == "de" else "check edition"))
 
 
 # ----------------------------------------------------------------------------- Einstieg

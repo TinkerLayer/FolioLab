@@ -20,7 +20,7 @@ from fractions import Fraction
 
 from . import chem as C
 
-F = 96485.33212                       # C/mol, CODATA 2022 (F = N_A·e, exakt; gerundet)
+F = C.FARADAY                         # C/mol, exakt: F = N_A·e (SI 2019)
 R = C.R_GAS
 T0 = 298.15
 REFS_OX = ["karen2016", "redbook2005", "pubchem_pt"]

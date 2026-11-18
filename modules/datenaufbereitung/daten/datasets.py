@@ -53,9 +53,18 @@ def producer(envs, version: str, item=None, item_name=None, raw=None) -> dict:
             "module_version": version, "raw": raw}
 
 
+_COL_SIG = ("key", "name", "unit", "role", "kind", "symbol", "u", "note", "u_type", "u_k", "u_level")
+
+
 def _sig(h: dict):
-    return [h.get("data_hash"), h.get("title"),
-            [(c.get("key"), c.get("name"), c.get("unit"), c.get("role"), c.get("kind")) for c in h.get("columns") or []]]
+    """What makes a new version: values (data hash), flags and exclusions (computed here, so headers stored before
+    `flags_hash` existed compare correctly), title, column properties, conditions and – for a derived dataset – the
+    parent version and the second datasets it was computed from."""
+    prov = h.get("provenance") or {}
+    d = prov.get("derived_from") or {}
+    return [h.get("data_hash"), DS.flags_hash(h.get("flags") or []), h.get("title"),
+            [[c.get(k) for k in _COL_SIG] for c in h.get("columns") or []], h.get("conditions") or {},
+            [d.get("share"), d.get("version")], [[i.get("share"), i.get("version")] for i in prov.get("inputs") or []]]
 
 
 def head(b: Sharebox, sid: str) -> dict | None:
@@ -184,6 +193,7 @@ class _Ctx:
 
     def __init__(self, loader=None):
         self._loader = loader
+        self.inputs: list[dict] = []                 # second datasets read by steps (share, version, title)
 
     def load(self, sid, version=None):
         if self._loader is None:
@@ -222,6 +232,11 @@ def derive(parent: DS.Dataset, ops: list, title: str, origin: dict | None = None
                     "flags_after": len(t.flags), "excluded_before": before[2],
                     "excluded_after": n_ex()})
     prov = {"derived_from": origin or {}, "ops": ops, "steps": log, "parent_provenance": parent.header.get("provenance") or {}}
+    if ctx.inputs:
+        prov["inputs"] = ctx.inputs
+    trunc = [x for x in (parent.header.get("provenance") or {}).get("truncations") or []]
+    if trunc:                                            # DP-06: what was cut when the parent was read stays visible
+        prov["truncations"] = trunc
     try:
         return t.dataset(title or parent.header["title"], prov)
     except C.CleanError as e:
@@ -335,6 +350,8 @@ def make_derived(envs, version: str, parent: str, ops: list, title: str, mode: s
     pds, penv = load(envs, parent, parent_version)
     ds = derive(pds, ops, title, {"share": parent, "version": penv["version"], "title": penv.get("title")},
                 loader=lambda sid, v=None: load(envs, sid, v))
+    if version:
+        ds.header.setdefault("provenance", {})["module_version"] = version       # the computing process
     meta = {"derive": {"parent": parent, "mode": mode, "version": penv["version"], "ops": ops}}
     return publish(envs, producer(envs, version, None, penv.get("title")), ds, share_id, **meta)
 
@@ -358,8 +375,11 @@ def refresh_children(envs, parent: str, version: str, depth: int = 0) -> list[di
             if _sig(last.get("dataset") or {}) == _sig(ds.header):
                 set_meta(b, m["id"], derive={**d, "version": penv["version"]}, error=None)
                 continue
-            env = b.publish_dataset(m.get("producer") or producer(envs, version), ds.header["title"], ds, RECIPIENTS,
-                                    share_id=m["id"])
+            # recomputed now by this process: its module version, not the one of the first computation
+            if version:
+                ds.header.setdefault("provenance", {})["module_version"] = version
+            prod = {**(m.get("producer") or producer(envs, version)), **({"module_version": version} if version else {})}
+            env = b.publish_dataset(prod, ds.header["title"], ds, RECIPIENTS, share_id=m["id"])
             set_meta(b, m["id"], derive={**d, "version": penv["version"]}, error=None)
             out.append({"share": m["id"], "version": env["version"]})
             out += refresh_children(envs, m["id"], version, depth + 1)

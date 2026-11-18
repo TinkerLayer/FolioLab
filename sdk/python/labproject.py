@@ -205,9 +205,17 @@ class Environments:
         # A8: Rohdateien hinter geteilten Versionen bleiben (Herkunftskette), auch wenn der Eintrag geschlossen wird
         sb = self.suite.project_dir(self.project) / "sharebox"
         for v in sb.glob("*/v*.json") if sb.exists() else []:
-            p = (_read(v) or {}).get("producer") or {}
-            if p.get("module") == self.module and p.get("env") == eid and p.get("raw"):
+            env = _read(v) or {}
+            p = env.get("producer") or {}
+            if p.get("module") != self.module or p.get("env") != eid:
+                continue
+            if p.get("raw"):
                 used.add(p["raw"])
+            # Datensätze (auch kombinierte Stapel ohne producer.raw) nennen ihre Rohdateien in provenance.files
+            prov = (env.get("dataset") or {}).get("provenance") if isinstance(env.get("dataset"), dict) else None
+            for f in (prov or {}).get("files") or []:
+                if isinstance(f, dict) and f.get("raw"):
+                    used.add(str(f["raw"]))
         for rid in list(m.get("raw", {})):
             if rid not in keep:
                 m["raw"].pop(rid)

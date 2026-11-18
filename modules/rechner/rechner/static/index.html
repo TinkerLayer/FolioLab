@@ -1420,6 +1420,7 @@ function updateLine(e, it, r) {
   res.innerHTML = o.kind === "func" ? `<span class="small">Funktion</span>`
     : o.parts ? o.parts.map(p => `<span class="small">${esc(p.name === "R2" ? "R²" : p.name)} =</span> <span class="lp">${esc(p.text)}${p.unit ? `<span class="u">${esc(p.unit)}</span>` : ""}</span>`).join("; ")   // DP-11: linreg mit Einheiten
     : "= " + resultHtml(o.result, o.unit);
+  if ((o.notes || []).length) res.insertAdjacentHTML("beforeend", ` <span class="small lnote">${esc(o.notes.join(" · "))}</span>`);
   if (o.kind === "assign") {                      // Zeilenvariable: weitergeben an andere Blätter / Umgebungen
     const ex = S.ws && S.ws.exports && S.ws.exports[o.name];
     const dup = it.export && ex && (ex.env !== e.id || ex.line !== it.id);
@@ -1571,8 +1572,9 @@ function resultBox(c, o) {
   if (o.status === "error") return `<div class="err-t">${esc(o.error)}</div>`;
   if (o.cycle) return `<div class="note warn">${esc((o.notes || []).join(" "))}</div>` + resultBox(c, { ...o, cycle: null });
   if (o.status === "check") {
-    return o.check && o.check.ok ? `<div class="note ok">Alle Werte gegeben – die Gleichung ist erfüllt.</div>`
-      : `<div class="note warn">Alle Werte gegeben – die Gleichung ist nicht erfüllt (Abweichung ${o.check && o.check.rel != null ? fmt(o.check.rel * 100, 3) + " %" : "?"}). Wählen Sie oben, was gesucht ist.</div>`;
+    const tol = o.check && o.check.tol != null ? `, Toleranz aus der Rundung der Eingaben ${fmt(o.check.tol * 100, 2)} %` : "";
+    return o.check && o.check.ok ? `<div class="note ok">Alle Werte gegeben – die Gleichung ist erfüllt (Abweichung ${o.check.rel != null ? fmt(o.check.rel * 100, 3) + " %" : "?"}${tol}).</div>`
+      : `<div class="note warn">Alle Werte gegeben – die Gleichung ist nicht erfüllt (Abweichung ${o.check && o.check.rel != null ? fmt(o.check.rel * 100, 3) + " %" : "?"}${tol}). Wählen Sie oben, was gesucht ist.</div>`;
   }
   if (o.status === "missing") {
     const t = EQ[c.eq].vars.find(v => v.sym === o.target);
@@ -2108,7 +2110,7 @@ function updateXRow(r, force = false) {
       el.classList.toggle("hasdisp", !!o.html);
       if (o.type === "slider") h = sliderHtml(r, o);
       else if (o.type === "value") h = `<div><span class="xval">= ${esc(o.text)}</span></div>`;
-      else if (o.type === "regression") h = `<div class="xreg">${Object.entries(o.param_text || {}).map(([k, v]) => `<span>${symHtml(k)} = ${esc(v)}</span>`).join("")}<span><i>R</i>² = ${fmt(o.r2, 5)}</span><span class="small">n = ${o.n}</span></div>`;
+      else if (o.type === "regression") h = `<div class="xreg">${Object.entries(o.param_text || {}).map(([k, v]) => { const u = (o.u_text || {})[k], ci = (o.ci_text || {})[k]; return `<span${ci ? ` title="± Standardunsicherheit; 95 %: ± ${esc(ci)} (t = ${fmt(o.t, 4)}, ${o.dof} FG)"` : ""}>${symHtml(k)} = ${esc(v)}${u ? ` ± ${esc(u)}` : ""}</span>`; }).join("")}<span><i>R</i>² = ${fmt(o.r2, 5)}</span><span class="small">n = ${o.n}</span></div>${o.warn ? `<div class="xerr">⚠ ${esc(o.warn)}</div>` : ""}`;
       else if (o.type === "error") h = `<div class="xerr" title="${esc(o.error)}">⚠ ${esc(o.error)}</div>` + (o.free && o.free.length
         ? `<div class="xfree">Schieberegler anlegen: ${o.free.map(n => `<button class="mini" data-slider="${esc(n)}">${esc(n)}</button>`).join("")}${o.free.length > 1 ? `<button class="mini" data-slider="*">alle</button>` : ""}</div>` : "");
       else if (o.trange) h = `<div class="xrange"><input class="tmin" value="${esc(r.tmin ?? fmtNum(o.trange[0]))}"> ≤ ${esc(o.tvar)} ≤ <input class="tmax" value="${esc(r.tmax ?? fmtNum(o.trange[1]))}"></div>`;
@@ -2711,7 +2713,7 @@ function fitMenu(r, anchor) {
     const b = e.target.closest("[data-fm]"); if (!b) return;
     const y = p.querySelector(".fpy") ? p.querySelector(".fpy").value : ys[0].key;
     LabUI.closePop();
-    const f = { id: uid(), kind: "fit", of: r.id, y, model: b.dataset.fm, mode: "lin", range: null, color: COLORS[(COLORS.indexOf(r.color) + 3 + S.plot.rows.filter(x => x.kind === "fit").length) % COLORS.length] };
+    const f = { id: uid(), kind: "fit", of: r.id, y, model: b.dataset.fm, mode: "direct", range: null, color: COLORS[(COLORS.indexOf(r.color) + 3 + S.plot.rows.filter(x => x.kind === "fit").length) % COLORS.length] };
     S.plot.rows.splice(S.plot.rows.indexOf(r) + 1, 0, f);
     S.gsel = f.id; saveSoon(); renderXList(); regraph();
   });

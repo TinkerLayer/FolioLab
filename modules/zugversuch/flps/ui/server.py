@@ -253,6 +253,43 @@ def sketch_svg(r) -> str:
     return svg[svg.find("<svg"):]
 
 
+NO_SOURCE = "keine Quelle angegeben (importiert)"
+
+
+def _import_source(x: dict) -> tuple[dict, bool]:
+    """Quelle eines importierten eigenen Werkstoffs prüfen. Eine strukturierte Quelle muss gültig sein (sonst Fehler);
+    fehlt jede Quelle, wird der Eintrag als "ohne Quelle" gekennzeichnet statt stillschweigend übernommen.
+    Rückgabe: (Eintrag, gekennzeichnet)."""
+    if x.get("cite"):
+        if not isinstance(x["cite"], dict):
+            raise ValueError("Quelle: strukturierte Angabe erwartet")
+        e = labcite.errors(x["cite"])
+        if e:
+            raise ValueError("Quelle: " + "; ".join(e))
+        x["cite"] = labcite.clean(x["cite"])
+    else:
+        x["cite"] = None
+    src = x.get("source")
+    if src is not None and not isinstance(src, str):
+        raise ValueError("Quelle: Text erwartet")
+    if labcite.is_record(x.get("cite")) or str(src or "").strip():
+        x["no_source"] = False
+        return x, False
+    x["source"], x["no_source"] = NO_SOURCE, True
+    return x, True
+
+
+def _own_row(d: dict, a) -> dict:
+    """Gespeicherte Form eines eigenen Werkstoffs: geprüfte Zahlen statt Eingabetext; aus der Kurve abgeleitete Werte
+    (Rm, A, E ohne Eingabe) werden nicht gespeichert."""
+    given = lambda k: d.get(k) not in (None, "")  # noqa: E731
+    return {"name": a.name, "category": a.category, "rp": a.rp,
+            "rm": a.rm if given("rm") else None, "a_pct": a.a_pct if given("a_pct") else None,
+            "e_gpa": a.e_gpa if given("e_gpa") else None, "rm_min": a.rm_min,
+            "rm_max": a.rm_max, "basis": a.basis, "cite": d.get("cite") or None,
+            "source": str(d.get("source") or "").strip()[:300], "curve": a.curve, "no_source": bool(d.get("no_source"))}
+
+
 def meta_payload() -> dict:
     al = STATE.alloys
     return {
@@ -470,19 +507,14 @@ class Handler(BaseHTTPRequestHandler):
                 if e:
                     raise ValueError("Quelle: " + "; ".join(e))
                 d["cite"] = labcite.clean(d["cite"])
-            if not labcite.is_record(d.get("cite")) and not str(d.get("source") or "").strip():
+            if not labcite.is_record(d.get("cite")) and str(d.get("source") or "").strip() in ("", NO_SOURCE):
                 raise ValueError("Quelle fehlt: bitte angeben, woher die Kennwerte stammen (DOI, Datenblatt, Norm …)")
+            d["no_source"] = False
             a = alloys_mod.own_from_dict(d)          # prüft die Werte
             taken = {x.name for x in STATE.builtin} | {x.get("name") for x in S.items() if x.get("id") != d.get("id")}
             if a.name in taken:
                 raise ValueError(f"„{a.name}“ gibt es schon. Bitte einen eindeutigen Namen wählen.")
-            given = lambda k: d.get(k) not in (None, "")  # noqa: E731 - aus der Kurve abgeleitete Werte nicht speichern
-            row = {"id": d.get("id"), "name": a.name, "category": a.category, "rp": a.rp,
-                   "rm": a.rm if given("rm") else None, "a_pct": a.a_pct if given("a_pct") else None,
-                   "e_gpa": a.e_gpa if given("e_gpa") else None, "rm_min": a.rm_min,
-                   "rm_max": a.rm_max, "basis": a.basis, "cite": d.get("cite") or None,
-                   "source": str(d.get("source") or "").strip()[:300], "curve": a.curve}
-            item = S.put(row)
+            item = S.put({"id": d.get("id"), **_own_row(d, a)})
             STATE.rebuild()
             return self._json({"item": item, "items": S.items(), "meta": meta_payload()})
         if action == "delete":
@@ -498,12 +530,14 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(rows, list):
                 raise ValueError("Import: Liste von Werkstoffen erwartet")
             have = {x.name for x in STATE.builtin} | ({x.get("name") for x in S.items()} if not req.get("replace") else set())
-            ok, skipped = [], []
+            ok, skipped, no_source = [], [], []
             for x in rows:
                 if not isinstance(x, dict):
+                    skipped.append("Eintrag ohne Felder übersprungen")
                     continue
                 try:
-                    a = alloys_mod.own_from_dict(x)
+                    x, flagged = _import_source(dict(x))      # Quelle prüfen, fehlende kennzeichnen
+                    a = alloys_mod.own_from_dict(x)            # prüft die Zahlenwerte
                 except ValueError as e:
                     skipped.append(f"{x.get('name') or '?'}: {e}")
                     continue
@@ -511,10 +545,13 @@ class Handler(BaseHTTPRequestHandler):
                     skipped.append(f"{a.name}: Name schon vorhanden")
                     continue
                 have.add(a.name)
-                ok.append({k: v for k, v in x.items() if k != "id"})
+                if flagged:
+                    no_source.append(a.name)
+                ok.append(_own_row(x, a))
             n = S.import_(ok, bool(req.get("replace")))
             STATE.rebuild()
-            return self._json({"added": n, "skipped": skipped, "items": S.items(), "meta": meta_payload()})
+            return self._json({"added": n, "skipped": skipped, "no_source": no_source, "items": S.items(),
+                               "meta": meta_payload()})
         return self._send(404, b"nicht gefunden", "text/plain")
 
     # -- Eigene Gleichungen ------------------------------------------------------------

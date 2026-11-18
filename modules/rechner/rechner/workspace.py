@@ -79,6 +79,7 @@ def run_env(req: dict, env: dict, imports=None):
     out["known"] = [{"sym": k, **v} for k, v in q.items()]
     vars_ = dict(req.get("vars") or {})
     vdims, vpdims = {}, {}
+    vtdiff = set()                                        # Zeilenvariablen, die Temperaturdifferenzen sind (T2 − T1)
     imported = {}
     # DP-11: Spalten eines Datensatzes als Listen mit Einheit (vom Server aufgelöst, gelten auf allen Blättern);
     # eine eigene Matrix oder Grösse gleichen Namens geht vor
@@ -113,6 +114,7 @@ def run_env(req: dict, env: dict, imports=None):
             ds_used.update((set(_NAME.findall(_body(src))) & ds_set) - assigned)
         try:
             r = CON.evaluate_line({"line": src, "quantities": q, "vars": vars_, "vdims": vdims, "vpdims": vpdims,
+                                   "vtdiff": sorted(vtdiff),
                                    "funcs": funcs, "angle": req.get("angle", "rad"), "complex": req.get("complex"),
                                    "digits": req.get("digits", 10), "lang": lang, "pick": it.get("pick")})
         except (E.CalcError, U.UnitError, E.DimError, ValueError, TypeError, ZeroDivisionError, OverflowError) as e:
@@ -142,6 +144,10 @@ def run_env(req: dict, env: dict, imports=None):
                     vdims[k] = r["dims"]
                 else:
                     vdims.pop(k, None)
+                if r.get("tdiff"):
+                    vtdiff.add(k)
+                else:
+                    vtdiff.discard(k)
                 if r.get("pdims"):
                     vpdims[k] = r["pdims"]
                 else:
@@ -150,7 +156,11 @@ def run_env(req: dict, env: dict, imports=None):
             funcs[r["name"]] = {"args": r["args"], "body": r["body"]}
         elif r.get("store") is not None:
             vars_["ans"] = r["store"]
-            vdims.pop("ans", None)
+            if r.get("dims") and not r.get("pdims"):
+                vdims["ans"] = r["dims"]
+            else:
+                vdims.pop("ans", None)
+            vtdiff.discard("ans")
             if r.get("pdims"):
                 vpdims["ans"] = r["pdims"]
             else:

@@ -1,6 +1,7 @@
 """Peaksuche (Prominenz, Mindestabstand), Peakeigenschaften (Lage, Höhe, Halbwertsbreite, Fläche) und Bandenintegration.
 
-Bei Transmission und Reflexion zeigen Banden nach unten; gesucht wird dann in -y.
+Bei Transmission und Reflexion zeigen Banden nach unten; gesucht wird dann in -y. Halbwertsbreite und Fläche werden
+dort auf der in Absorbanz (bzw. log(1/R)) umgerechneten Kurve bestimmt, Lage und Höhe bleiben in % T/R.
 """
 from __future__ import annotations
 
@@ -65,8 +66,25 @@ def _bases(y: np.ndarray, idx: np.ndarray):
     return np.array(prom), np.array(lb, dtype=int), np.array(rb, dtype=int)
 
 
-def _props(x, ys, i, li, ri, prom, rng):
-    """Eigenschaften eines Peaks in ys (Banden nach oben)."""
+def _absorb(y, yunit):
+    """Absorbanzartige Kurve für Flächen und Breiten: T und R werden umgerechnet (A = −log₁₀(T/100) bzw. log(1/R))."""
+    from .process import to_absorbance
+    return to_absorbance(np.asarray(y, float), yunit) if yunit in ("T", "R") else None
+
+
+def _props(x, ys, i, li, ri, prom, rng, ya=None):
+    """Eigenschaften eines Peaks in ys (Banden nach oben). ya: absorbanzartige Kurve (bei T/R), auf der Halbwertsbreite
+    und Fläche bestimmt werden; Lage, Höhe und Prominenz bleiben in der Einheit des Spektrums."""
+    res = _shape(x, ys, i, li, ri, prom)
+    if ya is not None:
+        prom_a = ya[i] - max(ya[li], ya[ri])
+        sa = _shape(x, ya, i, li, ri, prom_a)
+        res["fwhm"], res["area"] = sa["fwhm"], sa["area"]
+    return {"x": res["x"], "y": res["y"], "prom": float(prom), "prom_rel": float(prom / rng) if rng else 0.0,
+            "fwhm": res["fwhm"], "area": res["area"]}
+
+
+def _shape(x, ys, i, li, ri, prom):
     # Lage: Parabel durch drei Punkte
     xp, yp = x[i], ys[i]
     if 0 < i < len(x) - 1:
@@ -97,8 +115,7 @@ def _props(x, ys, i, li, ri, prom, rng):
         seg = ys[lo:hi + 1]
         base = np.interp(x[lo:hi + 1], [x[lo], x[hi]], [ys[lo], ys[hi]])
         area = _trap(np.clip(seg - base, 0, None), x[lo:hi + 1])
-    return {"x": float(xp), "y": float(yp), "prom": float(prom), "prom_rel": float(prom / rng) if rng else 0.0,
-            "fwhm": fwhm, "area": area}
+    return {"x": float(xp), "y": float(yp), "fwhm": fwhm, "area": area}
 
 
 def find(x: np.ndarray, y: np.ndarray, yunit: str = "A", params: dict | None = None,
@@ -107,6 +124,7 @@ def find(x: np.ndarray, y: np.ndarray, yunit: str = "A", params: dict | None = N
     p = {**DEFAULT, **(params or {})}
     valley = yunit in ("T", "R")
     ys = -y if valley else y
+    ya = _absorb(y, yunit)
     snr = float(p.get("snr") or 0)
     noise = None
     calm = np.ones(len(ys), bool)
@@ -138,14 +156,14 @@ def find(x: np.ndarray, y: np.ndarray, yunit: str = "A", params: dict | None = N
             if len(kept) >= int(p["max"]):
                 break
         for k in kept:
-            peaks.append(_props(x, ys, idx[k], lb[k], rb[k], prom[k], rng))
+            peaks.append(_props(x, ys, idx[k], lb[k], rb[k], prom[k], rng, ya))
     removed = [float(r) for r in remove or []]
     peaks = [pk for pk in peaks if not any(abs(pk["x"] - r) <= max(3.0, 1.5 * _step(x)) for r in removed)]
     for a in add or []:
         a = float(a)
         if not (x[0] <= a <= x[-1]) or any(abs(pk["x"] - a) <= max(3.0, 1.5 * _step(x)) for pk in peaks):
             continue
-        pk = _manual(x, ys, a, rng)
+        pk = _manual(x, ys, a, rng, ya)
         if pk:
             pk["manual"] = True
             peaks.append(pk)
@@ -165,7 +183,7 @@ def _step(x):
     return float(np.median(np.diff(x))) if len(x) > 1 else 1.0
 
 
-def _manual(x, ys, a, rng):
+def _manual(x, ys, a, rng, ya=None):
     """Peak von Hand: höchster Punkt im Umkreis von ±6 cm⁻¹, Fusspunkte bis ±60 cm⁻¹."""
     m = np.where(np.abs(x - a) <= max(6.0, 2 * _step(x)))[0]
     if not len(m):
@@ -175,21 +193,29 @@ def _manual(x, ys, a, rng):
     li = int(w[0] + np.argmin(ys[w[0]:i + 1]))
     ri = int(i + np.argmin(ys[i:w[-1] + 1]))
     prom = ys[i] - max(ys[li], ys[ri])
-    return _props(x, ys, i, li, ri, max(prom, 1e-12), rng)
+    return _props(x, ys, i, li, ri, max(prom, 1e-12), rng, ya)
+
+
+# Einheit, in der Flächen und Höhen gerechnet werden (T und R werden vorher umgerechnet)
+AREA_BASIS = {"T": "A", "R": "LR"}
 
 
 def integrate(x: np.ndarray, y: np.ndarray, lo: float, hi: float, yunit: str = "A", base: str = "linear") -> dict:
-    """Bandenfläche zwischen lo und hi; base: "linear" (Gerade zwischen den Grenzen) oder "zero"."""
+    """Bandenfläche zwischen lo und hi; base: "linear" (Gerade zwischen den Grenzen) oder "zero".
+
+    Transmission und Reflexion werden vorher in Absorbanz (A = −log₁₀(T/100)) bzw. log(1/R) umgerechnet, denn nur dort
+    sind Flächen und Höhen proportional zur Menge (Lambert-Beer); "basis" nennt die Einheit der Rechnung."""
     lo, hi = sorted((float(lo), float(hi)))
     m = (x >= lo) & (x <= hi)
+    basis = AREA_BASIS.get(yunit, yunit)
     if m.sum() < 3:
-        return {"lo": lo, "hi": hi, "area": None, "height": None, "pos": None}
-    valley = yunit in ("T", "R")
-    ys = -y[m] if valley else y[m]
+        return {"lo": lo, "hi": hi, "area": None, "height": None, "pos": None, "basis": basis}
+    ya = _absorb(y, yunit)
+    ys = (ya if ya is not None else np.asarray(y, float))[m]
     xs = x[m]
     b = np.interp(xs, [xs[0], xs[-1]], [ys[0], ys[-1]]) if base == "linear" else np.zeros_like(xs)
     d = ys - b
     i = int(np.argmax(d))
     area = _trap(d, xs)
     cen = float(_trap(d * xs, xs) / area) if area else None
-    return {"lo": lo, "hi": hi, "area": area, "height": float(d[i]), "pos": float(xs[i]), "centroid": cen}
+    return {"lo": lo, "hi": hi, "area": area, "height": float(d[i]), "pos": float(xs[i]), "centroid": cen, "basis": basis}

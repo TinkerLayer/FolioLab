@@ -207,9 +207,16 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
         if rows:
             b.add_table(f"kennwerte{pid}", booktabs(L["h_char"], rows, align="lr", small=True), L["tab_char"].format(n=n))
         if a.comp and a.comp.get("rows"):
-            rows = [[tx(r["name"]), tx(f"{r['from']} – {r['to']}" if r.get("to") else r["from"]), _n(r["pct"], 2, lang)] for r in a.comp["rows"]]
-            notes = " ".join(tx(w) for w in a.comp.get("warnings") or [])
-            b.add_table(f"zusammensetzung{pid}", booktabs(L["h_comp"], rows, align="llr", small=True, escape_header=False),
+            basis = a.comp.get("basis")
+            rows = []
+            for r in a.comp["rows"]:
+                row = [tx(r["name"]), tx(f"{r['from']} – {r['to']}" if r.get("to") else r["from"]), _n(r["pct"], 2, lang)]
+                if basis:                                  # ASTM D7582: wie bestimmt und wasserfrei
+                    row.append(_n(r.get("dry"), 2, lang))
+                rows.append(row)
+            notes = " ".join(tx(w) for w in ([basis[lang if lang in basis else "en"]] if basis else []) + list(a.comp.get("warnings") or []))
+            head = L["h_comp"] + ([r"trocken [\%]" if lang == "de" else r"dry [\%]"] if basis else [])
+            b.add_table(f"zusammensetzung{pid}", booktabs(head, rows, align="llrr" if basis else "llr", small=True, escape_header=False),
                         L["tab_comp"].format(n=n, p=tx(a.comp["label"])), notes=notes,
                         cites=[cites["comp"]] if cites.get("comp") else None)
         if a.reactions:
@@ -350,6 +357,24 @@ def _ds_sentence(a: Analysis, lang: str, named: bool = False) -> str:
     return tx(s)
 
 
+def _weights_text(a: Analysis, lang: str) -> str:
+    """Gewichtung des Trefferwerts (Kurve/Stufen), wie sie bei der Suche gewählt war."""
+    s = a.state.get("search") or {}
+    mode = s.get("mode") or "both"
+    de = lang == "de"
+    if mode == "curve":
+        return " Trefferwert: nur Kurvenvergleich." if de else " Hit score: curve comparison only."
+    if mode == "steps":
+        return " Trefferwert: nur Stufenvergleich." if de else " Hit score: step comparison only."
+    try:
+        w = float(s.get("w_curve", 0.6) if s.get("w_curve") is not None else 0.6)
+    except (TypeError, ValueError):
+        w = 0.6
+    pc, ps = num(100 * w, 0, lang), num(100 * (1 - w), 0, lang)
+    return (f" Trefferwert: {pc}~\\% Kurven- und {ps}~\\% Stufenvergleich." if de else
+            f" Hit score: {pc}~\\% curve and {ps}~\\% step comparison.")
+
+
 def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
     c = lambda k: (r"~\cite{" + cites[k] + "}") if cites.get(k) else ""  # noqa: E731
     de = lang == "de"
@@ -376,11 +401,14 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
         ds = _ds_sentence(a, lang)
         t += f" {ds}" if ds else ""
         t += f" Bearbeitung: {proc}." if proc else ""
+        if cites.get("tcal"):
+            t += (f" Die Temperaturachse wurde linear korrigiert ($T' = a + bT$; zur Temperaturkalibrierung von Thermowaagen vgl. "
+                  f"ASTM~E1582{c('tcal')}); $a$ und $b$ wurden vom Anwender vorgegeben.")
         t += (f" Die DTG wurde mit einem Savitzky-Golay-Filter{c('sg')} über etwa {num(width, 0, lang)}~K berechnet."
               f" Stufen wurden aus den Spitzen der Massenverlustrate bestimmt" +
               (" (Grenzen von Hand gesetzt)" if a.st.get("manual") else "") +
-              "; die extrapolierte Onset- und Endtemperatur ist der Schnittpunkt der Tangente im Wendepunkt mit der "
-              "verlängerten Basislinie vor bzw. nach der Stufe.")
+              "; die extrapolierte Onset- und Endtemperatur ist der Schnittpunkt der Tangente im Wendepunkt der TG-Kurve über "
+              "der Temperatur (örtliche Steigung dm/dT) mit der verlängerten Basislinie vor bzw. nach der Stufe.")
         if a.comp and a.comp.get("rows"):
             t += f" Die Zusammensetzung folgt {tx(a.comp['label'])}{c('comp')}."
         if a.reactions:
@@ -391,6 +419,7 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
             t += (f" Zur Identifizierung wurde die DTG mit Referenzen aus {libs} verglichen (Kurvenähnlichkeit und Stufenwerte, "
                   f"vgl. Schindler u.~a.{c('schindler')}); Referenzen durften um bis zu ±{int((a.state.get('search') or {}).get('shift', 20))}~K verschoben werden.")
+            t += _weights_text(a, lang)
             if any(h.get("lib") == MODEL_ID for h in hits):
                 t += " Modellreferenzen sind aus veröffentlichten Stufenwerten berechnet, nicht gemessen; Treffer daraus sind Hinweise."
             if cites.get("refs"):
@@ -406,10 +435,13 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
         ds = _ds_sentence(a, lang)
         t += f" {ds}" if ds else ""
         t += f" Processing: {proc}." if proc else ""
+        if cites.get("tcal"):
+            t += (f" The temperature axis was corrected linearly ($T' = a + bT$; for the temperature calibration of thermogravimetric "
+                  f"analyzers cf. ASTM~E1582{c('tcal')}); $a$ and $b$ were set by the user.")
         t += (f" The DTG was calculated with a Savitzky-Golay filter{c('sg')} over about {num(width, 0, lang)}~K."
               " Steps were taken from the peaks of the mass loss rate" + (" (limits set by hand)" if a.st.get("manual") else "") +
-              "; the extrapolated onset and endset are the intersections of the tangent at the inflection point with the "
-              "extended baseline before and after the step.")
+              "; the extrapolated onset and endset are the intersections of the tangent at the inflection point of the TG "
+              "curve over temperature (local slope dm/dT) with the extended baseline before and after the step.")
         if a.comp and a.comp.get("rows"):
             t += f" The composition follows {tx(a.comp['label'])}{c('comp')}."
         if a.reactions:
@@ -420,6 +452,7 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
             t += (f" For identification the DTG was compared with references from {libs} (curve similarity and step values, cf. "
                   f"Schindler et al.{c('schindler')}).")
+            t += _weights_text(a, lang)
             if any(h.get("lib") == MODEL_ID for h in hits):
                 t += " Model references are calculated from published step values, not measured; their hits are indications."
             if cites.get("refs"):
@@ -467,14 +500,16 @@ def _kinetics(b: Bundle, analyses, req: dict, lang: str, inc: dict) -> str:
     res = K.run_all(runs, float(req["T_lo"]), float(req["T_hi"]), req.get("opts"))
     keys = {}
     if inc.get("citations", True):
-        for kk in ("friedman", "ozawa", "flynnwall", "kas", "starink", "vyazovkin2001", "senumyang", "kissinger", "coatsredfern",
+        for kk in ("friedman", "ozawa", "flynnwall", "kas", "starink", "vyazovkin1997", "senumyang", "kissinger", "coatsredfern",
                    "ictac2011", "ictac2014", "astm-e1641"):
             keys[kk] = mcite(b, kk)
         if res.get("lifetime"):
             keys["e1877"] = mcite(b, "astm-e1877")
+            if res["lifetime"].get("method") == "toop":
+                keys["toop"] = mcite(b, "toop1971")
     if inc.get("figures", True):
         b.add_figure(C.fig_kinetics(res, lang), "kinetik", T[lang]["fig_kin"].format(k=len(runs)).replace("ₐ", "$_a$").replace("α", r"$\alpha$"),
-                     width="0.95", dpi=150, cites=[keys[x] for x in ("friedman", "ozawa", "kas", "vyazovkin2001") if x in keys] or None)
+                     width="0.95", dpi=150, cites=[keys[x] for x in ("friedman", "ozawa", "kas", "vyazovkin1997") if x in keys] or None)
     meths = ["friedman", "ofw", "kas", "starink", "vyazovkin"]
     if inc.get("tables", True):
         al = [x for x in res["iso"]["alphas"] if abs(round(x * 10) - x * 10) < 1e-6]
@@ -500,30 +535,69 @@ def _kinetics(b: Bundle, analyses, req: dict, lang: str, inc: dict) -> str:
     c = lambda *ks: r"~\cite{" + ",".join(keys[x] for x in ks if x in keys) + "}" if keys else ""  # noqa: E731
     s = res["iso"]["summary"]
     betas = ", ".join(num(x, 1, lang) for x in res["iso"]["betas"])
+    doyle = res["iso"].get("ofw") == "doyle"
+    lt = res.get("lifetime")
     if de:
         t = (f"Die Kinetik der Stufe zwischen {num(req['T_lo'], 0, lang)} und {num(req['T_hi'], 0, lang)}~°C wurde aus {len(runs)} Läufen "
              f"mit {betas}~K/min nach den Empfehlungen des ICTAC{c('ictac2011', 'ictac2014')} bestimmt: isokonversional nach Friedman{c('friedman')}, "
              f"Ozawa-Flynn-Wall{c('ozawa', 'flynnwall', 'astm-e1641')}, Kissinger-Akahira-Sunose{c('kas')}, Starink{c('starink')} und "
-             f"Vyazovkin{c('vyazovkin2001', 'senumyang')}, dazu Kissinger{c('kissinger')} und Coats-Redfern{c('coatsredfern')}.")
+             f"Vyazovkin{c('vyazovkin1997', 'senumyang')}, dazu Kissinger{c('kissinger')} und Coats-Redfern{c('coatsredfern')}.")
+        if doyle:
+            t += (" Für OFW wurde der konstante Faktor 1,052 der Doyle-Näherung verwendet (nicht iteriert); E$_a$ ist dadurch "
+                  "für E$_a$/(RT) um 30 um etwa 1~\\% zu hoch.")
+        else:
+            t += (" Für OFW wurde E$_a$ ausgehend von der Doyle-Näherung (Faktor 1,052) wie in ASTM~E1641 iterativ mit dem Faktor "
+                  "$b(E_a/RT)$ verfeinert; $b$ wurde aus der exakten Ableitung des Temperaturintegrals (Näherung nach Senum und Yang) "
+                  "berechnet, nicht aus der Tabelle der Norm.")
+        t += (" Das Vyazovkin-Verfahren ist in seiner Grundform umgesetzt (Temperaturintegral von 0 bis $T_\\alpha$ bei linearem Heizen). "
+              "Vertrauensbereiche: 95~\\%, Student-$t$ mit $n-2$ Freiheitsgraden ($n$ = Zahl der Läufe).")
         if s.get("friedman"):
-            t += f" Im Bereich α~=~0,1--0,9 beträgt E$_a$ nach Friedman im Mittel {num(s['friedman']['mean'], 1, lang)}~kJ/mol (Spanne {num(s['friedman']['min'], 0, lang)}--{num(s['friedman']['max'], 0, lang)})."
+            t += f" Im Bereich $\\alpha$~=~0,1--0,9 beträgt E$_a$ nach Friedman im Mittel {num(s['friedman']['mean'], 1, lang)}~kJ/mol (Spanne {num(s['friedman']['min'], 0, lang)}--{num(s['friedman']['max'], 0, lang)})."
         if res.get("model"):
             t += f" Der Master-Plot passt am besten zum Modell {tx(res['model'])} ({tx(K.MODELS[res['model']][0])})."
         for w in res["iso"]["warnings"]:
             t += " " + tx(w)
-        if res.get("lifetime"):
-            lt = res["lifetime"]
-            t += (f" Die Lebensdauerabschätzung (Arrhenius-Extrapolation{c('e1877')}, {num(100 * lt['alpha_f'], 0, lang)}~\\% Umsatz) "
-                  "ist eine Extrapolation weit unter den Messtemperaturen und nur als Anhaltswert zu verstehen.")
+        if lt and lt.get("method") == "toop":
+            t += (f" Die Lebensdauer bis {num(100 * lt['alpha_f'], 0, lang)}~\\% Umsatz wurde ohne Reaktionsmodell über die "
+                  f"Toop-Beziehung{c('toop')} berechnet, auf der ASTM~E1877{c('e1877')} beruht: "
+                  "$t_f = (E_a/(R\\beta))\\,p(E_a/(RT_c))\\,\\exp(E_a/(RT))$, mit $T_c$ der Temperatur bei diesem Umsatz im dynamischen "
+                  f"Lauf und E$_a$~=~{num(lt['E'], 1, lang)}~kJ/mol (OFW bei diesem Umsatz, iteriert). Die Umsetzung wurde nicht gegen "
+                  "den Text der Norm geprüft. Sie ist eine Extrapolation weit unter den Messtemperaturen und nur als Anhaltswert zu verstehen.")
+        elif lt:
+            t += (f" Die Lebensdauer bis {num(100 * lt['alpha_f'], 0, lang)}~\\% Umsatz wurde durch Arrhenius-Extrapolation mit dem Modell "
+                  f"{tx(lt.get('model') or '')} und $A$ aus den Friedman-Achsenabschnitten berechnet (in Anlehnung an ASTM~E1877{c('e1877')}, "
+                  "nicht gegen den Text der Norm geprüft). Sie ist eine Extrapolation weit unter den Messtemperaturen und nur als "
+                  "Anhaltswert zu verstehen.")
     else:
         t = (f"The kinetics of the step between {num(req['T_lo'], 0, lang)} and {num(req['T_hi'], 0, lang)}~°C were determined from {len(runs)} runs "
              f"at {betas}~K/min following the ICTAC recommendations{c('ictac2011', 'ictac2014')}: isoconversional methods of Friedman{c('friedman')}, "
              f"Ozawa-Flynn-Wall{c('ozawa', 'flynnwall', 'astm-e1641')}, Kissinger-Akahira-Sunose{c('kas')}, Starink{c('starink')} and "
-             f"Vyazovkin{c('vyazovkin2001', 'senumyang')}, plus Kissinger{c('kissinger')} and Coats-Redfern{c('coatsredfern')}.")
+             f"Vyazovkin{c('vyazovkin1997', 'senumyang')}, plus Kissinger{c('kissinger')} and Coats-Redfern{c('coatsredfern')}.")
+        if doyle:
+            t += (" For OFW the constant factor 1.052 of Doyle's approximation was used (not iterated); E$_a$ is therefore about "
+                  "1~\\% too high for E$_a$/(RT) near 30.")
+        else:
+            t += (" For OFW, E$_a$ was refined iteratively as in ASTM~E1641, starting from Doyle's approximation (factor 1.052), with "
+                  "the factor $b(E_a/RT)$; $b$ was calculated from the exact derivative of the temperature integral (Senum-Yang "
+                  "approximation), not taken from the table of the standard.")
+        t += (" The Vyazovkin method is implemented in its basic form (temperature integral from 0 to $T_\\alpha$ for linear heating). "
+              "Confidence intervals: 95~\\%, Student $t$ with $n-2$ degrees of freedom ($n$ = number of runs).")
         if s.get("friedman"):
-            t += f" For α~=~0.1--0.9 the mean Friedman E$_a$ is {num(s['friedman']['mean'], 1, lang)}~kJ/mol."
+            t += f" For $\\alpha$~=~0.1--0.9 the mean Friedman E$_a$ is {num(s['friedman']['mean'], 1, lang)}~kJ/mol."
         for w in res["iso"]["warnings"]:
             t += " " + tx(w)
+        if lt and lt.get("method") == "toop":
+            t += (f" The lifetime to {num(100 * lt['alpha_f'], 0, lang)}~\\% conversion was calculated without a reaction model from the "
+                  f"Toop relation{c('toop')}, on which ASTM~E1877{c('e1877')} is based: "
+                  "$t_f = (E_a/(R\\beta))\\,p(E_a/(RT_c))\\,\\exp(E_a/(RT))$, with $T_c$ the temperature at this conversion in the "
+                  f"dynamic run and E$_a$~=~{num(lt['E'], 1, lang)}~kJ/mol (OFW at this conversion, iterated). The implementation was "
+                  "not checked against the text of the standard. It is an extrapolation far below the measured temperatures and "
+                  "only an indication.")
+        elif lt:
+            t += (f" The lifetime to {num(100 * lt['alpha_f'], 0, lang)}~\\% conversion was calculated by Arrhenius extrapolation with "
+                  f"model {tx(lt.get('model') or '')} and $A$ from the Friedman intercepts (following ASTM~E1877{c('e1877')}, not "
+                  "checked against the text of the standard). It is an extrapolation far below the measured temperatures and only "
+                  "an indication.")
     return t + "\n"
 
 
@@ -557,13 +631,14 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
                 series.append({"name": a.name, "x": a.run.T, "m": a.run.pct(), "dtg": -d["dT"] if d.get("dT") is not None else np.zeros(len(a.run.m))})
             b.add_figure(C.fig_overlay(series, lang), "vergleich", L["fig_cmp"].format(n=", ".join(tx(a.name) for a, _, _ in analyses)),
                          width="0.9", dpi=150)
-        rows = []
+        rows, raw_vals = [], []
         for i, (a, fname, rl) in enumerate(analyses, 1):
             cites, hits, mix, eq = _single(b, a, fname, rl, lang, inc, prefix=f"p{i}")
             t5 = (a.st.get("loss_T") or {}).get("5") or {}
             s1 = a.steps[0] if a.steps else {}
-            rows.append([tx(a.name), _n(t5.get("T"), 1, lang), _n(s1.get("loss"), 2, lang), _n(s1.get("T_peak"), 1, lang),
-                         _n((a.st.get("residue") or {}).get("end"), 2, lang)])
+            vals_i = [t5.get("T"), s1.get("loss"), s1.get("T_peak"), (a.st.get("residue") or {}).get("end")]
+            raw_vals.append(vals_i)                       # volle Genauigkeit für Mittelwert und s
+            rows.append([tx(a.name)] + [_n(v, nd, lang) for v, nd in zip(vals_i, (1, 2, 1, 2))])
             if i == 1:
                 meth.append(_methods(a, cites, hits, mix, eq, lang))
             elif _ds_sentence(a, lang):                  # DP-13: Herkunft weiterer Läufe aus Datensätzen
@@ -571,9 +646,9 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
             res.append(_results(a, hits, mix, lang, b.slug, f"p{i}"))
         if inc.get("tables", True):
             def ms(col):
-                v = [float(r[col].replace(",", ".")) for r in rows if r[col] != "--"]
+                v = [float(r[col]) for r in raw_vals if r[col] is not None and np.isfinite(r[col])]
                 return f"{num(np.mean(v), 2, lang)} ± {num(np.std(v, ddof=1), 2, lang)}" if len(v) > 1 else "--"
-            rows.append([L["mean"]] + [ms(j) for j in range(1, 5)])
+            rows.append([L["mean"]] + [ms(j) for j in range(4)])
             b.add_table("vergleich", booktabs(L["h_cmp"], rows, align="lrrrr", small=True, escape_header=False), L["tab_cmp"])
         b.summary = ", ".join(a.name for a, _, _ in analyses)
     kin = request.get("kinetics")

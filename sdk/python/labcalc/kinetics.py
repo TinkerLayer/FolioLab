@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import math
 
-R = 8.314462618          # J/(mol K), CODATA 2022 (exakt aus N_A·k_B)
+R = 6.02214076e23 * 1.380649e-23   # J/(mol K), exakt: N_A·k_B (SI 2019), volle Genauigkeit
 KB = 1.380649e-23        # J/K, exakt (SI 2019)
 H = 6.62607015e-34       # J s, exakt (SI 2019)
 REFS_FIT = ["arrhenius1889", "atkins"]

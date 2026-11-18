@@ -35,6 +35,7 @@ class Analysis:
     ratios: list = field(default_factory=list)
     equations: list = field(default_factory=list)     # ausgewertete eigene Gleichungen (labcalc.formulas)
     variables: dict = field(default_factory=dict)
+    assign_context: dict = field(default_factory=dict)  # Gruppe -> Rang aus der Gruppenbewertung (Zuordnungen)
 
     @property
     def sp(self) -> Spectrum:
@@ -47,12 +48,17 @@ def run(sp: Spectrum, state: dict | None, lang: str = "de") -> Analysis:
     a = Analysis(sp.name, sp, proc, state)
     s = proc.spectrum
     pk = state.get("peaks")
+    grp = None
+    if state.get("groups") or pk is not None:
+        # Gruppenbewertung: als Tabelle nur, wenn angefordert; für die Reihenfolge der Bandenzuordnungen immer
+        grp = GR.analyse(s.x, s.y, s.yunit, lang)
+        a.assign_context = GR.context_of(grp)
     if pk is not None:
         a.peaks = PK.find(s.x, s.y, s.yunit, pk.get("params"), pk.get("add"), pk.get("remove"))
         for p in a.peaks:
-            p["assign"] = GR.assign(p["x"], p["strength"], lang)
+            p["assign"] = GR.assign(p["x"], p["strength"], lang, fwhm=p.get("fwhm"), context=a.assign_context)
     if state.get("groups"):
-        a.groups = GR.analyse(s.x, s.y, s.yunit, lang)
+        a.groups = grp
     for b in state.get("bands") or []:
         r = PK.integrate(s.x, s.y, b.get("lo"), b.get("hi"), s.yunit, b.get("base", "linear"))
         r["name"] = str(b.get("name") or f"{max(r['lo'], r['hi']):.0f}–{min(r['lo'], r['hi']):.0f}")
@@ -82,9 +88,9 @@ def run(sp: Spectrum, state: dict | None, lang: str = "de") -> Analysis:
 FUNCTIONS_DOC = [
     ("A(ν)", "Absorbanz des bearbeiteten Spektrums bei ν (aus T bzw. R umgerechnet)"),
     ("y(ν)", "Wert des bearbeiteten Spektrums bei ν in seiner Einheit"),
-    ("area(ν1, ν2)", "Bandenfläche zwischen ν1 und ν2 über einer Geraden zwischen den Grenzen"),
-    ("area0(ν1, ν2)", "Fläche zwischen ν1 und ν2 über null"),
-    ("height(ν1, ν2)", "grösste Höhe zwischen ν1 und ν2 über der Geraden"),
+    ("area(ν1, ν2)", "Bandenfläche zwischen ν1 und ν2 über einer Geraden zwischen den Grenzen (T/R in Absorbanz umgerechnet)"),
+    ("area0(ν1, ν2)", "Fläche zwischen ν1 und ν2 über null (T/R in Absorbanz umgerechnet)"),
+    ("height(ν1, ν2)", "grösste Höhe zwischen ν1 und ν2 über der Geraden (T/R in Absorbanz umgerechnet)"),
 ]
 
 

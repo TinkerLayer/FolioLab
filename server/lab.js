@@ -170,7 +170,14 @@ async function save(id, bundle, mode, info) {
     }
   }
 
-  const mod = await modules.get(bundle.module).catch(() => null);
+  // Module version: the version the computing module reports in its bundle (the running process, which can be older
+  // than module.json on disk until the hub restarts it); only when a bundle carries none, module.json read now.
+  const mod = bundle.module_version ? null : await modules.get(bundle.module).catch(() => null);
+  const moduleVersion = bundle.module_version || (mod && mod.version) || null;
+  const moduleVersionFrom = bundle.module_version ? 'bundle' : mod && mod.version ? 'module.json' : null;
+  // source_sha256: SHA-256 of each file stored under lab/<slug>/source/, i.e. exactly what the module gets back on
+  // Refresh. For measurement modules these are the raw files; for the Datenaufbereitung it is the dataset version
+  // (datensatz.json), not the raw file behind it (that hash is in the dataset provenance). bundle.source.kind says which.
   const sha = {};
   for (const [name, b64] of Object.entries(srcFiles)) sha[name] = crypto.createHash('sha256').update(Buffer.from(b64, 'base64')).digest('hex');
   const manifest = {
@@ -192,9 +199,11 @@ async function save(id, bundle, mode, info) {
     provenance: {
       suite_version: SUITE_VERSION,
       module_id: bundle.module,
-      module_version: bundle.module_version || (mod && mod.version) || null,
+      module_version: moduleVersion,
+      module_version_from: moduleVersionFrom,
       methods: bundle.methods || null,
       source_sha256: sha,
+      source_kind: (bundle.source && typeof bundle.source.kind === 'string' && bundle.source.kind.slice(0, 40)) || (Object.keys(sha).length ? 'files' : null),
       action: (info && info.action) || (prev ? 'replace' : 'new'),
     },
     issued: null,
@@ -363,12 +372,51 @@ async function issueAll(id, how) {
   for (const b of await list(id)) await issue(id, b.slug, how);
 }
 
+// A8 retention: a result with an issued revision (current or in history/) is not deleted but moved, with all its
+// files, to lab/_removed/<slug>-<time>/. It no longer appears in the report (list() skips the folder), but the shared
+// versions it names stay protected (sdk/python/labprov.py reads lab/_removed/ too). Results never issued are deleted.
+const REMOVED = '_removed';
+
+async function wasIssued(dir) {
+  const read = async (p) => {
+    try {
+      return JSON.parse(await fsp.readFile(p, 'utf8'));
+    } catch {
+      return null;
+    }
+  };
+  const cur = await read(path.join(dir, 'bundle.json'));
+  if (cur && cur.issued) return true;
+  for (const n of await revisionNumbers(dir)) {
+    const m = await read(path.join(dir, HIST, String(n), 'bundle.json'));
+    if (m && m.issued) return true;
+  }
+  return false;
+}
+
 async function remove(id, slug) {
   await P.readMeta(id);
   const dir = path.join(labDir(id), checkSlug(slug));
   if (!(await exists(dir))) throw new HttpError(404, `Bundle "${slug}" not found`);
-  await fsp.rm(dir, { recursive: true, force: true });
+  let kept = null;
+  if (await wasIssued(dir)) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    kept = path.join(labDir(id), REMOVED, `${slug}-${stamp}`);
+    await fsp.mkdir(path.dirname(kept), { recursive: true });
+    await fsp.rename(dir, kept);
+    const mp = path.join(kept, 'bundle.json');
+    try {
+      const m = JSON.parse(await fsp.readFile(mp, 'utf8'));
+      m.removed = { at: new Date().toISOString(), reason: 'issued revision kept' };
+      await fsp.writeFile(mp, JSON.stringify(m, null, 2));
+    } catch {
+      /* manifest unreadable: the folder is kept as it is */
+    }
+  } else {
+    await fsp.rm(dir, { recursive: true, force: true });
+  }
   await rebuildReferences(id);
+  return { kept: kept ? path.relative(labDir(id), kept).split(path.sep).join('/') : null };
 }
 
 // ---------------------------------------------------------------- UI-09: history and dependencies
@@ -380,6 +428,11 @@ function refsIn(o, out) {
   else if (o && typeof o === 'object') {
     if (o.schema === 'suite.shared-result/1' && SHARE_RE.test(String(o.id || ''))) out.shares.add(`${o.id} v${+o.version || 0}`);
     if (SHARE_RE.test(String(o.share || '')) && o.version != null && Number.isFinite(+o.version)) out.shares.add(`${o.share} v${+o.version}`);
+    // binding {id, mode: pin|live|copy, version?, used?}: the version used counts
+    if (['pin', 'live', 'copy'].includes(o.mode) && SHARE_RE.test(String(o.id || '')) && o.schema == null) {
+      const v = o.used != null ? o.used : o.version;
+      if (v != null && Number.isFinite(+v)) out.shares.add(`${o.id} v${+v}`);
+    }
     if (INDEX_RE.test(String(o.index || ''))) out.index.add(o.index);
     Object.values(o).forEach((v) => refsIn(v, out));
   }
@@ -436,10 +489,41 @@ async function dependencies(id) {
       });
     }
   }
+  // results removed from the report but kept because a revision was issued (lab/_removed/<slug>-<time>/)
+  let removed = [];
+  try {
+    removed = (await fsp.readdir(path.join(labDir(id), REMOVED), { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name);
+  } catch {
+    /* none */
+  }
+  for (const d of removed) {
+    const dir = path.join(labDir(id), REMOVED, d);
+    const mans = [];
+    try {
+      mans.push(JSON.parse(await fsp.readFile(path.join(dir, 'bundle.json'), 'utf8')));
+    } catch {
+      continue;
+    }
+    for (const n of await revisionNumbers(dir)) {
+      try {
+        mans.push(JSON.parse(await fsp.readFile(path.join(dir, HIST, String(n), 'bundle.json'), 'utf8')));
+      } catch {
+        /* broken history folder */
+      }
+    }
+    for (const m of mans) {
+      const pv = m.provenance || {};
+      results.push({
+        result: `${REMOVED}/${d}`, revision: m.revision || 1, current: false, removed: true, issued: m.issued || null,
+        result_id: m.result_id || null, module: m.module, module_version: pv.module_version || null,
+        suite_version: pv.suite_version || null, source_sha256: pv.source_sha256 || {}, ...refsOf(m),
+      });
+    }
+  }
   if (!results.length) return null;
   return {
     format: 'folio-lab-dependencies/1', report: id, created: new Date().toISOString(), results,
-    note: 'Shared inputs (s-…) and project-index values (g-…) live in the Folio Lab project, not in this ZIP; the measurement files are under lab/<result>/source/.',
+    note: 'Shared inputs (s-…) and project-index values (g-…) live in the Folio Lab project, not in this ZIP; the measurement files are under lab/<result>/source/. Results with removed: true were removed from the report after a revision was issued and are kept under lab/_removed/.',
   };
 }
 

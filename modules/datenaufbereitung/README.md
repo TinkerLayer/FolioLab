@@ -4,7 +4,7 @@ Turns Excel sheets, instrument exports and measurement values typed in by hand i
 that the Calculator (Rechner), the Elemental Calculator (Elementrechner), TGA and FTIR take over directly. You show
 the module *where* the data are and *what* they mean; it reads, checks, converts and records every step. The original
 file stays unchanged, rows are never deleted silently, and every dataset leads back to the cell in the source file.
-Version 0.2.0.
+Version 0.3.0.
 
 Methods, parameters, references and validation of every step: [`docs/methods/datenaufbereitung.md`](../../docs/methods/datenaufbereitung.md).
 How a number in a report is traced back to the raw file: [`docs/methods/provenance.md`](../../docs/methods/provenance.md).
@@ -27,7 +27,8 @@ The page starts in German; English labels are given below with the German label 
 ## Getting data in
 
 * **Load file …** (Datei laden …) or drag files into the window: Excel (`.xlsx`, `.xlsm`, `.xls`), LibreOffice
-  (`.ods`), CSV/TXT (delimiter and decimal comma are detected), JSON, Parquet. **Paste cells …** (Zellen einfügen …)
+  (`.ods`), CSV/TXT (delimiter and decimal comma are detected), JSON, Parquet (optional: needs the Python package
+  pyarrow, `pip install pyarrow`; without it the module says so and all other formats work). **Paste cells …** (Zellen einfügen …)
   takes cells copied from Excel. Each sheet is a tab; the grid loads only the visible part, so large sheets stay
   responsive.
 * **New measurement sheet …** (Neue Messtabelle …) creates an empty table for single measurement results. Type into
@@ -52,9 +53,12 @@ a range and assign it with a right-click:
 * **Data block** (Datenblock), **Header row(s)** (Kopfzeile(n)), **Units row** (Einheitenzeile), skip rows; a units
   row with only one unit ("t | c" over " | mg/L") is recognised.
 * **Column role** (Rolle der Spalten): x, y, uncertainty (of the column to its left), group, label, ignore.
-* **Symbol and quantity …** (Symbol und Grösse …): symbol, quantity kind and, for date/time columns, the conversion
+* **Symbol and quantity …** (Symbol und Grösse …): symbol, quantity kind, the **type of uncertainty** of the column's
+  ± values (not stated, standard uncertainty u, expanded uncertainty U with k, standard deviation, standard error,
+  confidence interval with level; shown in checks, export and report) and, for date/time columns, the conversion
   into **elapsed time** (s, min, h or d automatically; counting on past midnight; the start time becomes a
-  condition).
+  condition). Times with an offset (`+01:00`, `Z`) are converted to UTC; times without one are taken as local time
+  as written, and a possible daylight-saving jump is warned about (ACHTUNG), not corrected.
 * **Metadata cell → condition …** (Metadatenzelle → Bedingung …, e.g. "Temperatur: 25 °C") or **→ constant column**;
   **Selection is the next block (repeats)** (one block per run), **Wide → long** (Breit → lang), **Swap rows and
   columns** (Zeilen und Spalten tauschen).
@@ -76,18 +80,23 @@ a range and assign it with a right-click:
 
 * **Save as dataset …** (Als Datensatz speichern …) turns the marked sheet into a dataset (title of your choice). The
   Calculator, the Elemental Calculator, TGA, FTIR and the Datenaufbereitung itself can take it over. After every
-  change a new **version** is created automatically (4 s after the last input), but only when values, names, units,
-  roles or the title have changed; **Save now** (Jetzt speichern) does it by hand.
+  change a new **version** is created automatically (4 s after the last input), but only when values, flags or
+  exclusions, names, units, roles, column properties or the title have changed; **Save now** (Jetzt speichern) does
+  it by hand. Version numbers are never given twice, also after a version was deleted.
 * In the dataset section:
   - **Checks** (Prüfung; chips, per version): rows read/used/excluded, missing values, flags, x monotonic, gaps
-    (step > 3 × median), n per group, impossible values (negative mass, concentration, T < 0 K), columns without unit.
-  - **Export** (Exportieren): CSV (header "name [unit]"), XLSX (sheets "Daten" and "Protokoll" with files, recipe,
-    steps and flags), JSON (lossless, reads back in), Parquet (with units in the metadata).
+    (step > 3 × median), n per group, impossible values (negative mass, concentration, T < 0 K; not for lengths or
+    columns named as a difference or change such as ΔL), type of each uncertainty, columns without unit.
+  - **Export** (Exportieren): CSV (header "name [unit]", plus the columns "verwendet" 1/0 and "Markierungen" with the
+    flags of each row), XLSX (sheets "Daten" and "Protokoll" with files, recipe, steps, cuts, uncertainty types and
+    flags), JSON (lossless, reads back in), Parquet (optional, see above; units in the metadata).
   - **Send to report …** (An Bericht senden …; only inside Folio Lab): preview figure (excluded rows grey, outliers
     ringed in red, error bars from uncertainty columns), tables (columns, first 15 rows, flags), values as `\labval`
     (rows, used, excluded, version), data as CSV for pgfplots, the sources of the methods and a methods text (files
-    with SHA-256, recipe, steps with row counts, exclusions with reason). The dataset travels with the report (up to
-    4 MB as JSON); **Refresh** in the editor therefore does not need the share.
+    with SHA-256, recipe, steps with row counts, exclusions with reason, uncertainty types, cuts and time warnings).
+    Choose **this version** (Refresh keeps it) or **newest version** (Refresh follows new versions of the dataset and
+    says "von Version a auf b"). The dataset travels with the report (up to 4 MB as JSON); **Refresh** of a fixed
+    version therefore does not need the share.
 * **Open dataset …** (Datensatz öffnen …, **File** menu) lists all datasets of the project and shows one as a table
   (read only).
 
@@ -110,10 +119,10 @@ unchanged.
   | Sort (Sortieren) | ascending or descending, missing numbers last |
   | Drop empty rows (Leere Zeilen entfernen) | in one column or everywhere |
   | Flag duplicates (Doppelte markieren) | flags only, removes nothing |
-  | Average replicates (Wiederholungen mitteln) | groups of equal values → mean, s, n, standard error (uncertainty columns are not averaged) |
+  | Average replicates (Wiederholungen mitteln) | groups of equal values → mean, s, n, standard error (uncertainty columns are not averaged); flags of the averaged values go to the mean |
   | Smooth (Savitzky–Golay) (Glätten) | new column `…_sg`, labelled as smoothed |
   | Join another dataset (Mit anderem Datensatz verbinden) | columns of a second dataset interpolated linearly onto the x here, no extrapolation, labelled "interpolated" |
-  | Flag outliers (Ausreisser markieren) | Grubbs, Dixon Q (n 3–10), Tukey/IQR, Hampel/MAD, fit residual; per group if wanted; every method with its source |
+  | Flag outliers (Ausreisser markieren) | Grubbs (sequential with α per step, or a single pass), Dixon Q (n 3–10; two-sided tests the end with the larger ratio, or only maximum/minimum; only tabulated α), Tukey/IQR, Hampel/MAD (window by position or in x units), fit residual (threshold k is a rule of thumb); per group if wanted; every method with its source where one is cited |
   | Exclude (with reason) (Ausschliessen (mit Grund)) | rows (`3, 7, 12–15`) or all rows with certain flags; the reason is required |
 
 * **Flagging deletes no row.** Only "Exclude" takes rows out of the evaluation; they stay in the dataset (grey,
@@ -128,9 +137,9 @@ unchanged.
   shown. **Change …** (Ändern …) reopens the dialog with all steps.
 
 **About the fit residual:** the deviation from a polynomial (degree of your choice) is tested, externally
-studentized and stepwise (at most a quarter of the points). With nearly noise-free data the scatter is tiny; a
-polynomial that cannot follow the curve (e.g. degree 3 on an exponential curve) then flags the ends. Choose a
-suitable degree or use another method.
+studentised and stepwise (at most a quarter of the points); k = 3 is a rule of thumb, not a significance level.
+With nearly noise-free data the scatter is tiny; a polynomial that cannot follow the curve (e.g. degree 3 on an
+exponential curve) then flags the ends. Choose a suitable degree or use another method.
 
 ## Templates and batches
 
@@ -160,6 +169,9 @@ All of them name the dataset ID and version in the result and the report; exclud
 ## Limitations
 
 * `.xls` is read with xlrd but has no test of its own (no `.xls` writer installed).
+* Parquet needs pyarrow, which is not installed with the module (`pip install pyarrow`); its tests are skipped
+  without it.
+* The Dixon table is not checked against the publication (numerically checked; see the methods page).
 * Server and reading notes, the step texts in the log and the methods text of the steps are in German (also in an
   English report); the page labels exist in German and English.
 * Formulas can only use columns, constants and the functions of the Calculator; row shifts (differences to the

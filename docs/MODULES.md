@@ -95,8 +95,8 @@ b.add_table("peaks", booktabs(["Peak", r"$\tilde\nu$ [cm$^{-1}$]"], rows, escape
 b.add_values([("Amax", "Maximum absorbance", num(0.82, 2, lang), "0.82")])          # \labval{slug}{Amax}
 b.add_data_csv("spectrum", ["wn_cm1", "A"], rows, "Spectrum of sample A",
                labels={"wn_cm1": r"Wavenumber [cm$^{-1}$]", "A": "Absorbance"}, plot={"x": "wn_cm1", "y": "A"})
-b.add_citation("astm-e1252", "misc", title="ASTM E1252: ...", year="2021")
-b.add_text("methods", r"Spectra were recorded ... \cite{astm-e1252}.", title="Methods")
+b.add_citation("example-std", "misc", title="Standard used: ...", year="2021")
+b.add_text("methods", r"Spectra were recorded ... \cite{example-std}.", title="Methods")
 b.set_source(request, {"sampleA.spa": raw_bytes})                                   # enables Refresh
 return b.to_dict()
 ```
@@ -112,7 +112,7 @@ JSON shape (all `files` are base64):
     {"kind": "table",    "id": "peaks", "file": "peaks.tex", "caption": "...", "label": "tab:ftir-sample-a-peaks", "notes": ""},
     {"kind": "values",   "file": "values.tex", "values": [{"key": "Amax", "label": "...", "latex": "0.82", "text": "0.82"}]},
     {"kind": "data",     "id": "spectrum", "file": "data/spectrum.csv", "columns": ["wn_cm1", "A"], "labels": {}, "plot": {}, "description": "...", "rows": 1800},
-    {"kind": "citation", "key": "astm-e1252", "title": "..."},
+    {"kind": "citation", "key": "example-std", "title": "..."},
     {"kind": "text",     "id": "methods", "file": "text-methods.tex", "title": "Methods"}
   ],
   "files": {"fig/spectrum.pdf": "...", "values.tex": "...", "refs.bib": "..."},

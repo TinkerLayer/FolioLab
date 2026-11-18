@@ -101,25 +101,44 @@ def evaluate_line(req: dict) -> dict:
                    html=f"{R.sym_html(name)} = {html}", tex=f"{R.sym_tex(name)} = {tex}",
                    result_tex=_result_tex(val, lang))
         unit = _dims_unit(node, ctx)
-        if unit:
+        if unit == UNKNOWN_UNIT:
+            out["unit"] = unit
+            _note(out, ctx, UNKNOWN_NOTE)
+        elif unit:
             out["unit"] = unit
             out["dims"] = list(node_dims(node, ctx))            # die Variable behält ihre Einheit in späteren Zeilen
             out["result_tex"] += r"\," + R.unit_tex(unit_plain(unit))
+            if U.deq(out["dims"], U.parse_unit("K")[1]):
+                out["tdiff"] = temp_weight(node, ctx) == 0     # Temperaturdifferenz (T2 − T1): später ohne Nullpunkt
         _add_parts(out, node, ctx, val, lang)
+        _parts_known(out)
+        _note(out, ctx)
         return out
     if st[0] == "convert":
         _, body, unit = st
         node = E.parse(body, callables)
         val = E.evaluate(node, ctx)
-        f, d, off = U.parse_unit(unit)
+        target, delta = U.split_delta(unit)
+        f, d, off = U.parse_unit(target)
         dn = node_dims(node, ctx)
         if dn is not None and not U.deq(dn, d):
-            raise E.CalcError(f"Ergebnis hat die Einheit {U.dims_text(dn) or '1'}, nicht {unit}")
-        conv = U.from_si(np.asarray(val, dtype=float), unit)
+            raise E.CalcError(f"Ergebnis hat die Einheit {U.dims_text(dn) or '1'}, nicht {target}")
+        diff = delta
+        if off and not delta:                                  # °C, °F: Temperatur oder Temperaturdifferenz?
+            w = temp_weight(node, ctx)
+            if w == 0:
+                diff = True
+                _note(out, ctx, f"als Temperaturdifferenz umgerechnet (ohne Nullpunkt): 1 K = 1 {target}"
+                      if target == "°C" else f"als Temperaturdifferenz umgerechnet (ohne Nullpunkt, Faktor {E.fmt_num(1 / f, 6)})")
+            elif w is None or abs(w - 1) > 1e-12:
+                _note(out, ctx, f"als Temperatur umgerechnet (mit Nullpunkt); für eine Differenz „-> Δ{target}“ schreiben")
+        conv = U.from_si(np.asarray(val, dtype=float), target, diff)
         dd = E.describe(conv, int(req.get("digits", 10)))
         tex, html = _input_render(node, lang)
-        out.update(kind="expr", result=dd, store=E.to_json(conv), unit=unit, html=html + " → " + R.unit_html(unit),
-                   tex=tex, result_tex=_result_tex(conv, lang) + r"\," + R.unit_tex(unit))
+        shown = ("Δ" + target) if diff and off else target
+        out.update(kind="expr", result=dd, store=E.to_json(conv), unit=shown, html=html + " → " + R.unit_html(shown),
+                   tex=tex, result_tex=_result_tex(conv, lang) + r"\," + (r"\Delta " if diff and off else "") + R.unit_tex(target))
+        _note(out, ctx)
         return out
     node = E.parse(st[1], callables)
     val = E.evaluate(node, ctx)
@@ -128,11 +147,118 @@ def evaluate_line(req: dict) -> dict:
     out.update(kind="expr", result=d, store=E.to_json(val) if not isinstance(val, str) else None, html=html, tex=tex,
                result_tex=_result_tex(val, lang))
     unit = _dims_unit(node, ctx)
-    if unit:
+    if unit == UNKNOWN_UNIT:
         out["unit"] = unit
+        _note(out, ctx, UNKNOWN_NOTE)
+    elif unit:
+        out["unit"] = unit
+        out["dims"] = list(node_dims(node, ctx))                # für ans in der nächsten Zeile
         out["result_tex"] += r"\," + R.unit_tex(unit_plain(unit))
     _add_parts(out, node, ctx, val, lang)
+    _parts_known(out)
+    _note(out, ctx)
     return out
+
+
+UNKNOWN_UNIT = "?"
+UNKNOWN_NOTE = ("Einheit unbekannt: der Ausdruck enthält Grössen mit Einheit, deren Einheit hier nicht weitergegeben "
+                "wird (z. B. Liste mit verschiedenen Einheiten, Matrixfunktion, eigene Funktion, Summe ungleicher "
+                "Einheiten); der Wert ist in SI")
+
+
+def _parts_known(out):
+    """linreg mit Einheiten: die Teile k, d, R² tragen je ihre Einheit, also keine „unbekannte“ Gesamteinheit."""
+    if out.get("parts") and out.get("unit") == UNKNOWN_UNIT:
+        out.pop("unit", None)
+        if UNKNOWN_NOTE in (out.get("notes") or []):
+            out["notes"].remove(UNKNOWN_NOTE)
+            if not out["notes"]:
+                out.pop("notes")
+
+
+def _note(out, ctx, text=None):
+    """Hinweis an die Zeile hängen (ohne Doppelte); ohne text: Hinweise der Analysis-Funktionen übernehmen."""
+    notes = out.setdefault("notes", [])
+    for t in ([text] if text else list(getattr(ctx, "notes", []) or [])):
+        if t and t not in notes:
+            notes.append(t)
+    if not notes:
+        out.pop("notes", None)
+
+
+_K_DIMS = U.parse_unit("K")[1]
+
+
+def temp_weight(node, ctx):
+    """Affines Gewicht eines Ausdrucks in K: 1 = Temperatur (Punkt der Skala), 0 = Temperaturdifferenz, None = unklar.
+
+    Regeln: eine Grösse der Art „Temperatur“, die Konstante T0 und Zeilenvariablen in K ohne weitere Angabe zählen 1,
+    eine „Temperaturdifferenz“ (Grössenart oder Zeilenvariable aus einer Differenz) und alles ohne K zählt 0;
+    a ± b addiert bzw. subtrahiert die Gewichte, Zahl·a und a/Zahl skalieren sie, mean/min/max/median übernehmen das
+    gemeinsame Gewicht. T2 − T1 hat damit 0 (Differenz), (T1 + T2)/2 hat 1 (Temperatur)."""
+    kinds = getattr(ctx, "kinds", None) or {}
+    tdiff = getattr(ctx, "tdiff", None) or set()
+
+    def num(n):
+        if not E._bare(n):
+            return None
+        try:
+            v = E.evaluate(n, E.Ctx())
+            return float(v) if np.ndim(v) == 0 and np.isreal(v) else None
+        except (E.CalcError, TypeError, ValueError):
+            return None
+
+    def w(n):
+        t = type(n)
+        if t is ast.Constant:
+            return 0.0
+        if t is ast.Name:
+            if n.id in tdiff or kinds.get(n.id) == "temp_diff":
+                return 0.0
+            if kinds.get(n.id) == "temperature" or n.id == "T0":
+                return 1.0
+            dn = ctx.dims.get(n.id)
+            return 1.0 if dn is not None and U.deq(dn, _K_DIMS) else 0.0
+        if t is ast.UnaryOp:
+            v = w(n.operand)
+            return None if v is None else (-v if isinstance(n.op, ast.USub) else v)
+        if t is ast.BinOp:
+            a, b = w(n.left), w(n.right)
+            if a is None or b is None:
+                return None
+            if isinstance(n.op, ast.Add):
+                return a + b
+            if isinstance(n.op, ast.Sub):
+                return a - b
+            if a == 0 and b == 0:
+                return 0.0
+            if isinstance(n.op, ast.Mult):
+                if a == 0:
+                    c = num(n.left)
+                    return None if c is None else c * b
+                if b == 0:
+                    c = num(n.right)
+                    return None if c is None else c * a
+                return None
+            if isinstance(n.op, ast.Div) and b == 0:
+                c = num(n.right)
+                return None if not c else a / c
+            return None
+        if t is ast.Subscript:
+            return w(n.value)
+        if t in (ast.List, ast.Tuple):
+            ws = [w(e) for e in n.elts]
+            return ws[0] if ws and all(x is not None and x == ws[0] for x in ws) else (0.0 if not ws else None)
+        if t is ast.Call and isinstance(n.func, ast.Name):
+            ws = [w(a) for a in n.args]
+            if n.func.id in ("mean", "median", "min", "max", "sort") and ws:
+                return ws[0] if all(x is not None and x == ws[0] for x in ws) else None
+            if n.func.id == "abs" and ws:
+                return ws[0] if ws[0] in (0.0, 1.0) else None
+            return 0.0 if all(x == 0 for x in ws) else None
+        return None
+
+    return w(node)
 
 
 # ----------------------------------------------------------------------------- Gleichungen lösen (S-01, S-02)
@@ -384,18 +510,46 @@ def solve_system_line(pairs, ctx, req, lang, out):
     return out
 
 
-def _dims_unit(node, ctx):
-    """SI-Einheit des Ergebnisses, wenn Groessen mit Einheit vorkommen."""
+def _has_dims(node, ctx) -> bool:
+    """Kommt eine Grösse mit Einheit vor (Variable mit Einheit, Konstante mit Einheit, Chemiefunktion mit Einheit)?"""
     pd = getattr(ctx, "pdims", None) or {}
-    if not ctx.dims and not pd:
-        return None
-    used = {n.id for n in ast.walk(node) if isinstance(n, ast.Name)}
-    if not used & (set(ctx.dims) | set(pd)):
+    for n in ast.walk(node):
+        if isinstance(n, ast.Name):
+            if n.id in ctx.dims and not U.deq(ctx.dims[n.id], U.D0) or n.id in pd:
+                return True
+            if n.id not in ctx.names and n.id in U.CONSTANTS and not U.deq(U.constant_dims(n.id), U.D0):
+                return True
+        if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id in E.STRFUNCS and n.args \
+                and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str) \
+                and not U.deq(E.STRFUNCS[n.func.id][3], U.D0):
+            return True
+    return False
+
+
+def _dims_unit(node, ctx):
+    """SI-Einheit des Ergebnisses, wenn Grössen mit Einheit vorkommen; UNKNOWN_UNIT, wenn sie dann nicht bestimmbar
+    ist (statt stillschweigend dimensionslos)."""
+    if not _has_dims(node, ctx):
         return None
     d = node_dims(node, ctx)
-    if d is None or U.deq(d, U.D0):
+    if d is None:
+        return UNKNOWN_UNIT
+    if U.deq(d, U.D0):
         return None
-    return U.dims_text(d)
+    return _si_text(d)
+
+
+def _si_text(d) -> str:
+    """SI-Einheit; gibt es eine Grössenart mit dieser Dimension, deren kohärente Einheit (J/(mol·K) statt
+    m²·kg/(s²·K·mol))."""
+    t = U.dims_text(d)
+    if "·" not in t and "/" not in t:
+        return t
+    for k in U.kinds_for_dims(d):
+        si = k.si.replace("*", "·")
+        if "^" not in si and U.compatible(si, t):
+            return si
+    return t
 
 
 # ----------------------------------------------------------------------------- Einheiten von Listen (DP-11)
@@ -474,7 +628,8 @@ class _DimRewrite(ast.NodeTransformer):
 
 def node_dims(node, ctx):
     """Dimension eines Ausdrucks wie E.dims_of, ergänzt um Listenfunktionen, Listenelemente und linreg (DP-11)."""
-    dims = dict(ctx.dims)
+    dims = {n: U.D0 for n in ctx.names}          # Zeilenvariablen und Matrizen ohne Einheitenangabe sind Zahlen
+    dims.update(ctx.dims)
     tree = _DimRewrite(dims, getattr(ctx, "pdims", None) or {}).visit(copy.deepcopy(node))
     return E.dims_of(tree, dims)
 

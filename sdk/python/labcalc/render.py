@@ -107,7 +107,24 @@ def sym_html(name: str) -> str:
 
 
 # ----------------------------------------------------------------------------- Zahlen und Einheiten
+def _nonfinite(v):
+    """Text für NaN/±∞ (oder None, wenn v endlich ist); fmt_num liefert dafür Wörter, die ein „e“ enthalten."""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return "nan"
+    if math.isnan(f):
+        return "nan"
+    if math.isinf(f):
+        return "inf" if f > 0 else "-inf"
+    return None
+
+
 def num_tex(v: float, lang="de", digits=4) -> str:
+    bad = _nonfinite(v)
+    if bad:
+        return {"nan": r"\mbox{%s}" % ("nicht definiert" if lang == "de" else "not defined"), "inf": r"\infty",
+                "-inf": r"-\infty"}[bad]
     s = E.fmt_num(v, digits)
     if "e" in s:
         mant, ex = s.split("e")
@@ -118,6 +135,9 @@ def num_tex(v: float, lang="de", digits=4) -> str:
 
 
 def num_html(v: float, lang="de", digits=4) -> str:
+    bad = _nonfinite(v)
+    if bad:
+        return {"nan": "nicht definiert" if lang == "de" else "not defined", "inf": "∞", "-inf": "−∞"}[bad]
     s = E.fmt_num(v, digits)
     if "e" in s:
         mant, ex = s.split("e")

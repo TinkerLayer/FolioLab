@@ -4,7 +4,7 @@ Made by the Datenaufbereitung module, read by the Rechner, Elementrechner, TGA a
 
     header = {"schema": "suite.dataset/1", "title", "rows",
               "columns": [{"key", "name", "symbol"?, "kind"?, "unit", "dtype": "number"|"text", "role"?, "u"?,
-                           "cells"?, "note"?}],
+                           "cells"?, "note"?, "u_type"?, "u_k"?, "u_level"?}],
               "conditions"?: {name: {"value", "unit"?, "from"?}},
               "flags"?: [{"row", "col"?, "code", "excluded"?, "reason"?, "rule"?, "raw"?}],
               "provenance"?: {"files": [{"name", "sha256", "sheet"?, "ranges"?}], "recipe"?: [...], "module_version"?}}
@@ -13,6 +13,13 @@ Made by the Datenaufbereitung module, read by the Rechner, Elementrechner, TGA a
 Rules (OUTLINE §7): flags never delete rows; `excluded` is a recorded decision; units must be readable by
 `labcalc.units` and fit the quantity kind; missing values stay NaN (no imputation here).
 Storage: `<stem>.json` (header) + `<stem>.npz` (columns, no pickles).
+
+Hashes: `data_hash` covers column keys, units, types and values (checked on load and by shares);
+`flags_hash` covers the flags including exclusions. Both are recomputed whenever a dataset is built.
+
+Uncertainty type (`u_type`, on a column of role "uncertainty" or one that other columns point to with "u"):
+"" not stated (default), "u" standard uncertainty, "U" expanded uncertainty (coverage factor `u_k`),
+"sd" standard deviation, "se" standard error of the mean, "ci" half-width of a confidence interval (`u_level` in %).
 """
 from __future__ import annotations
 
@@ -33,6 +40,21 @@ MAX_CELLS = 5_000_000            # ~100 000 rows × 50 columns with room (DP-Q3)
 ROLES = ("", "x", "y", "uncertainty", "group", "label", "condition")
 FLAG_CODES = ("outlier", "missing", "below_lod", "above_range", "duplicate", "excluded", "interpolated",
               "parse_error", "note")
+U_TYPES = {"": ("nicht angegeben", "not stated"), "u": ("Standardunsicherheit u", "standard uncertainty u"),
+           "U": ("erweiterte Unsicherheit U", "expanded uncertainty U"), "sd": ("Standardabweichung s", "standard deviation s"),
+           "se": ("Standardfehler des Mittelwerts", "standard error of the mean"),
+           "ci": ("Konfidenzintervall (halbe Breite)", "confidence interval (half-width)")}
+
+
+def u_type_text(c: dict, lang: str = "de") -> str:
+    """What a ± / uncertainty column holds, e.g. "erweiterte Unsicherheit U (k = 2)"; "nicht angegeben" by default."""
+    t = c.get("u_type") or ""
+    s = U_TYPES.get(t, U_TYPES[""])[0 if lang == "de" else 1]
+    if t == "U" and c.get("u_k"):
+        s += f" (k = {c['u_k']:g})".replace(".", "," if lang == "de" else ".")
+    if t == "ci" and c.get("u_level"):
+        s += f" ({c['u_level']:g} %)".replace(".", "," if lang == "de" else ".")
+    return s
 _KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,39}$")
 
 
@@ -99,6 +121,23 @@ def check(header: dict, data: dict) -> tuple[dict, dict]:
         for f in ("symbol", "note", "cells", "u"):
             if c.get(f):
                 rec[f] = str(c[f])[:200]
+        ut = c.get("u_type") or ""
+        if ut:
+            if ut not in U_TYPES:
+                raise DatasetError(f"Spalte „{rec['name']}“: Art der Unsicherheit „{ut}“ unbekannt "
+                                   f"(u, U, sd, se, ci oder leer)")
+            rec["u_type"] = ut
+            for f, lo, hi, what in (("u_k", 0.0, 100.0, "Erweiterungsfaktor k"), ("u_level", 0.0, 100.0, "Niveau in %")):
+                if c.get(f) is None or c.get(f) == "":
+                    continue
+                try:
+                    x = float(str(c[f]).replace(",", "."))
+                except ValueError:
+                    raise DatasetError(f"Spalte „{rec['name']}“: {what} ist keine Zahl") from None
+                if not lo < x < hi:
+                    raise DatasetError(f"Spalte „{rec['name']}“: {what} ausserhalb ({lo:g}, {hi:g})")
+                if (f == "u_k" and ut == "U") or (f == "u_level" and ut == "ci"):
+                    rec[f] = x
         if dtype == "number":
             arr = _num_array(data[key])
             unit, kind = rec["unit"], str(c.get("kind") or "")
@@ -160,11 +199,21 @@ def check(header: dict, data: dict) -> tuple[dict, dict]:
             "columns": out_cols, "conditions": cond, "flags": flags,
             "provenance": header.get("provenance") if isinstance(header.get("provenance"), dict) else {}}
     head["data_hash"] = data_hash(head, out_data)
+    head["flags_hash"] = flags_hash(flags)
     return head, out_data
 
 
+def flags_hash(flags) -> str:
+    """SHA-256 over the flags in their stored order (row, column, code, exclusion, reason, rule, cell text, α), so a
+    change that only alters flags or exclusions is visible (the data hash covers the values only)."""
+    keys = ("row", "col", "code", "excluded", "reason", "rule", "raw", "alpha")
+    rows = [[f.get(k) for k in keys] for f in flags or []]
+    return hashlib.sha256(json.dumps(rows, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
 def data_hash(header: dict, data: dict) -> str:
-    """SHA-256 over the column definitions and values (stable across saves)."""
+    """SHA-256 over the column keys, units and types and the values (stable across saves). Flags and exclusions are
+    in `flags_hash`; names, roles, kinds, conditions and provenance are in neither."""
     h = hashlib.sha256()
     h.update(json.dumps([{k: c.get(k) for k in ("key", "unit", "dtype")} for c in header["columns"]],
                         sort_keys=True).encode("utf-8"))
@@ -256,6 +305,8 @@ class Dataset:
         ds = cls(head, data)
         if head.get("data_hash") and ds.header["data_hash"] != head["data_hash"]:
             raise DatasetError(f"{stem.name}: Daten passen nicht zur Prüfsumme (Datei verändert?)")
+        if head.get("flags_hash") and ds.header["flags_hash"] != head["flags_hash"]:
+            raise DatasetError(f"{stem.name}: Markierungen passen nicht zur Prüfsumme (Datei verändert?)")
         return ds
 
 

@@ -449,11 +449,17 @@ def solve_poly(c, complex_ok=False):
         c = list(c)
         while len(c) > 3:                                      # rationale Nullstellen abspalten
             found = None
+            # Satz über rationale Nullstellen: bei ganzzahligen Koeffizienten teilt der Nenner p/q (gekürzt) den
+            # Leitkoeffizienten; gesucht wird also bis zu diesem Nenner (mindestens 1000, höchstens 10¹²). Jeder
+            # Kandidat wird exakt in Brüchen eingesetzt und nur bei P(p/q) = 0 als exakte Lösung gezeigt.
+            den = math.lcm(*[k.denominator for k in c])
+            lead = abs(int(c[-1] * den))
+            qmax = min(max(1000, lead), 10 ** 12)
             for s in _numeric_poly_roots(c):
                 v = s["value"]
                 if isinstance(v, complex):
                     continue
-                fr = Fraction(v).limit_denominator(1000)
+                fr = Fraction(v).limit_denominator(qmax)
                 if _pval_exact(c, fr) == 0:
                     found = fr
                     break

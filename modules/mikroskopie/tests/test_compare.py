@@ -63,8 +63,9 @@ class Unit(unittest.TestCase):
         with self.assertRaisesRegex(CMP.CompareError, "keine Länge"):
             CMP.values_m(ds, "q")
         s = CMP.stats(v / CMP.metres_per("µm"))
-        for k, q in (("D10", 10), ("D50", 50), ("D90", 90)):
-            self.assertAlmostEqual(s[k], float(np.percentile(SIZES_UM[1:], q)), places=9)
+        for k, q in (("D10", 10), ("D50", 50), ("D90", 90)):       # Q0, Hyndman & Fan definition 5 (numpy "hazen")
+            self.assertAlmostEqual(s[k], float(np.percentile(SIZES_UM[1:], q, method="hazen")), places=9)
+        self.assertGreater(s["Dv50"], s["D50"])                       # Q3 (d³) lies above Q0
         self.assertEqual(s["n"], 299)
         self.assertAlmostEqual(CMP.metres_per("nm"), 1e-9)
         self.assertAlmostEqual(CMP.metres_per("um"), 1e-6)
@@ -133,6 +134,7 @@ class Report(unittest.TestCase):
         labels = [t.get_text() for t in f.axes[0].get_legend().get_texts()]
         self.assertEqual(len(labels), 4)                              # zwei Verteilungen, zwei D50
         self.assertTrue(any(lb.startswith("LD (n = 3)") for lb in labels))
+        self.assertTrue(any(lb.startswith("D50 (Q0)") for lb in labels))
         C.plt.close(f)
 
 
