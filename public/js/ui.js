@@ -194,12 +194,53 @@ export function modal({ title, body = '', buttons = [{ label: 'OK', value: true,
     });
     m.querySelector('[data-close]').onclick = () => close(null);
     document.body.appendChild(back);
+    modalGrip(m, title);
     if (onOpen) onOpen(m, close);
     const first = m.querySelector('input:not([type=checkbox]):not([type=radio]), select, textarea');
     if (first) {
       first.focus();
       if (first.select) first.select();
     } else footer.lastElementChild?.focus();
+  });
+}
+
+// Resizable modals: drag the bottom-right corner; the size is kept per dialog title as a fraction of the window,
+// double-click on the corner resets it. The modal is centred horizontally, so its width grows by twice the drag.
+function modalGrip(m, title) {
+  const key = 'modalSize';
+  const all = () => { try { return store(key) || {}; } catch { return {}; } };
+  const apply = (w, h) => {
+    m.classList.add('sized');
+    m.style.maxWidth = 'calc(100vw - 32px)';
+    m.style.width = Math.round(Math.max(280, Math.min(window.innerWidth - 32, w))) + 'px';
+    m.style.height = Math.round(Math.max(160, Math.min(window.innerHeight - 32, h))) + 'px';
+  };
+  const f = all()[title];
+  if (f && f.w && f.h) apply(f.w * window.innerWidth, f.h * window.innerHeight);
+  const g = h('<div class="modal-grip" title="Drag to resize; double-click resets"></div>');
+  m.appendChild(g);
+  g.addEventListener('dblclick', () => {
+    m.classList.remove('sized');
+    for (const k of ['width', 'height', 'maxWidth']) m.style[k] = '';
+    const s = all(); delete s[title]; store(key, s);
+  });
+  g.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    g.setPointerCapture(e.pointerId);
+    const r = m.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    document.body.classList.add('resizing', 'diag');
+    const move = (ev) => apply(r.width + 2 * (ev.clientX - x0), r.height + (ev.clientY - y0));
+    const up = () => {
+      document.body.classList.remove('resizing', 'diag');
+      g.removeEventListener('pointermove', move);
+      g.removeEventListener('pointerup', up);
+      const b = m.getBoundingClientRect(), s = all();
+      s[title] = { w: b.width / window.innerWidth, h: b.height / window.innerHeight };
+      store(key, s);
+    };
+    g.addEventListener('pointermove', move);
+    g.addEventListener('pointerup', up);
   });
 }
 

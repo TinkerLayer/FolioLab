@@ -13,6 +13,8 @@ const combiner = require('./combine');
 const modules = require('./modules');
 const lab = require('./lab');
 const suite = require('./suite');
+const portable = require('./portable');
+const importer = require('./importer');
 
 // 4330 by default so Folio Lab can run next to a plain Folio (4321). Override with FOLIO_PORT or --port=N.
 const PORT = +(process.argv.find((a) => a.startsWith('--port=')) || '').slice(7) || +process.env.FOLIO_PORT || 4330;
@@ -162,9 +164,15 @@ route('DELETE', '/api/projects/:id', async (req, res, p) => {
   json(res, { ok: true });
 });
 route('POST', '/api/projects/:id/duplicate', async (req, res, p) => json(res, await P.duplicateProject(p.id), 201));
-route('GET', '/api/projects/:id/zip', async (req, res, p) => {
+route('GET', '/api/projects/:id/zip', async (req, res, p, q) => {
   const meta = await P.readMeta(p.id);
   await lab.issueAll(p.id, 'zip').catch(() => {}); // Q22 a): export fixes the current result revisions
+  if (q.get('portable') === '1') {
+    // self-contained folder for any other LaTeX project (server/portable.js)
+    const out = await portable.exportPortable(p.id, { prefix: q.get('prefix') || '' });
+    send(res, 200, out.buffer, { 'Content-Type': 'application/zip', 'Content-Disposition': contentDisposition(out.filename) });
+    return;
+  }
   const deps = await lab.dependencies(p.id).catch(() => null); // A8 / UI-09: what the results rest on
   const buf = await P.zipProject(p.id, deps ? [{ name: 'lab/dependencies.json', data: Buffer.from(JSON.stringify(deps, null, 2)) }] : []);
   send(res, 200, buf, {
@@ -261,6 +269,20 @@ route('DELETE', '/api/projects/:id/lab/:slug', async (req, res, p) => {
   await lab.remove(p.id, p.slug);
   json(res, { ok: true });
 });
+
+// ---------------------------------------------------------------- import into reports (server/importer.js)
+const srcDesc = (q) => ({ type: q.get('type'), project: q.get('project'), stage: q.get('stage') });
+route('GET', '/api/import/sources', async (req, res, p, q) => json(res, await importer.sources(q.get('target') || '')));
+route('GET', '/api/import/pieces', async (req, res, p, q) => json(res, await importer.pieces(srcDesc(q))));
+route('GET', '/api/import/file', async (req, res, p, q) => sendFile(res, await importer.sourceFile(srcDesc(q), q.get('path'))));
+route('POST', '/api/import/stage', async (req, res, p, q) => {
+  const buf = await readBody(req);
+  json(res, await combiner.stageZip(q.get('name') || 'Project.zip', buf), 201);
+});
+route('POST', '/api/projects/:id/import', async (req, res, p) => json(res, await importer.importPieces(p.id, await readJson(req)), 201));
+route('GET', '/api/projects/:id/import/links', async (req, res, p) => json(res, await importer.linkStates(p.id)));
+route('POST', '/api/projects/:id/import/:slug/update', async (req, res, p) => json(res, await importer.update(p.id, p.slug, await readJson(req))));
+route('POST', '/api/projects/:id/import/:slug/mode', async (req, res, p) => json(res, await importer.setMode(p.id, p.slug, (await readJson(req)).mode)));
 
 // ---------------------------------------------------------------- static
 async function serveStatic(req, res, pathname) {

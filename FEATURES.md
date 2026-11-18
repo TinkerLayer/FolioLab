@@ -13,7 +13,7 @@ Legend: **built** = in the app (module features are covered by each module's tes
 |---|---|---|---|
 | Report editor (Folio) and hub | – | LaTeX reports, projects, module launcher, results in reports with revisions | smoke test (compiles every template), `suite-test.js`, revisions test |
 | Shared SDK (`sdk/python`, `sdk/web`) | – | Calculation core, sources, environments, sharing, datasets, index, provenance, page parts | 79 |
-| Zugversuch (tensile test) | 1.3.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, PDF report | 55 |
+| Zugversuch (tensile test) | 1.4.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, load peaks of progressive failure, PDF report | 80 |
 | Mikroskopie (microscopy) | 1.3.0 | Micrographs: processing, threshold, watershed, measuring, particle analysis, comparison with a dataset | 58 |
 | Rechner (calculator) | 1.4.0 | Units, sheets, line variables, 282 sourced equations, equation and system solver, graph with large datasets and fits, matrices, symbol picker, values with origin | 83 |
 | FTIR | 1.5.0 | IR spectra: processing, bands, groups, library search, mixtures, OPUS, spectra from datasets | 73 |
@@ -28,7 +28,8 @@ header lists and edits these links, and the overview draws them as arrows. An en
 of its graphs (spectra, TG/DTG, stress curves, the last Rechner graph, dataset curves, histograms, ΔrG(T) and
 titration curves); a click enlarges them. The hub cards use the same icon as the module header. Inside, a few main tabs,
 the rest under "Mehr ▾", and the less used settings folded away. Headers, tabs and folds switch between German and
-English (DE|EN); table contents and older result texts are still German.
+English (DE|EN); table contents and older result texts are still German. Side panels, charts, tables, lists, dialogs
+and floating windows can be resized by dragging an edge; the sizes are kept in proportion to the window.
 
 ---
 
@@ -65,6 +66,15 @@ English (DE|EN); table contents and older result texts are still German.
 - **built** ZIP export adds `lab/dependencies.json` (every result and kept revision: module version, file hashes,
   shared versions and index values used).
 - **built** First insert adds `\input{lab/labdata}`, the packages and the bibliography to the main file if missing.
+- **built** **Import** button in the editor: figures, tables, equations, sections, images, data files and values from
+  other reports, whole analysis results, shared data and index values of the active project, or an uploaded ZIP of
+  any LaTeX project. Each piece brings its files, `.bib` entries, macros, packages and values. Labels are prefixed and
+  clashing cite keys renamed. The import becomes a result `lab/import-…/` and is inserted from the Lab dialog.
+- **built** **Live links for imports:** live (default; "source changed" + Update, the old state stays a revision),
+  pinned (update offered) or copy, switchable per result in the Lab dialog.
+- **built** **Portable LaTeX ZIP** for unrelated LaTeX projects: prefixed folder with `body.tex`, `preamble.tex`
+  (loads only what is missing), biblatex `.bib` and a BibTeX `.bib`, used files only. `main.tex` compiles it alone and
+  `README.txt` gives the host lines. `folio-link.json` lets a re-import link back to the original report.
 
 ### Editor (from Folio)
 - **built** pdfLaTeX, XeLaTeX, LuaLaTeX; missing packages download on first use.
@@ -129,6 +139,11 @@ English (DE|EN); table contents and older result texts are still German.
 - **built** **Page parts** (`labui.js`): DE/EN strings and switch, folds with remembered state, popovers that stay on
   screen, task lists, status chips. Pages started by an older module server fall back to a minimal built-in version
   with a "restart the module" notice.
+- **built** **Resizable layout** (`labui.js` `LabUI.sizes`): drag the edge of a side panel, the bottom edge of a chart,
+  table or list, or the edge or corner of a dialog or floating window. Sizes are remembered per module and browser as
+  fractions of the window; double-click a handle to reset it, or use "Fenstergrössen zurücksetzen" in the view menu.
+  The report editor's sidebar, PDF pane, Files/Outline split, dialogs and the result list in "Analysis results" work
+  the same way.
 
 ## 3. Zugversuch (tensile test)
 
@@ -146,6 +161,13 @@ English (DE|EN); table contents and older result texts are still German.
   stress–strain field with numbered curves and key.
 - **Own materials:** values plus structured source, optional own curve (e.g. digitised from a paper), stored in
   `eigene_werkstoffe.json`; extra materials can be added to the field regardless of group.
+- **Load peaks (progressive failure):** peaks found by a load-drop threshold (default 5 % of Fmax), per-peak load,
+  elongation, drop, ratio, reload stiffness and work; peak loads fitted with a line and an exponential, the better fit
+  highlighted; on the page, in the PDF report, the workbook and the Folio bundle.
+- **Elastic/plastic division:** automatic (not for curves with 2 or more load peaks), on or off. Without it the curve
+  shows rise, load peaks and drop, and yield onset, ratio, Ag and A are left out. The yield onset is only searched
+  before the maximum or the first load peak.
+- **Movable chart legends:** drag a legend out of the way; remembered per chart, double-click resets.
 - **Own equations** on the key values and the reference's nominal values.
 - **⇄ values** (Rm or Fmax, E, equation results) to other Zugversuch environments, usable there in own equations.
 - **Exports:** CSV (decimal comma), Excel workbook with formulas and a built-in formula checker, PNG, data-sheet and

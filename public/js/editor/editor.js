@@ -4,6 +4,7 @@ import { registerLatex, languageFor, outline } from './latex-lang.js';
 import { PdfViewer } from './pdfviewer.js';
 import { FileTree, IMAGE_RE, BINARY_RE } from './filetree.js';
 import { initLab, openLab } from './lab.js';
+import { initImport, openImport } from './import.js';
 
 const $ = (s) => document.querySelector(s);
 const projectId = location.pathname.split('/')[2];
@@ -63,11 +64,29 @@ function applyLayout() {
   mainEl.classList.toggle('no-sidebar', !settings.sidebar);
   document.querySelectorAll('[data-layout]').forEach((b) => b.classList.toggle('active', b.dataset.layout === settings.layout));
   $('#btn-sidebar').classList.toggle('active', settings.sidebar);
-  const sw = store('sidebarW');
-  const pw = store('pdfW');
-  if (sw) mainEl.style.setProperty('--sidebar-w', sw + 'px');
-  if (pw) mainEl.style.setProperty('--pdf-w', pw + 'px');
+  applySizes();
 }
+// Pane sizes are kept as fractions of the window (sidebar, PDF) or of the sidebar (outline), so a layout keeps its
+// proportions on another screen. Older pixel values (sidebarW, pdfW) are converted once.
+const W = () => window.innerWidth;
+function paneFrac(key, legacy) {
+  let f = store(key);
+  if (typeof f !== 'number') {
+    const px = store(legacy);
+    if (typeof px === 'number' && px > 0) { f = px / W(); store(key, f); }
+  }
+  return typeof f === 'number' && f > 0 ? f : null;
+}
+function applySizes() {
+  const sf = paneFrac('sidebarF', 'sidebarW');
+  const pf = paneFrac('pdfF', 'pdfW');
+  const of = store('outlineF');
+  const set = (v, val) => (val === null ? mainEl.style.removeProperty(v) : mainEl.style.setProperty(v, val));
+  set('--sidebar-w', sf ? Math.round(Math.max(150, Math.min(0.5 * W(), sf * W()))) + 'px' : null);
+  set('--pdf-w', pf ? Math.round(Math.max(220, Math.min(W() - 300, pf * W()))) + 'px' : null);
+  set('--outline-h', typeof of === 'number' && of > 0 ? Math.round(100 * Math.max(0.1, Math.min(0.9, of))) + '%' : null);
+}
+window.addEventListener('resize', applySizes);
 document.querySelectorAll('[data-layout]').forEach((b) => {
   b.onclick = () => {
     settings.layout = b.dataset.layout;
@@ -80,16 +99,19 @@ $('#btn-sidebar').onclick = () => {
   store('sidebar', settings.sidebar);
   applyLayout();
 };
-function bindGutter(gutter, onMove) {
+function bindGutter(gutter, onMove, onReset) {
+  gutter.title = 'Drag to resize; double-click resets';
+  if (onReset) gutter.addEventListener('dblclick', () => { onReset(); applySizes(); });
   gutter.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     gutter.setPointerCapture(e.pointerId);
     gutter.classList.add('dragging');
     document.body.classList.add('resizing');
-    const move = (ev) => onMove(ev.clientX);
+    document.body.classList.toggle('rows', gutter.classList.contains('hgutter'));
+    const move = (ev) => onMove(ev.clientX, ev.clientY);
     const up = () => {
       gutter.classList.remove('dragging');
-      document.body.classList.remove('resizing');
+      document.body.classList.remove('resizing', 'rows');
       gutter.removeEventListener('pointermove', move);
       gutter.removeEventListener('pointerup', up);
     };
@@ -98,15 +120,22 @@ function bindGutter(gutter, onMove) {
   });
 }
 bindGutter($('#gutter-side'), (x) => {
-  const w = Math.max(150, Math.min(520, x));
+  const w = Math.max(150, Math.min(0.5 * W(), x));
   mainEl.style.setProperty('--sidebar-w', w + 'px');
-  store('sidebarW', w);
-});
+  store('sidebarF', w / W());
+}, () => { store('sidebarF', null); store('sidebarW', null); });
 bindGutter($('#gutter-pdf'), (x) => {
-  const w = Math.max(220, Math.min(window.innerWidth - 300, window.innerWidth - x));
+  const w = Math.max(220, Math.min(W() - 300, W() - x));
   mainEl.style.setProperty('--pdf-w', w + 'px');
-  store('pdfW', w);
-});
+  store('pdfF', w / W());
+}, () => { store('pdfF', null); store('pdfW', null); });
+// Files / Outline split in the sidebar
+bindGutter($('#gutter-outline'), (x, y) => {
+  const sb = $('.sidebar').getBoundingClientRect();
+  const f = Math.max(0.1, Math.min(0.9, (sb.bottom - y) / sb.height));
+  mainEl.style.setProperty('--outline-h', Math.round(100 * f) + '%');
+  store('outlineF', f);
+}, () => store('outlineF', null));
 applyLayout();
 
 $('#outline-toggle').onclick = () => {
@@ -1234,6 +1263,7 @@ const FMT = {
   },
   link: () => insertSnippet('\\\\href{${1:https://}}{${2:link text}}$0'),
   lab: () => openLab(),
+  import: () => openImport(),
 };
 document.querySelectorAll('[data-fmt]').forEach((b) => {
   b.onclick = (e) => FMT[b.dataset.fmt](e);
@@ -1267,6 +1297,7 @@ initLab({
   refreshFiles,
   reloadFromDisk,
 });
+initImport({ projectId, refreshFiles, openLab });
 
 // ---------------------------------------------------------------- settings
 $('#btn-settings').onclick = async () => {
@@ -1326,7 +1357,41 @@ $('#btn-download').onclick = () => {
   if (!lastResult?.pdf && !pdf.numPages) return toast('Compile the document first');
   location.href = `/api/projects/${projectId}/output.pdf?download=1`;
 };
-$('#btn-zip').onclick = () => (location.href = `/api/projects/${projectId}/zip`);
+// two kinds of ZIP. The Folio project re-imports into Folio; the portable one works in any LaTeX project.
+function portablePrefix(name) {
+  let p = String(name || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'bericht';
+  if (!/^[a-z]/.test(p)) p = 'r-' + p;
+  if (p.length > 24) p = p.slice(0, 25).replace(/-[^-]*$/, '') || p.slice(0, 24);
+  return p.slice(0, 24).replace(/-+$/, '') || 'bericht';
+}
+async function downloadPortable() {
+  const prefix = await prompt('Portable LaTeX (.zip)', 'Prefix for the folder, labels and citation keys', portablePrefix(project.name), {
+    okLabel: 'Download',
+    hint: 'The ZIP holds one folder with the text, a preamble, the references (biblatex and BibTeX) and only the files the text uses. README.txt lists the lines another LaTeX project needs.',
+  });
+  if (prefix == null) return;
+  try {
+    const r = await fetch(`/api/projects/${projectId}/zip?portable=1&prefix=${encodeURIComponent(prefix)}`);
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `Export failed (${r.status})`);
+    const cd = r.headers.get('Content-Disposition') || '';
+    const m = /filename\*=UTF-8''([^;]+)/.exec(cd);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(await r.blob());
+    a.download = m ? decodeURIComponent(m[1]) : `${prefix}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => (URL.revokeObjectURL(a.href), a.remove()), 1000);
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+$('#btn-zip').onclick = (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  contextMenu(r.left, r.bottom + 4, [
+    { label: 'Folio project (.zip)', icon: 'folder', action: () => (location.href = `/api/projects/${projectId}/zip`) },
+    { label: 'Portable LaTeX for other projects (.zip) …', icon: 'download', action: downloadPortable },
+  ]);
+};
 
 // Global shortcuts (when focus is outside Monaco)
 document.addEventListener('keydown', (e) => {

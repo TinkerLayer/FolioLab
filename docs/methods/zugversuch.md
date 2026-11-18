@@ -6,7 +6,7 @@ it. Code paths are relative to `modules/zugversuch/`. User guide: [modules/zugve
 ## How to cite results from this module
 
 State the Folio Lab version (`version` in `package.json`) and the module version (`version` in
-`modules/zugversuch/module.json`, currently 1.3.0). When a result is sent to a report, Folio Lab writes
+`modules/zugversuch/module.json`, currently 1.4.0). When a result is sent to a report, Folio Lab writes
 `lab/<result>/bundle.json` in the project. Its `provenance` block records the Folio Lab version, the module id, the module version
 and the SHA-256 of every source file stored with the result. "Source files" are the input files kept for *Refresh* (the
 `.flps` file or the converted dataset), not the program code. Also state the evaluation settings that differ from the defaults below; the report's methods text lists them.
@@ -85,7 +85,11 @@ applies.
 1. **Window.** wp = max(2, round(rate · window)) points, with window = 1.0 s by default (10 points if the rate is not
    finite). h = max(1, ⌊wp/2⌋).
 2. **Sliding slope.** s_i = (y[i+h] − y[i−h]) / (t[i+h] − t[i−h]). At the ends the window is clipped to the data.
-3. **Start of the fit.** The index of the largest slope, ± 3 points (`fit_start_points`).
+3. **Start of the fit.** The index of the largest slope, ± 3 points (`fit_start_points`). If the curve has two or more
+   load peaks (section 3.8, same threshold Δ), the largest slope is searched only up to and including the first peak.
+   A reload after a drop is often steeper than the first loading, and without this restriction t₀ could lie after the
+   first peak. Since 1.4.0 the fit window of such a curve also ends at the first peak at the latest (step 4), so that no
+   point after the first drop enters the line.
 4. **Growing the fit window.** In each round the window tries to grow by one point to the left, then by one point to
    the right. A step is kept if the least-squares line (`numpy.polyfit`, degree 1) over the new window has a maximal
    absolute residual strictly below the tolerance. Growth stops when neither side can grow. The tolerance is 1.0 MPa in
@@ -97,13 +101,30 @@ applies.
 
 ### 3.3 Yield onset
 
-The yield onset is the first index after the fit window with (k·t + q) − y > threshold · y_max. The default
+The yield onset is the first index after the fit window **and before the end of the rise** with (k·t + q) − y >
+threshold · y_max. The rise ends at the maximum, or at the first load peak if the curve has two or more (section 3.8).
+Before 1.4.0 the search ran to the end of the data, so a curve that stays linear up to its maximum could get a "yield
+onset" on the falling flank after the maximum. The default
 threshold is 0.02 (2 % of Rm, or of Fmax in force mode). The same search is repeated for the slider detents 0.005,
 0.01, 0.02 and 0.05 and shown as a table. If threshold · y_max is below twice the display resolution (divided by A₀
 in stress mode), note 4.4 warns that the threshold triggers on noise. If no point exceeds the threshold, note 4.4
 says so.
 
 **This is a threshold on the force–time curve, not a proof stress Rp0.2** (note 7.4).
+
+**Dividing into elastic and plastic** (`elastic_plastic`, page: "Elastisch/plastisch einteilen", since 1.4.0):
+
+| Setting | Effect |
+|---|---|
+| `auto` (default) | divided as above, except when the curve has two or more load peaks (section 3.8, same Δ) |
+| `ein` (on) | always divided; the yield onset is still searched only before the first load peak |
+| `aus` (off) | never divided |
+
+Ropes, fibre bundles, braided cords and composites fail part by part. Their curve is not a material that first deforms
+elastically and then plastically, so a limit on the force curve would not describe a state of the material. When the
+curve is not divided, there is no yield onset, no detent table, no ratio y_max / y_yield and no Ag or A (they subtract
+an elastic part, section 3.5). The slope k, t₀, E_app (`E_fit`) and the total extensions Agt and At remain: k is then the
+stiffness of the rise. Note 7.4 says why the curve was not divided (number of load peaks, or switched off).
 
 ### 3.4 Maximum, break, hold, plateau
 
@@ -142,7 +163,11 @@ Both need the test speed v (mm/min, converted to mm/s) and the gauge length L₀
 
 Each point gets one phase for the coloured curve and the CSV: seating (before the fit window), elastic (from the fit
 window), plastic (from the yield onset), drop (from the maximum), break (the drop index) and "after break" for points
-after the active section.
+after the active section. When the curve is not divided into elastic and plastic (section 3.3), "rise" (`Anstieg`)
+replaces elastic and plastic. With two or more load peaks (since 1.4.0, in every setting) the section from the first
+to the last load peak is "load peaks" (`Lastspitzen`), and the drop starts at the last load peak instead of the
+maximum; before 1.4.0 the whole sawtooth before the maximum was labelled plastic and everything after it drop. The
+phases only label points; no value is computed from them.
 
 ### 3.7 Defaults and limits
 
@@ -152,11 +177,76 @@ after the active section.
 | Fit tolerance | 1.0 MPa / 0.20 N | stress / force mode |
 | Fit start | ± 3 points | around the largest slope |
 | Yield threshold | 0.02 | slider detents 0.005, 0.01, 0.02, 0.05 |
+| Elastic/plastic division (`elastic_plastic`) | `auto` | `auto`, `ein`, `aus`; `auto` does not divide curves with ≥ 2 load peaks |
 | Break criteria | upper 0.10, lower 0.01 | fractions of Fmax over all points |
 | Hold threshold | 0.90 | fraction of y_max |
+| Load-peak drop (`peak_drop_frac`) | 0.05 | fraction of y_max; Δ is at least 3 × the display resolution (section 3.8) |
+| Load peaks left out of the fit (`peak_fit_exclude`) | none | peak numbers from 1, at most 200 |
+| Load peaks as equation variables | at most 20 | `Fpk1` … `Fpk20` |
 | Additional materials in the field | at most 20 | |
 | Own equations | at most 60 | |
 | Values received from other environments | at most 200 | |
+
+### 3.8 Load peaks and progressive failure (`flps/peaks.py`, since 1.4.0)
+
+Ropes, fibre bundles, braided cords and composites often fail part by part. The load rises to a peak, drops when a
+part breaks, rises again as the rest carries the load, and so on (a sawtooth). Fmax / Rm stays the global maximum, and
+hold time, plateau, drop and break (section 3.4) still refer to it. The load peaks are evaluated in addition, on the
+active section (y = σ or |F|).
+
+**Detection** (`detect`, a threshold rule with hysteresis, also called a zigzag rule):
+
+- Δ = max(`peak_drop_frac` · y_max, 3 · display resolution). The resolution is the force resolution of the recording,
+  divided by A₀ in stress mode. `delta_basis` says which term applies ("anteil" or "aufloesung").
+- Rising: keep the running maximum. Only a strictly larger value replaces it, so on a flat top the first point counts.
+  When a point is **at least** Δ below the running maximum (y ≤ y_max,run − Δ), that maximum is a peak.
+- Falling: keep the running minimum (again the first point of a flat bottom). When a point is at least Δ above it
+  (y ≥ y_min,run + Δ), that minimum is the valley after the peak, and the search for the next peak starts at this point.
+- End of the active section: if the curve is falling, the minimum so far is the last valley (so the last valley
+  includes the decline to the end of the data); if it is rising, the running maximum is not a peak, because no drop
+  of Δ follows it.
+- A single maximum followed by a gradual decline gives 1 peak. A recording counts as **progressive failure** from 2
+  peaks on; then note 4.9 is shown and the app, the report, the Excel workbook and the report bundle show the peaks.
+
+**Elongation at the peak (x).** The peak loads are correlated with x, and every output names which x it is:
+
+| `x_kind` | When | x | Unit |
+|---|---|---|---|
+| `strain` | v and L₀ known | 100·v·(t − t₀)/L₀ (as the module's strain; apparent unless the displacement is measured on the specimen) | % |
+| `travel` | only v known | v·(t − t₀), crosshead travel | mm |
+| `time` | no v | t (from the first point; t₀ is not used, see the limitations) | s |
+
+**Per peak** (`kv["peaks"]["list"]`): number `nr` (from 1), index, t, x, y and F at the peak; index, t, y and F of the
+valley after it; drop `drop_F` = F_peak − F_valley and `drop_pct` = 100·drop_F/F_peak; duration of the drop
+`dauer` = t_valley − t_peak with uncertainty `dauer_u` = ± one sampling interval; `ratio` = F_peak / F of the previous
+peak; reload stiffness and segment work (below); `excluded` (left out of the fit).
+
+- **Reload stiffness** `k_N_s`: least-squares slope of F over t through the points whose force lies between 20 % and
+  80 % of the rise from the previous valley (for the first peak: from the first point at t ≥ t₀ if that lies before
+  the peak, else from the first point) to the peak. `k_N_mm` = k_N_s / v (with v), `k_MPa_pct` = k_N_s / A₀ / (100·v/L₀)
+  (with v, L₀ and A₀). None if fewer than 2 points lie in the band.
+- **Segment work** `W_J`: ∫F dx (trapezoid rule, /1000 for J) from the previous valley (for the first peak: the first
+  point) to the valley after this peak, over the measured elongation if there is one, otherwise over the crosshead path
+  x = max(t − t₀, 0)·v, the same path as Wbreak (section 5). `W_cum_J` is the running sum. None without a path.
+
+**Fit of the peak loads** (`fit_peaks`, from 3 peaks, `sdk/python/labcalc/fitting.py`, unchanged): the peaks not in
+`peak_fit_exclude` are fitted with a line y = a + b·x and with an exponential y = a·exp(b·x). Both are direct least
+squares in y (`mode="direct"`; the exponential is fitted with Levenberg–Marquardt, not linearised). Each model reports
+a, b with standard uncertainty u (from the covariance of the fit), the 95 % interval ± t·u with Student t for n − 2
+degrees of freedom, R², SSE and n. The better model (`best`) is the one with the smaller SSE; with the same y and 2
+parameters each this is the same as the larger R². On a tie the line wins. With fewer than 3 peaks in the fit there
+is no fit, and `reason` says why (2 parameters leave no degree of freedom for scatter and uncertainty). The line's R²
+does not depend on which x is used, because the x kinds are linear in t.
+
+**Outputs.** App: section "Lastspitzen" / "Load peaks" (collapsed; shown from 2 peaks, or when the threshold or the
+exclusions differ from the defaults) with the threshold input, the exclusions, the peak table, a chart of the peak
+loads over x with both fits (the better one solid and bold) and the fit table; numbered markers and the better
+envelope on the curve. Report: a page "Lastspitzen" before the values page. Excel: sheet "Lastspitzen" with formulas
+(Δ, x, drop %, duration, ratio, check drop ≥ Δ, line fit with INTERCEPT, SLOPE and RSQ) checked by the workbook
+self-check; stiffness, work and the exponential fit are app values. Report bundle (DE and EN): figures
+`lastspitzen` and `lastspitzen-ausgleich`, tables `lastspitzen` and `lastspitzen-ausgleich`, values `npk`, `pkthr`,
+`pkdelta`, `pkn`, `pkLa`, `pkLb`, `pkLR2`, `pkEa`, `pkEb`, `pkER2`, `pkbest`, and a methods and results paragraph.
+Equation variables: section 5. The PNG `_Diagramm_5.png` is written only with ≥ 2 peaks.
 
 ## 4. Material comparison (`flps/alloys.py`, `data/alloys.json`)
 
@@ -289,6 +379,10 @@ plain numbers; units are not carried through the calculation.
 | Ag, A | Agt and At minus the elastic part (section 3.5) | % |
 | Wbreak | work to break ∫F dL from the start to the break point, trapezoid rule, /1000 | J |
 | Rm_ref, Rp_ref, A_ref, E_ref | values of the reference material | MPa, MPa, %, GPa |
+| npk | number of load peaks (section 3.8), always present | – |
+| Fpk1 … Fpk20 | force of load peak 1 … 20 (only with ≥ 2 peaks) | N |
+| pkLa, pkLb, pkLR2 | line fit of the peak loads y = a + b·x: a, b, R² (from 3 peaks) | unit of y; unit of y per unit of x; – |
+| pkEa, pkEb, pkER2 | exponential fit y = a·exp(b·x): a, b, R² (from 3 peaks) | unit of y; 1 per unit of x; – |
 
 Wbreak (`work_to_break`) integrates over the measured elongation when there is one (a dataset with a strain or length
 column, displacement stored in µm); otherwise over the crosshead path x = max(t − t₀, 0)·v. The variable label says
@@ -320,7 +414,7 @@ L₀ and 5B b and L₀ are checked by tests.
 
 ## 8. Validation
 
-Run `python -m unittest discover -s tests` in `modules/zugversuch`. The suite has 74 tests (19 of them in `tests/test_science.py`, added in 1.3.0, with known answers on the synthetic curve and hand examples).
+Run `python -m unittest discover -s tests` in `modules/zugversuch`. The suite has 98 tests (19 of them in `tests/test_science.py`, added in 1.3.0, and 25 in `tests/test_peaks.py`, added in 1.4.0, with known answers on synthetic curves and hand examples).
 
 ### 8.1 Synthetic curve (runs in the public repository)
 
@@ -343,6 +437,36 @@ falling below 1 % of Fmax. A₀ = 0.2 mm², L₀ = 10 mm, v = 1 mm/min.
 | `tests/test_science.py::StrainAtFracture::test_variables` | equation variables A and At equal the key values |
 | `tests/test_science.py::StrainAtFracture::test_work_from_measured_elongation` | Wbreak = A₀·L₀·∫σ dε integrated in closed form (≈ 0.03132 J) ± 0.1 %; label names the measured elongation |
 | `tests/test_science.py::Plateau::test_measured_from_force_rise` | with 0.1 mm of slack at 1 mm/min before the curve: t_ref = 6 s ± 0.2 s; plateau start = t_ref + 0.8·(t_max − t_ref); plateau mean equal to the run without slack (6 places) |
+
+`tests/test_peaks.py` (25 tests, added in 1.4.0) checks the load peaks of section 3.8 on piecewise-linear curves whose
+corners lie on the sampling grid (dt = 0.1 s), so peaks, valleys, slopes and areas are known by hand. "Stair" is the
+curve 0 → 100 N (t = 10 s) → 97 → 99.5 → 92 → 95 → 83 → 90 (t = 22 s) → 0 N (t = 30 s).
+
+| Test | Expected value and source |
+|---|---|
+| `tests/test_peaks.py::Envelope::test_exp_envelope_recovered` | sawtooth with peaks 100·exp(−0.02·t) at t = 10, 30, 50, 70, 90 s: 5 peaks at exactly these times; exponential fit a = 100 N ± 10⁻⁶ relative, b = −0.02 1/s ± 10⁻⁸, R² = 1 (9 places), better than the line; n − 2 = 3 degrees of freedom |
+| `tests/test_peaks.py::Envelope::test_line_envelope_exact` | peaks 80 − 0.5·t: line a = 80 N, b = −0.5 N/s (9 places), R² = 1, SSE = 0; line is the better model |
+| `tests/test_peaks.py::Envelope::test_excluded_peaks_leave_the_fit` | peak 1 set to 40 N and excluded: n = 4 in the fit, b = −0.5 N/s again |
+| `tests/test_peaks.py::Envelope::test_strain_axis` | v = 0.5 mm/s, L₀ = 50 mm: x = 100·v·t/L₀ for every peak (12 places) |
+| `tests/test_peaks.py::Threshold::test_counts_at_2_5_10_percent` | stair: 2 % → 4 peaks (100, 99.5, 95, 90 N); 5 % → 2 peaks (100 N with valley 83 N, 90 N), Δ = 5 N from the fraction; 10 % → 1 peak, no fit, not progressive (all by hand from the rule) |
+| `tests/test_peaks.py::Threshold::test_resolution_floor` | Δ = max(frac·y_max, 3·resolution): 3 N with resolution 1 N at 2 % of 100 N |
+| `tests/test_peaks.py::Threshold::test_at_least_rule_and_ties` | drop and rise of exactly Δ count; on a flat top the first point is the peak; Δ + 10⁻⁹ gives one peak |
+| `tests/test_peaks.py::Threshold::test_noise_below_threshold` | one peak with noise ± 0.5 N (Δ = 5 N): 1 peak |
+| `tests/test_peaks.py::Threshold::test_single_maximum_gradual_decline` | one maximum, slow decline to the end: 1 peak, valley at the last point, no fit |
+| `tests/test_peaks.py::Threshold::test_two_peaks_no_fit_with_reason` | 2 peaks: progressive, no fit, the reason names "weniger als 3" |
+| `tests/test_peaks.py::PerPeak::test_drop_duration_ratio` | stair at 2 %: drops 3, 7.538, 12.632, 100 % (9 places); valleys at index 110, 145, 185, 300; durations 1, 1, 1, 8 s ± 0.1 s; ratios 0.995, 95/99.5, 90/95 |
+| `tests/test_peaks.py::PerPeak::test_stiffness_known_slopes` | reload slopes 10, 1, 1, 2 N/s (9 places), divided by v = 0.5 mm/s for N/mm; rise of peak 2 starts at valley 1 |
+| `tests/test_peaks.py::PerPeak::test_segment_work_closed_form` | segment work = v·(areas of the line pieces)/1000: 0.29925, 0.1706875, 0.18475, 0.331375 J (12 places); sum 0.9860625 J = work over the whole curve |
+| `tests/test_peaks.py::PerPeak::test_travel_axis` | only v: x is the crosshead travel, peak 1 at 5 mm |
+| `tests/test_peaks.py::InAnalysis` (2 tests) | the stair as a dataset through `analyse.run`: 2 peaks (100, 90 N) at the default 5 %, x is strain, note 4.9, variables `npk` = 2 and `Fpk2` = 90 N, Fmax stays 100 N; 2 % gives 4 peaks and excludes peak 2 (number 9 ignored); 10 % gives 1 peak, no 4.9, no `Fpk1` |
+| `tests/test_peaks.py::FirstLoading::test_fit_before_first_peak` | rise 0 → 100 N at 10 N/s, drop to 40 N, steeper reload at 50 N/s to 90 N: 2 peaks; the fit window ends at or before the first peak and its slope is 10 N/s (6 places; 50 N/s without the restriction of section 3.2, step 3); the first peak has a positive strain |
+| `tests/test_peaks.py::ElasticPlastic::test_auto_progressive_not_divided` | stair at 5 % (2 peaks at index 100 and 220): `auto` does not divide; no yield onset and no detent values; phases rise, load peaks (index 100 to 219), drop; Ag and A empty, Agt and `E_fit` kept; one note 7.4 naming "2 Lastspitzen", no note 4.4 |
+| `tests/test_peaks.py::ElasticPlastic::test_forced_on_yield_never_after_first_peak` | `ein`: the stair is a straight line up to the first peak, so there is no yield onset; the uncapped search would find one after index 100 (on the falling flank); phases elastic and load peaks; note 4.4 says "vor der ersten Lastspitze" |
+| `tests/test_peaks.py::ElasticPlastic::test_off_and_single_peak` | 10 % (1 peak): `auto` divides (elastic present, not progressive); `aus` gives rise and drop and note 7.4 "ausgeschaltet" |
+| `tests/test_peaks.py::ElasticPlastic::test_config_values` | "AUS " → `aus`; unknown or empty values → `auto`; default `auto` |
+| `tests/test_peaks.py::ElasticPlastic::test_outputs_without_division` | not divided: workbook passes the self-check, report written; methods text DE/EN states that the curve was not divided, Latin-1 only |
+| `tests/test_peaks.py::YieldBeforeMaximum::test_no_yield_on_falling_flank` | single peak: line 0 → 100 N (index 100), then linear drop to 0: no yield onset, no plastic phase, note 4.4 "vor dem Maximum" (before 1.4.0 the onset lay on the falling flank) |
+| `tests/test_peaks.py::Outputs` (2 tests) | with 4 peaks: workbook with sheet "Lastspitzen" passes the self-check, `_Diagramm_5.png` and the report are written; bundle DE and EN has both peak figures and tables, `npk` = 4, only Latin-1 characters and no `\text`, `\ce`, `\tfrac`, `\boldsymbol`; with 1 peak no peak items |
 
 ### 8.2 Materials, specimens, cross-sections (no measurement needed)
 
@@ -408,12 +532,13 @@ changed, not that it is correct.
 |---|---|---|
 | 1.4 | warning / error | force unit not confirmed / force above 1.05 × the capacity in the model name |
 | 3.1 | info | dimensions differ from the chosen standard specimen; manual mode |
-| 4.4 | warning | yield threshold below twice the resolution; no yield onset found |
+| 4.4 | warning | yield threshold below twice the resolution; no yield onset found before the maximum (or the first load peak) |
 | 4.6 | info | no break found |
+| 4.9 | info | at least 2 load peaks (progressive failure, section 3.8): Fmax / Rm is the global maximum and hold time, plateau, drop and break refer to it |
 | 7.1 | warning | no A₀: force only, no stresses, comparison or ranking |
 | 7.2 | warning | path not measured on the specimen: modulus is apparent; also when E_app < 0.5 × the smallest E of the group |
 | 7.3 | info | always: necking is not proven by a falling force |
-| 7.4 | info | always: the elastic–plastic limit is a threshold, not Rp0.2 |
+| 7.4 | info | always: the elastic–plastic limit is a threshold, not Rp0.2; or why the curve was not divided (≥ 2 load peaks, or switched off) |
 | 7.5 | warning | no test speed documented |
 | 7.6 | warning / info | ISO 527-2 shape with a thickness below 1 mm; thickness hint exceeded; other ISO 527-2 note; reference category not intended for the specimen |
 | 7.7 | info | always: time uncertainty of one sampling interval |
@@ -426,6 +551,9 @@ changed, not that it is correct.
   (note 7.2), and the strains are apparent.
 - **Yield onset is not Rp0.2.** It depends on the threshold. The reference comparison sets it against tabulated
   Rp0.2 values and labels this "not like with like"; in the ranking the ratio only lowers the status.
+- **The ≥ 2 load-peak rule decides the default division.** A curve with a single small drop of Δ before its maximum
+  (for example a slipping grip) counts as progressive and is not divided under `auto`; a rope whose strands soften
+  without a drop of Δ is divided. Check the phases and switch to `ein` or `aus` where needed.
 - **A is estimated, not measured after fracture.** A = At − σ_break/m_E assumes elastic unloading with the slope of the
   linear section; it is not measured on the reassembled specimen.
 - **Fit window is greedy.** Growth stops at the first point that would exceed the tolerance on either side; it is
@@ -444,5 +572,17 @@ changed, not that it is correct.
 - **Standard editions.** DIN 53504, ASTM D638, D882, D412, E8 and DIN 50125 are cited without an edition
   ("Ausgabe prüfen").
 - **Displacement units** of `.flps` files are not confirmed for any code; force units only for N.
+- **Load peaks (section 3.8).**
+  - Without v the peaks are correlated with time, which is not an elongation.
+  - Crosshead travel and the strain from v include the compliance of grips and frame.
+  - A slow decline without a drop of Δ gives no peaks; a gradual softening of a rope is therefore not counted.
+  - 5 % of Fmax is a convention of this module, not a standard; the count depends on it (lower it to see smaller
+    drops, never below 3 × the resolution).
+  - The last valley includes the decline to the end of the data, so the last drop is often 100 %.
+  - t₀ comes from the steepest slope before the first peak (section 3.2, step 3). A long seating phase with a steep
+    jump can still move it; check that the first peak has a positive strain or travel, otherwise leave it out of the fit
+    or use the time axis.
+  - Peak and valley times carry ± one sampling interval.
+  - The reload stiffness and segment work are app values in the Excel workbook (not recomputed by formulas).
 - **The acceptance test needs a recording that is not published.** The public suite checks values only on a synthetic
   curve; the golden tests are regression tests.

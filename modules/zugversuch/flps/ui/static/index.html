@@ -9,7 +9,7 @@
   --bg: #f6f7f9; --panel: #ffffff; --ink: #1f2328; --muted: #5f6368; --line: #dadce0; --soft: #eef0f3;
   --accent: #1a73e8; --accent-ink: #ffffff; --warn-bg: #fff4e0; --warn-ink: #8a4b00; --err-bg: #fde7e7; --err-ink: #a50e0e;
   --info-bg: #eef3fb; --info-ink: #2b4a7a; --key: #fff2a8; --grid: #e6e8eb; --axis: #5f6368;
-  --ph0: #9aa0a6; --ph1: #1a73e8; --ph2: #e8710a; --ph3: #d93025; --m-yield: #188038; --m-max: #d93025; --m-break: #202124;
+  --ph0: #9aa0a6; --ph1: #1a73e8; --ph2: #e8710a; --ph3: #d93025; --ph6: #129eaf; --ph7: #b06000; --m-yield: #188038; --m-max: #d93025; --m-break: #202124;
   --band: rgba(26,115,232,.12);
 }
 @media (prefers-color-scheme: dark) {
@@ -17,7 +17,7 @@
     --bg: #15171a; --panel: #1e2125; --ink: #e8eaed; --muted: #9aa0a6; --line: #3c4043; --soft: #2a2e33;
     --accent: #8ab4f8; --accent-ink: #15171a; --warn-bg: #3a2c12; --warn-ink: #fdd28a; --err-bg: #3b1a1a; --err-ink: #f6aea9;
     --info-bg: #1d2a3d; --info-ink: #aecbfa; --key: #4a4315; --grid: #2f3337; --axis: #9aa0a6;
-    --ph0: #80868b; --ph1: #8ab4f8; --ph2: #fcad70; --ph3: #f28b82; --m-yield: #81c995; --m-max: #f28b82; --m-break: #e8eaed;
+    --ph0: #80868b; --ph1: #8ab4f8; --ph2: #fcad70; --ph3: #f28b82; --ph6: #78d9ec; --ph7: #fdd663; --m-yield: #81c995; --m-max: #f28b82; --m-break: #e8eaed;
     --band: rgba(138,180,248,.16);
   }
 }
@@ -25,7 +25,7 @@
   --bg: #15171a; --panel: #1e2125; --ink: #e8eaed; --muted: #9aa0a6; --line: #3c4043; --soft: #2a2e33;
   --accent: #8ab4f8; --accent-ink: #15171a; --warn-bg: #3a2c12; --warn-ink: #fdd28a; --err-bg: #3b1a1a; --err-ink: #f6aea9;
   --info-bg: #1d2a3d; --info-ink: #aecbfa; --key: #4a4315; --grid: #2f3337; --axis: #9aa0a6;
-  --ph0: #80868b; --ph1: #8ab4f8; --ph2: #fcad70; --ph3: #f28b82; --m-yield: #81c995; --m-max: #f28b82; --m-break: #e8eaed;
+  --ph0: #80868b; --ph1: #8ab4f8; --ph2: #fcad70; --ph3: #f28b82; --ph6: #78d9ec; --ph7: #fdd663; --m-yield: #81c995; --m-max: #f28b82; --m-break: #e8eaed;
   --band: rgba(138,180,248,.16);
 }
 * { box-sizing: border-box; }
@@ -43,7 +43,7 @@ button:disabled { opacity: .45; cursor: default; }
 .chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 .chip .dot { width: 10px; height: 10px; border-radius: 50%; }
 .chip .x { border: 0; background: transparent; padding: 0 4px; color: var(--muted); }
-main { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 14px; padding: 14px 16px; }
+main { display: grid; grid-template-columns: var(--lab-side, 340px) minmax(0, 1fr); gap: 14px; padding: 14px 16px; }   /* UR: Breite der Maske ziehbar */
 main > * { min-width: 0; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
 .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 8px; }
@@ -68,7 +68,13 @@ input[type=text], input[type=number], select, textarea { width: 100%; font: inhe
 .tabs button.on { background: var(--soft); font-weight: 600; }
 .tabs .sp { flex: 1; }
 .chartwrap { position: relative; width: 100%; }
+svg g.lgd { cursor: move; touch-action: none; user-select: none; }
+svg g.lgd:hover rect.lgbg, svg g.lgd.drag rect.lgbg { stroke: var(--ph1); stroke-width: 1.5; }
+svg g.lgd.drag { opacity: .85; }
 svg.plot { width: 100%; height: auto; display: block; }
+/* UR: Diagrammhöhe gezogen: das SVG füllt die Hülle, plot() übernimmt deren Seitenverhältnis */
+.fitwrap[style*="height"] > svg.plot { height: 100%; }
+.pkwrap { margin-top: 8px; }
 svg.plot text { fill: var(--ink); font-size: 12px; }
 svg.plot .grid line { stroke: var(--grid); }
 svg.plot .axis line, svg.plot .axis path { stroke: var(--axis); }
@@ -107,6 +113,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-
 .sketch { margin-top: 6px; }
 .sketch svg { width: 100%; height: auto; max-height: 150px; display: block; background: #fff; border-radius: 6px; border: 1px solid var(--line); }
 .sketch:empty { display: none; }
+.sketch[style*="height"] svg { height: 100%; max-height: none; }   /* UR: Skizze in gezogener Höhe */
 .refinfo { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .refinfo b { color: var(--ink); }
 .refcard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 10px; }
@@ -132,6 +139,9 @@ dialog .err:not(:empty) { padding: 6px 9px; margin-bottom: 8px; }
 dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
 dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: center; }
 dialog textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+/* UR: Dialog auf eine Höhe gezogen: der Inhalt wächst mit statt bei 70vh zu enden */
+dialog.lab-rs[style*="height"] > form { display: flex; flex-direction: column; height: 100%; }
+dialog.lab-rs[style*="height"] .body { flex: 1; min-height: 0; max-height: none; }
 .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .vars { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
@@ -192,7 +202,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
 <div id="drop">.flps Dateien hier ablegen</div>
 
 <main>
-  <aside class="panel" id="mask">
+  <aside class="panel" id="mask" data-size-col="side">
     <h2>Probengeometrie</h2>
     <div class="seg" id="modeSeg" role="group" aria-label="Abmessungen">
       <button type="button" data-mode="norm">Normprobe</button>
@@ -223,7 +233,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
       <div><label for="wall_mm">Wanddicke t [mm]</label><input id="wall_mm" data-k="wall_mm" type="text" inputmode="decimal"></div>
     </div>
     <div class="small" id="hHint"></div>
-    <div class="sketch" id="sketch"></div>
+    <div class="sketch" id="sketch" data-size-h="sketch"></div>
     <div class="a0box">
       <label for="a0" style="margin-top:0">Querschnittsfläche A₀ [mm²]</label>
       <input id="a0" type="text" inputmode="decimal" placeholder="fehlt">
@@ -267,11 +277,20 @@ body.lov-board header .lov-only { display: block; flex: 1; }
     </details>
 
     <h2 data-i18n="zv.h_par">Auswerteparameter</h2>
+    <label for="elastic_plastic" title="Automatisch: keine Einteilung, wenn die Kurve mindestens 2 Lastspitzen hat (Seil, Faserbündel, Verbund: Teile versagen nacheinander)">Elastisch/plastisch einteilen</label>
+    <select id="elastic_plastic" data-k="elastic_plastic">
+      <option value="auto">Automatisch (nicht bei mehreren Lastspitzen)</option>
+      <option value="ein">Ein (mit Fliessbeginn)</option>
+      <option value="aus">Aus (Anstieg, Lastspitzen, Abfall)</option>
+    </select>
+    <div class="small" id="epState"></div>
+    <div id="yieldBox">
     <label>Schwelle des Fliessbeginns (Festlegung, keine Norm)</label>
     <div class="slider">
       <input type="range" id="yieldSlider" min="0" max="3" step="1" value="2">
       <div class="ticks"><span>0,5 %</span><span>1 %</span><span>2 %</span><span>5 %</span></div>
       <div class="val" id="yieldVal">–</div>
+    </div>
     </div>
     <details class="lab-fold" data-fold="params"><summary data-i18n="zv.f_par">Fenster, Toleranz, Bruch- und Halteschwellen</summary>
     <div class="row2">
@@ -316,7 +335,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
           <label style="display:inline"><input type="radio" name="xaxis" value="eps" id="xEps"> Dehnung</label>
         </span>
       </div>
-      <div class="chartwrap" id="chartwrap">
+      <div class="chartwrap fitwrap" id="chartwrap" data-size-h="plot">
         <div id="empty"><div class="big">Keine Messung geladen</div>.flps Datei hierher ziehen oder über „Datei öffnen …“ wählen. Mehrere Dateien werden übereinander dargestellt.</div>
         <svg class="plot" id="plot" viewBox="0 0 900 460" hidden></svg>
         <div class="tip" id="tip"></div>
@@ -328,6 +347,20 @@ body.lov-board header .lov-only { display: block; flex: 1; }
       <h2 data-i18n="zv.h_kv">Kennwerte</h2>
       <div class="tablewrap"><table id="kvTable"></table></div>
       <details><summary>Linearer Abschnitt und Fliessbeginn je Schwelle</summary><div class="tablewrap"><table id="fitTable"></table></div></details>
+    </div>
+
+    <div class="panel" id="pkPanel" hidden>
+      <details class="lab-fold ph" data-fold="pk"><summary><span data-i18n="zv.f_pk">Lastspitzen</span> <span class="small" id="pkSum"></span></summary>
+      <div class="row2" style="max-width:520px">
+        <div><label for="peak_drop_frac">Mindestabfall nach einer Spitze [% von Fmax]</label><input id="peak_drop_frac" data-k="peak_drop_frac" data-scale="100" type="text" inputmode="decimal"></div>
+        <div><label for="pkExcl">Nicht im Ausgleich (Nr.)</label><input id="pkExcl" type="text" placeholder="z. B. 1, 2"></div>
+      </div>
+      <div class="small" id="pkInfo" style="margin:6px 0"></div>
+      <div class="tablewrap"><table id="pkTable"></table></div>
+      <div class="pkwrap fitwrap" id="pkWrap" data-size-h="pk"><svg class="plot" id="pkPlot" viewBox="0 0 900 300"></svg></div>
+      <div class="tablewrap"><table id="pkFit"></table></div>
+      <div class="small" id="pkFitNote" style="margin-top:6px"></div>
+      </details>
     </div>
 
     <div class="panel" id="eqPanel">
@@ -390,7 +423,8 @@ const $ = (s) => document.querySelector(s);
 const FILE_COLORS = ["#9334e6", "#007b83", "#b06000", "#3949ab", "#c2185b", "#2e7d32"];
 // zusätzlich eingeblendete Werkstoffe (wie im Bericht, flps/export/charts.py EXTRA_COLORS)
 const EXTRA_COLORS = ["#188038", "#e37400", "#a142f4", "#12b5cb", "#c5221f", "#795548", "#f538a0", "#5f6368"];
-const PHASES = ["Setzen", "elastisch", "plastisch", "Abfall (Einschnürung nicht belegt)", "Bruch"];
+const PHASES = ["Setzen", "elastisch", "plastisch", "Abfall (Einschnürung nicht belegt)", "Bruch", "nach Bruch", "Anstieg", "Lastspitzen"];
+const PHASE_ORDER = [0, 1, 2, 6, 7, 3];                                // Reihenfolge auf der Kurve (wie analyse.PHASE_ORDER)
 let META = null;
 const ENVELOPES = {}, ENVS_DONE = {};   // Hüllkurven je Werkstoffgruppe (nicht mit window.ENVS, den Umgebungen, verwechseln)
 const S = { files: [], sel: -1, tab: "verlauf", xaxis: "t", eqs: [], eqOn: null };
@@ -422,6 +456,7 @@ const ZV_T = {
     "zv.h_mat": "Werkstoff", "zv.h_par": "Auswerteparameter", "zv.h_out": "Ausgaben", "zv.h_kv": "Kennwerte", "zv.h_notes": "Hinweise",
     "zv.f_ref": "Referenz und Vergleich", "zv.f_meta": "Prüfer und Bemerkung", "zv.f_par": "Fenster, Toleranz, Bruch- und Halteschwellen",
     "zv.f_eq": "Eigene Gleichungen", "zv.f_cmp": "Werkstoffvergleich", "zv.f_dev": "Gerät und Datei",
+    "zv.f_pk": "Lastspitzen", "zv.n_pk": "{n} Spitzen", "zv.pk_best": "besser: {m}", "zv.pk_line": "Gerade", "zv.pk_exp": "Exponentialfunktion",
     "zv.tab_verlauf": "Verlauf", "zv.tab_linear": "Linearer Abschnitt", "zv.tab_feld": "Werkstofffeld", "zv.tab_more": "Mehr ▾",
     "zv.tab_h_verlauf": "Kraft bzw. Spannung über Zeit oder Dehnung", "zv.tab_h_linear": "Fit des linearen Abschnitts und Fliessbeginn",
     "zv.tab_h_feld": "Messung im Feld der Referenzwerkstoffe",
@@ -453,6 +488,7 @@ const ZV_T = {
     "zv.h_mat": "Material", "zv.h_par": "Evaluation parameters", "zv.h_out": "Outputs", "zv.h_kv": "Key values", "zv.h_notes": "Notes",
     "zv.f_ref": "Reference and comparison", "zv.f_meta": "Operator and remark", "zv.f_par": "Window, tolerance, break and hold thresholds",
     "zv.f_eq": "Own equations", "zv.f_cmp": "Material comparison", "zv.f_dev": "Device and file",
+    "zv.f_pk": "Load peaks", "zv.n_pk": "{n} peaks", "zv.pk_best": "better: {m}", "zv.pk_line": "line", "zv.pk_exp": "exponential",
     "zv.tab_verlauf": "Curve", "zv.tab_linear": "Linear section", "zv.tab_feld": "Material field", "zv.tab_more": "More ▾",
     "zv.tab_h_verlauf": "Force or stress over time or strain", "zv.tab_h_linear": "Fit of the linear section and onset of yielding",
     "zv.tab_h_feld": "Measurement in the field of the reference materials",
@@ -645,6 +681,7 @@ function fillMask() {
     if (document.activeElement === el) return;
     let v = c[el.dataset.k];
     if (el.dataset.scale && v !== null && v !== undefined) v = +(v * el.dataset.scale).toFixed(4);
+    if (el.dataset.k === "elastic_plastic" && !v) v = "auto";
     el.value = (v === null || v === undefined) ? "" : (typeof v === "number" ? String(v).replace(".", ",") : v);
   });
   const [a0, src] = a0Local(c);
@@ -666,6 +703,13 @@ function updateYieldVal() {
   const fobj = S.files[S.sel]; if (!fobj || !fobj.res) { $("#yieldVal").textContent = "–"; return; }
   const r = fobj.res, y = r.kv.yield, thr = fobj.cfg.yield_threshold;
   const ref = r.mode === "Spannung" ? "Rm" : "Fmax";
+  // Elastisch/plastisch: Zustand anzeigen, die Schwelle nur zeigen, wenn eingeteilt wird
+  const ep = r.kv.ep || { on: true, setting: "auto", progressive: false };
+  $("#yieldBox").hidden = !ep.on;
+  $("#epState").textContent = ep.on
+    ? (ep.setting === "ein" && ep.progressive ? `erzwungen trotz ${r.kv.peaks.n} Lastspitzen; Fliessbeginn nur vor der ersten` : "")
+    : (ep.setting === "auto" ? `nicht eingeteilt: ${r.kv.peaks.n} Lastspitzen (fortschreitendes Versagen)` : "ausgeschaltet");
+  if (!ep.on) { $("#yieldVal").textContent = "–"; return; }
   if (!y) { $("#yieldVal").innerHTML = `${f(thr * 100, 1)} % von ${ref}: <b>kein Fliessbeginn</b>`; return; }
   const main = r.mode === "Spannung" ? `<b>${f(y.y, 0, "MPa")}</b> (${f(y.F, 1, "N")})` : `<b>${f(y.F, 1, "N")}</b>`;
   $("#yieldVal").innerHTML = `${f(thr * 100, 1)} % von ${ref} → ${main} bei ${f(y.t, 1, "s")}`;
@@ -766,11 +810,12 @@ function bindMask() {
     const ev = el.tagName === "SELECT" ? "change" : "input";
     el.addEventListener(ev, () => {
       const c = S.files[S.sel].cfg, k = el.dataset.k;
-      const isText = ["material", "batch", "operator", "remark", "displacement_source"].includes(k);
+      const isText = ["material", "batch", "operator", "remark", "displacement_source", "elastic_plastic"].includes(k);
       let v = isText ? el.value : num(el.value);
       if (k === "displacement_source" && v === "") v = null;
       if (!isText && v !== null && el.dataset.scale) v = v / el.dataset.scale;
-      if (!isText && v === null && ["slope_window_s", "break_upper", "break_lower", "hold_threshold"].includes(k)) return; // Pflichtparameter
+      if (!isText && v === null && ["slope_window_s", "break_upper", "break_lower", "hold_threshold", "peak_drop_frac"].includes(k)) return; // Pflichtparameter
+      if (k === "peak_drop_frac" && !(v > 0 && v < 1)) return;           // Anteil von Fmax, 0 < Δ < 100 %
       c[k] = v;
       const [a0, src] = a0Local(c);
       if (["width_mm", "thickness_mm", "diameter_mm", "outer_d_mm", "wall_mm"].includes(k)) {
@@ -787,6 +832,12 @@ function bindMask() {
     scheduleAnalyse();
   });
   $("#a0reset").addEventListener("click", () => { S.files[S.sel].cfg.a0_mm2 = null; fillMask(); scheduleAnalyse(); });
+  $("#pkExcl").addEventListener("input", () => {                       // Spitzen (Nr. ab 1) ohne Ausgleich
+    const fobj = S.files[S.sel]; if (!fobj) return;
+    const nums = [...new Set(($("#pkExcl").value.match(/\d+/g) || []).map(Number).filter(n => n >= 1 && n <= 200))].sort((a, b) => a - b);
+    fobj.cfg.peak_fit_exclude = nums.length ? nums : null;
+    scheduleAnalyse();
+  });
   $("#tol").addEventListener("input", () => {
     const c = S.files[S.sel].cfg; const v = num($("#tol").value); if (v === null || v <= 0) return;
     if (a0Local(c)[0]) c.tol_stress_mpa = v; else c.tol_force_n = v;
@@ -806,6 +857,8 @@ function bindMask() {
 }
 
 // ---------- Plot ----------
+const LEGEND_KEY = "folio.zugversuch.legend";
+const LEGEND_POS = (() => { try { return JSON.parse(localStorage.getItem(LEGEND_KEY) || "{}") || {}; } catch (e) { return {}; } })();
 function niceStep(range, n) {
   const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
   return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
@@ -815,13 +868,23 @@ function ticks(a, b, n) {
   for (let v = Math.ceil(a / st) * st; v <= b + st * 1e-9; v += st) out.push(+v.toFixed(10));
   return { list: out, nd: Math.max(0, -Math.floor(Math.log10(st) + 1e-9)) };
 }
+// UR: hat die Hülle eine gezogene Höhe, übernimmt das Diagramm das Seitenverhältnis des Kastens (Breite bleibt 900
+// Einheiten, damit Schrift und Linien gleich gross bleiben); sonst die feste Höhe und Skalierung über die Breite
+function fitH(svg, h) {
+  const w = svg.parentElement;
+  svg._fit = !!(w && w.style.height);
+  if (!svg._fit) return h;
+  const b = svg.getBoundingClientRect();
+  return b.width > 0 && b.height > 0 ? Math.max(180, Math.round(900 * b.height / b.width)) : h;
+}
 function plot(svg, o) {
-  const W = 900, H = o.height || 460, m = { l: 62, r: 16, t: 14, b: 46 };
+  const W = 900, H = fitH(svg, o.height || 460), m = { l: 62, r: 16, t: 14, b: 46 };
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const X = v => m.l + (v - o.xmin) / (o.xmax - o.xmin) * pw;
   const Y = v => m.t + ph - (v - o.ymin) / (o.ymax - o.ymin) * ph;
-  let s = `<defs><clipPath id="clp"><rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+  const cid = (svg.id || "p") + "-clp";                                // je Diagramm eigene Clip-ID (mehrere SVG auf der Seite)
+  let s = `<defs><clipPath id="${cid}"><rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}"/></clipPath></defs>`;
   const tx = ticks(o.xmin, o.xmax, 9), ty = ticks(o.ymin, o.ymax, 7);
   s += `<g class="grid">` + tx.list.map(v => `<line x1="${X(v)}" x2="${X(v)}" y1="${m.t}" y2="${m.t + ph}"/>`).join("") +
        ty.list.map(v => `<line x1="${m.l}" x2="${m.l + pw}" y1="${Y(v)}" y2="${Y(v)}"/>`).join("") + `</g>`;
@@ -830,7 +893,7 @@ function plot(svg, o) {
   s += ty.list.map(v => `<text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end">${f(v, ty.nd)}</text>`).join("");
   s += `<text x="${m.l + pw / 2}" y="${H - 8}" text-anchor="middle">${esc(o.xlabel)}</text>`;
   s += `<text transform="translate(16 ${m.t + ph / 2}) rotate(-90)" text-anchor="middle">${esc(o.ylabel)}</text>`;
-  s += `<g clip-path="url(#clp)">`;
+  s += `<g clip-path="url(#${cid})">`;
   for (const sp of o.vspans || []) s += `<rect x="${X(sp.x0)}" y="${m.t}" width="${X(sp.x1) - X(sp.x0)}" height="${ph}" fill="${sp.color}" opacity="${sp.opacity ?? .12}"/>`;
   for (const se of o.series) {
     if (se.kind === "band") {
@@ -840,7 +903,8 @@ function plot(svg, o) {
       continue;
     }
     if (se.kind === "dots") {
-      s += se.x.map((x, i) => se.y[i] === null ? "" : `<circle cx="${X(x).toFixed(1)}" cy="${Y(se.y[i]).toFixed(1)}" r="${se.r || 2}" fill="${se.color}"/>`).join("");
+      s += se.x.map((x, i) => se.y[i] === null ? "" : `<circle cx="${X(x).toFixed(1)}" cy="${Y(se.y[i]).toFixed(1)}" r="${se.r || 2}" ${se.hollow ? `fill="none" stroke="${se.color}" stroke-width="1.5"` : `fill="${se.color}"`}/>` +
+        (se.labels ? `<text x="${(X(x) + (se.r || 2) + 3).toFixed(1)}" y="${(Y(se.y[i]) - (se.r || 2) - 2).toFixed(1)}" style="fill:${se.color};font-size:11px;font-weight:600">${esc(se.labels[i])}</text>` : "")).join("");
       continue;
     }
     let d = "", pen = false;
@@ -863,18 +927,24 @@ function plot(svg, o) {
     }
   }
   // Legende
+  // Legende: verschiebbar (ziehen), Platz je Diagramm als Anteil der Zeichenfläche gemerkt, Doppelklick = Standardplatz
   const items = (o.legend || []);
   if (items.length) {
     const lw = o.legendWidth || 250, lh = 18 * items.length + 10;
-    const lx = o.legendPos === "tl" ? m.l + 10 : m.l + pw - lw - 10, ly = o.legendPos === "tl" ? m.t + 8 : m.t + ph - lh - 8;
-    s += `<rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="5" fill="var(--panel)" opacity=".88" stroke="var(--line)"/>`;
+    const dx = o.legendPos === "tl" ? m.l + 10 : m.l + pw - lw - 10, dy = (o.legendPos === "tl" || o.legendPos === "tr") ? m.t + 8 : m.t + ph - lh - 8;
+    const key = (svg.id || "plot") + ":" + (o.legendKey || (svg.id === "plot" ? S.tab : "main")), sp = LEGEND_POS[key];
+    const lx = Math.max(0, Math.min(W - lw, sp ? sp.fx * W : dx)), ly = Math.max(0, Math.min(H - lh, sp ? sp.fy * H : dy));
+    s += `<g class="lgd" data-key="${esc(key)}" data-dx="${dx}" data-dy="${dy}" data-w="${lw}" data-h="${lh}" transform="translate(${lx} ${ly})">` +
+      `<title>Legende: ziehen zum Verschieben, Doppelklick setzt sie zurück</title>` +
+      `<rect class="lgbg" x="0" y="0" width="${lw}" height="${lh}" rx="5" fill="var(--panel)" opacity=".88" stroke="var(--line)"/>`;
     items.forEach((it, i) => {
-      const yy = ly + 16 + 18 * i;
-      s += it.kind === "dot" ? `<circle cx="${lx + 18}" cy="${yy - 4}" r="5" fill="${it.color}"/>`
-        : it.kind === "box" ? `<rect x="${lx + 8}" y="${yy - 10}" width="20" height="11" fill="${it.color}"/>`
-        : `<line x1="${lx + 8}" x2="${lx + 28}" y1="${yy - 4}" y2="${yy - 4}" stroke="${it.color}" stroke-width="3" ${it.dash ? `stroke-dasharray="${it.dash}"` : ""}/>`;
-      s += `<text x="${lx + 36}" y="${yy}" style="font-size:12px">${esc(it.label)}</text>`;
+      const yy = 16 + 18 * i;
+      s += it.kind === "dot" ? `<circle cx="18" cy="${yy - 4}" r="5" fill="${it.color}"/>`
+        : it.kind === "box" ? `<rect x="8" y="${yy - 10}" width="20" height="11" fill="${it.color}"/>`
+        : `<line x1="8" x2="28" y1="${yy - 4}" y2="${yy - 4}" stroke="${it.color}" stroke-width="3" ${it.dash ? `stroke-dasharray="${it.dash}"` : ""}/>`;
+      s += `<text x="36" y="${yy}" style="font-size:12px">${esc(it.label)}</text>`;
     });
+    s += `</g>`;
   }
   svg.innerHTML = s;
   svg._map = { X, Y, m, pw, ph, o };
@@ -909,7 +979,7 @@ function drawVerlauf(svg) {
   }
   const d = seriesXY(r, xaxis);
   xmax = Math.max(xmax, ...d.xs); ymax = Math.max(ymax, ...d.ys);
-  for (let code = 0; code < 4; code++) {
+  for (const code of PHASE_ORDER) {
     const idx = []; d.ph.forEach((p, i) => { if (p === code) idx.push(i); });
     if (!idx.length) continue;
     const lo = idx[0], hi = Math.min(idx[idx.length - 1] + 1, d.xs.length - 1);
@@ -917,6 +987,18 @@ function drawVerlauf(svg) {
     phaseLegend.push({ label: PHASES[code], color: cssv("--ph" + code) });
   }
   legend.unshift(...phaseLegend);
+  // nummerierte Lastspitzen und die besser passende Hüllkurve (ab 2 Spitzen)
+  const pk = r.kv.peaks;
+  if (pk && pk.n >= 2) {
+    const fit = pk.fit || {}, cv = fit.curve, best = fit.best;
+    if (best && cv && cv[best]) {
+      const ex = xaxis === "t" ? cv.t : cv.t.map(tt => pkStrainAt(r, tt));
+      series.push({ x: ex, y: cv[best], color: PK_FIT[best], width: 1.8, dash: "7 4" });
+      legend.push({ label: `Hüllkurve: ${PK_NAME[best]}`, color: PK_FIT[best], dash: "7 4" });
+    }
+    series.push({ kind: "dots", x: pk.list.map(e => xOf(r, e.idx, xaxis)), y: pk.list.map(e => e.y), color: PK_COL, r: 3.5, labels: pk.list.map(e => String(e.nr)) });
+    legend.push({ label: `Lastspitzen (${pk.n}, Abfall ≥ ${f(pk.delta, pk.delta < 1 ? 2 : 1, u)})`, color: PK_COL, kind: "dot" });
+  }
   const marks = [], kv = r.kv;
   if (kv.yield) marks.push({ x: xOf(r, kv.yield.idx, xaxis), y: kv.yield.y, color: cssv("--m-yield"), text: `${f(kv.yield.y, nd, u)}\n${xaxis === "t" ? f(kv.yield.t, 1, "s") : f(xOf(r, kv.yield.idx, xaxis), 2, "%")}`, label: `Fliessbeginn (${f(cur.cfg.yield_threshold * 100, 1)} %): ${f(kv.yield.y, nd, u)}` });
   marks.push({ x: xOf(r, kv.max.idx, xaxis), y: kv.max.y, color: cssv("--m-max"), anchor: "end", text: `${f(kv.max.y, nd, u)}\n${xaxis === "t" ? f(kv.max.t, 1, "s") : f(xOf(r, kv.max.idx, xaxis), 2, "%")}`, label: `Maximum: ${f(kv.max.y, nd, u)}` });
@@ -1031,12 +1113,51 @@ function drawChart() {
   for (const w of r.warnings.filter(w => codes.includes(w.code))) notes.innerHTML += `<div class="w ${w.level}"><b>${w.code}</b>${esc(w.text)}</div>`;
 }
 
+// Verschiebbare Legenden (alle Diagramme dieser Seite)
+(function () {
+  const save = () => { try { localStorage.setItem(LEGEND_KEY, JSON.stringify(LEGEND_POS)); } catch (e) { /* ohne Speicher: nur bis zum Neuladen */ } };
+  let dr = null;
+  const place = (g, x, y) => g.setAttribute("transform", `translate(${x} ${y})`);
+  document.addEventListener("pointerdown", (ev) => {
+    const g = ev.button === 0 && ev.target.closest ? ev.target.closest("svg g.lgd") : null;
+    if (!g) return;
+    const svg = g.ownerSVGElement, ctm = svg && svg.getScreenCTM();
+    if (!ctm) return;
+    const tr = g.transform.baseVal.consolidate(), vb = svg.viewBox.baseVal, inv = ctm.inverse();
+    dr = { g, x0: tr ? tr.matrix.e : 0, y0: tr ? tr.matrix.f : 0, sx: ev.clientX, sy: ev.clientY, kx: inv.a, ky: inv.d,
+           W: vb.width, H: vb.height, w: +g.dataset.w, h: +g.dataset.h, moved: false };
+    try { g.setPointerCapture(ev.pointerId); } catch (e) { /* ältere Browser */ }
+    g.classList.add("drag"); $("#tip").style.display = "none";
+    ev.preventDefault();
+  });
+  document.addEventListener("pointermove", (ev) => {
+    if (!dr) return;
+    const x = Math.max(0, Math.min(dr.W - dr.w, dr.x0 + (ev.clientX - dr.sx) * dr.kx));
+    const y = Math.max(0, Math.min(dr.H - dr.h, dr.y0 + (ev.clientY - dr.sy) * dr.ky));
+    place(dr.g, x, y); dr.x = x; dr.y = y; dr.moved = true;
+  });
+  const end = () => {
+    if (!dr) return;
+    dr.g.classList.remove("drag");
+    if (dr.moved) { LEGEND_POS[dr.g.dataset.key] = { fx: dr.x / dr.W, fy: dr.y / dr.H }; save(); }
+    dr = null;
+  };
+  document.addEventListener("pointerup", end);
+  document.addEventListener("pointercancel", end);
+  document.addEventListener("dblclick", (ev) => {
+    const g = ev.target.closest ? ev.target.closest("svg g.lgd") : null;
+    if (!g) return;
+    delete LEGEND_POS[g.dataset.key]; save();
+    place(g, +g.dataset.dx, +g.dataset.dy);
+  });
+})();
+
 // Hover-Anzeige
 (function () {
   const svg = () => $("#plot");
   document.addEventListener("mousemove", (ev) => {
     const el = svg(), tip = $("#tip");
-    if (!el || el.hidden || !el._hover || !el._map || !el.contains(ev.target)) { tip.style.display = "none"; return; }
+    if (!el || el.hidden || !el._hover || !el._map || !el.contains(ev.target) || ev.target.closest("g.lgd")) { tip.style.display = "none"; return; }
     const pt = el.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
     const p = pt.matrixTransform(el.getScreenCTM().inverse());
     const { m, pw, o } = el._map;
@@ -1090,6 +1211,103 @@ function renderKV() {
   for (const y of r.yield_table) g += `<tr><td>Fliessbeginn bei ${f(y.schwelle * 100, 1)} %</td><td class="n">${y.F === null ? "–" : f(y.F, 1, "N") + (r.mode === "Spannung" ? " / " + f(y.y, 0, "MPa") : "") + " bei " + f(y.t, 1, "s")}</td></tr>`;
   g += `<tr><td>Phasen</td><td class="n">${k.phases.map(p => `${p.phase} ${p.von}–${p.bis}`).join(" · ")}</td></tr>`;
   $("#fitTable").innerHTML = g;
+}
+
+// ---------- Lastspitzen (fortschreitendes Versagen, Hinweis 4.9) ----------
+const PK_COL = "#7b1fa2", PK_FIT = { line: "#1a73e8", exp: "#e8710a" };
+const PK_NAME = { line: "Gerade y = a + b·x", exp: "Exponentialfunktion y = a·exp(b·x)" };
+function pkStrainAt(r, tt) {                    // Dehnung [%] der Messung zur Zeit tt (nächster Messpunkt)
+  const t = r.series.t; let lo = 0, hi = t.length - 1;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (t[mid] < tt) lo = mid; else hi = mid; }
+  const i = Math.abs(t[lo] - tt) <= Math.abs(t[hi] - tt) ? lo : hi;
+  return r.series.strain[i] * 100;
+}
+function fsig(v, n = 4) {                        // n signifikante Stellen, deutsches Komma
+  if (v === null || v === undefined || !isFinite(v)) return "–";
+  const a = Math.abs(v);
+  const s = (a !== 0 && (a < 1e-3 || a >= 1e6)) ? Number(v).toExponential(n - 1) : String(Number(Number(v).toPrecision(n)));
+  return s.replace(".", ",").replace(/e([+-])(\d+)/, (m0, sg, d) => " · 10^" + (sg === "-" ? "−" : "") + d).replace(/^-/, "−");
+}
+function pkIsDefault(c) {
+  const d = META.defaults.peak_drop_frac;
+  return (c.peak_drop_frac === null || c.peak_drop_frac === undefined || Math.abs(c.peak_drop_frac - d) < 1e-12) &&
+    !(Array.isArray(c.peak_fit_exclude) && c.peak_fit_exclude.length);
+}
+function renderPeaks() {
+  const panel = $("#pkPanel"), cur = S.files[S.sel];
+  const pk = cur && cur.res && cur.res.kv ? cur.res.kv.peaks : null;
+  // erst ab 2 Spitzen; sichtbar bleibt der Abschnitt auch, wenn Schwelle oder Ausschlüsse geändert sind (zum Zurückstellen)
+  panel.hidden = !(pk && (pk.n >= 2 || !pkIsDefault(cur.cfg)));
+  if (panel.hidden) return;
+  const r = cur.res, u = r.unit, st = r.mode === "Spannung", nd = st ? 2 : 1, xu = pk.x_unit, xnd = pk.x_kind === "time" ? 1 : 2;
+  const exIn = $("#pkExcl");
+  if (document.activeElement !== exIn) exIn.value = Array.isArray(cur.cfg.peak_fit_exclude) ? cur.cfg.peak_fit_exclude.join(", ") : "";
+  const fr = $("#peak_drop_frac");
+  if (document.activeElement !== fr) fr.value = String(+(pk.frac * 100).toFixed(4)).replace(".", ",");
+  const fit = pk.fit || {}, best = fit.best;
+  $("#pkSum").textContent = [tr("zv.n_pk", { n: pk.n }), best ? tr("zv.pk_best", { m: tr("zv.pk_" + best) }) : ""].filter(Boolean).join(" · ");
+  const ref = st ? "Rm" : "Fmax";
+  $("#pkInfo").innerHTML = esc(`Lastspitze: lokales Maximum, nach dem die Last um mindestens Δ = ${f(pk.delta, pk.delta < 1 ? 3 : 2, u)} fällt` +
+    ` (grösser von ${f(pk.frac * 100, 1)} % von ${ref} und 3 × Anzeigeauflösung${pk.delta_basis === "aufloesung" ? ", hier massgebend" : ""}),` +
+    ` bevor sie wieder um Δ steigt. x: ${pk.x_label} [${xu}]${pk.x_apparent ? " (scheinbar, Weg der Traverse)" : ""}` +
+    (pk.x_kind === "time" ? "; ohne Prüfgeschwindigkeit keine Verlängerung." : ".") +
+    ` Zeiten ±${pk.dt ? f(pk.dt, 3, "s") : "1 Abtastintervall"}.`);
+  // Tabelle der Spitzen
+  const hasX = pk.x_kind !== "time", hasW = pk.list.some(e => e.W_J !== null && e.W_J !== undefined);
+  const kmm = pk.list.some(e => e.k_N_mm !== null && e.k_N_mm !== undefined);
+  let h = `<tr><th class="n">Nr.</th><th class="n">t [s]</th>${hasX ? `<th class="n">x [${esc(xu)}]</th>` : ""}<th class="n">${st ? "σ [MPa]" : "F [N]"}</th>` +
+    `<th class="n">Tal [${u}]</th><th class="n">Abfall [%]</th><th class="n">Dauer [s]</th><th class="n" title="Spitzenkraft / vorherige Spitzenkraft">Verh.</th>` +
+    `<th class="n" title="Steigung des Wiederanstiegs zwischen 20 und 80 % des Anstiegs vom vorherigen Tal">Steifigkeit [${kmm ? "N/mm" : "N/s"}]</th>` +
+    (hasW ? `<th class="n" title="∫F dx vom vorherigen Tal bis zum Tal nach der Spitze (${esc(pk.work_basis || "")})">Arbeit [J]</th>` : "") +
+    `<th>Ausgleich</th></tr>`;
+  for (const e of pk.list) {
+    h += `<tr${e.y === r.kv.max.y ? ' class="sel"' : ""}><td class="n"><b style="color:${PK_COL}">${e.nr}</b></td><td class="n">${f(e.t, 1)}</td>` +
+      (hasX ? `<td class="n">${f(e.x, xnd)}</td>` : "") +
+      `<td class="n">${f(e.y, nd)}${st ? `<br><span class="small">${f(e.F, 1, "N")}</span>` : ""}</td><td class="n">${f(e.valley_y, nd)}</td>` +
+      `<td class="n">${f(e.drop_pct, 1)}</td><td class="n">${f(e.dauer, 1)}</td><td class="n">${e.ratio === null ? "–" : f(e.ratio, 3)}</td>` +
+      `<td class="n">${kmm ? f(e.k_N_mm, 1) : f(e.k_N_s, 2)}</td>` + (hasW ? `<td class="n">${fsig(e.W_J, 3)}</td>` : "") +
+      `<td>${e.excluded ? '<span class="small">nein</span>' : "ja"}</td></tr>`;
+  }
+  $("#pkTable").innerHTML = h;
+  // kleines Diagramm: Spitzenlast über x mit beiden Ausgleichen
+  const svg = $("#pkPlot"), xs = pk.list.map(e => e.x), ys = pk.list.map(e => e.y);
+  const inc = pk.list.filter(e => !e.excluded), exc = pk.list.filter(e => e.excluded);
+  const series = [], legend = [];
+  const cv = fit.curve;
+  for (const m of ["line", "exp"]) {
+    if (!fit[m] || !fit[m].ok || !cv || !cv[m]) continue;
+    series.push({ x: cv.x, y: cv[m], color: PK_FIT[m], width: m === best ? 3 : 1.4, dash: m === best ? null : "6 4", opacity: m === best ? 1 : .8 });
+    legend.push({ label: `${PK_NAME[m]}, R² = ${f(fit[m].r2, 4)}${m === best ? " (besser)" : ""}`, color: PK_FIT[m], dash: m === best ? null : "6 4" });
+  }
+  series.push({ kind: "dots", x: inc.map(e => e.x), y: inc.map(e => e.y), color: PK_COL, r: 4, labels: inc.map(e => String(e.nr)) });
+  legend.push({ label: "Spitzen im Ausgleich", color: PK_COL, kind: "dot" });
+  if (exc.length) series.push({ kind: "dots", x: exc.map(e => e.x), y: exc.map(e => e.y), color: PK_COL, r: 4, hollow: true, labels: exc.map(e => String(e.nr)) });
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), pad = (x1 - x0) * .06 || 1;
+  const yAll = ys.concat(...series.filter(s => !s.kind).map(s => s.y.filter(v => isFinite(v))));
+  const y1 = Math.max(...ys) * 1.15;
+  plot(svg, { height: 300, xmin: x0 - pad, xmax: x1 + pad, ymin: Math.min(0, ...yAll), ymax: y1, series, legend, legendWidth: 360, legendPos: "tr",
+    xlabel: `${pk.x_label} [${xu}]${pk.x_apparent ? " (scheinbar)" : ""}`, ylabel: `Spitzenlast ${st ? "σ" : "F"} [${u}]` });
+  svg._hover = null;
+  // Ausgleich
+  const ft = $("#pkFit"), note = $("#pkFitNote");
+  if (!best) { ft.innerHTML = ""; note.textContent = `Kein Ausgleich: ${fit.reason || "keine Anpassung möglich"}.`; return; }
+  const yu = u, xun = xu;
+  let g = `<tr><th>Modell</th><th class="n">a</th><th class="n">b</th><th class="n">R²</th><th class="n">SSE [${yu}²]</th><th class="n">n</th></tr>`;
+  for (const m of ["line", "exp"]) {
+    const q = fit[m];
+    if (!q) continue;
+    if (!q.ok) { g += `<tr><td>${PK_NAME[m]}</td><td colspan="5" class="small">${esc(q.error || "nicht angepasst")}</td></tr>`; continue; }
+    const pm = (v, uu, ci, unit) => `${fsig(v)} ± ${fsig(uu, 2)}<br><span class="small">±95 %: ${fsig(ci, 2)} ${esc(unit || "")}</span>`;
+    g += `<tr${m === best ? ' class="key"' : ""}><td>${PK_NAME[m]}${m === best ? ' <span class="badge">besser</span>' : ""}</td>` +
+      `<td class="n">${pm(q.a, q.a_u, q.a_ci, q.a_unit)}</td><td class="n">${pm(q.b, q.b_u, q.b_ci, q.b_unit)}</td>` +
+      `<td class="n">${f(q.r2, 4)}</td><td class="n">${fsig(q.sse, 4)}</td><td class="n">${q.n}</td></tr>`;
+  }
+  ft.innerHTML = g;
+  const q = fit[best];
+  note.textContent = `Beide Modelle direkt nach kleinsten Quadraten in y angepasst (Exponentialfunktion nicht linearisiert). Besser passend: ${PK_NAME[best]}` +
+    ` (kleinere Summe der Fehlerquadrate, bei gleichen y und je 2 Parametern gleichbedeutend mit grösserem R²).` +
+    ` ± ist die Standardunsicherheit, ±95 % das Vertrauensintervall mit Student-t (n − 2 = ${q.dof} Freiheitsgrade${q.t95 ? `, t = ${f(q.t95, 3)}` : ""}).` +
+    ` x in ${xun}${exc.length ? `; nicht im Ausgleich: Nr. ${exc.map(e => e.nr).join(", ")}` : ""}.`;
 }
 
 function refCard(r) {
@@ -1180,7 +1398,7 @@ function renderAll(mask = true) {
   if (!mask) { // Anzeige der Quelle von A0 nachziehen
     const fobj = S.files[S.sel]; if (fobj && fobj.res) { $("#a0src").textContent = fobj.res.a0 ? fobj.res.a0_source : "fehlt: Auswertung nur in Kraft"; }
   }
-  drawChart(); renderKV(); renderEq(); renderCmp(); renderDev();
+  drawChart(); renderKV(); renderPeaks(); renderEq(); renderCmp(); renderDev();
   const fobj = S.files[S.sel];
   $("#sketch").innerHTML = fobj && fobj.res && fobj.res.sketch_svg ? fobj.res.sketch_svg : "";
   renderTabs(); updateFoldSums();
@@ -1558,7 +1776,7 @@ async function init() {
   $("#cmpReportBtn").addEventListener("click", () => doCompareReport(false));
   $("#copyBtn").addEventListener("click", async () => {
     const src = S.files[S.sel].cfg;
-    const keys = ["specimen_mode", "shape", "section", "width_mm", "thickness_mm", "diameter_mm", "outer_d_mm", "wall_mm", "a0_mm2", "l0_mm", "speed_mm_min", "displacement_source", "material", "material_ref", "compare_group", "extra_refs", "batch", "operator", "slope_window_s", "tol_stress_mpa", "tol_force_n", "yield_threshold", "break_upper", "break_lower", "hold_threshold"];
+    const keys = ["specimen_mode", "shape", "section", "width_mm", "thickness_mm", "diameter_mm", "outer_d_mm", "wall_mm", "a0_mm2", "l0_mm", "speed_mm_min", "displacement_source", "material", "material_ref", "compare_group", "extra_refs", "batch", "operator", "slope_window_s", "tol_stress_mpa", "tol_force_n", "yield_threshold", "elastic_plastic", "break_upper", "break_lower", "hold_threshold"];
     for (const o of S.files) { if (o.cfg === src) continue; keys.forEach(k => o.cfg[k] = Array.isArray(src[k]) ? [...src[k]] : src[k]); await analyse(o); }
     renderAll();
   });
@@ -1602,6 +1820,13 @@ async function init() {
   if (window.LabUI) {
     LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("zugversuch");
     LabUI.onLang(() => { renderTabs(); updateFoldSums(); renderCmp(); });
+    // UR: Maske, Diagramme und Skizze ziehbar; Diagramme mit gezogener Höhe (oder eben zurückgesetzt) neu zeichnen
+    LabUI.sizes("zugversuch");
+    const fit = (w, fn) => LabUI.onResize(w, () => { const s = w.querySelector("svg.plot"); if (w.style.height || (s && s._fit)) fn(); });
+    fit($("#chartwrap"), drawChart);
+    fit($("#pkWrap"), renderPeaks);
+    if ($("#chartwrap").style.height) drawChart();                         // gemerkte Höhe: erste Zeichnung lief davor
+    if ($("#pkWrap").style.height) renderPeaks();
   }
   // UI-08 (Q27): Startansicht Übersicht – Umgebungen und Projektindex
   if (window.LabOverview) {

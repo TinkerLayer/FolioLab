@@ -158,6 +158,7 @@ function render() {
         { label: 'Rename', icon: 'edit', action: () => action('rename', p) },
         { label: 'Duplicate', icon: 'copy', action: () => action('copy', p) },
         { label: 'Download source (.zip)', icon: 'download', action: () => action('zip', p) },
+        { label: 'Download portable LaTeX (.zip)', icon: 'download', action: () => action('portable', p) },
         p.hasPdf ? { label: 'Download PDF', icon: 'pdf', action: () => action('pdf', p) } : null,
         '-',
         { label: 'Delete', icon: 'trash', danger: true, action: () => action('delete', p) },
@@ -171,6 +172,7 @@ async function action(a, p) {
   try {
     if (a === 'pdf') location.href = `/api/projects/${p.id}/output.pdf?download=1`;
     else if (a === 'zip') location.href = `/api/projects/${p.id}/zip`;
+    else if (a === 'portable') location.href = `/api/projects/${p.id}/zip?portable=1`;
     else if (a === 'copy') {
       await api('POST', `/api/projects/${p.id}/duplicate`);
       toast('Project duplicated');

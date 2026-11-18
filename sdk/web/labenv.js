@@ -152,7 +152,16 @@
       if (j.error) { o.toast(j.error, true); return; }
       info.envs = j.envs; title();
     }
-    return { open, save, flush, check, dialog, refresh, switchTo, createNew, rename, get ready() { return ready; }, get info() { return info; } };
+    // In den Papierkorb (_papierkorb) verschieben; die Standardumgebung bleibt. true, wenn gelöscht.
+    async function remove(id) {
+      if (id === "standard") { o.toast("Die Standardumgebung bleibt immer erhalten.", true); return false; }
+      await flush();
+      const j = await o.api("api/env/delete", { id });
+      if (!j || j.error) { o.toast("Umgebung: " + ((j && j.error) || "Löschen fehlgeschlagen"), true); return false; }
+      await apply(j);
+      return true;
+    }
+    return { open, save, flush, check, dialog, refresh, switchTo, createNew, rename, remove, get ready() { return ready; }, get info() { return info; } };
   }
 
   g.LabEnv = { create };

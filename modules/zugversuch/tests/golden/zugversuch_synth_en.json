@@ -57,11 +57,11 @@
    "type": "png"
   },
   "fig/verlauf.pdf": {
-   "size": 27020,
+   "size": 27009,
    "type": "pdf"
   },
   "fig/verlauf.png": {
-   "size": 45566,
+   "size": 45527,
    "type": "png"
   },
   "kennwerte.tex": {
@@ -242,7 +242,7 @@
   },
   "text-methodik.tex": {
    "lines": [
-    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]. The time axis of the evaluation was calculated from the travelled displacement and the test speed \\labval{tensile-test-synthetische-kurve}{v}, so strain and modulus follow the measured displacement. Stress refers to the initial cross-section $A_0 = $\\labval{tensile-test-synthetische-kurve}{A0}. The linear section was found by growing a window from the point of steepest slope, one data point at a time to the left and to the right, as long as all points of the window deviate from their regression line by less than \\labval{tensile-test-synthetische-kurve}{tol}; the search stops when neither side can grow (a greedy search, not necessarily the longest such window). Yield onset is the first point after this window that deviates from the extended line by more than \\labval{tensile-test-synthetische-kurve}{thr} of the maximum. This threshold is a convention, not a proof stress $R_{p0.2}$. The hold time is the duration of the contiguous section around the maximum in which the load stays at or above \\labval{tensile-test-synthetische-kurve}{holdthr} of the maximum. Strain was counted from the foot point of the regression line. The percentage elongation after fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer method \\cite{iso6892-1} from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part (stress divided by the slope of the linear section of the same curve). The measurement was compared with the 17 materials of the group Aluminium; their stress--strain curves are idealised from $R_{p0.2}$, $R_m$, $A$ and $E$ (elastic with $E$, then the Ramberg--Osgood relation~\\cite{ramberg-osgood-1943} through $R_{p0.2}$ and $R_m$ at $0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$). They are for orientation only and are not measured curves (property values from~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ relative to the material value; the ratio of maximum to yield onset only lowers the status, because the yield onset is a threshold, not $R_{p0.2}$."
+    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]. The time axis of the evaluation was calculated from the travelled displacement and the test speed \\labval{tensile-test-synthetische-kurve}{v}, so strain and modulus follow the measured displacement. Stress refers to the initial cross-section $A_0 = $\\labval{tensile-test-synthetische-kurve}{A0}. The linear section was found by growing a window from the point of steepest slope, one data point at a time to the left and to the right, as long as all points of the window deviate from their regression line by less than \\labval{tensile-test-synthetische-kurve}{tol}; the search stops when neither side can grow (a greedy search, not necessarily the longest such window). Yield onset is the first point after this window and before the maximum that deviates from the extended line by more than \\labval{tensile-test-synthetische-kurve}{thr} of the maximum. This threshold is a convention, not a proof stress $R_{p0.2}$. The hold time is the duration of the contiguous section around the maximum in which the load stays at or above \\labval{tensile-test-synthetische-kurve}{holdthr} of the maximum. Strain was counted from the foot point of the regression line. The percentage elongation after fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer method \\cite{iso6892-1} from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part (stress divided by the slope of the linear section of the same curve). The measurement was compared with the 17 materials of the group Aluminium; their stress--strain curves are idealised from $R_{p0.2}$, $R_m$, $A$ and $E$ (elastic with $E$, then the Ramberg--Osgood relation~\\cite{ramberg-osgood-1943} through $R_{p0.2}$ and $R_m$ at $0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$). They are for orientation only and are not measured curves (property values from~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ relative to the material value; the ratio of maximum to yield onset only lowers the status, because the yield onset is a threshold, not $R_{p0.2}$."
    ],
    "type": "tex"
   },
@@ -693,6 +693,7 @@
       "compare_group": null,
       "diameter_mm": null,
       "displacement_source": "probe",
+      "elastic_plastic": "auto",
       "equations": null,
       "ext_values": null,
       "extra_refs": null,
@@ -703,6 +704,8 @@
       "material_ref": "EN AW-5052-H38",
       "operator": "",
       "outer_d_mm": null,
+      "peak_drop_frac": 0.05,
+      "peak_fit_exclude": null,
       "remark": "",
       "section": "rechteckig",
       "shape": "Frei",

@@ -87,7 +87,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
 .dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
 
 /* Arbeitsbereich */
-main { display: grid; grid-template-columns: 46px minmax(0, 1fr) 350px; min-height: 0; }
+main { display: grid; grid-template-columns: 46px minmax(0, 1fr) var(--lab-side, 350px); min-height: 0; }   /* UR: Seitenleiste ziehbar (LabUI.sizes) */
 #tools { display: flex; flex-direction: column; gap: 3px; padding: 6px 5px; background: var(--panel); border-right: 1px solid var(--line); }
 #tools button { width: 36px; height: 34px; padding: 0; display: grid; place-items: center; border-color: transparent; background: transparent; }
 #tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
@@ -229,7 +229,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
     </div>
     <div id="sliceBar" hidden><span>Ebene</span><input type="range" id="slice" min="0" max="0" step="1" style="flex:1"><span id="sliceV"></span></div>
   </div>
-  <aside>
+  <aside data-size-col="side">
     <!-- UI-07: Aufgaben (Arbeitsablauf mit Stand) und Anzeige immer; der gerade offene Tab dazu; der Rest unter „Mehr“ -->
     <nav class="tabs" role="tablist">
       <button data-tab="aufgaben" class="sel" data-i18n="mk.tab_aufgaben">Aufgaben</button>
@@ -251,7 +251,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
     <section class="pane" data-pane="anzeige" hidden>
       <div class="small" id="imgInfo">Kein Bild geladen.</div>
       <label>Histogramm</label>
-      <canvas class="hist" id="histD"></canvas>
+      <canvas class="hist" id="histD" data-size-h="histD"></canvas>
       <canvas class="ramp" id="ramp"></canvas>
       <div id="dispGray">
         <label>Minimum <b id="dMinV"></b></label><input type="range" id="dMin">
@@ -297,7 +297,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       </div>
 
       <details class="lab-fold" data-fold="calCopy"><summary data-i18n="mk.f_calcopy">Auf andere Bilder übertragen</summary>
-      <div class="list" id="calTargets"></div>
+      <div class="list" id="calTargets" data-size-h="calt" data-size-mode="max"></div>
       <div class="row">
         <button class="primary" id="cCopy">Massstab übertragen</button>
         <button id="cSelAll">Alle</button><button id="cSelNone">Keine</button>
@@ -307,7 +307,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
 
       <details class="lab-fold" data-fold="calPresets"><summary data-i18n="mk.f_presets">Vorlagen</summary>
       <p class="small" style="margin-top:0">Zum Beispiel je Objektiv. Bleiben in diesem Browser gespeichert.</p>
-      <div class="list" id="calPresets"></div>
+      <div class="list" id="calPresets" data-size-h="calp" data-size-mode="max"></div>
       <div class="row">
         <input id="cPresetName" placeholder="Name, z. B. 50× Objektiv" style="flex:1;min-width:120px">
         <button id="cPresetSave">Speichern</button>
@@ -340,7 +340,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
 
     <section class="pane" data-pane="schwelle" hidden>
       <div class="note" id="thrNote">Die Schwelle trennt Objekte vom Hintergrund. Rot markiert, was zu Objekten wird.</div>
-      <canvas class="hist" id="histT"></canvas>
+      <canvas class="hist" id="histT" data-size-h="histT"></canvas>
       <label for="thrMethod">Methode</label>
       <select id="thrMethod"></select>
       <label class="chk"><input type="checkbox" id="thrDark" checked> Dunkler Hintergrund (helle Objekte)</label>
@@ -396,7 +396,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <button id="rDel">Löschen</button>
         <button id="rClear">Liste leeren</button>
       </div>
-      <div class="list" id="roiList"></div>
+      <div class="list" id="roiList" data-size-h="roi" data-size-mode="max"></div>
       <label class="chk"><input type="checkbox" id="rShow" checked> Alle Auswahlen der Liste anzeigen</label>
     </section>
 
@@ -407,7 +407,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <button id="resCopy">Kopieren</button>
         <button id="resClear">Leeren</button>
       </div>
-      <div class="tw" id="resWrap"></div>
+      <div class="tw" id="resWrap" data-size-h="res" data-size-mode="max"></div>
     </section>
 
     <section class="pane" data-pane="protokoll" hidden>
@@ -1319,6 +1319,8 @@ const MENUS = [
     "-",
     { label: "Partikelkonturen", check: () => cur() && cur().showPart, act: () => { cur().showPart = !cur().showPart; syncPartView(); draw(); } },
     { label: "Partikelnummern", check: () => cur() && cur().showNums, act: () => { cur().showNums = !cur().showNums; syncPartView(); draw(); } },
+    "-",
+    { label: "Fenstergrössen zurücksetzen", tkey: "ui.resetSizes", always: true, enabled: () => !!(window.LabUI && LabUI.resetSizes), act: () => LabUI.resetSizes("mikroskopie") },   // UR
   ] },
 ];
 function needsOk(needs) {
@@ -1354,7 +1356,7 @@ function openMenu(mi, w, b) {
   for (const it of MENUS[mi].items) {
     if (it === "-") { dd.appendChild(document.createElement("hr")); continue; }
     const def = it.op ? META.ops[it.op] : null;
-    const label = it.label || (def.de + (def.params.length ? " …" : ""));
+    const label = (it.tkey && window.LabUI ? tr(it.tkey) : it.label) || (def.de + (def.params.length ? " …" : ""));   // UR: tkey für übersetzte Einträge
     const needs = it.needs || (def ? def.needs : null);
     let ok = it.always || !!cur();
     if (ok && !it.always && needs) ok = needsOk(needs);
@@ -1463,6 +1465,7 @@ function dialog(title, bodyHtml, buttons, leftHtml = "", onOpen = null, wide = f
   $("#dlgFoot").innerHTML = (leftHtml ? `<div class="left">${leftHtml}</div>` : "") +
     buttons.map(b => `<button value="${b.value}" ${b.primary ? 'class="primary"' : ""} ${b.type === "button" ? 'type="button"' : ""}>${esc(b.label)}</button>`).join("");
   if (onOpen) onOpen($("#dlgBody"));
+  if (window.LabUI && LabUI.sizes) LabUI.sizes("mikroskopie", $("#dlgBody"));   // UR: Zeichenflächen im Dialog (data-size-h) ziehbar
   return new Promise((res) => {
     const done = () => { d.removeEventListener("close", done); res(d.returnValue || "cancel"); };
     d.returnValue = "";
@@ -1727,10 +1730,12 @@ async function profile() {
   if (!r || r.type !== "line") return toast("Für ein Linienprofil zuerst mit dem Linienwerkzeug eine Linie ziehen.", true);
   const j = await withBusy(() => api("api/profile", { id: img.id, pipeline: img.pipeline, slice: img.slice, roi: r, calib: img.calib }));
   if (j.error) return toast(j.error, true);
-  const v = await dialog("Linienprofil", `<canvas id="profCanvas"></canvas><div class="small" id="profInfo"></div>`,
+  const v = await dialog("Linienprofil", `<canvas id="profCanvas" data-size-h="prof"></canvas><div class="small" id="profInfo"></div>`,
     [{ label: "CSV speichern", value: "csv" }, { label: "Linie zur Liste", value: "add" }, { label: "Schliessen", value: "cancel", primary: true }],
     "", () => {
-      requestAnimationFrame(() => plotXY($("#profCanvas"), j.d, j.v, `Abstand [${j.unit}]`, "Grauwert"));
+      const pc = $("#profCanvas"), redraw = () => plotXY(pc, j.d, j.v, `Abstand [${j.unit}]`, "Grauwert");
+      requestAnimationFrame(redraw);
+      if (window.LabUI && LabUI.onResize) LabUI.onResize(pc, redraw);   // UR: Höhe gezogen oder Dialog breiter: neu zeichnen
       const mn = Math.min(...j.v), mx = Math.max(...j.v), mean = j.v.reduce((a, b) => a + b, 0) / j.v.length;
       $("#profInfo").textContent = `${j.v.length} Punkte · Länge ${fmt(j.d[j.d.length - 1])} ${j.unit} · Min ${fmt(mn)} · Max ${fmt(mx)} · Mittel ${fmt(mean)}`;
     }, true);
@@ -1922,16 +1927,22 @@ function renderCmp() {
     const row = (lab, k, nd) => `<tr><td>${lab}</td><td>${cell(si[k], nd)}</td><td>${cell(sd[k], nd)}</td></tr>`;
     const ratio = si.D50 && sd.D50 ? si.D50 / sd.D50 : null;
     const qrows = ["D10", "D50", "D90"].map(k => row(`${k} (Q0) [${esc(u)}]`, k)).join("") + ["Dv10", "Dv50", "Dv90"].map(k => row(`${k} (Q3) [${esc(u)}]`, k)).join("");
-    body = (p ? `<div class="leg"><span><i style="background:#1a73e8;opacity:.6"></i>${esc(tr("mk.cmp_img"))}</span><span><i style="background:#e37400"></i>${esc(c.name)}</span></div><canvas id="cmpCv"></canvas>`
+    body = (p ? `<div class="leg"><span><i style="background:#1a73e8;opacity:.6"></i>${esc(tr("mk.cmp_img"))}</span><span><i style="background:#e37400"></i>${esc(c.name)}</span></div><canvas id="cmpCv" data-size-h="cmp"></canvas>`
                 : `<div class="note">${esc(tr("mk.cmp_nopart"))}</div>`)
       + `<table><thead><tr><th></th><th>${esc(tr("mk.cmp_img"))}</th><th>${esc(c.name)}</th></tr></thead><tbody>`
       + row("n", "n", 0) + qrows + row(`${esc(tr("mk.cmp_mean"))} (Q0) [${esc(u)}]`, "mean")
       + `</tbody></table>` + (ratio ? `<div class="small">${esc(tr("mk.cmp_ratio", { r: fmt(ratio, 3) }))}</div>` : "")
       + `<div class="small">${esc(tr("mk.cmp_basis"))}</div>`
       + (p && p.truncated ? `<div class="small">${esc(tr("mk.cmp_trunc", { n: p.rows.length }))}</div>` : "");
-    setTimeout(() => { const cv = $("#cmpCv"); if (cv && p) drawCmp(cv, p.rows.map(r => +r.ECD), vals, s.D50, sd.D50, p.rows.map(r => +(r.Weight || 1))); }, 0);
+    setTimeout(() => {
+      const cv = $("#cmpCv"); if (!cv || !p) return;
+      cv._redraw = () => drawCmp(cv, p.rows.map(r => +r.ECD), vals, s.D50, sd.D50, p.rows.map(r => +(r.Weight || 1)));
+      cv._redraw();
+      if (window.LabUI && LabUI.onResize) LabUI.onResize(cv, cv._redraw);   // UR: neu zeichnen, wenn Höhe gezogen oder Seitenleiste breiter
+    }, 0);
   }
   el.innerHTML = `<details open><summary>${esc(tr("mk.cmp_h"))}</summary><div class="small">${head}</div>${body}${foot}</details>`;
+  if (window.LabUI && LabUI.sizes) LabUI.sizes("mikroskopie", el);   // UR: Ziehgriff für die neu erzeugte Zeichenfläche
   $("#cmpRm").addEventListener("click", () => { img.cmp = null; renderCmp(); if (window.ENVS) ENVS.save(); });
   const up = $("#cmpUpd");
   if (up) up.addEventListener("click", async () => {
@@ -2213,6 +2224,7 @@ function updateDisplayPane() {
     <dt>Pixelgrösse</dt><dd>${c.unit !== "px" ? fmt(c.pw, 5) + " " + esc(c.unit) : "nicht kalibriert"}</dd>`;
 }
 function drawHist(cv, s, opt = {}) {
+  cv._hist = [s, opt];                  // UR: für das Neuzeichnen nach Grössenänderung (hookSizes)
   const W = cv.clientWidth || 300, H = cv.clientHeight || 110, r = window.devicePixelRatio || 1;
   cv.width = W * r; cv.height = H * r;
   const c = cv.getContext("2d");
@@ -2243,6 +2255,13 @@ function drawHist(cv, s, opt = {}) {
     c.strokeStyle = "#e53935";
     for (const v of opt.thr) { c.beginPath(); c.moveTo(X(v), 0); c.lineTo(X(v), H); c.stroke(); }
   }
+}
+// UR: Seitenleiste und Höhen ziehbar; kleine Zeichenflächen zeichnen bei jeder Grössenänderung neu
+function hookSizes() {
+  if (!window.LabUI || !LabUI.sizes) return;
+  LabUI.sizes("mikroskopie");
+  for (const id of ["#histD", "#histT"]) { const cv = $(id); LabUI.onResize(cv, () => { if (cv._hist) drawHist(cv, ...cv._hist); }); }
+  LabUI.onResize($("#ramp"), () => { const img = cur(); if (img && img.px) drawRamp(img); });
 }
 function drawRamp(img) {
   const cv = $("#ramp"), W = cv.clientWidth || 300, r = window.devicePixelRatio || 1;
@@ -2601,7 +2620,7 @@ async function init() {
     done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; renderExt(); selectImage(sel); if (OV) setTimeout(() => OV.sync(), 0); mkCmpFollow().catch(() => {}); },
   });
   await withBusy(() => ENVS.open());
-  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("mikroskopie"); LabUI.onLang(() => { buildMenus(); renderTabs(); renderTasks(); }); }
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("mikroskopie"); hookSizes(); LabUI.onLang(() => { buildMenus(); renderTabs(); renderTasks(); }); }
   // UI-07 (Q27): Startansicht Übersicht – Umgebungen und Projektindex
   if (window.LabOverview) {
     OV = LabOverview.create({

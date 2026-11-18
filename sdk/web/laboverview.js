@@ -69,7 +69,13 @@ body.lov-board .lov-hide,body.lov-board [data-lov-detail]{display:none!important
 .lov-shr:hover{background:var(--hover,rgba(109,40,217,.08));border-radius:4px}
 .lov .lab-box .lov-links{margin-top:4px;font-size:10.5px;color:var(--muted,#5d6472)}
 .lov-crumbs .lov-imp,.lov .lov-impb{white-space:nowrap}
-.lov .lov-head .lov-impb{margin-left:auto}`;
+.lov .lov-head .lov-impb{margin-left:auto}
+dialog.lov-del{max-width:440px;width:92vw;border:1px solid var(--line,#d8dce4);border-radius:10px;padding:16px;background:var(--panel,#fff);color:var(--ink,#1d2027);font:inherit}
+dialog.lov-del::backdrop{background:rgba(0,0,0,.35)}
+dialog.lov-del b{display:block;font-size:15px;margin-bottom:6px}
+dialog.lov-del p{margin:0 0 6px;font-size:13px;opacity:.85}
+dialog.lov-del .row{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
 
   const T = {
     de: { "ov.title": "Übersicht", "ov.project": "Projekt", "ov.back": "◂ Übersicht", "ov.back_t": "Zurück zur Übersicht",
@@ -97,7 +103,11 @@ body.lov-board .lov-hide,body.lov-board [data-lov-detail]{display:none!important
           "ov.gone": "Dieser Wert ist gerade nicht vorhanden.", "ov.from_env": "von {e}",
           "ov.imp": "⤓ Importieren", "ov.imp_t": "Einen Datensatz des Projekts in diese Umgebung holen",
           "ov.impb": "⤓ Datensatz importieren …", "ov.impb_t": "Datensatz des Projekts wählen und in eine Umgebung holen (auch eine neue)",
-          "ov.imp_take": "Importieren …" },
+          "ov.imp_take": "Importieren …",
+          "ov.del": "{w} „{n}“ löschen", "ov.del_q": "{w} „{n}“ löschen?", "ov.del_b": "Löschen", "ov.cancel": "Abbrechen",
+          "ov.del_x": "Sie wandert mit Arbeitsstand und Dateien in den Papierkorb des Projekts (Ordner _papierkorb) und lässt sich dort von Hand zurückholen. Verbindungen zu ihr werden gelöst.",
+          "ov.del_open": "Sie ist gerade offen; danach ist die Standardumgebung offen.",
+          "ov.del_ok": "„{n}“ liegt jetzt im Papierkorb des Projekts." },
     en: { "ov.title": "Overview", "ov.project": "Project", "ov.back": "◂ Overview", "ov.back_t": "Back to the overview",
           "ov.hint": "Click a box: open · drag a box: arrange · shared results on the left, own shares on the right",
           "ov.k_index": "Project", "ov.index": "Project index", "ov.index_s": "Curated values, readable from every module",
@@ -123,7 +133,11 @@ body.lov-board .lov-hide,body.lov-board [data-lov-detail]{display:none!important
           "ov.gone": "This value is not available right now.", "ov.from_env": "from {e}",
           "ov.imp": "⤓ Import", "ov.imp_t": "Bring a dataset of the project into this environment",
           "ov.impb": "⤓ Import a dataset …", "ov.impb_t": "Choose a dataset of the project and bring it into an environment (or a new one)",
-          "ov.imp_take": "Import …" },
+          "ov.imp_take": "Import …",
+          "ov.del": "Delete {w} \"{n}\"", "ov.del_q": "Delete {w} \"{n}\"?", "ov.del_b": "Delete", "ov.cancel": "Cancel",
+          "ov.del_x": "It moves, with its working state and files, to the project's trash (folder _papierkorb), where it can be restored by hand. Connections to it are removed.",
+          "ov.del_open": "It is open right now; afterwards the standard environment is open.",
+          "ov.del_ok": "\"{n}\" is now in the project's trash." },
   };
 
   function create(o) {
@@ -428,6 +442,7 @@ body.lov-board .lov-hide,body.lov-board [data-lov-detail]{display:none!important
       for (const s of st.shares.incoming) out.push({ id: s.id, col: 0, kind: kindLabel(s.kind), title: s.title || s.id, cls: "share",
         sub: `${modName(s.producer)} · ${(s.producer && (s.producer.env_name || s.producer.env)) || ""} · v${s.latest}`, label: `${t("ov.k_share")}: ${s.title || s.id}` });
       for (const e of i.envs) out.push({ id: "env:" + e.id, col: 1, active: e.id === i.active, in: linkable, out: linkable,
+        del: e.id !== "standard" && !!(E() && E().remove), delLabel: t("ov.del", { w: word(0), n: e.name }),
         kind: word(0) + (e.id === i.active ? " · " + t("ov.open") : ""), title: e.name, html: envHtml(e, e.id === i.active), label: `${word(0)} ${e.name}`,
         plots: e.summary && Array.isArray(e.summary.plots) && e.summary.plots.length ? e.summary.plots : null });   // UI-18
       out.push({ id: "add:env", col: 1, cls: "add", float: true, title: "+ " + word(0), label: "+ " + word(0) });
@@ -466,6 +481,7 @@ body.lov-board .lov-hide,body.lov-board [data-lov-detail]{display:none!important
           if (l && l.mode === "own") o.toast(t("ov.own_wire"));
         },
         onMove: (pos) => { st.data.pos = pos; saveBoard(); },
+        onDelete: (box) => deleteEnv(box),
         wireLabel: (l) => { const x = l._l || l, c = chan(x.kind); return c ? `${(x.keys || []).length} ${c.label((x.keys || []).length)}${x.mode === "copy" ? " · " + t("ov.copy") : ""}` : ""; },
         wireHint: (l) => (chan((l._l || l).kind) ? t("ov.l_hint") : l.mode === "own" ? t("ov.own_wire") : ""),
       });
@@ -500,6 +516,35 @@ body.lov-board .lov-hide,body.lov-board [data-lov-detail]{display:none!important
         if (e.target.closest("[data-ov-hist]")) { UI.closePop(); g.LabIndex.history(o.api, o.toast, { share: s.id, version: s.latest }); }
         if (e.target.closest("[data-ov-act]")) { UI.closePop(); await act.run(s); }
       });
+    }
+    // × am Umgebungskasten: Warnung, dann in den Papierkorb; Verbindungen und Lage des Kastens fallen weg
+    function askDelete(name, open) {
+      return new Promise((res) => {
+        const d = document.createElement("dialog");
+        d.className = "lov-del";
+        d.innerHTML = `<form method="dialog"><b>${esc(t("ov.del_q", { w: word(0), n: name }))}</b><p>${esc(t("ov.del_x"))}</p>`
+          + (open ? `<p>${esc(t("ov.del_open"))}</p>` : "")
+          + `<div class="row"><button value="no" autofocus>${esc(t("ov.cancel"))}</button><button value="yes" class="danger">${esc(t("ov.del_b"))}</button></div></form>`;
+        document.body.appendChild(d);
+        let done = false;
+        const finish = (v) => { if (done) return; done = true; try { d.close(); } catch (x) { /* schon zu */ } d.remove(); res(v); };
+        d.addEventListener("click", (ev) => { const b = ev.target.closest("button[value]"); if (b) { ev.preventDefault(); finish(b.value === "yes"); } else if (ev.target === d) finish(false); });
+        d.addEventListener("cancel", (ev) => { ev.preventDefault(); finish(false); });
+        d.showModal();
+      });
+    }
+    async function deleteEnv(box) {
+      const id = String(box.id).slice(4), i = info(), e = i.envs.find((x) => x.id === id);
+      if (!e || id === "standard") return;
+      if (!(await askDelete(e.name, id === i.active))) { boxEl(box.id)?.focus({ preventScroll: true }); return; }
+      const env = E();
+      if (!(await env.remove(id))) return;
+      st.data.links = st.data.links.filter((l) => l.from !== box.id && l.to !== box.id);
+      if (st.data.pos) delete st.data.pos[box.id];
+      saveBoard();
+      await load();
+      render();
+      o.toast(t("ov.del_ok", { n: e.name }));
     }
     // I-03: Datensatz importieren – aus der offenen Umgebung oder von der Übersicht (dann mit Ziel-Umgebung)
     async function importDataset(a = {}) {

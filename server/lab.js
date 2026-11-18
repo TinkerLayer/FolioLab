@@ -97,7 +97,12 @@ async function rebuildReferences(id) {
   }
   await fsp.mkdir(labDir(id), { recursive: true });
   await fsp.writeFile(path.join(labDir(id), 'references.bib'), parts.join('\n'));
-  const inputs = (await list(id)).filter((b) => (b.files || []).includes('values.tex')).map((b) => `\\InputIfFileExists{lab/${b.slug}/values}{}{}% ${String(b.title).replace(/[\r\n]+/g, ' ')}`);
+  const all = await list(id);
+  // imported pieces bring the packages and macros they need (lab/<slug>/preamble.tex, guarded)
+  const inputs = [
+    ...all.filter((b) => (b.files || []).includes('preamble.tex')).map((b) => `\\InputIfFileExists{lab/${b.slug}/preamble}{}{}% packages and macros of ${String(b.title).replace(/[\r\n]+/g, ' ')}`),
+    ...all.filter((b) => (b.files || []).includes('values.tex')).map((b) => `\\InputIfFileExists{lab/${b.slug}/values}{}{}% ${String(b.title).replace(/[\r\n]+/g, ' ')}`),
+  ];
   await fsp.writeFile(path.join(labDir(id), 'labdata.tex'), LABDATA + inputs.join('\n') + '\n');
 }
 
@@ -207,6 +212,8 @@ async function save(id, bundle, mode, info) {
       action: (info && info.action) || (prev ? 'replace' : 'new'),
     },
     issued: null,
+    // where an imported result came from and how it follows its source (server/importer.js)
+    link: bundle.link && typeof bundle.link === 'object' ? JSON.parse(JSON.stringify(bundle.link)) : null,
   };
   await fsp.writeFile(path.join(target, 'bundle.json'), JSON.stringify(manifest, null, 2));
   await rebuildReferences(id);
@@ -217,6 +224,7 @@ async function save(id, bundle, mode, info) {
 /** Ask the module to rebuild a bundle from its stored source files and settings. */
 async function refresh(id, slug, opts = {}) {
   const man = await readManifest(id, slug);
+  if (man.module === 'import') return require('./importer').update(id, slug, opts); // rebuild from the source
   if (!man.source || !man.source.request) throw new HttpError(400, 'This result has no stored source and cannot be refreshed');
   const files = {};
   for (const name of man.source.files || []) {
@@ -527,4 +535,4 @@ async function dependencies(id) {
   };
 }
 
-module.exports = { FORMAT, list, save, refresh, remove, rebuildReferences, readManifest, revisions, compare, restore, issue, issueAll, history, dependencies };
+module.exports = { FORMAT, list, save, refresh, remove, rebuildReferences, readManifest, uniqueSlug, labDir, revisions, compare, restore, issue, issueAll, history, dependencies };

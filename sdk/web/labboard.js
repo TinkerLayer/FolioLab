@@ -2,7 +2,8 @@
  * Ohne Abhängigkeiten; jede Modulseite bindet labboard.js ein. Die Seite bestimmt, was die Kästen bedeuten.
  *
  *   const B = LabBoard.create(el, {
- *     boxes: () => [{ id, col: 0|1|2, kind, title, sub, html, in: bool, out: bool, cls, active, label, float, plots }],
+ *     boxes: () => [{ id, col: 0|1|2, kind, title, sub, html, in: bool, out: bool, cls, active, label, float, plots, del, delLabel }],
+ *                                       // del: kleines × oben rechts (beim Überfahren/Fokus sichtbar, auch Taste Entf) → onDelete
  *                                       // float: nicht verschiebbar, steht immer unter den übrigen Kästen der Spalte
  *                                       // plots (UI-18): kleine Grafiken im Kasten, Klick vergrössert (siehe packPlots)
  *     pos: { id: [x, y] },              // gespeicherte Lage (Server, je Modul und Projekt)
@@ -11,6 +12,7 @@
  *     onLink(fromId, toId),             // Verbindung gezogen; die Seite entscheidet und ruft setLinks()
  *     onUnlink(link),                   // Klick auf eine Verbindung
  *     onMove(pos),                      // Kasten verschoben: Lage speichern (die Seite verzögert selbst)
+ *     onDelete(box),                    // optional: × eines Kastens mit del (die Seite fragt nach und löscht)
  *     wireLabel(link) → Text,           // optional: Beschriftung der Verbindung (z. B. "live", "v3")
  *     wireHint(link) → Text,            // optional: Tooltip statt „Klick: Verbindung lösen“ (z. B. wenn der Klick bearbeitet)
  *   });
@@ -46,8 +48,14 @@
   border:2px solid var(--accent,#6d28d9)}
 .lab-box .lab-port.in{left:-7px}.lab-box .lab-port.out{right:-7px;cursor:crosshair}
 .lab-box.drop{box-shadow:0 0 0 3px var(--accent,#6d28d9)}
+.lab-box .lab-x{position:absolute;top:4px;right:6px;width:22px;height:22px;padding:0;border:1px solid transparent;border-radius:6px;
+  background:transparent;color:var(--muted,#5d6472);font:16px/1 system-ui,sans-serif;cursor:pointer;opacity:0;transition:opacity .12s}
+.lab-box:hover .lab-x,.lab-box:focus-within .lab-x,.lab-box .lab-x:focus-visible{opacity:1}
+.lab-box .lab-x:hover,.lab-box .lab-x:focus-visible{color:#fff;background:#c5221f;border-color:#c5221f;outline:none}
+.lab-box.has-x .bh{padding-right:30px}
+@media (hover:none){.lab-box .lab-x{opacity:.7}}
 .lab-board.narrow{display:flex;flex-direction:column;gap:8px;padding:8px;min-height:0}
-.lab-board.narrow .lab-box{position:static;width:auto}
+.lab-board.narrow .lab-box{position:relative;left:auto!important;top:auto!important;width:auto}
 .lab-board.narrow .lab-port,.lab-board.narrow>.lab-wires{display:none}
 .lab-box .lab-plots{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:0 9px 9px}
 .lab-box .lab-plots.one{grid-template-columns:1fr}
@@ -288,8 +296,9 @@
       const narrow = el.clientWidth > 0 && el.clientWidth < 700;
       el.classList.toggle("narrow", narrow);
       el.innerHTML = `<svg class="lab-wires" width="1" height="1"></svg>` + boxes.map((b) =>
-        `<div class="lab-box ${esc(b.cls || "")}${b.active ? " active" : ""}" data-box="${esc(b.id)}" tabindex="0" role="button"
+        `<div class="lab-box ${esc(b.cls || "")}${b.active ? " active" : ""}${b.del ? " has-x" : ""}" data-box="${esc(b.id)}" tabindex="0" role="button"
            aria-label="${esc(b.label || b.title)}">${b.in ? `<span class="lab-port in" aria-hidden="true"></span>` : ""}${b.out ? `<span class="lab-port out" data-out="${esc(b.id)}" title="Ziehen, um zu verbinden" aria-hidden="true"></span>` : ""}
+           ${b.del && o.onDelete ? `<button type="button" class="lab-x" data-del title="${esc(b.delLabel || "Löschen")}" aria-label="${esc(b.delLabel || "Löschen")}">×</button>` : ""}
            <div class="bh">${b.kind ? `<span class="k">${esc(b.kind)}</span>` : ""}<span>${esc(b.title)}</span></div>
            ${b.sub || b.html ? `<div class="bb">${b.sub ? esc(b.sub) : ""}${b.html || ""}</div>` : ""}${b.plots ? plotsHtml(b.plots) : ""}</div>`).join("");
       closePop();
@@ -338,7 +347,10 @@
         e.addEventListener("keydown", (ev) => {
           if (ev.target !== e && ev.target.closest("button, a, input, select, textarea")) return;   // Bedienelemente im Kasten
           if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); o.onOpen && o.onOpen(b); }
+          if (ev.key === "Delete" && b.del && o.onDelete) { ev.preventDefault(); o.onDelete(b); }
         });
+        const x = e.querySelector("[data-del]");
+        if (x) x.addEventListener("click", (ev) => { ev.stopPropagation(); o.onDelete(b); });
         e.querySelectorAll("[data-plot]").forEach((p) => p.addEventListener("click", (ev) => { ev.stopPropagation(); showPlot(b.plots, +p.dataset.plot, p); }));
         e.addEventListener("pointerdown", (ev) => {
           if (ev.button !== 0 || el.classList.contains("narrow")) return;

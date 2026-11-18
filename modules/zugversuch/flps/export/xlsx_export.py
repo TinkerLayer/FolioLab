@@ -15,7 +15,7 @@ from openpyxl.chart.series import SeriesLabel, StrRef
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-from ..analyse import PHASES, Result
+from ..analyse import PHASE_ORDER, PHASES, Result
 from .xlcalc import Book
 
 YELLOW = PatternFill("solid", fgColor="FFF2A8")
@@ -24,7 +24,7 @@ INPUT = PatternFill("solid", fgColor="E8F0FE")
 BOLD = Font(bold=True)
 NOTE = Font(italic=True, color="5F6368", size=9)
 THIN = Border(bottom=Side(style="thin", color="BDC1C6"))
-PHASE_COLORS = ["9AA0A6", "1A73E8", "E8710A", "D93025"]
+PHASE_COLORS = ["9AA0A6", "1A73E8", "E8710A", "D93025", "000000", "CCCCCC", "129EAF", "B06000"]
 Q = "'Übersicht'!"
 M = "Messdaten!"
 
@@ -138,6 +138,10 @@ def write_xlsx(r: Result, folder: Path) -> Path:
     put("hold", "Haltezeitschwelle", cfg.hold_threshold, "", "", inp=True, fmt="0%")
     put("lo", "Fitfenster ab Index", r.fit.lo, "", "aus dem App-Algorithmus 4.2 übernommen", inp=True)
     put("hi", "Fitfenster bis Index", r.fit.hi, "", "aus dem App-Algorithmus 4.2 übernommen", inp=True)
+    rise = int((r.kv.get("ep") or {}).get("rise_end", r.imax))
+    put("rise", "Fliessbeginn gesucht vor Index", rise, "",
+        "Maximum, bei mehreren Lastspitzen die erste (4.4)", inp=True)
+    rise_cell = ref("rise")
 
     lo_row, hi_row = r.fit.lo + 2, r.fit.hi + 2
     u = r.unit
@@ -255,7 +259,7 @@ def write_xlsx(r: Result, folder: Path) -> Path:
             ws_d.cell(rr, 11, f"=IF(AND(F{rr - 1}>{ref('bu')}*{ref('Fref')},F{rr}<{ref('bl')}*{ref('Fref')}),1,0)")
         ws_d.cell(rr, 12, f"=G{rr}" if stress else f"=F{rr}")
         ws_d.cell(rr, 13, f"={ref('k')}*D{rr}+{ref('q')}-L{rr}").number_format = "0.000"
-        ws_d.cell(rr, 14, f"=IF(AND(A{rr}>{ref('hi')},M{rr}>{ref('thr')}*{ref('Ymax')}),1,0)")
+        ws_d.cell(rr, 14, f"=IF(AND(A{rr}>{ref('hi')},A{rr}<{rise_cell},M{rr}>{ref('thr')}*{ref('Ymax')}),1,0)")
         lim = f"{ref('hold')}*{ref('Ymax')}"
         ws_d.cell(rr, 15, f"=IF(AND(L{rr}>={lim},P{rr}={ref('holdrun')}),D{rr},\"\")")
         if rr == 2:
@@ -272,8 +276,11 @@ def write_xlsx(r: Result, folder: Path) -> Path:
     ws_c.cell(1, 16, "Legendentexte (Formeln)").font = BOLD
     leg_row = 2
     seg_rows = []
-    phase_end_t = {0: "t_lo", 1: "ty" if r.yield_idx is not None else "tmax", 2: "tmax", 3: "tb" if r.drop_idx is not None else None}
-    for code in range(4):
+    ep = r.kv.get("ep") or {}
+    rise_to = "tmax" if not ep.get("progressive") else None          # erste Lastspitze hat keine eigene Zelle
+    phase_end_t = {0: "t_lo", 1: "ty" if r.yield_idx is not None else rise_to, 2: rise_to, 6: rise_to,
+                   3: "tb" if r.drop_idx is not None else None}
+    for code in PHASE_ORDER:
         idx = [i for i in range(n_act) if ph[i] == code]
         if not idx:
             continue
@@ -350,9 +357,12 @@ def write_xlsx(r: Result, folder: Path) -> Path:
         ws_c.cell(rr, 6, f"=Messdaten!D{b['von'] + 2}").number_format = "0.0"
         ws_c.cell(rr, 7, f"=Messdaten!D{b['bis'] + 2}").number_format = "0.0"
         rr += 1
-    ws_c.cell(rr + 1, 1, "Phasengrenzen elastisch/plastisch stammen aus der gesetzten Schwelle (7.4).").font = NOTE
+    ws_c.cell(rr + 1, 1, "Phasengrenzen elastisch/plastisch stammen aus der gesetzten Schwelle (7.4)." if ep.get("on", True)
+              else "Elastisch/plastisch nicht eingeteilt (7.4): Anstieg, Lastspitzen und Abfall.").font = NOTE
     ws_c.column_dimensions["A"].width = 30
     ws_c.column_dimensions["P"].width = 40
+
+    pk_expect = _peaks_sheet(wb, r, cells, last) if (r.kv.get("peaks") or {}).get("progressive") else {}
 
     wb.calculation.fullCalcOnLoad = True
     tmp = path.with_suffix(".tmp.xlsx")
@@ -379,6 +389,13 @@ def write_xlsx(r: Result, folder: Path) -> Path:
             got = book.ref("Übersicht", cells[key])
             if not isinstance(got, (int, float)) or abs(got - val) > 1e-6 * max(1.0, abs(val)):
                 raise WorkbookError(f"Formel {key} liefert {got}, App rechnet {val}")
+        for addr, (val, tol) in pk_expect.items():          # Lastspitzen: Formeln gegen die App
+            got = book.ref("Lastspitzen", addr)
+            if isinstance(val, str):
+                if got != val:
+                    raise WorkbookError(f"Lastspitzen {addr} liefert {got}, App: {val}")
+            elif not isinstance(got, (int, float)) or abs(got - val) > tol * max(1.0, abs(val)):
+                raise WorkbookError(f"Lastspitzen {addr} liefert {got}, App rechnet {val}")
     except Exception:
         tmp.unlink(missing_ok=True)
         raise
@@ -386,3 +403,121 @@ def write_xlsx(r: Result, folder: Path) -> Path:
         path.unlink()
     tmp.rename(path)
     return path
+
+
+def _peaks_sheet(wb, r: Result, cells: dict, last: int) -> dict:
+    """Blatt Lastspitzen (nur bei mindestens 2 Spitzen): Lage der Spitzen und Täler aus dem App-Algorithmus (Indizes),
+    alles Weitere als Formel auf die Messdaten; die Gerade als SLOPE/INTERCEPT/RSQ über die Spitzen im Ausgleich.
+    Rückgabe: {Zelle: (Wert der App, relative Toleranz)} für die Prüfung nach der Neuberechnung."""
+    pk = r.kv["peaks"]
+    ws = wb.create_sheet("Lastspitzen")
+    u, xu = r.unit, pk["x_unit"]
+    rng = lambda col: f"{M}${col}$2:${col}${last}"  # noqa: E731
+    ws.cell(1, 1, f"Lastspitzen {r.name} (fortschreitendes Versagen)").font = Font(bold=True, size=14)
+    ws.cell(2, 1, "Spitze: laufendes Maximum, nach dem die Last um mindestens Δ fällt; Tal: Minimum danach, bis die Last "
+                  "wieder um mindestens Δ steigt (Hysterese-Regel, flps/peaks.py). Indizes aus der App, alles Weitere "
+                  "als Formel auf die Messdaten.").font = NOTE
+    ws.cell(3, 1, "Schwelle (Anteil von " + ("Rm" if r.mode == "Spannung" else "Fmax") + ")")
+    ws.cell(3, 2, pk["frac"]).number_format = "0.0%"
+    ws.cell(3, 4, "Einstellung der App; eine Änderung hier erkennt die Spitzen nicht neu").font = NOTE
+    ws.cell(4, 1, f"Anzeigeauflösung [{u}]")
+    ws.cell(4, 2, pk["resolution"])
+    ws.cell(5, 1, f"Mindestabfall Δ = MAX(Anteil·Maximum; 3·Auflösung) [{u}]")
+    ws.cell(5, 2, f"=MAX(B3*{cells['Ymax']},3*B4)").number_format = "0.000"
+    ws.cell(5, 2).fill = YELLOW
+    ws.cell(6, 1, f"x: {pk['x_label']} [{xu}]" + (" (scheinbar)" if pk.get("x_apparent") else ""))
+    head = ["Nr.", "Index Spitze", "Index Tal", "t Spitze [s]", f"x [{xu}]", f"Spitze [{u}]", "Spitze F [N]",
+            "t Tal [s]", f"Tal [{u}]", "Tal F [N]", "Abfall ΔF [N]", "Abfall [%]", "Dauer [s]", "F / F vorige",
+            "Abfall ≥ Δ", "Steifigkeit k [N/s] (App)", "Arbeit W [J] (App)", "im Ausgleich", f"x Ausgleich [{xu}]",
+            f"y Ausgleich [{u}]"]
+    h0 = 8
+    for i, h in enumerate(head, 1):
+        c = ws.cell(h0, i, h)
+        c.font = BOLD
+        c.fill = HEAD
+        c.alignment = Alignment(wrap_text=True, vertical="top")
+    ws.row_dimensions[h0].height = 45
+    expect = {}
+    first = h0 + 1
+    for j, e in enumerate(pk["list"]):
+        rr = first + j
+        ws.cell(rr, 1, e["nr"])
+        ws.cell(rr, 2, e["idx"]).fill = INPUT
+        ws.cell(rr, 3, e["valley_idx"]).fill = INPUT
+        ws.cell(rr, 4, f"=INDEX({rng('D')},B{rr}+1)").number_format = "0.00"
+        if pk["x_kind"] == "strain":
+            xf = f"=(D{rr}-{cells['t0']})*({cells['v']}/60)/{cells['L0']}*100"
+        elif pk["x_kind"] == "travel":
+            xf = f"=(D{rr}-{cells['t0']})*({cells['v']}/60)"
+        else:
+            xf = f"=D{rr}"
+        ws.cell(rr, 5, xf).number_format = "0.000"
+        ws.cell(rr, 6, f"=INDEX({rng('L')},B{rr}+1)").number_format = "0.00"
+        ws.cell(rr, 7, f"=INDEX({rng('F')},B{rr}+1)").number_format = "0.00"
+        ws.cell(rr, 8, f"=INDEX({rng('D')},C{rr}+1)").number_format = "0.00"
+        ws.cell(rr, 9, f"=INDEX({rng('L')},C{rr}+1)").number_format = "0.00"
+        ws.cell(rr, 10, f"=INDEX({rng('F')},C{rr}+1)").number_format = "0.00"
+        ws.cell(rr, 11, f"=G{rr}-J{rr}").number_format = "0.00"
+        ws.cell(rr, 12, f"=K{rr}/G{rr}*100").number_format = "0.0"
+        ws.cell(rr, 13, f"=H{rr}-D{rr}").number_format = "0.0"
+        ws.cell(rr, 14, f"=G{rr}/G{rr - 1}" if j else "").number_format = "0.000"
+        ws.cell(rr, 15, f"=IF(F{rr}-I{rr}>=$B$5,\"ja\",\"nein\")")
+        ws.cell(rr, 16, e["k_N_s"]).number_format = "0.000"
+        ws.cell(rr, 17, e["W_J"]).number_format = "0.0000"
+        ws.cell(rr, 18, "nein" if e.get("excluded") else "ja").fill = INPUT
+        ws.cell(rr, 19, f"=IF(R{rr}=\"ja\",E{rr},\"\")").number_format = "0.000"
+        ws.cell(rr, 20, f"=IF(R{rr}=\"ja\",F{rr},\"\")").number_format = "0.00"
+        # Zeiten stehen in den Messdaten auf 6 Stellen gerundet: Toleranz 1e-6 (relativ, mindestens absolut)
+        expect[f"$D${rr}"] = (e["t"], 1e-6)
+        expect[f"$E${rr}"] = (e["x"], 1e-6)
+        expect[f"$F${rr}"] = (e["y"], 1e-9)
+        expect[f"$L${rr}"] = (e["drop_pct"], 1e-9)
+        expect[f"$M${rr}"] = (e["dauer"], 1e-6)
+        expect[f"$O${rr}"] = ("ja", 0)
+        if e["ratio"] is not None:
+            expect[f"$N${rr}"] = (e["ratio"], 1e-9)
+    end = first + len(pk["list"]) - 1
+    rr = end + 2
+    fit = pk.get("fit") or {}
+    ws.cell(rr, 1, "Ausgleich der Spitzenlasten über x").font = Font(bold=True, size=12)
+    rr += 1
+    if fit.get("reason"):
+        ws.cell(rr, 1, "entfällt: " + fit["reason"]).font = NOTE
+    else:
+        ws.cell(rr, 1, "Gerade y = a + b·x (Formeln über die Spitzen im Ausgleich)").font = BOLD
+        sx, sy = f"$S${first}:$S${end}", f"$T${first}:$T${end}"
+        rows = [("a", f"=INTERCEPT({sy},{sx})", "a"), ("b", f"=SLOPE({sy},{sx})", "b"), ("R²", f"=RSQ({sy},{sx})", "r2")]
+        line = fit.get("line") or {}
+        for lab, fml, k in rows:
+            rr += 1
+            ws.cell(rr, 1, lab)
+            ws.cell(rr, 2, fml).fill = YELLOW
+            ws.cell(rr, 3, {"a": line.get("a_unit"), "b": line.get("b_unit"), "r2": ""}[k])
+            if k != "r2":
+                ws.cell(rr, 4, f"Standardunsicherheit {line.get(k + '_u')}; 95 % (Student-t, n − 2): ± {line.get(k + '_ci')} "
+                                "(aus der App)").font = NOTE
+            if line.get("ok"):
+                expect[f"$B${rr}"] = (line[k], 1e-6)
+        rr += 2
+        ex = fit.get("exp") or {}
+        ws.cell(rr, 1, "Exponentialfunktion y = a·exp(b·x) (direkte Anpassung der App, Levenberg–Marquardt; kein "
+                       "Tabellenformel-Gegenstück)").font = BOLD
+        if ex.get("ok"):
+            for lab, k, un in (("a", "a", ex.get("a_unit")), ("b", "b", ex.get("b_unit")), ("R²", "r2", "")):
+                rr += 1
+                ws.cell(rr, 1, lab)
+                ws.cell(rr, 2, ex[k])
+                ws.cell(rr, 3, un)
+                if k != "r2":
+                    ws.cell(rr, 4, f"Standardunsicherheit {ex.get(k + '_u')}; 95 %: ± {ex.get(k + '_ci')}").font = NOTE
+        else:
+            rr += 1
+            ws.cell(rr, 1, "nicht möglich: " + str(ex.get("error"))).font = NOTE
+        rr += 2
+        best = {"line": "Gerade", "exp": "Exponentialfunktion"}.get(fit.get("best"), "–")
+        ws.cell(rr, 1, "Besser (kleinere Fehlerquadratsumme in y, beide 2 Parameter)")
+        ws.cell(rr, 2, best).font = BOLD
+    for i, w in enumerate([6, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 9, 9, 9, 8, 12, 12, 9, 11, 11], 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+    ws.column_dimensions["A"].width = 44
+    return expect

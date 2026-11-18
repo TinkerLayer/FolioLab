@@ -33,13 +33,23 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
 - Collapsed (the state is remembered), with the current choice in the title: Reference and comparison (Referenz und
   Vergleich: reference, own materials, comparison group, additionally shown materials), Operator and remark (Prüfer
   und Bemerkung), the less common evaluation parameters (Window, tolerance, break and hold thresholds / Fenster,
-  Toleranz, Bruch- und Halteschwellen; the slider for the yield onset stays visible), Own equations (Eigene
+  Toleranz, Bruch- und Halteschwellen; the elastic/plastic choice and the slider for the yield onset stay visible),
+  Own equations (Eigene
   Gleichungen), Material comparison (Werkstoffvergleich), Device and file (Gerät und Datei). The notes stay visible.
   Table contents are still in German.
 - **Values to other environments (⇄):** next to Rm (or Fmax), E and the results of own equations there is a ⇄: the
   value goes **live** or as a **snapshot** (Momentaufnahme) to another Zugversuch environment and can be used there in
   own equations (a name that is already taken becomes `Name_ext`). **⇄ Connections** (⇄ Verbindungen) in the header
   lists all connections.
+- **Movable legends:** drag the legend of any chart (curve, linear section, material field, load peaks) out of the
+  way, for example when a long measurement runs under it. The place is remembered per chart and browser; double-click
+  the legend to put it back.
+- **Elastisch/plastisch einteilen** (divide into elastic and plastic, under Auswerteparameter, since 1.4.0):
+  *Automatisch* (default) divides the curve with a yield onset, except when it has 2 or more load peaks (ropes, fibre
+  bundles, composites: parts fail one after another, so there is no material yield to find). *Ein* always divides,
+  *Aus* never. Without the division the curve shows rise, load peaks and drop; the yield slider is hidden, and the
+  yield onset, the ratio Fmax/yield, Ag and A are left out. The slope, E (apparent) and Agt/At stay. The yield onset is
+  only searched before the maximum (or the first load peak), never on the falling flank.
 
 ## Specimen, material, reports
 
@@ -104,6 +114,38 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
 - **Comparison report** (button *Vergleichsbericht*, from two measurements on; CLI `--vergleich`): all measurements on
   top of each other, key values side by side and a table. It is stored under `Ausgaben\Vergleiche\`.
 
+## Load peaks (progressive failure, since 1.4.0)
+
+Ropes, cords, fibre bundles and composites often break part by part: the load rises, drops when a part breaks, rises
+again, drops again. The app finds these load peaks on every measurement. A peak counts when the load drops by at least
+Δ after it, where Δ is 5 % of Fmax (or Rm) by default and never less than 3 × the display resolution. Fmax / Rm stays
+the highest load, and hold time, plateau, drop and break still refer to it.
+
+- **From 2 peaks** the measurement counts as progressive failure. Note 4.9 says so, and the section **Lastspitzen**
+  (Load peaks) appears below the key values. It is collapsed; open it to see:
+  - the threshold (minimum drop after a peak, in % of Fmax) and the peaks to leave out of the fit (numbers, for
+    example `1, 2`). If you change them, the section stays visible even with fewer than 2 peaks, so you can set them
+    back;
+  - a table per peak: time, elongation at the peak, load, valley after it, drop in %, duration of the drop, ratio to
+    the previous peak, reload stiffness and work in the segment;
+  - a chart of the peak loads over the elongation at the peak with two fits, a line y = a + b·x and an exponential
+    y = a·exp(b·x). The better one (smaller sum of squared errors, i.e. larger R²) is drawn solid and bold;
+  - the fit table with a and b ± standard uncertainty, the 95 % interval, R² and n. From 3 peaks; with fewer the
+    reason is shown.
+- The curve shows the numbered peaks and the better fit as a dashed envelope.
+- With 2 or more peaks the linear section (E, foot point t₀) is taken from the loading before the first peak, not
+  from a steeper reload after a drop; the fit window also ends at the first peak.
+- With 2 or more peaks the curve is coloured as rise (or elastic/plastic), load peaks (first to last peak) and drop
+  (after the last peak). By default it is not divided into elastic and plastic (see *Elastisch/plastisch einteilen*).
+- **Which elongation** is used depends on what you entered: strain in % with test speed and L₀, crosshead travel in mm
+  with the test speed only, otherwise the time in s. Every table and chart names which one it is.
+- **Outputs:** the PDF report gets a page "Lastspitzen", the Excel workbook a sheet "Lastspitzen" (formulas, checked
+  by the self-check), the images `_Diagramm_5.png`, and the Folio Lab report the peak figure, the fit figure, both
+  tables, the values `npk`, `pkLa`, `pkLb`, `pkLR2`, `pkEa`, `pkEb`, `pkER2` … and a methods paragraph. Own equations
+  can use `npk`, `Fpk1` … `Fpk20` and the fit parameters.
+- With a single maximum and a gradual decline nothing changes. The methods file (section 3.8) has the exact rule and
+  its limits.
+
 ## Tensile test from a dataset
 
 **From dataset …** (Aus Datensatz …) or the import on the overview (**⤓ Import a dataset …** / ⤓ Datensatz
@@ -143,7 +185,8 @@ python -m unittest discover -s tests -v
 ```
 
 `tests/test_science.py` checks the definitions with known answers (hold time, plateau, At/A, work to break,
-idealised curve, ranking, material data, import). The acceptance test (`tests/test_reference_measurement.py`) evaluates a reference recording and checks the parser result, the
+idealised curve, ranking, material data, import). `tests/test_peaks.py` checks the load peaks on synthetic sawtooth
+curves with known peaks, slopes, areas and envelopes. The acceptance test (`tests/test_reference_measurement.py`) evaluates a reference recording and checks the parser result, the
 data preparation, the evaluation in force and in stress, the material ranking and the apparent modulus against
 expected values. The reference recording is not part of the public repository; see the methods file for what each
 test checks and which tests need the recording.
@@ -155,6 +198,7 @@ test checks and which tests need the recording.
 | `flps/parser.py` | MS-NRBF reader, standard library only |
 | `flps/prepare.py` | sign, fine time, sampling rate, active section |
 | `flps/analyse.py` | slope, fit window, foot point, yield onset, break, key values, mandatory warnings |
+| `flps/peaks.py` | load peaks (progressive failure), per-peak values, line and exponential fit of the peak loads |
 | `flps/alloys.py` | material data, groups, idealised curve, envelope, ranking, reference comparison |
 | `flps/export/` | CSV, workbook with formulas and check, PNG, data-sheet and figure-appendix PDF, graphical report and comparison report (`report.py`) |
 | `flps/ui/` | local web interface |

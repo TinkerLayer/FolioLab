@@ -57,11 +57,11 @@
    "type": "png"
   },
   "fig/verlauf.pdf": {
-   "size": 27760,
+   "size": 27767,
    "type": "pdf"
   },
   "fig/verlauf.png": {
-   "size": 46822,
+   "size": 46738,
    "type": "png"
   },
   "kennwerte.tex": {
@@ -242,7 +242,7 @@
   },
   "text-methodik.tex": {
    "lines": [
-    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]. Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg. Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}. Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als \\labval{zugversuch-synthetische-kurve}{tol} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann (gierige Suche, nicht notwendig das längste solche Fenster). Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$. Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens \\labval{zugversuch-synthetische-kurve}{holdthr} des Maximums beträgt. Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren \\cite{iso6892-1} aus den Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung geteilt durch die Steigung des linearen Abschnitts derselben Kurve). Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood~\\cite{ramberg-osgood-1943} durch $R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne $R_{p0,2}$ elastisch bis $R_m$). Sie dienen nur der Orientierung und sind keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist."
+    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]. Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg. Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}. Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als \\labval{zugversuch-synthetische-kurve}{tol} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann (gierige Suche, nicht notwendig das längste solche Fenster). Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster und vor dem Maximum, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$. Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens \\labval{zugversuch-synthetische-kurve}{holdthr} des Maximums beträgt. Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren \\cite{iso6892-1} aus den Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung geteilt durch die Steigung des linearen Abschnitts derselben Kurve). Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood~\\cite{ramberg-osgood-1943} durch $R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne $R_{p0,2}$ elastisch bis $R_m$). Sie dienen nur der Orientierung und sind keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist."
    ],
    "type": "tex"
   },
@@ -693,6 +693,7 @@
       "compare_group": null,
       "diameter_mm": null,
       "displacement_source": "probe",
+      "elastic_plastic": "auto",
       "equations": null,
       "ext_values": null,
       "extra_refs": null,
@@ -703,6 +704,8 @@
       "material_ref": "EN AW-5052-H38",
       "operator": "",
       "outer_d_mm": null,
+      "peak_drop_frac": 0.05,
+      "peak_fit_exclude": null,
       "remark": "",
       "section": "rechteckig",
       "shape": "Frei",

@@ -77,7 +77,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
 .dd button.on::before { content: "✓"; margin-right: -12px; color: var(--accent); }
 .dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
 
-main { display: grid; grid-template-columns: 46px minmax(0, 1fr) 400px; min-height: 0; }
+main { display: grid; grid-template-columns: 46px minmax(0, 1fr) var(--lab-side, 400px); min-height: 0; }   /* UR: Seitenleiste ziehbar (LabUI.sizes) */
 #tools { display: flex; flex-direction: column; gap: 3px; padding: 6px 5px; background: var(--panel); border-right: 1px solid var(--line); }
 #tools button { width: 36px; height: 34px; padding: 0; display: grid; place-items: center; border-color: transparent; background: transparent; }
 #tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
@@ -124,6 +124,9 @@ ol.proto li span { flex: 1; }
 ol.proto li button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
 ol.proto li.empty::before { content: ""; }
 .tw { overflow: auto; max-height: 340px; border: 1px solid var(--line); border-radius: 6px; margin-top: 8px; }
+/* UR: Höhen der Listen hier statt inline, damit Doppelklick auf den Ziehgriff wieder diese Werte ergibt */
+#sLibs { max-height: 130px; } #mList, #lList { max-height: 330px; } #cList, #eqList { max-height: 220px; }
+#refList { max-height: 160px; } #kRuns { max-height: 150px; } #rpList { max-height: 320px; }
 table.res { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; width: 100%; }
 table.res th, table.res td { padding: 3px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 table.res th { position: sticky; top: 0; background: var(--soft); font-weight: 600; z-index: 1; }
@@ -216,7 +219,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       </div>
     </div>
   </div>
-  <aside>
+  <aside data-size-col="side">
     <!-- UI-06: sichtbar sind Bearbeiten, Stufen, Kennwerte, Suche, der gerade offene Tab und (ab zwei Läufen) Vergleich; der Rest unter „Mehr“ -->
     <nav class="tabs" role="tablist">
       <button data-tab="bearbeiten" class="sel" data-i18n="tg.tab_bearbeiten">Bearbeiten</button>
@@ -258,19 +261,19 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       </div>
       <div class="row"><button class="primary" id="stRun">Neu erkennen</button><button id="stAuto">Handgrenzen verwerfen</button></div>
       </details>
-      <div class="tw" id="stWrap"></div>
+      <div class="tw" id="stWrap" data-size-h="st" data-size-mode="max"></div>
       <div class="row"><button id="stCopy">Tabelle kopieren</button><button id="stCsv">CSV speichern</button><button id="stLib" title="Diese Stufen mit Quelle als Referenz in einer eigenen Bibliothek speichern">Als Referenz speichern …</button></div>
     </section>
 
     <section class="pane" data-pane="kennwerte" hidden>
       <h4 class="sub">Temperatur bei Massenverlust</h4>
-      <div class="tw" id="ltWrap"></div>
+      <div class="tw" id="ltWrap" data-size-h="lt" data-size-mode="max"></div>
       <h4 class="sub">Rückstand</h4>
       <div class="row2">
         <div><label for="resT">zusätzlich bei T [°C]</label><input type="number" id="resT" placeholder="z. B. 600"></div>
         <div><label for="isoAfter">Isotherm: Verlust nach [min]</label><input type="number" id="isoAfter" placeholder="z. B. 30"></div>
       </div>
-      <div class="tw" id="resWrap"></div>
+      <div class="tw" id="resWrap" data-size-h="res" data-size-mode="max"></div>
       <details id="dscFold" hidden><summary>DSC / Wärmestrom auswerten …</summary>
         <div class="row2">
           <div><label for="dscUnit">Einheit des Signals</label><select id="dscUnit"><option value="">aus der Datei</option><option value="mW">mW</option><option value="W/g">W/g (mW/mg)</option><option value="uV">µV (DTA, unkalibriert)</option></select></div>
@@ -281,7 +284,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
           <div><label for="dscTg">Glasübergänge [°C]</label><input id="dscTg" placeholder="z. B. 70-130"></div>
         </div>
         <div class="small">Lineare Basislinie zwischen den Bereichsgrenzen; Onset/Endset als Schnitt der Wendetangente mit der Basislinie (ISO 11357-1); T<sub>g</sub> bei halber Stufenhöhe (ISO 11357-2). Enthalpie je Einwaage, endotherm positiv.</div>
-        <div class="tw" id="dscWrap"></div>
+        <div class="tw" id="dscWrap" data-size-h="dsc" data-size-mode="max"></div>
       </details>
       <details id="egsFold"><summary>Gasanalyse (TGA-FTIR) …</summary>
         <div class="row"><button id="egsOpen">Spektrenserie öffnen …</button><button id="egsSample">Beispiel</button><input type="file" id="egsFile" accept=".csv,.txt,.tsv,.dat,.jdx,.dx,.jcamp" hidden></div>
@@ -290,7 +293,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       </details>
       <details class="lab-fold" data-fold="segFile"><summary data-i18n="tg.f_segfile">Segmente und Datei</summary>
       <h4 class="sub">Segmente</h4>
-      <div class="tw" id="segWrap"></div>
+      <div class="tw" id="segWrap" data-size-h="seg" data-size-mode="max"></div>
       <h4 class="sub">Datei</h4>
       <div class="detail" id="fileInfo"></div>
       </details>
@@ -309,7 +312,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label for="rxKey">Zersetzung</label><select id="rxKey"></select></div>
       </div>
       <div class="row"><button id="rxAdd">Zuordnen</button></div>
-      <div class="tw" id="rxWrap"></div>
+      <div class="tw" id="rxWrap" data-size-h="rx" data-size-mode="max"></div>
       </details>
       <details class="lab-fold" data-fold="calib"><summary data-i18n="tg.f_calib">Kalibrierung</summary>
       <label class="chk"><input type="checkbox" id="calOx"> Prüfung mit Calciumoxalat-Monohydrat (Stufen gegen 12,33 / 19,17 / 30,12 %)</label>
@@ -329,7 +332,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="row"><button class="primary" id="sRun">Suchen (F3)</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="sRep" checked> In den Bericht</label></div>
       <details class="lab-fold" data-fold="sOpts"><summary><span data-i18n="tg.f_sopts">Bibliotheken und Optionen</span> <span class="cnt" id="sOptCnt"></span></summary>
       <label>Bibliotheken</label>
-      <div class="list" id="sLibs" style="max-height:130px"></div>
+      <div class="list" id="sLibs" data-size-h="slibs" data-size-mode="max"></div>
       <div class="row2">
         <div><label for="sMode">Vergleich</label><select id="sMode"><option value="both">DTG-Kurve und Stufen</option><option value="curve">nur DTG-Kurve</option><option value="steps">nur Stufen (Lage, Verlust, Rückstand)</option></select></div>
         <div><label for="sCat">Kategorie</label><select id="sCat"></select></div>
@@ -342,7 +345,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label for="sWc" title="Nur bei „DTG-Kurve und Stufen“: Trefferwert = w·Kurve + (1 − w)·Stufen">Gewicht DTG-Kurve [%]</label><input type="number" id="sWc" min="0" max="100" step="5" value="60"></div>
       </div>
       </details>
-      <div class="tw" id="sWrap"></div>
+      <div class="tw" id="sWrap" data-size-h="hits" data-size-mode="max"></div>
       <div class="detail" id="sDetail" hidden></div>
     </section>
 
@@ -354,17 +357,17 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       </div>
       <div class="row"><button class="primary" id="mRun">Mischung analysieren</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="mRep" checked> In den Bericht</label></div>
       <div class="note warn" id="mStale" hidden>Der Lauf wurde seit der Analyse geändert. Bitte neu rechnen.</div>
-      <div class="list" id="mList" style="max-height:330px"></div>
+      <div class="list" id="mList" data-size-h="mix" data-size-mode="max"></div>
       <div class="detail" id="mDetail" hidden></div>
     </section>
 
     <section class="pane" data-pane="vergleich" hidden>
       <div class="small">Markierte Läufe werden im Diagramm überlagert (jeweils mit ihrem eigenen Protokoll). Name anklicken zum Umbenennen.</div>
-      <div class="list" id="cList" style="max-height:220px"></div>
-      <div class="tw" id="cTable"></div>
+      <div class="list" id="cList" data-size-h="cmp" data-size-mode="max"></div>
+      <div class="tw" id="cTable" data-size-h="cmptab" data-size-mode="max"></div>
       <h4 class="sub">Referenzen einblenden</h4>
       <div class="small">Kurven aus jeder Bibliothek (auch eigene, z. B. Werte aus einem Paper) gestrichelt einblenden. Sie gehen mit Quellenangabe in die TG-Abbildung des Berichts.</div>
-      <div class="list" id="refList" style="max-height:160px"></div>
+      <div class="list" id="refList" data-size-h="refs" data-size-mode="max"></div>
       <div class="row"><button id="refAdd">Referenz einblenden …</button><button id="refNew" title="Neue eigene Referenz aus Stufenwerten mit Quelle anlegen und einblenden">Eigene Referenz eingeben …</button></div>
       <h4 class="sub">Neue Läufe berechnen</h4>
       <div class="row2">
@@ -377,7 +380,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
     <section class="pane" data-pane="kinetik" hidden>
       <div class="small">Mindestens drei Läufe derselben Probe mit verschiedenen Heizraten (ICTAC 2011). Für eine Stufe: Temperaturbereich eingeben oder mit dem Werkzeug <b>R</b> aufziehen.</div>
       <label>Läufe</label>
-      <div class="list" id="kRuns" style="max-height:150px"></div>
+      <div class="list" id="kRuns" data-size-h="kruns" data-size-mode="max"></div>
       <div class="row2">
         <div><label for="kLo">Stufe von [°C]</label><input type="number" id="kLo"></div>
         <div><label for="kHi">bis [°C]</label><input type="number" id="kHi"></div>
@@ -401,7 +404,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label for="dcN">Spitzen</label><input type="number" id="dcN" min="1" max="8" placeholder="auto"></div>
       </div>
       <div class="row"><select id="dcPreset" style="width:auto"></select><button id="dcGuess">Startwerte</button></div>
-      <div class="tw" id="dcPeaks"></div>
+      <div class="tw" id="dcPeaks" data-size-h="dcpk" data-size-mode="max"></div>
       <div class="row"><button id="dcAddPk">Spitze hinzufügen</button><label class="chk" style="margin:0"><input type="checkbox" id="dcFix"> Lagen festhalten</label></div>
       <div class="row"><button class="primary" id="dcFit">Anpassen</button><button id="dcOff">Trennung entfernen</button></div>
       <div id="dcOut"></div>
@@ -414,7 +417,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="row"><button id="lNew">Neu …</button><button id="lDel">Löschen</button><button id="lExp">Exportieren (JSON)</button><button id="lImp">Importieren …</button></div>
       <div class="row"><button class="primary" id="lAddRun">Aktuellen Lauf als Referenz …</button><button id="lAddSteps">Referenz aus Stufenwerten …</button></div>
       <input type="text" id="lFilter" placeholder="Einträge filtern" style="margin-top:10px">
-      <div class="list" id="lList" style="max-height:330px"></div>
+      <div class="list" id="lList" data-size-h="libs" data-size-mode="max"></div>
       <div class="detail" id="lDetail" hidden></div>
       <details class="lab-fold" data-fold="libHelp"><summary data-i18n="tg.f_libhelp">Hinweise zu Bibliotheken</summary>
       <div class="small">Eigene Bibliotheken liegen im Ausgabeordner unter <code>bibliotheken</code> als JSON und Zahlen; sie lassen sich exportieren, weitergeben und von Hand bearbeiten. Jede Referenz trägt eine vollständige Quellenangabe, die im Bericht zitiert wird.</div>
@@ -423,10 +426,10 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
 
     <section class="pane" data-pane="gleichungen" hidden>
       <div class="small">Eigene Gleichungen rechnen mit den Kennwerten des Laufs (Namen unten anklicken) und den Funktionen <code>m(T)</code> (Masse in % bei T), <code>dtg(T)</code> und <code>loss(T1, T2)</code>. Spätere Gleichungen dürfen frühere verwenden. Aktive Gleichungen gehen als \labval, Tabelle und Formel in den Bericht.</div>
-      <div class="list" id="eqList" style="max-height:220px"></div>
+      <div class="list" id="eqList" data-size-h="eq" data-size-mode="max"></div>
       <div class="row"><button class="primary" id="eqNew">Neue Gleichung …</button><button id="eqExp">Exportieren</button><button id="eqImp">Importieren …</button></div>
       <h4 class="sub">Ergebnisse</h4>
-      <div class="tw" id="eqRes"></div>
+      <div class="tw" id="eqRes" data-size-h="eqres" data-size-mode="max"></div>
       <h4 class="sub">Verfügbare Namen</h4>
       <div class="vars" id="eqVars"></div>
     </section>
@@ -591,6 +594,7 @@ function dialog(title, bodyHtml, buttons, leftHtml = "", onOpen = null, wide = f
   $("#dlgFoot").innerHTML = (leftHtml ? `<div class="left">${leftHtml}</div>` : "") +
     buttons.map(b => `<button value="${b.value}" ${b.primary ? 'class="primary"' : ""}>${esc(b.label)}</button>`).join("");
   if (onOpen) onOpen($("#dlgBody"));
+  if (window.LabUI && LabUI.sizes) LabUI.sizes("tga", $("#dlgBody"));   // UR: Listen im Dialog (data-size-h) ziehbar
   return new Promise((res) => {
     const done = () => { d.removeEventListener("close", done); res(d.returnValue || "cancel"); };
     d.returnValue = "";
@@ -1028,9 +1032,10 @@ function updateComp() {
   $("#cpParams").innerHTML = def ? Object.entries(params).map(([k, v]) => `<div><label>${k === "T1" ? "Grenze 1 [°C]" : k === "T2" ? "Grenze 2 [°C]" : "Grenzen [°C], Komma"}</label><input data-cp="${k}" value="${Array.isArray(v) ? v.join("; ") : v}"></div>`).join("") : "";
   const c = d && d.comp;
   $("#cpOut").innerHTML = !c ? "" : c.error ? `<div class="note err">${esc(c.error)}</div>` :
-    `<div class="tw"><table class="res"><thead><tr><th class="l">Anteil</th><th class="l">Bereich</th><th>%</th>${c.basis ? "<th>% trocken</th>" : ""}</tr></thead><tbody>${c.rows.map(r => `<tr><td class="l">${esc(r.name)}</td><td class="l small">${esc([r.from, r.to].filter(x => x !== "" && x != null).map(x => typeof x === "number" ? fmt(x, 0) + " °C" : x).join(" – "))}</td><td><b>${fx(r.pct, 2)}</b></td>${c.basis ? `<td>${r.dry != null ? fx(r.dry, 2) : "–"}</td>` : ""}</tr>`).join("")}</tbody></table></div>` +
+    `<div class="tw" data-size-h="cp" data-size-mode="max"><table class="res"><thead><tr><th class="l">Anteil</th><th class="l">Bereich</th><th>%</th>${c.basis ? "<th>% trocken</th>" : ""}</tr></thead><tbody>${c.rows.map(r => `<tr><td class="l">${esc(r.name)}</td><td class="l small">${esc([r.from, r.to].filter(x => x !== "" && x != null).map(x => typeof x === "number" ? fmt(x, 0) + " °C" : x).join(" – "))}</td><td><b>${fx(r.pct, 2)}</b></td>${c.basis ? `<td>${r.dry != null ? fx(r.dry, 2) : "–"}</td>` : ""}</tr>`).join("")}</tbody></table></div>` +
     (c.basis ? `<div class="small">${esc(c.basis.de)}</div>` : "") +
     (c.warnings || []).map(w => `<div class="note warn">${esc(w)}</div>`).join("") + (c.ref ? `<div class="small">Verfahren: ${esc(META.refs[c.ref] ? META.refs[c.ref].text : c.ref)}</div>` : "");
+  if (window.LabUI && LabUI.sizes) LabUI.sizes("tga", $("#cpOut"));   // UR: neu erzeugte Tabelle bekommt ihren Ziehgriff
   // Reaktionen
   $("#rxStep").innerHTML = d ? d.steps.map(s => `<option value="${s.no}">Stufe ${s.no}: ${fx(s.loss, 2)} % bei ${fx(stepX(s, "peak"), 0)}</option>`).join("") : "";
   const rx = (d && d.reactions) || [];
@@ -1170,7 +1175,7 @@ async function refPicker() {
   const libs = S.libs;
   if (!libs.length) return;
   let entries = [], lib = S.libSel || libs[0].id;
-  const html = `<div class="row2"><div><label>Bibliothek</label><select id="rpLib">${libs.map(l => `<option value="${esc(l.id)}"${l.id === lib ? " selected" : ""}>${esc(l.name)}</option>`).join("")}</select></div><div><label>Filter</label><input id="rpF" placeholder="z. B. PE, Calcit, Cellulose"></div></div><div class="list" id="rpList" style="max-height:320px"></div>`;
+  const html = `<div class="row2"><div><label>Bibliothek</label><select id="rpLib">${libs.map(l => `<option value="${esc(l.id)}"${l.id === lib ? " selected" : ""}>${esc(l.name)}</option>`).join("")}</select></div><div><label>Filter</label><input id="rpF" placeholder="z. B. PE, Calcit, Cellulose"></div></div><div class="list" id="rpList" data-size-h="rp" data-size-mode="max"></div>`;
   const pick = new Set();
   const draw_ = () => {
     const f = ($("#rpF").value || "").toLowerCase();
@@ -1860,6 +1865,8 @@ const MENUS = [
     { label: "Referenz einblenden …", always: true, act: refPicker },
     { label: "Eigene Referenz eingeben und einblenden …", always: true, act: () => libAddSteps(false, true) },
     { label: "Eingeblendete Referenzen entfernen", enabled: () => S.refs.length, act: () => { S.refs = []; updateCompare(); draw(); } },
+    "-",
+    { label: "Fenstergrössen zurücksetzen", tkey: window.LabUI ? "ui.resetSizes" : undefined, always: true, enabled: () => !!(window.LabUI && LabUI.resetSizes), act: () => LabUI.resetSizes("tga") },   // UR
   ] },
   { label: "Bibliothek", tkey: "tg.m_lib", items: [
     { label: "Neue Bibliothek …", always: true, act: libNew },
@@ -2154,7 +2161,7 @@ async function init() {
     done: (sel, extra) => { S.sel = sel; if (extra && Array.isArray(extra.kinSel)) S.kinSel = extra.kinSel; S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.view = null; updateChips(); updateAll(); draw(); if (OV) setTimeout(() => OV.sync(), 0); },
   });
   await withBusy(() => ENVS.open());
-  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("tga"); LabUI.onLang(() => { buildMenus(); renderTabs(); updateFoldCounts(); }); }
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("tga"); if (LabUI.sizes) LabUI.sizes("tga"); LabUI.onLang(() => { buildMenus(); renderTabs(); updateFoldCounts(); }); }
   // UI-06 (Q27): Startansicht Übersicht – Umgebungen, Projektindex, eigene Freigaben (Stufentabellen)
   if (window.LabOverview) {
     OV = LabOverview.create({

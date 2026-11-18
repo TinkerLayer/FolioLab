@@ -231,6 +231,28 @@ Code: `server/lab.js` (`refresh`), `modules/datenaufbereitung/daten/server.py` (
 * A test checks that a pinned rebuild gives the same version and data hash, and that a live rebuild moves to the
   newest version with the note.
 
+### Imported pieces and the portable ZIP
+
+Code: `server/pieces.js` (extractor, content hash), `server/importer.js` (import, link states, Update),
+`server/portable.js` (portable ZIP).
+
+* **Import** turns pieces of another report, a whole analysis result, shared values, a shared data table, index values
+  or pieces of an uploaded LaTeX ZIP into a report bundle (module `import`, or the original module for a whole
+  result). The bundle's `link` records the source (`report` with project ID, `result` with slug, `result_id` and
+  revision, `suite` with share/index bindings, or `zip`), the mode and, per piece, a **content hash**. The hash covers
+  the LaTeX of the piece, the SHA-256 of every file it uses, its `.bib` entries, the macro definitions and the
+  `\labval` values it needs.
+* **Link states** (Lab dialog, `GET /api/projects/:id/import/links`): `current` when every hash (or the result
+  revision, or the share version) matches; `stale` (live) or `update` (pinned) when one differs; `failed` when a
+  piece, the report or the share is gone; none for a copy.
+* **Update** imports the same pieces again and saves them as a new revision (`action: update`), so the old state stays
+  in the history. Share and index bindings in an imported result protect their versions like any other binding
+  (section 8).
+* **Portable ZIP** (`GET /api/projects/:id/zip?portable=1`): `folio-link.json` lists every result with its slug,
+  namespace, result ID, revision, issued state, module version and shared inputs, plus the prefixed labels and keys.
+  When that ZIP is imported into a Folio that has the original report, the pieces link to that report (same hashes as
+  the report's own pieces, so they start `current`).
+
 ## 7. Tracing a value back
 
 Code: `sdk/python/labprov.py` (`chain`, `chain_for_report`, `dependencies`).
@@ -297,7 +319,7 @@ To make a number reproducible, state:
 
 Example wording:
 
-> Raw data (file names and SHA-256 in the supplementary material) were read and cleaned with Folio Lab 0.2.0,
+> Raw data (file names and SHA-256 in the supplementary material) were read and cleaned with Folio Lab 0.3.0,
 > module Datenaufbereitung 0.3.0. Outliers were flagged with the Grubbs test (two-sided, applied sequentially with
 > α = 0.05 per step, so the overall error rate is not 0.05) and
 > 2 of 14 rows were excluded after inspection (reasons listed in the supplement). The analysis used dataset
@@ -336,6 +358,7 @@ Paths are relative to the project root.
 | Bundle and rebuild | `modules/datenaufbereitung/tests/test_share.py::BundleTest::test_bundle_pieces_and_pdflatex_safety` | Bundle pieces; rebuild gives the same data hash. |
 | Bundle in the full chain | `modules/datenaufbereitung/tests/test_share.py::ShareServerTest::test_template_batch_export_bundle` | Batch, export and bundle through the server. |
 | Revisions | `tools/test_lab_revisions.js` (script, no named tests) | First save is revision 1 with module version and 64-hex source SHA-256; two refreshes give revisions 2 and 3 with the same `result_id`; compare shows 480 → 501 MPa and a changed `values.tex` with `source_changed` false; restoring revision 1 gives revision 4; restoring the current or a missing revision is refused; after marking issued, a refresh gives revision 5 with `issued: null` and the issued revision stays in history; issue-all for ZIP; an old bundle without these fields counts as revision 1; a bundle's own `module_version` wins (`module_version_from: bundle`, `source_kind: dataset`), otherwise `module.json` and `files`; removing a never-issued result deletes it, removing an issued one moves it to `_removed/` where `dependencies.json` still lists it with its share versions (binding: the version used). |
+| Import, links and portable ZIP | `tools/test_report_import.js` (script, 9 checks) | Extractor finds figures, equations, sections, results, values and images with their needs; an import brings files, prefixed labels, citations, macros, packages and values; live `current` → `stale` after a source change → Update gives revision 2 `current`, pinned shows `update`; a copy has no link and a clashing cite key is renamed; a whole result follows its source revision; the portable ZIP has prefixed labels, keys and namespaces and a BibTeX copy, and its re-import reconnects `current`; shares (values, npz table → CSV) and index values import, go `stale` and update; with LaTeX: the report with imports, the ZIP alone, in a natbib/BibTeX host and in a biblatex host with cleveref compile without errors or undefined references. |
 | End to end | `tools/e2e_datasets.py` (script) | Excel → dataset → cleaning → Calculator, Elemental Calculator, TGA, FTIR → report; the methods text names exclusions and the dataset ID; rebuild gives the same hash; exports round-trip. |
 
 ---
@@ -358,3 +381,8 @@ Paths are relative to the project root.
   newer than a still-running old process. The version that read the raw file is in the dataset provenance.
 * **Chain depth**: the chain of derived datasets stops after 8 levels (the Datenaufbereitung allows 6).
 * Chain texts, notes and the methods text are in German, also in an English report.
+* **Imports from module environments**: an environment's last result is not an import source (environments keep
+  their state, not a report bundle); send it to a report first, then import it from there.
+* **Imported LaTeX** is cut out by a parser, not by TeX: pieces that rely on macros defined in packages Folio does not
+  know, on `\input` of generated files, or on counters and environments defined elsewhere may need a manual fix. The
+  dialog lists what it found (files, references, macros, packages) and the warnings name what is missing.

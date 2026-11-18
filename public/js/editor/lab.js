@@ -1,7 +1,7 @@
 // Folio Lab in the editor: browse the analysis results stored in this project (lab/<slug>/) and insert
 // figures, tables, values, data plots, citations and text. The main file gets the few lines it needs
 // (\input{lab/labdata}, packages, bibliography) the first time something is inserted.
-import { api, fileUrl, esc, h, icon, modal, confirmBox, toast } from '../ui.js';
+import { api, fileUrl, esc, h, icon, modal, confirmBox, toast, store } from '../ui.js';
 
 let ctx; // { projectId, project(), editor(), insertSnippet, snipEsc, ensurePackage, ensureTexEditor, getModel, refreshFiles, reloadFromDisk, monaco() }
 
@@ -177,9 +177,27 @@ function statusChips(b) {
   ].join(' ');
 }
 
+// imported results follow their source (live), wait for a click (pinned) or stand alone (copy).
+const LINK_MODE = { live: 'Live', pin: 'Pinned', copy: 'Copy' };
+function linkPill(b, st) {
+  const l = b.link;
+  if (!l) return '';
+  const from = l.type === 'suite' ? 'the shared data of the project' : l.type === 'zip' ? `the ZIP ${l.name || ''}`.trim() : `"${l.title || l.project || ''}"`;
+  if (l.type === 'zip' || l.mode === 'copy') return `<span class="pill" title="Imported from ${esc(from)}; no link to the source">copy</span>`;
+  if (!st) return `<span class="pill" title="Checking ${esc(from)}">${LINK_MODE[l.mode] || l.mode} · checking…</span>`;
+  const what = [...(st.changed || []), ...(st.missing || [])].join(', ');
+  const upd = '<button class="btn xs" data-act="link-update" title="Import the current state of the source again; the previous state stays as a revision">Update</button>';
+  if (st.state === 'current') return `<span class="pill ok" title="Same as ${esc(from)}">${LINK_MODE[l.mode]} · source current</span>`;
+  if (st.state === 'stale') return `<span class="pill warn" title="${esc(from)} changed: ${esc(what)}">source changed</span> ${upd}`;
+  if (st.state === 'update') return `<span class="pill live" title="${esc(from)} changed: ${esc(what)}; pinned, so nothing changed here">update available</span> ${upd}`;
+  if (st.state === 'failed') return `<span class="pill err" title="${esc(st.error || `Not found in ${from}: ${what}`)}">source missing</span>`;
+  return `<span class="pill">${LINK_MODE[l.mode] || ''}</span>`;
+}
+
 // ---------------------------------------------------------------- dialog
 export async function openLab(preselect) {
   let bundles = [];
+  let links = null; // slug -> link state, loaded after the list because it reads the sources
   let current = preselect || null;
   await ctx.refreshFiles().catch(() => {});
   const body = h(`<div class="lab-dlg">
@@ -188,6 +206,28 @@ export async function openLab(preselect) {
   </div>`);
   const listEl = body.querySelector('.lab-list');
   const detailEl = body.querySelector('.lab-detail');
+  // List column: drag the divider; kept as a fraction of the dialog width, double-click resets.
+  const colGrip = h('<div class="lab-colgrip" title="Drag to resize; double-click resets"></div>');
+  body.appendChild(colGrip);
+  const setListW = (px) => body.style.setProperty('--lab-list-w', Math.round(Math.max(140, Math.min(body.clientWidth - 240, px))) + 'px');
+  new ResizeObserver(() => { const f = store('labListF'); if (typeof f === 'number' && f > 0 && body.clientWidth) setListW(f * body.clientWidth); }).observe(body);
+  colGrip.addEventListener('dblclick', () => { body.style.removeProperty('--lab-list-w'); store('labListF', null); });
+  colGrip.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    colGrip.setPointerCapture(e.pointerId);
+    const x0 = e.clientX, w0 = listEl.getBoundingClientRect().width;
+    document.body.classList.add('resizing');
+    const move = (ev) => setListW(w0 + ev.clientX - x0);
+    const up = () => {
+      document.body.classList.remove('resizing');
+      colGrip.removeEventListener('pointermove', move);
+      colGrip.removeEventListener('pointerup', up);
+      store('labListF', listEl.getBoundingClientRect().width / body.clientWidth);
+    };
+    colGrip.addEventListener('pointermove', move);
+    colGrip.addEventListener('pointerup', up);
+  });
   let closeDialog = () => {};
 
   async function reload() {
@@ -195,6 +235,26 @@ export async function openLab(preselect) {
     if (!bundles.some((b) => b.slug === current)) current = bundles[0]?.slug || null;
     renderList();
     renderDetail();
+    if (bundles.some((b) => b.link)) loadLinks();
+  }
+
+  async function loadLinks() {
+    try {
+      const all = await api('GET', `/api/projects/${ctx.projectId}/import/links`);
+      links = new Map(all.map((s) => [s.slug, s]));
+    } catch (e) {
+      links = new Map(bundles.filter((b) => b.link).map((b) => [b.slug, { slug: b.slug, state: 'failed', error: e.message, changed: [], missing: [] }]));
+    }
+    fillLink();
+  }
+
+  function fillLink() {
+    const b = bundles.find((x) => x.slug === current);
+    const el = detailEl.querySelector('.lab-link');
+    if (!b || !b.link || !el) return;
+    el.innerHTML = linkPill(b, links && links.get(b.slug));
+    const btn = el.querySelector('[data-act=link-update]');
+    if (btn) btn.onclick = () => rebuild(b, btn, {}, `/api/projects/${ctx.projectId}/import/${b.slug}/update`);
   }
 
   function renderList() {
@@ -227,17 +287,18 @@ export async function openLab(preselect) {
     const by = (k) => b.items.filter((i) => i.kind === k);
     const values = by('values').flatMap((v) => v.values || []);
     const other = b.lang === 'en' ? 'de' : 'en';
+    const imported = b.module === 'import';
     detailEl.innerHTML = `
       <div class="lab-head">
         <div class="grow"><h3>${esc(b.title)}</h3><div class="muted">${esc(b.summary || '')}</div>
-          <div class="hint">Stored in <code>lab/${esc(b.slug)}/</code> · from <a href="/m/${esc(b.module)}/" target="_blank">${esc(b.module_name || b.module)}</a>${b.provenance && b.provenance.module_version ? ` ${esc(b.provenance.module_version)}` : ''}</div>
-          <div class="lab-status">${statusChips(b)}
+          <div class="hint">Stored in <code>lab/${esc(b.slug)}/</code> · ${imported ? `imported from ${esc(b.link ? b.link.title || '' : '')}` : `from <a href="/m/${esc(b.module)}/" target="_blank">${esc(b.module_name || b.module)}</a>${b.provenance && b.provenance.module_version ? ` ${esc(b.provenance.module_version)}` : ''}`}</div>
+          <div class="lab-status">${statusChips(b)}${b.link ? ` <span class="lab-link"></span>${b.link.type !== 'zip' ? ` <select class="input xs" data-act="link-mode" title="Live: marked when the source changes · Pinned: an update is offered · Copy: no link">${Object.entries(LINK_MODE).map(([k, v]) => `<option value="${k}" ${b.link.mode === k ? 'selected' : ''}>${v}</option>`).join('')}</select>` : ''}` : ''}
             <a href="#" data-act="revs">revisions ▾</a> · <a href="#" data-act="hist" title="Measurement files, module version and, for shared inputs, the chain back to the raw file">history ▾</a></div>
           <div class="lab-revs" hidden></div><div class="lab-hist" hidden></div></div>
         <div class="lab-actions">
           <button class="btn sm primary" data-act="section" title="Write sections/${esc(b.slug)}.tex with all text, figures and tables, and insert \\input for it">${icon('file-plus')}Insert results section</button>
-          <button class="btn sm" data-act="refresh" ${b.source ? '' : 'disabled'} title="Recompute from the stored measurement files with the current module version">${icon('refresh')}Refresh</button>
-          <button class="btn sm" data-act="lang" ${b.source ? '' : 'disabled'} title="Rebuild captions and text in ${other === 'en' ? 'English' : 'German'}">${other === 'en' ? 'English' : 'Deutsch'}</button>
+          ${imported ? '' : `<button class="btn sm" data-act="refresh" ${b.source ? '' : 'disabled'} title="Recompute from the stored measurement files with the current module version">${icon('refresh')}Refresh</button>
+          <button class="btn sm" data-act="lang" ${b.source ? '' : 'disabled'} title="Rebuild captions and text in ${other === 'en' ? 'English' : 'German'}">${other === 'en' ? 'English' : 'Deutsch'}</button>`}
           <button class="btn sm ghost danger" data-act="remove" title="Remove these results from the report">${icon('trash')}</button>
         </div>
       </div>
@@ -313,8 +374,22 @@ export async function openLab(preselect) {
       if (!box.hidden) renderHistory(b, box);
     };
     detailEl.querySelector('[data-act=section]').onclick = () => resultsSection(b).then(done);
-    detailEl.querySelector('[data-act=refresh]').onclick = (e) => rebuild(b, e.currentTarget, {});
-    detailEl.querySelector('[data-act=lang]').onclick = (e) => rebuild(b, e.currentTarget, { lang: other });
+    if (!imported) {
+      detailEl.querySelector('[data-act=refresh]').onclick = (e) => rebuild(b, e.currentTarget, {});
+      detailEl.querySelector('[data-act=lang]').onclick = (e) => rebuild(b, e.currentTarget, { lang: other });
+    }
+    fillLink();
+    const modeSel = detailEl.querySelector('[data-act=link-mode]');
+    if (modeSel) modeSel.onchange = async () => {
+      try {
+        await api('POST', `/api/projects/${ctx.projectId}/import/${b.slug}/mode`, { mode: modeSel.value });
+        toast(`Link: ${LINK_MODE[modeSel.value]}`);
+        await reload();
+      } catch (err) {
+        toast(err.message, 'error');
+        modeSel.value = b.link.mode;
+      }
+    };
     detailEl.querySelector('[data-act=remove]').onclick = async () => {
       const ok = await confirmBox(
         'Remove results',
@@ -403,16 +478,17 @@ export async function openLab(preselect) {
     };
   }
 
-  async function rebuild(b, btn, opts) {
+  async function rebuild(b, btn, opts, url = `/api/projects/${ctx.projectId}/lab/${b.slug}/refresh`) {
     const label = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = `${icon('loader')}Working…`;
     try {
-      await api('POST', `/api/projects/${ctx.projectId}/lab/${b.slug}/refresh`, opts);
+      await api('POST', url, opts);
       await ctx.refreshFiles();
       await ctx.reloadFromDisk(`lab/${b.slug}/`);
       await ctx.reloadFromDisk('lab/labdata.tex');
-      toast(opts.lang ? `Results rebuilt in ${opts.lang === 'en' ? 'English' : 'German'}` : 'Results refreshed');
+      await ctx.reloadFromDisk('lab/references.bib');
+      toast(opts.lang ? `Results rebuilt in ${opts.lang === 'en' ? 'English' : 'German'}` : b.link ? 'Updated from the source' : 'Results refreshed');
       await reload();
     } catch (err) {
       toast(err.message, 'error', 8000);

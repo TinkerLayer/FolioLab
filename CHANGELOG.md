@@ -8,6 +8,137 @@ follows [Semantic Versioning](https://semver.org/). Each analysis module also ha
 Versions below 1.0.0 mean that the methods are tested by the project's own test suites (see `docs/VALIDATION.md`)
 but have not yet been validated independently.
 
+## [Unreleased]
+
+## [0.3.0] – 2026-11-18
+
+Changes since 0.2.0:
+- report import from anywhere in Folio Lab, and a portable LaTeX ZIP for other projects;
+- environments can be deleted from the overview;
+- resizable layouts on every page;
+- in the Zugversuch, load peaks for materials that fail progressively, and a switch for the elastic/plastic division.
+
+**Zugversuch results change** for curves with two or more load peaks, and for curves whose yield onset lay after the
+maximum (see "Changed results"). All other modules compute the same numbers as in 0.2.0. Their pages changed only in
+layout, so their versions stay the same.
+
+| Component | Version | Since 0.2.0 |
+|---|---|---|
+| Report editor and hub | 0.3.0 | import, portable ZIP, resizable panels |
+| Zugversuch (tensile test) | 1.4.0 | was 1.3.0: load peaks, elastic/plastic switch, movable legends; results change |
+| Mikroskopie (microscopy) | 1.3.0 | unchanged (layout only) |
+| Rechner (calculator) | 1.4.0 | unchanged (layout only) |
+| FTIR | 1.5.0 | unchanged (layout only) |
+| TGA | 0.13.0 | unchanged (layout only) |
+| Elementrechner (chemistry) | 0.11.0 | unchanged (layout only) |
+| Datenaufbereitung (data purification) | 0.3.0 | unchanged (layout only) |
+
+### Added
+
+**Report editor: Import**
+- New "Import" button next to Lab. It takes figures, tables, equations (numbered or not), whole sections, images, data
+  files and values from these sources:
+  - other reports;
+  - whole analysis results;
+  - the shared data and index values of the active project;
+  - an uploaded ZIP of any LaTeX project.
+
+  Search, a kind filter and a preview (picture or LaTeX) help find the piece.
+- Every piece brings what it needs: its files, its `.bib` entries, the macros it uses, the packages they need and its
+  `\labval` values. Labels get a prefix, so nothing clashes with the report. A cite key that the report already has
+  with a different entry is renamed, with a note.
+- An import becomes an analysis result of the report (`lab/import-…/`). It is inserted from the Analysis results
+  dialog like any other result.
+- Imports are *live* by default. When the source changes, the dialog says "source changed", and *Update* fetches the
+  new state; the old state stays as a revision. *Pinned* only offers the update. *Copy* has no link.
+- Shared data tables are imported as CSV, ready for the Plot button. Shared values and index values become `\labval`
+  values with their unit and uncertainty.
+
+**Report export: portable LaTeX ZIP**
+- The download menu in the editor (and on the start page) has "Portable LaTeX for other projects (.zip)". The ZIP holds
+  a folder `<prefix>/` with:
+  - `body.tex` and `preamble.tex`;
+  - `<prefix>.bib` (biblatex) and `<prefix>-bibtex.bib` (BibTeX);
+  - the figures, tables and data the report uses.
+- Labels and cite keys get the prefix, so the folder can sit next to other content. `preamble.tex` loads only packages
+  the host has not loaded and defines nothing twice.
+- A `main.tex` at the top compiles the folder on its own. `README.txt` gives the lines a host document needs, for
+  biblatex and for BibTeX. Measurement sources, history and removed results are left out.
+- `folio-link.json` records where each result came from. If the original report is in Folio, importing the ZIP back
+  links the pieces to that report again.
+
+**All module pages and the report editor**
+- **Delete environments from the overview.**
+  - Hover over an environment box (or focus it) and click the small × at the top right, or press Delete.
+  - A warning names the environment first.
+  - Once confirmed, the environment moves to the project's trash (`_papierkorb`) and its connections are removed. An
+    open environment is replaced by the standard one.
+  - The standard environment has no ×.
+- **Resizable layouts.**
+  - Drag the edge of a side panel, the bottom edge of a chart, table or list, or the edge or corner of a dialog or
+    floating window.
+  - Sizes are remembered per module and browser as fractions of the window, so a layout keeps its proportions on
+    another screen.
+  - Double-click a handle to reset it; "Fenstergrössen zurücksetzen" in the view menu resets all of them.
+  - Keyboard: focus a handle and use the arrow keys.
+- In the report editor, the Files/Outline split, dialogs and the result list in "Analysis results" are resizable. The
+  sidebar and PDF pane widths now stay in proportion to the window.
+
+**Zugversuch 1.4.0: load peaks for progressive failure** (ropes, fibre bundles, composites; methods section 3.8)
+- **Detection.** Peaks are found by a hysteresis rule: a peak counts when the load then drops by at least
+  Δ = max(5 % of Fmax, 3 × display resolution). The fraction can be set per test, and single peaks can be left out of
+  the fit.
+- **Values per peak:**
+  - time and elongation (strain with v and L₀, crosshead travel with v only, otherwise time);
+  - load, the valley after it, and the drop in N and % with its duration;
+  - ratio to the previous peak;
+  - reload stiffness (20–80 % of the rise);
+  - work per segment and cumulative work.
+- **Fits.** The peak loads are fitted against the elongation at the peak, with a line and with an exponential.
+  - Both fits report parameters ± u, a 95 % CI, R² and SSE.
+  - The fit with the smaller residual sum of squares is highlighted.
+  - No fit is made with fewer than 3 peaks.
+- **Output:**
+  - the page ("Lastspitzen");
+  - the PDF report;
+  - an Excel sheet with a self-check;
+  - the Folio bundle (figure, table, values, methods text).
+
+  Equation variables `npk`, `Fpk1`…`Fpk20` and the fit parameters are available. An info note (4.9) explains that
+  Fmax is the highest peak.
+
+**Zugversuch 1.4.0: elastic/plastic switch**
+- "Elastisch/plastisch einteilen" (divide into elastic and plastic) can be *Automatisch* (default), *Ein* or *Aus*.
+- *Automatisch* does not divide curves with two or more load peaks. In ropes, fibre bundles and composites the parts
+  fail one after another, so a limit on the force curve does not describe a state of the material.
+- Without the division:
+  - the curve is coloured as rise, load peaks and drop;
+  - the yield slider is hidden;
+  - yield onset, ratio, Ag and A are left out;
+  - note 7.4 and the report's methods text say why (methods section 3.3).
+- New phases "Anstieg" (rise) and "Lastspitzen" (load peaks, from the first to the last peak) appear in the page, the
+  CSV, the workbook, the PDF report and the bundle.
+
+**Zugversuch 1.4.0: movable legends**
+- Chart legends on the page can be dragged out of the way. The place is remembered per chart; double-click resets it.
+- In the PDF charts the curve legend is placed where it covers the least data.
+
+### Changed results
+
+**Zugversuch 1.4.0** (compared with 1.3.0)
+- **Fit window.** On curves with two or more load peaks, the largest slope for the stiffness fit window is searched
+  only up to the first peak, and the window ends at the first peak at the latest. E, the fit line and t₀ therefore
+  come from the first loading, not from a steeper reload after a drop. Curves with a single peak are unchanged.
+- **Yield onset before the maximum.** The yield onset is now searched only before the maximum (with two or more load
+  peaks, before the first peak). In 1.3.0 a curve that stays linear up to its maximum could get a yield onset on the
+  falling flank after the maximum. Such curves now have none, and therefore no ratio, plastic phase or detent value
+  there.
+- **No division for two or more load peaks.** By default these curves now have no yield onset, ratio, Ag and A. Set
+  *Ein* to get them back; they are then searched before the first peak.
+- **Phases.** On curves with two or more load peaks, the sawtooth from the first to the last peak is "Lastspitzen" and
+  the drop starts at the last peak. In 1.3.0 the curve was plastic up to the maximum, with the drop after it. No value
+  depends on the phases.
+
 ## [0.2.0] – 2026-11-18
 
 Scientific corrections after a review of every methods page against the code and the cited sources. **Several

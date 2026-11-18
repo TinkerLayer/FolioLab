@@ -33,18 +33,25 @@ $env:PYTHONPATH = "..\..\sdk\python;."
 python -m unittest discover -s tests
 ```
 
-Two end-to-end checks run outside the unit tests:
+Three end-to-end checks run outside the unit tests:
 
 ```bash
 python tools/e2e_datasets.py
 node tools/test_lab_revisions.js
+node tools/test_report_import.js
 ```
 
 - `tools/e2e_datasets.py`: an Excel file goes through the data preparation, is shared as a dataset, used by Rechner,
   Elementrechner, TGA and FTIR, and ends in a report bundle. Every step is checked.
 - `tools/test_lab_revisions.js`: report revisions and provenance (`server/lab.js`).
+- `tools/test_report_import.js` (9 checks): the piece extractor; importing figures, equations, sections, values,
+  whole results, shared values, a shared data table and index values with their files, references and macros; live,
+  pinned and copied links (stale after a source change, Update); a clashing cite key; the portable ZIP and its
+  re-import. The last check compiles with LaTeX (pdfLaTeX, Biber, BibTeX): the report with imports, the portable ZIP
+  alone, inside a foreign natbib/BibTeX document and inside a biblatex document with cleveref. It is skipped when no
+  LaTeX is found.
 
-Both use temporary folders and never touch your projects.
+All three use temporary folders and never touch your projects.
 
 GitHub Actions runs all suites on Windows with Python 3.10 and 3.12 on every push
 ([.github/workflows/tests.yml](../.github/workflows/tests.yml)). Once a week, and on demand, a second job downloads
@@ -62,10 +69,10 @@ Elementrechner and FTIR suites with it.
 | Mikroskopie (microscopy) | 58 | 0 | [mikroskopie](methods/mikroskopie.md) |
 | Rechner (calculator) | 83 | 0 | [rechner](methods/rechner.md) |
 | TGA | 84 | 1 or 2: one checks the hint shown when `pyngb` is missing (skipped when it is installed), one reads a table with the real `pyngb` (skipped when it is missing) | [tga](methods/tga.md) |
-| Zugversuch (tensile test) | 55 | 0 | [zugversuch](methods/zugversuch.md) |
-| **Total** | **813** | **40** | |
+| Zugversuch (tensile test) | 80 | 0 | [zugversuch](methods/zugversuch.md) |
+| **Total** | **838** | **40** | |
 
-Counts: version 0.2.0, Windows 11, Python 3.12, public repository with pyngb installed. With the optional data installed
+Counts: version 0.3.0, Windows 11, Python 3.12, public repository with pyngb installed. With the optional data installed
 (`python tools/fetch_optional_data.py all`), all Elementrechner and FTIR tests run.
 
 A skipped test always names its reason and, for optional data, the command that adds it.
@@ -91,7 +98,10 @@ A skipped test always names its reason and, for optional data, the command that 
    - FTIR: band areas and widths of T/R spectra against the analytic Gaussian, ALS against a sparse solver, NNLS
      against `scipy.optimize.nnls`;
    - Zugversuch: At/A and Agt/Ag on a synthetic curve with E = 70 GPa, work to fracture against the closed form,
-     the Ramberg–Osgood reference curve;
+     the Ramberg–Osgood reference curve; load peaks on synthetic sawtooth curves (exact line and exponential envelopes,
+     peak counts at 2 / 5 / 10 % thresholds, drop, ratio, reload stiffness and segment work against closed forms, the fit
+     window from the first loading; the elastic/plastic division off for curves with 2 load peaks, and no yield
+     onset after the maximum or the first load peak);
    - Datenaufbereitung: Dixon r10 critical values against the null distribution (within 0.003, except n = 4,
      α = 0.01: table 0.926, computed 0.921, flagged), UTC and DST handling.
 2. **Independent reference values.** Results compared with numbers that do not come from Folio Lab's own code, such

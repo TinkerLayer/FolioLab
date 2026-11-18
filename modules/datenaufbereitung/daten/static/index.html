@@ -62,7 +62,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
 .dd button .k { color: var(--muted); font-size: 12px; }
 .dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
 
-main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 0; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) var(--lab-side, 320px); min-height: 0; }   /* UR: Seitenleiste ziehbar */
 main.noside { grid-template-columns: minmax(0, 1fr); }
 main.noside aside { display: none; }
 .sheetcol { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
@@ -100,6 +100,11 @@ main.noside aside { display: none; }
 #seq li .v { flex: 1; text-align: right; }
 #seq li.bad .v { color: var(--err-ink); }
 #seq .hint { color: var(--muted); font-size: 11.5px; }
+/* UR: Fenster auf eine Höhe gezogen: die Liste füllt den Platz, die Vorschau darf mitwachsen */
+#seq.lab-rs[style*="height"] { display: flex; flex-direction: column; }
+#seq.lab-rs[style*="height"] > * { flex: none; }
+#seq.lab-rs[style*="height"] #seqPrev { max-height: 35%; }
+#seq.lab-rs[style*="height"] #seqList { flex: 1 1 0; min-height: 40px; max-height: none; }
 #gbox.drop { outline: 2px dashed var(--accent); outline-offset: -6px; }
 #sheetTabs { display: flex; gap: 2px; padding: 0 6px; background: var(--soft); border-top: 1px solid var(--line); overflow-x: auto; min-height: 30px; align-items: stretch; }
 #sheetTabs button { border: 0; border-radius: 0 0 6px 6px; background: transparent; padding: 4px 12px; color: var(--muted); white-space: nowrap; }
@@ -152,6 +157,10 @@ dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--p
 dialog::backdrop { background: rgba(0,0,0,.3); }
 dialog textarea { width: 100%; height: 220px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
 dialog.wide { max-width: 860px; max-height: 90vh; overflow: auto; }
+/* UR: Einfügen-Dialog auf eine Höhe gezogen: das Textfeld wächst mit */
+#pasteDlg.lab-rs[style*="height"] > form { display: flex; flex-direction: column; height: 100%; }
+#pasteDlg.lab-rs[style*="height"] textarea { flex: 1; min-height: 120px; height: auto; }
+#tpF { max-height: 150px; overflow: auto; }
 ul.dslist { list-style: none; margin: 4px 0; padding: 0; font-size: 12.5px; }
 ul.dslist li { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
 ul.dslist li > div:first-child { min-width: 0; overflow-wrap: anywhere; }
@@ -225,7 +234,7 @@ ul.fll li span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
           <button id="btnPaste" data-i18n="dp.paste">Zellen einfügen …</button>
         </div>
       </div>
-      <div id="seq" hidden role="dialog" aria-labelledby="seqTitle">
+      <div id="seq" hidden role="dialog" aria-labelledby="seqTitle" data-size-win="seq">
         <div class="seqh" id="seqHead"><b id="seqTitle"></b><button class="x" id="seqClose" aria-label="Schliessen" data-i18n-label="mt.close">×</button></div>
         <div class="two">
           <label><span data-i18n="mt.name">Name (Kopfzelle)</span><input type="text" id="seqName" maxlength="80"></label>
@@ -240,7 +249,7 @@ ul.fll li span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
     </div>
     <nav id="sheetTabs" aria-label="Blätter" data-lov-detail></nav>
   </section>
-  <aside id="side" data-lov-detail>
+  <aside id="side" data-lov-detail data-size-col="side">
     <div class="pane" id="pane"></div>
   </aside>
 </main>
@@ -1468,6 +1477,15 @@ $("#seqUnit").addEventListener("change", async (ev) => {
     window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up);
     e.preventDefault();
   });
+  // UR: Grösse ziehen (rechte Kante, Unterkante, Ecke; labui.js): ein rechts verankertes Fenster vorher links verankern,
+  // sonst bliebe die gezogene Kante stehen und das Fenster wüchse nach links (läuft vor dem Griff von labui.js)
+  window.addEventListener("pointerdown", (e) => {
+    if (box.hidden || box.style.left) return;
+    const r = box.getBoundingClientRect();
+    if (e.clientX >= r.right - 1 && e.clientX <= r.right + 8 && e.clientY >= r.top && e.clientY <= r.bottom + 8) {
+      box.style.left = box.offsetLeft + "px"; box.style.right = "auto";
+    }
+  }, true);
 })();
 
 // ================================================================== Markieren (DP-05)
@@ -1707,7 +1725,7 @@ function markHtml() {
     const rc = (r) => `<span class="role r-${esc(r || "none")}">${esc(tr("r." + (r || "none")))}</span>`;
     h += `<div class="small">${esc(tr("mk.sum", { r: nf(pv.rows, 9), c: pv.columns.length, b: pv.blocks }))}</div>`;
     const fb = (c) => Object.entries(c.flags || {}).map(([code, e]) => `<span class="fb f-${esc(code)}" title="${esc(tr("mk.flagt", { n: e.n, c: tr("fl." + code), e: (e.examples || []).join(" · ") }))}">${e.n} ${esc(tr("fl." + code))}</span>`).join("");
-    h += `<div class="prev"><table><thead><tr>${pv.columns.map((c) => `<th title="${esc(c.cells)}">${esc(c.name)}${c.symbol ? ` <span class="sym">${esc(c.symbol)}</span>` : ""}${c.unit ? ` <span class="u">[${esc(c.unit)}]</span>` : ""}<br>${rc(c.role)}${c.unit_msg ? ` <span class="bad" title="${esc(c.unit_msg)}">⚠</span>` : ""}${c.raw ? ` <span class="bad" title="${esc(c.raw_examples.join(" · "))}">${c.raw}×?</span>` : ""}${fb(c) ? "<br>" + fb(c) : ""}${c.elapsed ? `<br><span class="small" style="font-weight:400">${esc(tr("mk.since", { s: c.elapsed }))}</span>` : ""}</th>`).join("")}</tr></thead>
+    h += `<div class="prev" data-size-h="prev" data-size-mode="max"><table><thead><tr>${pv.columns.map((c) => `<th title="${esc(c.cells)}">${esc(c.name)}${c.symbol ? ` <span class="sym">${esc(c.symbol)}</span>` : ""}${c.unit ? ` <span class="u">[${esc(c.unit)}]</span>` : ""}<br>${rc(c.role)}${c.unit_msg ? ` <span class="bad" title="${esc(c.unit_msg)}">⚠</span>` : ""}${c.raw ? ` <span class="bad" title="${esc(c.raw_examples.join(" · "))}">${c.raw}×?</span>` : ""}${fb(c) ? "<br>" + fb(c) : ""}${c.elapsed ? `<br><span class="small" style="font-weight:400">${esc(tr("mk.since", { s: c.elapsed }))}</span>` : ""}</th>`).join("")}</tr></thead>
       <tbody>${pv.head.map((r, ri) => `<tr>${r.map((v, i) => { const c = pv.columns[i], mk = c.mk_head && c.mk_head[ri]; return `<td class="${c.dtype === "number" && typeof v === "number" ? "n" : typeof v === "string" && c.dtype === "number" ? "bad" : ""}${mk ? ` mk f-${esc(mk)}" title="${esc(tr("fl." + mk))}` : ""}">${v === null ? (mk ? `<span class="small">${esc(tr("fl." + mk))}</span>` : "") : esc(typeof v === "number" ? nf(v, 8) : v)}</td>`; }).join("")}</tr>`).join("")}
       ${pv.rows > pv.head.length ? `<tr><td colspan="${pv.columns.length}" class="small">… ${esc(tr("mk.more_rows", { n: nf(pv.rows - pv.head.length, 9) }))}</td></tr>` : ""}</tbody></table></div>`;
     const cond = Object.entries(pv.conditions || {});
@@ -2064,15 +2082,16 @@ async function dsDerive(parentId, edit) {
       const cols = j.header.columns, v = j.page.values, flags = j.header.flags || [];
       cols.forEach((c) => { if (!CL.cols.some((x) => x.key === c.key)) CL.cols.push(c); });   // new columns for later steps
       const ex = new Set(flags.filter((f) => f.excluded).map((f) => f.row)), fl = new Set(flags.map((f) => f.row));
-      box.innerHTML = `<div class="prev"><table><thead><tr><th class="rn">#</th>${cols.map((c) => `<th>${esc(c.name)}${c.unit ? ` <span class="u">[${esc(c.unit)}]</span>` : ""}</th>`).join("")}</tr></thead><tbody>${
+      box.innerHTML = `<div class="prev" data-size-h="dvprev" data-size-mode="max"><table><thead><tr><th class="rn">#</th>${cols.map((c) => `<th>${esc(c.name)}${c.unit ? ` <span class="u">[${esc(c.unit)}]</span>` : ""}</th>`).join("")}</tr></thead><tbody>${
         Array.from({ length: Math.min(j.page.r1, 8) }, (_, r) => `<tr class="${ex.has(r) ? "ex" : fl.has(r) ? "fl" : ""}"><td class="rn">${r + 1}</td>${cols.map((c) => { const x = v[c.key][r]; return `<td class="${typeof x === "number" ? "n" : ""}">${x === null ? "" : esc(typeof x === "number" ? nf(x, 6) : x)}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div>
         <div class="small">${esc(tr("mk.sum", { r: nf(j.header.rows, 9), c: cols.length, b: 1 }))}</div>
         ${(j.checks || []).length ? `<div class="dvsec">${esc(tr("cl.checks"))}</div>${chipsHtml(j.checks)}` : ""}
         ${(j.steps || []).length ? `<div class="dvsec">${esc(tr("cl.steps"))}</div>${stepTable(j.steps)}` : ""}
-        ${flags.length ? `<div class="dvsec">${esc(tr("cl.marks"))} (${nf(flags.length, 9)})</div><ul class="fll">${flags.slice(0, 40).map((f) => {
+        ${flags.length ? `<div class="dvsec">${esc(tr("cl.marks"))} (${nf(flags.length, 9)})</div><ul class="fll" data-size-h="dvflags" data-size-mode="max">${flags.slice(0, 40).map((f) => {
           const c = cols.find((x) => x.key === f.col), val = f.col && v[f.col] && f.row < j.page.r1 ? v[f.col][f.row] : undefined;
           return `<li><span>${esc(tr("cl.row"))} ${f.row + 1}${c ? ` · ${esc(c.name)}` : ""} · <span class="fb f-${esc(f.code)}">${esc(tr("fl." + f.code))}</span>${f.excluded ? ` <span class="fb f-missing">${esc(tr("fl.excluded"))}</span>` : ""} <span class="small">${esc([f.reason, f.rule].filter(Boolean).join(" · "))}</span></span>${!f.excluded && f.code !== "excluded" ? `<button class="linkbtn" data-exrow="${f.row}">${esc(tr("cl.excl"))}</button>` : ""}</li>`;
         }).join("")}${flags.length > 40 ? `<li class="small">${esc(tr("cl.more", { n: flags.length - 40 }))}</li>` : ""}</ul>` : ""}`;
+      sized(box);                                                   // UR
       box.querySelectorAll("[data-exrow]").forEach((b) => { b.onclick = () => excludeRow(+b.dataset.exrow); });
     }, 350);
   };
@@ -2301,13 +2320,14 @@ async function tplDialog() {
     <div id="tpMsg"></div>
     ${T.length && files.length ? `<div class="dvsec">${esc(tr("tp.batch"))}</div>
       <label for="tpT">${esc(tr("tp.tpl"))}</label><select id="tpT" style="width:100%">${T.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")}</select>
-      <label>${esc(tr("tp.files"))}</label><div id="tpF" style="max-height:150px;overflow:auto">${files.map((x) => `<label class="small" style="margin:2px 0"><input type="checkbox" value="${esc(x.id)}" data-sheet="${x.sheet || 0}" checked> ${esc(x.name)} · ${esc((x.sheets[x.sheet || 0] || {}).name || "")}</label>`).join("")}</div>
+      <label>${esc(tr("tp.files"))}</label><div id="tpF" data-size-h="tpfiles" data-size-mode="max">${files.map((x) => `<label class="small" style="margin:2px 0"><input type="checkbox" value="${esc(x.id)}" data-sheet="${x.sheet || 0}" checked> ${esc(x.name)} · ${esc((x.sheets[x.sheet || 0] || {}).name || "")}</label>`).join("")}</div>
       <label class="small"><input type="radio" name="tpM" value="each" checked> ${esc(tr("tp.each"))}</label>
       <label class="small"><input type="radio" name="tpM" value="combined"> ${esc(tr("tp.comb"))}</label>
       <label for="tpTitle">${esc(tr("tp.ctitle"))}</label><input type="text" id="tpTitle" maxlength="160" style="width:100%" disabled>
       <div class="row"><button class="primary" data-trun>${esc(tr("tp.run"))}</button></div><div id="tpRes"></div>` : ""}
     <div class="row" style="justify-content:flex-end"><button data-x>${esc(tr("mt.close"))}</button></div>`);
   d.classList.add("wide");
+  sized(d);                                                         // UR
   d.querySelector("[data-x]").onclick = () => d.close();
   const msg = (h) => { d.querySelector("#tpMsg").innerHTML = h; };
   d.querySelectorAll("[data-tdel]").forEach((b) => { b.onclick = async () => {
@@ -2382,9 +2402,29 @@ function renderSide() {
   h += `<details class="lab-fold" data-fold="file"><summary>${esc(tr("s.file"))}</summary>` + kv([
     [tr("s.file"), f.file], ["Bytes", nf(f.bytes, 12)], ["SHA-256", f.sha256.slice(0, 16) + "…"]]) + `</details>`;
   $("#pane").innerHTML = h;
+  sized($("#pane"));                                                // UR: vor bindMark, damit die Ereignisse am behaltenen Element hängen
   bindMark();
   bindDs();
   if (window.LabUI) LabUI.folds("datenaufbereitung", $("#pane"));
+}
+// UR: ziehbare Bereiche, die per innerHTML neu entstehen (Vorschau-Tabellen, Listen): dasselbe Element samt Griff und
+// gezogener Höhe weiterverwenden und nur seinen Inhalt tauschen; sonst bekäme jedes Neuzeichnen (bei jeder Auswahl)
+// einen neuen Griff mit eigenen Beobachtern
+const SIZED = {};
+function sized(root) {
+  if (!window.LabUI) return;
+  root.querySelectorAll("[data-size-h]").forEach((n) => {
+    const k = SIZED[n.dataset.sizeH];
+    if (!k || k[0] === n) return;
+    k[0].innerHTML = n.innerHTML;
+    n.replaceWith(k[0]);
+    k[0].after(k[1]);
+  });
+  LabUI.sizes("datenaufbereitung", root);
+  root.querySelectorAll("[data-size-h]").forEach((el) => {
+    const g = el.nextElementSibling;
+    if (g && g.classList.contains("lab-hgrip")) SIZED[el.dataset.sizeH] = [el, g];
+  });
 }
 
 // ================================================================== Menüs
@@ -2411,6 +2451,7 @@ function buildMenus() {
       { label: tr("m.all"), k: KEY("A"), act: () => { const sh = curSheet(); if (sh) setSel({ r0: 0, c0: 0, r1: sh.rows - 1, c1: sh.cols - 1 }); }, off: !f },
       { label: tr("m.goto"), act: () => $("#refBox").focus(), off: !f },
       { label: tr("m.side"), act: () => { S.side = !S.side; $("#main").classList.toggle("noside", !S.side); draw(); } },
+      ...(window.LabUI ? [{ sep: true }, { label: tr("ui.resetSizes"), act: () => LabUI.resetSizes("datenaufbereitung") }] : []),   // UR
     ] },
   ];
   const bar = $("#menubar");
@@ -2498,7 +2539,7 @@ async function init() {
   });
   await withBusy(() => ENVS.open());
   if (window.LabUI) {
-    LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("datenaufbereitung");
+    LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("datenaufbereitung"); LabUI.sizes("datenaufbereitung");   // UR
     LabUI.onLang(() => { buildMenus(); renderTabs(); renderSide(); selChanged(); });
   }
   if (window.LabOverview) {

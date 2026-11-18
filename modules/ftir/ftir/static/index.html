@@ -75,7 +75,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
 .dd button.on::before { content: "✓"; margin-right: -12px; color: var(--accent); }
 .dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
 
-main { display: grid; grid-template-columns: 46px minmax(0, 1fr) 380px; min-height: 0; }
+main { display: grid; grid-template-columns: 46px minmax(0, 1fr) var(--lab-side, 380px); min-height: 0; }
 #tools { display: flex; flex-direction: column; gap: 3px; padding: 6px 5px; background: var(--panel); border-right: 1px solid var(--line); }
 #tools button { width: 36px; height: 34px; padding: 0; display: grid; place-items: center; border-color: transparent; background: transparent; }
 #tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
@@ -238,7 +238,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       </div>
     </div>
   </div>
-  <aside>
+  <aside data-size-col="side">
     <!-- UI-05: sichtbar sind Bearbeiten, Banden, Suche, der gerade offene Tab und (ab zwei Spektren) Spektren; der Rest unter „Mehr“ -->
     <nav class="tabs" role="tablist">
       <button data-tab="bearbeiten" class="sel" data-i18n="ft.tab_bearbeiten">Bearbeiten</button>
@@ -291,7 +291,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="row"><button id="pkDef">Standard</button><button id="pkManual" title="Von Hand gesetzte und gelöschte Banden verwerfen">Handkorrekturen zurücksetzen</button></div>
       <div class="small" style="margin-top:6px">Mit den Werkzeugen <b>P</b> (setzen) und <b>D</b> (löschen) lassen sich Banden im Spektrum von Hand korrigieren. Bei Transmission werden Minima gesucht.</div>
       </details>
-      <div class="tw" id="pkWrap"></div>
+      <div class="tw" id="pkWrap" data-size-h="pk" data-size-mode="max"></div>
       <div class="detail" id="pkDetail" hidden></div>
       <div class="row"><button id="pkCopy">Tabelle kopieren</button><button id="pkCsv">CSV speichern</button></div>
 
@@ -303,7 +303,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label for="bdName">Name</label><input type="text" id="bdName" placeholder="z. B. C=O"></div>
       </div>
       <div class="row"><select id="bdBase" style="width:auto"><option value="linear">Basis: Gerade</option><option value="zero">Basis: null</option></select><button id="bdAdd">Hinzufügen</button></div>
-      <div class="tw" id="bdWrap" style="max-height:220px"></div>
+      <div class="tw" id="bdWrap" style="max-height:220px" data-size-h="bd" data-size-mode="max"></div>
       </details>
       <details class="lab-fold" data-fold="ratios"><summary><span data-i18n="ft.f_ratios">Verhältnisse</span> <span class="cnt" id="raCnt"></span></summary>
       <div class="row3">
@@ -312,7 +312,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label for="raKind">aus</label><select id="raKind"><option value="area">Fläche</option><option value="height">Höhe</option></select></div>
       </div>
       <div class="row"><button id="raAdd">Verhältnis hinzufügen</button></div>
-      <div class="list" id="raList"></div>
+      <div class="list" id="raList" data-size-h="ra" data-size-mode="max"></div>
       </details>
     </section>
 
@@ -325,7 +325,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <details id="ctDetails">
         <summary>Korrelationstabelle (Gruppenfrequenzen)</summary>
         <input type="text" id="ctFilter" placeholder="Filtern, z. B. Ester oder 1720" style="margin-top:6px">
-        <div class="tw" id="ctWrap" style="max-height:300px"></div>
+        <div class="tw" id="ctWrap" style="max-height:300px" data-size-h="ct" data-size-mode="max"></div>
       </details>
     </section>
 
@@ -335,7 +335,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="row"><button class="primary" id="sRun">Suchen (F3)</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="sRep" checked> In den Bericht</label></div>
       <details class="lab-fold" data-fold="sOpts"><summary><span data-i18n="ft.f_sopts">Bibliotheken und Optionen</span> <span class="cnt" id="sOptCnt"></span></summary>
       <label>Bibliotheken</label>
-      <div class="list" id="sLibs" style="max-height:140px"></div>
+      <div class="list" id="sLibs" style="max-height:140px" data-size-h="slibs" data-size-mode="max"></div>
       <div class="row2">
         <div><label for="sAlgo">Verfahren</label><select id="sAlgo"></select></div>
         <div><label for="sCat">Kategorie</label><select id="sCat"></select></div>
@@ -349,7 +349,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <label class="chk" title="Mitgelieferte gemessene Bibliotheken enthalten je Stoff mehrere Spektren (z. B. PE aus verschiedenen Laboren). Zusammengefasst erscheint je Stoff nur der beste Treffer, (+n) nennt die weiteren."><input type="checkbox" id="sGroup" checked> Gleiche Stoffe zusammenfassen</label>
       <div id="sEx" class="small"></div>
       </details>
-      <div class="tw" id="sWrap"></div>
+      <div class="tw" id="sWrap" data-size-h="hits" data-size-mode="max"></div>
       <div class="detail" id="sDetail" hidden></div>
     </section>
 
@@ -361,13 +361,13 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       </div>
       <div class="row"><button class="primary" id="mRun">Mischung analysieren</button><label class="chk" style="margin:0 0 0 auto"><input type="checkbox" id="mRep" checked> In den Bericht</label></div>
       <div class="note warn" id="mStale" hidden>Das Spektrum wurde seit der Analyse geändert. Bitte neu rechnen.</div>
-      <div class="list" id="mList" style="max-height:330px"></div>
+      <div class="list" id="mList" style="max-height:330px" data-size-h="mix" data-size-mode="max"></div>
       <div class="detail" id="mDetail" hidden></div>
     </section>
 
     <section class="pane" data-pane="spektren" hidden>
       <div class="small">Markierte Spektren werden im Diagramm überlagert (jeweils mit ihrem eigenen Protokoll). Name anklicken zum Umbenennen.</div>
-      <div class="list" id="cList" style="max-height:240px"></div>
+      <div class="list" id="cList" style="max-height:240px" data-size-h="cmp" data-size-mode="max"></div>
       <label>Darstellung der Überlagerung</label>
       <div class="seg" id="ovSeg"><button data-ov="over" class="sel">Überlagert</button><button data-ov="norm">Normiert</button><button data-ov="stack">Gestapelt</button></div>
       <h4 class="sub">Neue Spektren berechnen</h4>
@@ -391,7 +391,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="row"><button class="primary" id="lAdd">Aktuelles Spektrum hinzufügen …</button><button id="lImp">Referenzen importieren …</button></div>
       <div class="row"><button id="lRef" title="Spektrum aus einer Datei mit Quellenangabe in „Eigene Referenzen“ speichern und gleich überlagern">Referenz aus Datei einblenden …</button></div>
       <input type="text" id="lFilter" placeholder="Einträge filtern" style="margin-top:10px">
-      <div class="list" id="lList" style="max-height:380px"></div>
+      <div class="list" id="lList" style="max-height:380px" data-size-h="libs" data-size-mode="max"></div>
       <details class="lab-fold" data-fold="libHelp"><summary data-i18n="ft.f_libhelp">Hinweise zu Bibliotheken</summary>
       <div class="small">Eigene Bibliotheken liegen im Ausgabeordner unter <code>bibliotheken</code>. Import: JCAMP-DX (auch Mehrblock-Dateien aus anderen Programmen), .spa, .spc, CSV. Gespeichert wird, wie im Spektrum hinterlegt; für die Suche wird jedes Spektrum gleich vorbereitet (Absorbanz, Basislinie, Maximum 1, Raster 2 cm⁻¹).</div>
       </details>
@@ -399,7 +399,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
 
     <section class="pane" data-pane="gleichungen" hidden>
       <div class="small">Eigene Formeln über die Auswertung des aktuellen Spektrums, z. B. Carbonylindex <code class="eq">CI = area(1650, 1850)/area(1420, 1500)</code>. Aktive Gleichungen gehen mit Wert, Formel und Quelle in den Bericht. Spätere Gleichungen dürfen frühere verwenden.</div>
-      <div class="list" id="eqList" style="max-height:220px"></div>
+      <div class="list" id="eqList" style="max-height:220px" data-size-h="eq" data-size-mode="max"></div>
       <div class="row"><button class="primary" id="eqNew">Neue Gleichung …</button><button id="eqImp">Importieren …</button><button id="eqExp">Exportieren</button></div>
       <h4 class="sub">Ergebnisse</h4>
       <div id="eqRes"></div>
@@ -2129,6 +2129,8 @@ const MENUS = [
     { label: "Überlagert", check: () => S.ov === "over", always: true, act: () => { S.ov = "over"; updateOv(); S.view = keepX(); draw(); } },
     { label: "Normiert überlagert", check: () => S.ov === "norm", always: true, act: () => { S.ov = "norm"; updateOv(); S.view = keepX(); draw(); } },
     { label: "Gestapelt", check: () => S.ov === "stack", always: true, act: () => { S.ov = "stack"; updateOv(); S.view = keepX(); draw(); } },
+    "-",
+    { label: "Fenstergrössen zurücksetzen", always: true, act: () => { if (window.LabUI) LabUI.resetSizes("ftir"); } },   // UR
   ] },
   { label: "Bibliothek", key: "ft.m_lib", items: [
     { label: "Neue Bibliothek …", always: true, act: libNew },
@@ -2411,7 +2413,7 @@ async function init() {
   updateAll();
   updateLibs();
   await ENVS.open();                                  // speichert beim Verlassen und prüft beim Zurückkommen selbst
-  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("ftir"); LabUI.onLang(() => { buildMenus(); renderTabs(); updateFoldCounts(); }); }
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("ftir"); LabUI.sizes("ftir"); LabUI.onLang(() => { buildMenus(); renderTabs(); updateFoldCounts(); }); }
   // UI-05 (Q27): Startansicht Übersicht – Umgebungen, Projektindex, eigene Freigaben (Peaktabellen)
   if (window.LabOverview) {
     OV = LabOverview.create({

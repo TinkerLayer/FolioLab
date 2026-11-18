@@ -3,6 +3,7 @@
 Seite 1  Übersicht: Kennzahlen-Kacheln, Verlauf nach Phasen, Phasenbalken, Probenskizze, Referenzwerkstoff
 Seite 2  Linearer Abschnitt: Messpunkte gegen Gerade, Abweichung mit Schwelle, Fliessbeginn je Schwelle
 Seite 3  Werkstoffvergleich (nur mit A0): Spannungs-Dehnungs-Feld, Rm-Einordnung, Kandidaten
+dann     Lastspitzen (nur bei mindestens 2 Spitzen, fortschreitendes Versagen): Verlauf, Spitzenlasten, Ausgleich, Tabelle
 Seite 4  Kennwerte und Gültigkeit: Tabelle, alle Pflichthinweise (Abschnitt 7)
 
 Dazu ein Vergleichsbericht fuer mehrere Messungen.
@@ -71,9 +72,12 @@ def _kpis(r: Result) -> list[tuple]:
     tiles.append(("Zugfestigkeit Rm" if st else "Maximalkraft Fmax", fmt(m["y"], nd, u),
                   (f"{fmt(m['F'], 1, 'N')} · " if st else "") + f"bei {fmt(m['t'], 1, 's')}", C.MARK["max"], ""))
     y = kv["yield"]
-    tiles.append((f"Fliessbeginn ({fmt(r.config.yield_threshold * 100, 1)} %)", fmt(y["y"], nd, u) if y else "–",
-                  (f"{fmt(y['F'], 1, 'N')} · bei {fmt(y['t'], 1, 's')}" if y else "nicht gefunden"), C.MARK["yield"],
-                  "keine Rp0,2"))
+    ep_on = (kv.get("ep") or {}).get("on", True)
+    tiles.append((f"Fliessbeginn ({fmt(r.config.yield_threshold * 100, 1)} %)" if ep_on else "Fliessbeginn",
+                  fmt(y["y"], nd, u) if y else "–",
+                  (f"{fmt(y['F'], 1, 'N')} · bei {fmt(y['t'], 1, 's')}" if y
+                   else "nicht gefunden" if ep_on else "elastisch/plastisch nicht eingeteilt"), C.MARK["yield"],
+                  "keine Rp0,2" if ep_on else "siehe Hinweis 7.4"))
     b = kv["break"]
     tiles.append(("vor dem Bruch", fmt(b["y"], nd, u) if b else "–",
                   f"bei {fmt(b['t'], 1, 's')}" if b else "kein Bruch erkannt", C.MARK["break"], ""))
@@ -203,6 +207,110 @@ def _page_values(r: Result, nr, total):
     return fig
 
 
+PEAK_ROWS = 22        # Zeilen der Spitzentabelle auf der Berichtsseite (alle stehen in der Arbeitsmappe)
+
+
+def _fit_lines(r: Result) -> list[tuple[str, str, bool]]:
+    """(Beschriftung, Text, besser?) der beiden Ausgleichsmodelle für die Berichtsseite."""
+    pk = r.kv["peaks"]
+    fit = pk.get("fit") or {}
+    if fit.get("reason"):
+        return [("Ausgleich", "entfällt: " + fit["reason"], False)]
+    out = []
+    for m in ("line", "exp"):
+        d = fit.get(m)
+        if not d:
+            continue
+        name = C.FIT_NAMES["de"][m]
+        if not d.get("ok"):
+            out.append((name, "nicht möglich: " + str(d.get("error")), False))
+            continue
+        par = []
+        for p in ("a", "b"):
+            v, u, ci, un = d[p], d[p + "_u"], d[p + "_ci"], d[p + "_unit"]
+            nd = _nd_u(u, v)
+            par.append(f"{p} = {fmt(v, nd)} ± {fmt(u, nd)} {un}".rstrip() + (f" (95 %: ± {fmt(ci, nd)})" if ci is not None else ""))
+        txt = "; ".join(par) + f"; R² = {fmt(d['r2'], 4)}; n = {d['n']}"
+        if not d.get("converged", True):
+            txt += "; nicht konvergiert"
+        out.append((name, txt, fit.get("best") == m))
+    return out
+
+
+def _nd_u(u, v) -> int:
+    """Nachkommastellen: 2 geltende Ziffern der Unsicherheit, ohne Unsicherheit 4 geltende Ziffern des Werts."""
+    import math
+    ref, sig = (u, 2) if (u is not None and u > 0 and math.isfinite(u)) else (abs(v) if v else 1.0, 4)
+    if not ref or not math.isfinite(ref):
+        return 2
+    return max(0, min(8, sig - 1 - int(math.floor(math.log10(ref)))))
+
+
+def _page_peaks(r: Result, nr, total):
+    """Lastspitzen: Verlauf mit Nummern, Spitzenlasten mit Ausgleich, Tabelle der Spitzen."""
+    pk = r.kv["peaks"]
+    fig = _page("Lastspitzen (fortschreitendes Versagen)", _subline(r), nr, total, r.name)
+    ax = fig.add_axes([0.1, 0.66, 0.84, 0.25])
+    C.peaks_curve(r, ax)
+    ax.set_title(f"{pk['n']} Lastspitzen, Mindestabfall Δ = {fmt(pk['delta'], 2, r.unit)} "
+                 f"({fmt(pk['frac'] * 100, 1)} % von {'Rm' if r.mode == 'Spannung' else 'Fmax'}"
+                 + (", begrenzt durch 3 × Anzeigeauflösung" if pk["delta_basis"] == "aufloesung" else "") + ")",
+                 loc="left", fontsize=10.5)
+    ax = fig.add_axes([0.1, 0.40, 0.46, 0.2])
+    C.peaks_fit_chart(r, ax)
+    ax.set_title("Spitzenlast über " + ("Dehnung" if pk["x_kind"] == "strain" else
+                                        "Traversenweg" if pk["x_kind"] == "travel" else "Zeit"),
+                 loc="left", fontsize=10.5)
+    y = 0.6
+    fig.text(0.6, y, "Ausgleich der Spitzenlasten", fontsize=9.5, fontweight="bold", color=INK)
+    y -= 0.022
+    for lab, txt, best in _fit_lines(r):
+        fig.text(0.6, y, lab + (" – besser" if best else ""), fontsize=8.2, color=INK,
+                 fontweight="bold" if best else "normal")
+        y -= 0.017
+        for line in _wrap_lines(txt, 52):
+            fig.text(0.6, y, line, fontsize=7.6, color=INK)
+            y -= 0.015
+        y -= 0.006
+    note = ("Beide Modelle direkt nach kleinsten Quadraten in y; beide haben 2 Parameter, also entscheidet die kleinere "
+            "Summe der Fehlerquadrate (das grössere R²). u: Standardunsicherheit; 95 %: Student-t mit n − 2 "
+            "Freiheitsgraden.")
+    for line in _wrap_lines(note, 58):
+        fig.text(0.6, y, line, fontsize=7, color=MUTED)
+        y -= 0.013
+    # Tabelle der Spitzen
+    tab = fig.add_axes([0.06, 0.08, 0.88, 0.27])
+    tab.axis("off")
+    st = r.mode == "Spannung"
+    nd = 0 if st else 1
+    xu = pk["x_unit"]
+    has_w = any(e["W_J"] is not None for e in pk["list"])
+    head = ["Nr.", "t [s]", f"x [{xu}]", f"{'σ' if st else 'F'} [{r.unit}]", "Tal [" + r.unit + "]", "Abfall [%]",
+            "Dauer [s]", "F/F vorige", "k [N/s]"] + (["W [J]"] if has_w else [])
+    cells = []
+    for e in pk["list"][:PEAK_ROWS]:
+        cells.append([str(e["nr"]) + ("*" if e.get("excluded") else ""), fmt(e["t"], 1), fmt(e["x"], 2 if xu != "s" else 1),
+                      fmt(e["y"], nd + 1), fmt(e["valley_y"], nd + 1), fmt(e["drop_pct"], 1), fmt(e["dauer"], 1),
+                      fmt(e["ratio"], 3), fmt(e["k_N_s"], 3)] + ([fmt(e["W_J"], 4)] if has_w else []))
+    t = tab.table(cellText=cells, colLabels=head, loc="upper center", cellLoc="center")
+    t.auto_set_font_size(False)
+    t.set_fontsize(7)
+    t.scale(1, 1.05 if len(cells) > 14 else 1.25)
+    for (row, col), cell in t.get_celld().items():
+        cell.set_edgecolor("#dadce0")
+        if row == 0:
+            cell.set_facecolor("#e8eaed")
+            cell.set_text_props(fontweight="bold")
+    foot = (f"Dauer ± ein Abtastintervall ({fmt(pk['dt'], 2, 's')}). k: Steigung des Wiederanstiegs zwischen 20 % und 80 % "
+            "des Anstiegs vom vorigen Tal (erste Spitze: ab t₀). "
+            + ("W: Arbeit vom vorigen Tal bis zum Tal nach der Spitze. " if has_w else "")
+            + ("* nicht im Ausgleich. " if any(e.get("excluded") for e in pk["list"]) else "")
+            + (f"Gezeigt {PEAK_ROWS} von {pk['n']} Spitzen, alle in der Arbeitsmappe. " if pk["n"] > PEAK_ROWS else "")
+            + "Fmax ist die höchste Spitze; Haltezeit, Plateau und Bruch beziehen sich auf sie (Hinweis 4.9).")
+    fig.text(0.06, 0.035, "\n".join(_wrap_lines(foot, 150)), fontsize=7, color=MUTED, va="bottom")
+    return fig
+
+
 def source_entries(r: Result) -> list[tuple[str, object]]:
     """(Nummer, Werkstoff) aller Vergleichswerte, die in den Diagrammen vorkommen: die Kurven des Felds
     (Nummern wie im Diagramm) und, falls ausserhalb der Gruppe, der Referenzwerkstoff (R)."""
@@ -277,8 +385,9 @@ def _source_block(fig, y, nr, a, vals, src):
 
 def build_report(r: Result) -> list:
     has_cmp = r.mode == "Spannung" and r.comparison
+    has_pk = C.has_peaks(r)
     n_src = _source_pages_needed(r)
-    total = (4 if has_cmp else 3) + n_src
+    total = (4 if has_cmp else 3) + (1 if has_pk else 0) + n_src
     pages = []
 
     # ---- Seite 1 Übersicht
@@ -348,6 +457,10 @@ def build_report(r: Result) -> list:
         fig.text(0.06, 0.035, "Kandidaten, keine Identifikation: eine Übereinstimmung in Rm allein bestimmt den "
                               "Werkstoff nicht. Kurven idealisiert, Quellen am Schluss.", fontsize=7.5, color=MUTED)
         pages.append(fig)
+
+    # ---- Lastspitzen (nur bei fortschreitendem Versagen)
+    if has_pk:
+        pages.append(_page_peaks(r, len(pages) + 1, total))
 
     pages.append(_page_values(r, total - n_src, total))
     pages += _pages_sources(r, total - n_src + 1, total)

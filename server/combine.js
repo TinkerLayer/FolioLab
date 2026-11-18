@@ -954,4 +954,12 @@ function reportText(R, name) {
   return L.join('\n') + '\n';
 }
 
-module.exports = { stageZip, analyzeProject, removeStage, combine };
+module.exports = {
+  stageZip, analyzeProject, removeStage, combine,
+  // shared TeX helpers (server/portable.js, server/pieces.js)
+  tex: {
+    stripLineComment, stripComments, findUncommented, readGroup, commandArg, splitStatements, definitionKey, parseBib, loadPart,
+    renameLabelsAndKeys, collectLabels, resolveGraphic, resolveTex, lookup, rewriteFileRefs, slugify, posixNorm, plainText,
+    LABEL_CMD_RE, CITE_CMD_RE, LOAD_LAST, BIB_PKGS, ARTIFACT_RE,
+  },
+};

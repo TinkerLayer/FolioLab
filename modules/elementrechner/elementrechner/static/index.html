@@ -89,7 +89,9 @@ footer { display: flex; gap: 14px; padding: 4px 12px; background: var(--panel); 
 .modal .head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .modal .head b { font-size: 15px; }
 /* Periodensystem als schwebendes Fenster oben rechts: kein Abdunkeln, die Gleichung bleibt bedienbar */
-.ptwin { position: fixed; top: 52px; right: 12px; z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+/* UR: absolute statt fixed (die Seite rollt nie: body 100vh, overflow hidden – gleiche Lage). Ein fixed-Element hat kein
+   offsetParent, und labui.js übergeht solche Fenster beim Ziehen an der Kante (data-size-win). */
+.ptwin { position: absolute; top: 52px; right: 12px; z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0,0,0,.22); padding: 6px 10px 8px; max-width: calc(100vw - 24px); max-height: calc(100vh - 64px); overflow: auto; }
 .ptwin .head { display: flex; align-items: center; gap: 8px; margin: 0 -10px 6px; padding: 2px 10px 6px; border-bottom: 1px solid var(--line); cursor: move; user-select: none; }
 .ptwin .head b { font-size: 13.5px; }
@@ -284,6 +286,19 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
 .phbig button.shr { font-size: 16px; }
 .vallist .vi button[data-v-ok] { padding: 0 6px; }
 @media (max-width: 700px) { #modWin, #rsWin { width: auto; left: 8px !important; right: 8px; } }
+/* UR: Fenster (data-size-win) an der rechten Kante, Unterkante oder Ecke ziehen. Nach dem Ziehen (Klasse lab-rs) wachsen
+   die Inhalte mit: Periodensystem-Raster, Molekülliste (statt 52vh). Eingeklappte Fenster bleiben schmal und flach. */
+#ptModal.lab-rs #pt { grid-template-columns: repeat(18, minmax(34px, 1fr)); }
+#ptModal.lab-rs #pt.mass { grid-template-columns: repeat(18, minmax(46px, 1fr)); }
+#ptModal.lab-rs #ptInfo { max-width: none; }
+#molWin.lab-rs:not([hidden]):not(.min) { display: flex; flex-direction: column; }
+#molWin.lab-rs .mgrid { flex: 1 1 auto; min-height: 0; max-height: none; }
+#molWin.min.lab-rs { width: 340px !important; height: auto !important; }
+#desWin.min.lab-rs { width: 320px !important; height: auto !important; }
+/* UR: grosses Strukturbild (Stoffkarte, eigener Stoff) in der Höhe ziehbar; die Zeichnung (viewBox) füllt den Kasten */
+.struct.big { position: relative; }
+.struct.big > svg { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; }
+@media (max-width: 700px) { .ptwin.lab-rs { width: auto !important; } }
 </style>
 </head>
 <body>
@@ -568,7 +583,7 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
   </aside>
 </main>
 <footer><span id="ver"></span><span id="stat"></span><button type="button" id="envBtn" title="Umgebungen des Projekts: der Arbeitsstand bleibt nach einem Neustart erhalten" data-i18n="er.envs" data-i18n-title="er.envs_t">Umgebungen …</button><button type="button" id="indexBtn" title="Kuratierte Werte des Projekts, aus jedem Modul lesbar" data-i18n="er.index" data-i18n-title="er.index_t">Projektindex …</button><button type="button" id="shareBtn" hidden title="Von anderen Modulen geteilte Ergebnisse (z. B. TGA-Stufen) mit der Theorie vergleichen" data-i18n="er.shared" data-i18n-title="er.shared_t">Geteilte Eingabe …</button><span id="envName" hidden></span></footer>
-<div class="ptwin" id="ptModal" hidden role="dialog" aria-label="Periodensystem">
+<div class="ptwin" id="ptModal" data-size-win="pt" hidden role="dialog" aria-label="Periodensystem">
   <div class="head" id="ptHead" title="Zum Verschieben ziehen"><b>Periodensystem</b><span class="small">Klick fügt ein · Umschalt+Klick: Elementkarte</span><span class="grow"></span>
     <label class="small"><input type="checkbox" id="ptMass"> Massen</label>
     <select id="ptColor" title="Färbung"><option value="block">Block</option><option value="mass">Atommasse</option></select>
@@ -577,7 +592,7 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
   <div id="ptLegend" class="legend" style="margin-top:6px"></div>
   <div id="ptInfo" class="small"></div>
 </div>
-<div class="ptwin" id="molWin" hidden role="dialog" aria-label="Moleküle">
+<div class="ptwin" id="molWin" data-size-win="mol" hidden role="dialog" aria-label="Moleküle">
   <div class="head" id="molHead" title="Zum Verschieben ziehen"><b>Moleküle</b>
     <input id="molQ" aria-label="Moleküle suchen" placeholder="Name, Formel, CAS …" spellcheck="false" autocomplete="off">
     <select id="molCls" title="Stoffklasse"><option value="">alle Klassen</option></select>
@@ -588,21 +603,21 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
   <div id="molList" class="mgrid"></div>
   <div id="molInfo" class="small" style="margin-top:4px"></div>
 </div>
-<div class="ptwin" id="desWin" hidden role="dialog" aria-label="Moleküldesigner">
+<div class="ptwin" id="desWin" data-size-win="des" hidden role="dialog" aria-label="Moleküldesigner">
   <div class="head" id="desHead" title="Zum Verschieben ziehen"><b>Moleküldesigner</b><span class="small">F4 · Struktur zeichnen, Name und Eigenschaften</span><span class="grow"></span>
     <button id="desMin" title="Einklappen / ausklappen" aria-label="Moleküldesigner ein- oder ausklappen">▁</button>
     <button id="desClose" title="Schliessen (Esc)" aria-label="Moleküldesigner schliessen">✕</button></div>
   <div class="row" style="margin:2px 0 6px"><input id="desIn" aria-label="SMILES, Molfile oder Name" class="mono" spellcheck="false" autocomplete="off" placeholder="SMILES, Molfile oder Name aus der Sammlung" style="flex:1;min-width:140px"><button id="desLoad">Laden</button><button id="desClear">Leeren</button></div>
   <div class="row despal" id="desPal" role="toolbar" aria-label="Elementpalette"></div>
-  <div id="desEd"></div>
+  <div id="desEd" data-size-h="desed"></div>
   <div id="desOut" class="desout"></div>
 </div>
-<div class="ptwin" id="modWin" hidden role="dialog" aria-labelledby="modTitle">
+<div class="ptwin" id="modWin" data-size-win="mod" hidden role="dialog" aria-labelledby="modTitle">
   <div class="head" id="modHead" title="Zum Verschieben ziehen"><b id="modTitle"></b><span class="grow"></span>
     <button id="modClose" title="Schliessen (Esc)" aria-label="Schliessen">✕</button></div>
   <div id="modBody"></div>
 </div>
-<div class="ptwin" id="rsWin" hidden role="dialog" aria-labelledby="rsTitle">
+<div class="ptwin" id="rsWin" data-size-win="rs" hidden role="dialog" aria-labelledby="rsTitle">
   <div class="head" id="rsHead" title="Zum Verschieben ziehen"><b id="rsTitle" data-i18n="er.rs_h">Nachschlagen</b><span class="grow"></span>
     <button id="rsClose" title="Schliessen (Esc)" aria-label="Schliessen">✕</button></div>
   <div class="rsnav" id="rsNav" role="tablist"></div>
@@ -1268,7 +1283,7 @@ async function runSpecies() {
 function wireCard(sc) {
   if (!sc || !sc.substance) return;
   const m = sc.substance;
-  fillStructs($("#spOut"));
+  fillStructs($("#spOut")); urSizes();
   const ins = $("#scIns"); if (ins) ins.onclick = () => { lastInput = $("#eq"); insertAtCursor(m.formula); };
   $$("#spOut [data-look]").forEach(b => b.onclick = () => openLookup(b.dataset.look, m.key.startsWith("own:") ? m.name : (m.cas || m.en || m.formula)));
 }
@@ -1404,7 +1419,9 @@ async function fillStructs(root) {
   if (!els.length || !(await loadOCL())) return;
   for (const el of els) { const r = el.getBoundingClientRect(); el.innerHTML = structSVG(el.dataset.smi, Math.round(r.width) || 120, Math.round(r.height) || 84); el.dataset.done = "1"; }
 }
-const structDiv = (smi, cls = "") => smi ? `<div class="struct ${cls}" data-smi="${esc(smi)}"></div>` : `<div class="struct ${cls}"><span class="small">ohne Struktur</span></div>`;
+// UR: sz = Name für eine ziehbare Höhe (data-size-h), danach urSizes() aufrufen
+const structDiv = (smi, cls = "", sz = "") => { const a = sz ? ` data-size-h="${esc(sz)}"` : "";
+  return smi ? `<div class="struct ${cls}"${a} data-smi="${esc(smi)}"></div>` : `<div class="struct ${cls}"${a}><span class="small">ohne Struktur</span></div>`; };
 const clsLabel = (c) => String(c).split(" | ")[0];
 const mName = (m) => m.de || m.en || m.name || m.key;
 
@@ -1423,6 +1440,33 @@ function dragWin(e, w, key) {
   const up = () => { removeEventListener("pointermove", move); removeEventListener("pointerup", up);
     const q = w.getBoundingClientRect(); try { localStorage.setItem(key, JSON.stringify({ x: q.left, y: q.top })); } catch (er) { /* gesperrt */ } };
   addEventListener("pointermove", move); addEventListener("pointerup", up);
+}
+// UR: Grössen durch Ziehen (labui.js). Mehrfach aufrufbar: neu eingefügte Elemente (Stoffkarte, Kästen) kommen dazu.
+function urSizes() { if (window.LabUI && LabUI.sizes) LabUI.sizes("elementrechner"); }
+// Nach dem Ziehen an einer Kante folgt ein Klick; der soll einen Kasten (.modal) nicht über den Hintergrund schliessen
+let urSizedAt = 0;
+document.addEventListener("lab-size", () => { urSizedAt = Date.now(); }, true);
+function urJustSized() { return Date.now() - urSizedAt < 500; }
+function urWinInit() {
+  // Rechts verankerte Fenster vor dem Ziehen an der rechten Kante bzw. Unterkante links verankern (gleiche Lage),
+  // damit die gezogene Kante dem Zeiger folgt. window/capture läuft vor dem Griff von labui.js (document/capture).
+  addEventListener("pointerdown", (e) => {
+    if (e.button !== 0 || innerWidth <= 700) return;
+    for (const w of $$(".ptwin:not([hidden])")) {
+      const r = w.getBoundingClientRect();
+      if (!r.width || w.style.right === "auto") continue;
+      const inR = e.clientX >= r.right - 1 && e.clientX <= r.right + 8 && e.clientY >= r.top && e.clientY <= r.bottom + 8;
+      const inB = e.clientY >= r.bottom - 1 && e.clientY <= r.bottom + 8 && e.clientX >= r.left && e.clientX <= r.right + 8;
+      if (inR || inB) Object.assign(w.style, { left: r.left + "px", top: r.top + "px", right: "auto" });
+    }
+  }, true);
+  // Eingeklappte Fenster (Klasse min) sind nicht ziehbar; ausgeklappt gilt wieder die gemerkte Grösse
+  for (const [id, n] of [["molWin", "mol"], ["desWin", "des"]]) {
+    const w = $("#" + id);
+    const upd = () => { if (w.classList.contains("min")) w.removeAttribute("data-size-win"); else if (w.dataset.sizeWin !== n) w.setAttribute("data-size-win", n); };
+    new MutationObserver(upd).observe(w, { attributes: true, attributeFilter: ["class"] });
+    upd();
+  }
 }
 
 // ------------------------------------------------------------------ Molekülfenster
@@ -1968,7 +2012,7 @@ function showSubstance(key) {
 }
 function substanceCard(j) {
   const m = j.substance, P = (j.props && j.props.props) || {};
-  let h = `<h3 style="margin-top:16px">${m.own ? "Eigener Stoff" : "Aus der Sammlung"}</h3>${structDiv(m.smiles, "big")}<dl class="kv">`;
+  let h = `<h3 style="margin-top:16px">${m.own ? "Eigener Stoff" : "Aus der Sammlung"}</h3>${structDiv(m.smiles, "big", "spstruct")}<dl class="kv">`;
   const add = (l, v) => { if (v) h += `<dt>${l}</dt><dd>${v}</dd>`; };
   add("Name", `<b>${esc(m.de || m.name || m.en)}</b>`); if (m.de && m.en && m.de !== m.en) add("englisch", esc(m.en));
   add("IUPAC", m.iupac && esc(m.iupac)); add("Formel", m.formula && `<span class="mono">${esc(m.formula)}</span>`);
@@ -2134,7 +2178,7 @@ function editOwn(item, prefill) {
   };
   $("#ofKind").value = it.kind || "molecule";
   if (window.LabRef && LabRef.wire) LabRef.wire($("#ofSrc"));
-  const prev = () => { const s = $("#ofSmiles").value.trim(); $("#ofStruct").innerHTML = s ? structDiv(s, "big") : ""; fillStructs($("#ofStruct")); };
+  const prev = () => { const s = $("#ofSmiles").value.trim(); $("#ofStruct").innerHTML = s ? structDiv(s, "big", "ofstruct") : ""; fillStructs($("#ofStruct")); urSizes(); };
   $("#ofSmiles").addEventListener("input", () => { clearTimeout(lkT); lkT = setTimeout(prev, 300); }); prev();
   $("#ofFromS").onclick = async () => { const s = $("#ofSmiles").value.trim(); if (!s || !(await loadOCL())) return; try { $("#ofFormula").value = OCL.Molecule.fromSmiles(s).getMolecularFormula().formula; } catch (e) { toast("SMILES nicht lesbar", true); } };
   $("#ofAddV").onclick = () => $("#ofVals").insertAdjacentHTML("beforeend", ownValueRow({ k: "mp" }));
@@ -2910,12 +2954,13 @@ async function dsDialog(fold, pk = null) {
   const cfg = DS_TOOLS[fold], prev = DSO()[fold], t = LabUI.t;
   const m = document.createElement("div");
   m.className = "modal";
-  m.innerHTML = `<div class="box" style="min-width:min(440px,92vw);max-width:560px"><div class="head"><b>${esc(t("er.ds_h"))}</b><span style="flex:1"></span>
+  m.innerHTML = `<div class="box" data-size-win="ds" style="min-width:min(440px,92vw);max-width:560px"><div class="head"><b>${esc(t("er.ds_h"))}</b><span style="flex:1"></span>
     <button type="button" data-x aria-label="${esc(t("er.ds_cancel"))}">✕</button></div><div data-body class="small">${esc(t("er.ds_loading"))}</div></div>`;
   document.body.appendChild(m);
+  urSizes();                                                         // UR: gemerkte Grösse des Kastens
   const body = m.querySelector("[data-body]"), close = () => m.remove();
   m.querySelector("[data-x]").onclick = close;
-  m.addEventListener("click", (e) => { if (e.target === m) close(); });
+  m.addEventListener("click", (e) => { if (e.target === m && !urJustSized()) close(); });
   m.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   let list;
   try { list = await dsList(); } catch (e) { body.innerHTML = `<div class="note err">${esc(e.message)}</div>`; return; }
@@ -3184,14 +3229,15 @@ function bind() {
 async function shareDialog() {
   const m = document.createElement("div");
   m.className = "modal";
-  m.innerHTML = `<div class="box" style="min-width:min(680px,92vw)"><div class="head"><b>Geteilte Eingabe</b>
+  m.innerHTML = `<div class="box" data-size-win="share" style="min-width:min(680px,92vw)"><div class="head"><b>Geteilte Eingabe</b>
     <button type="button" data-kind="tga">TGA-Stufen ↔ Zersetzung</button><button type="button" data-kind="ir">FTIR-Banden ↔ Struktur</button>
     <span style="flex:1"></span><button type="button" data-x>Schliessen</button></div><div data-body>Lade …</div></div>`;
   document.body.appendChild(m);
+  urSizes();                                                         // UR: gemerkte Grösse des Kastens
   const body = m.querySelector("[data-body]");
   const close = () => { m.remove(); save(); syncBoardFromState(); };   // UI-11: Auswahlliste und Verbindung sind dieselbe Bindung
   m.querySelector("[data-x]").onclick = close;
-  m.addEventListener("click", (e) => { if (e.target === m) close(); });
+  m.addEventListener("click", (e) => { if (e.target === m && !urJustSized()) close(); });
   const call = async (p, b) => { const j = await api(p, b); if (j && j.error) throw new Error(j.error); return j; };
   body.addEventListener("click", (ev) => { const h = ev.target.closest("[data-hist]"); if (h) LabIndex.history(api, toast, { share: h.dataset.hist, version: +h.dataset.v }); });   // A8
   const STATUS = { current: "aktuell", update: "neuere Version verfügbar", stale: "aktualisiert – neu gerechnet", failed: "fehlgeschlagen" };
@@ -4484,6 +4530,7 @@ async function init() {
   S.tools = S.tools.filter(t => TOOLS.some(x => x.id === t));        // UI-13: Element und Nachschlagen sind keine Werkzeuge mehr
   buildResearch(); bindVals(); renderVals();
   renderTools();
+  urWinInit(); urSizes();                                         // UR: Fenster, Kästen, Designerfläche, Strukturbild ziehbar
   $("#toBoard").addEventListener("click", showBoard);
   $("#modBtn").addEventListener("click", (e) => moduleMenu(e.currentTarget));
   $("#modClose").addEventListener("click", closeModWin);

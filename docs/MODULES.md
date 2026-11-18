@@ -173,6 +173,16 @@ language). Figures, tables, `\labval` values and *linked* text (`\input{lab/<slu
 *editable* text that were pasted into the user's files stay as the user left them. **Insert results section** writes
 `sections/<slug>.tex` once; that file belongs to the user afterwards.
 
+**Import into a report** (no module involved): `GET /api/import/sources?target=<id>`,
+`GET /api/import/pieces?type=report|zip|suite&project=|stage=`, `POST /api/import/stage?name=` (raw ZIP),
+`POST /api/projects/<id>/import` `{source: {type, project|stage}, keys, mode: live|pin|copy}`,
+`GET .../import/links`, `POST .../import/<slug>/update` and `.../import/<slug>/mode`. The hub writes an ordinary
+bundle with module `import` (items figure/text/values/data/citation, `refs.bib`, `values.tex`, and `preamble.tex` for
+the macros and packages the pieces need, which `lab/labdata.tex` inputs) and a manifest field `link`. A whole analysis
+result is copied with its own module, so its Refresh still goes to that module. Refresh of an `import` bundle is the
+same as Update. `GET /api/projects/<id>/zip?portable=1[&prefix=]` writes the portable LaTeX ZIP (see
+`docs/methods/provenance.md`, section 6).
+
 ## 5. Own references, own equations, sources
 
 Every module that compares a measurement with reference data lets the user add references that are not bundled, and
@@ -352,4 +362,17 @@ Rules for module pages:
 - Status words are chips (`LabUI.chip`), not coloured free text.
 - Every user-visible string goes through `LabUI.t` with a German and an English entry; German is the default.
 - A value that came from elsewhere shows where from (origin line or `LabUI.actions({history})`).
+- Every region the user looks at can be resized by dragging an edge. Call `LabUI.sizes("<prefix>")` once the page is
+  built (it may be called again after inserting new elements; wired elements are skipped). Mark the regions:
+  - side columns: `data-size-col="<name>"` on a panel inside a grid/flex container, and use `var(--lab-<name>, <px>)`
+    for that column in the CSS (the helper sets the variable on the container; the handle sits on the panel's inner
+    edge, or on `data-size-edge="left|right"`);
+  - heights: `data-size-h="<name>"` on charts, tables, lists and previews (`data-size-mode="max"` sets `max-height`
+    for scrolling tables and lists, so short content stays short);
+  - `<dialog>` elements are resizable at their right edge, bottom edge or corner without markup; other floating windows
+    get `data-size-win="<name>"`.
+
+  Sizes are stored per page as fractions of the window or the surrounding area, so a layout keeps its proportions on
+  another screen. Double-click or Home on a handle resets it, arrow keys move a focused handle, and
+  `LabUI.resetSizes(prefix)` clears all of them. Charts that draw at their box size redraw through `LabUI.onResize(el, fn)`.
 - First user: the Elementrechner (language switch in the header, chips in "Geteilte Eingabe …").

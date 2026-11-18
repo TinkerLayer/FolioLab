@@ -17,9 +17,9 @@ from matplotlib.patches import FancyBboxPatch, Patch, Polygon, Rectangle  # noqa
 from matplotlib.ticker import FuncFormatter  # noqa: E402
 
 from .. import alloys as alloys_mod  # noqa: E402
-from ..analyse import PHASES, Result, fmt  # noqa: E402
+from ..analyse import PHASE_ORDER, PHASES, Result, fmt  # noqa: E402
 
-PHASE_COLORS = ["#9aa0a6", "#1a73e8", "#e8710a", "#d93025", "#000000", "#cccccc"]
+PHASE_COLORS = ["#9aa0a6", "#1a73e8", "#e8710a", "#d93025", "#000000", "#cccccc", "#129eaf", "#b06000"]
 MARK = {"yield": "#188038", "max": "#d93025", "break": "#202124"}
 REF_COLOR = "#9334e6"
 FILE_COLORS = ["#d93025", "#1a73e8", "#188038", "#e8710a", "#9334e6", "#007b83"]
@@ -84,7 +84,7 @@ def chart1(r: Result, ax=None, title: bool = True):
     ax, own = _new(ax)
     t, y = r.t, r.y
     ph = r.phases[:len(t)]
-    for code in range(4):  # der einzelne Lastabfall-Punkt gehoert zur Linie der Abfallphase
+    for code in PHASE_ORDER:  # der einzelne Lastabfall-Punkt gehoert zur Linie der Abfallphase
         idx = np.where(ph == code)[0]
         if not len(idx):
             continue
@@ -109,7 +109,7 @@ def chart1(r: Result, ax=None, title: bool = True):
         ax.set_title(chart_titles(r)[0])
     ax.set_xlim(0, t[-1] * 1.02)
     ax.set_ylim(0, y.max() * 1.15)
-    ax.legend(loc="lower right", fontsize=8.5, ncol=2)
+    ax.legend(loc="best", fontsize=8.5, ncol=2)
     _comma(ax)
     return ax.figure if own else None
 
@@ -153,9 +153,10 @@ def chart2_dev(r: Result, ax, title: str | None = None):
     sl = slice(start, end + 1)
     ax.axvspan(t[r.fit.lo], t[r.fit.hi], color=PHASE_COLORS[1], alpha=0.10)
     ax.axhline(0, color="#5f6368", lw=0.8)
-    ax.axhline(thr, color="#9aa0a6", ls="--", lw=1.0)
-    ax.annotate(f"Schwelle {fmt(r.config.yield_threshold * 100, 1)} % von {'Rm' if r.mode == 'Spannung' else 'Fmax'}",
-                (t[start], thr), textcoords="offset points", xytext=(4, 4), fontsize=8.5, color="#5f6368")
+    if (r.kv.get("ep") or {}).get("on", True):         # ohne Einteilung elastisch/plastisch keine Fliessschwelle
+        ax.axhline(thr, color="#9aa0a6", ls="--", lw=1.0)
+        ax.annotate(f"Schwelle {fmt(r.config.yield_threshold * 100, 1)} % von {'Rm' if r.mode == 'Spannung' else 'Fmax'}",
+                    (t[start], thr), textcoords="offset points", xytext=(4, 4), fontsize=8.5, color="#5f6368")
     ax.plot(t[sl], dev[sl], "-", color="#7b1fa2", lw=1.6)
     if r.yield_idx is not None:
         i = r.yield_idx
@@ -443,7 +444,7 @@ def phase_timeline(r: Result, ax):
     t = r.t
     for b in r.phase_bounds():
         code = PHASES.index(b["phase"]) if b["phase"] in PHASES else 5
-        if code > 3:
+        if code in (4, 5):
             continue
         t0, t1 = t[b["von"]], t[min(b["bis"] + 1, len(t) - 1)]
         ax.barh(0, t1 - t0, left=t0, height=0.6, color=PHASE_COLORS[code])
@@ -611,11 +612,101 @@ def grouped_kpis(results: list[Result], ax):
     ax.yaxis.set_major_formatter(FuncFormatter(_cf))
 
 
+# --------------------------------------------------------------------------- 5 Lastspitzen (fortschreitendes Versagen)
+PEAK_COLOR = "#7b1fa2"
+FIT_COLORS = {"line": "#1a73e8", "exp": "#e8710a"}
+FIT_NAMES = {"de": {"line": "Gerade y = a + b·x", "exp": "Exponentialfunktion y = a·exp(b·x)"},
+             "en": {"line": "Line y = a + b·x", "exp": "Exponential y = a·exp(b·x)"}}
+
+
+def has_peaks(r: Result) -> bool:
+    pk = r.kv.get("peaks")
+    return bool(pk and pk.get("progressive"))
+
+
+def peak_x_label(pk: dict, lang: str = "de") -> str:
+    lab = pk["x_label_en"] if lang == "en" else pk["x_label"]
+    app = (" (apparent)" if lang == "en" else " (scheinbar)") if pk.get("x_apparent") else ""
+    return f"{lab} [{pk['x_unit']}]{app}"
+
+
+def peaks_curve(r: Result, ax, lang: str = "de"):
+    """Verlauf mit nummerierten Lastspitzen, ihren Tälern und der besseren Ausgleichskurve der Spitzenlasten."""
+    pk = r.kv["peaks"]
+    en = lang == "en"
+    ax.plot(r.t, r.y, "-", color="#5f6368", lw=1.1, label="Measured curve" if en else "Messkurve")
+    pts = pk["list"]
+    ax.plot([e["t"] for e in pts], [e["y"] for e in pts], "o", ms=5, color=PEAK_COLOR, zorder=5,
+            label=(f"Load peaks (drop ≥ {fmt(pk['delta'], 2, r.unit)} after each)" if en else
+                   f"Lastspitzen (je Abfall ≥ {fmt(pk['delta'], 2, r.unit)} danach)"))
+    ax.plot([e["valley_t"] for e in pts], [e["valley_y"] for e in pts], "v", ms=4, color="#9aa0a6", zorder=4,
+            label="Valleys" if en else "Täler")
+    for e in pts:
+        ax.annotate(str(e["nr"]), (e["t"], e["y"]), textcoords="offset points", xytext=(0, 5), ha="center",
+                    fontsize=7, color=PEAK_COLOR, fontweight="bold")
+    fit = pk.get("fit") or {}
+    best, cv = fit.get("best"), fit.get("curve") or {}
+    if best and best in cv:
+        ax.plot(cv["t"], cv[best], "--", color=FIT_COLORS[best], lw=1.6,
+                label=("Envelope: " if en else "Hüllkurve: ") + FIT_NAMES[lang if lang in FIT_NAMES else "de"][best])
+    ax.set_xlabel("Time t [s]" if en else "Zeit t [s]")
+    ax.set_ylabel(("Stress σ [MPa]" if r.mode == "Spannung" else "Force |F| [N]") if en else _ylabel(r))
+    ax.set_xlim(0, r.t[-1] * 1.02)
+    ax.set_ylim(0, r.y.max() * 1.15)
+    ax.legend(loc="best", fontsize=8, framealpha=0.9, frameon=True, edgecolor="none")
+    _comma(ax)
+
+
+def peaks_fit_chart(r: Result, ax, lang: str = "de"):
+    """Spitzenlast über der Verlängerung bei der Spitze mit beiden Ausgleichskurven; die bessere kräftig."""
+    pk = r.kv["peaks"]
+    en = lang == "en"
+    names = FIT_NAMES[lang if lang in FIT_NAMES else "de"]
+    fit = pk.get("fit") or {}
+    cv = fit.get("curve") or {}
+    for m in ("line", "exp"):
+        d = fit.get(m)
+        if not (d and d.get("ok") and m in cv):
+            continue
+        b = fit.get("best") == m
+        lab = f"{names[m]}, R² = {fmt(d['r2'], 4)}" + ((" (better)" if en else " (besser)") if b else "")
+        ax.plot(cv["x"], cv[m], "-" if b else "--", color=FIT_COLORS[m], lw=2.2 if b else 1.2, label=lab,
+                zorder=4 if b else 3)
+    inc = [e for e in pk["list"] if not e.get("excluded")]
+    exc = [e for e in pk["list"] if e.get("excluded")]
+    ax.plot([e["x"] for e in inc], [e["y"] for e in inc], "o", ms=6, color=PEAK_COLOR, zorder=5,
+            label="Peak loads" if en else "Spitzenlasten")
+    if exc:
+        ax.plot([e["x"] for e in exc], [e["y"] for e in exc], "o", ms=6, mfc="none", color=PEAK_COLOR, zorder=5,
+                label="excluded from the fit" if en else "nicht im Ausgleich")
+    for e in pk["list"]:
+        ax.annotate(str(e["nr"]), (e["x"], e["y"]), textcoords="offset points", xytext=(5, 3), fontsize=7,
+                    color=PEAK_COLOR)
+    ax.set_xlabel(peak_x_label(pk, lang))
+    sym = "σ" if r.mode == "Spannung" else "|F|"
+    ax.set_ylabel((f"Peak load {sym} [{r.unit}]") if en else f"Spitzenlast {sym} [{r.unit}]")
+    ax.set_ylim(0, max(e["y"] for e in pk["list"]) * 1.2)
+    ax.legend(loc="upper right", fontsize=7.5)
+    _comma(ax)
+
+
+def chart5(r: Result, ax=None, title: bool = True):
+    """Bilddatei: Lastspitzen (oben Verlauf, unten Spitzenlasten mit Ausgleich); None ohne fortschreitendes Versagen."""
+    if not has_peaks(r):
+        return None
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(10, 8.4), gridspec_kw={"height_ratios": [3, 2.4]})
+    peaks_curve(r, a1)
+    peaks_fit_chart(r, a2)
+    if title:
+        a1.set_title("Lastspitzen (fortschreitendes Versagen)")
+    return fig
+
+
 # --------------------------------------------------------------------------- Bilddateien
 def build_figures(r: Result) -> list[tuple[int, str, object]]:
-    titles = chart_titles(r)
+    titles = chart_titles(r) + ["Lastspitzen (fortschreitendes Versagen)"]
     figs = []
-    for nr, fn in enumerate((chart1, chart2, chart3, chart4), start=1):
+    for nr, fn in enumerate((chart1, chart2, chart3, chart4, chart5), start=1):
         fig = fn(r)
         if fig is not None:
             fig.tight_layout()

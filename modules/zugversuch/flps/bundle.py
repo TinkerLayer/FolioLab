@@ -82,7 +82,10 @@ T = {
                  "app": " (scheinbar)", "yield_ref": "Fliessbeginn ({thr}\\,\\%) / $R_{{p0,2}}$ (nicht gleichartig)"},
         "methods_t": "Methodik", "results_t": "Ergebnisse",
         "src_trav": "Traversenweg (scheinbar)", "src_probe": "Weg an der Probe",
-        "phase": {"Setzen": "Setzen", "elastisch": "elastisch", "plastisch": "plastisch", "Abfall": "Abfall"},
+        "phase": {"Setzen": "Setzen", "elastisch": "elastisch", "plastisch": "plastisch", "Abfall": "Abfall",
+                  "Anstieg": "Anstieg", "Lastspitzen": "Lastspitzen"},
+        "fig_curve_np": "{q}-Zeit-Verlauf der Messung {n} nach Phasen (ohne Einteilung elastisch/plastisch) mit Maximum und Bruch.",
+        "fig_dev_np": "Abweichung der Messpunkte von der Ausgleichsgeraden.",
     },
     "en": {
         "title1": "Tensile test {n}", "titleN": "Tensile tests {n}",
@@ -115,7 +118,10 @@ T = {
                  "app": " (apparent)", "yield_ref": "Yield onset ({thr}\\,\\%) / $R_{{p0.2}}$ (not like with like)"},
         "methods_t": "Methods", "results_t": "Results",
         "src_trav": "crosshead displacement (apparent)", "src_probe": "displacement measured on the specimen",
-        "phase": {"Setzen": "settling", "elastisch": "elastic", "plastisch": "plastic", "Abfall": "drop"},
+        "phase": {"Setzen": "settling", "elastisch": "elastic", "plastisch": "plastic", "Abfall": "drop",
+                  "Anstieg": "rise", "Lastspitzen": "load peaks"},
+        "fig_curve_np": "{q}--time curve of measurement {n} by phase (not divided into elastic and plastic), with maximum and break.",
+        "fig_dev_np": "Deviation of the data points from the regression line.",
     },
 }
 
@@ -132,7 +138,7 @@ _EN = [
     ("(idealisiert)", "(idealised)"), ("obere Grenze", "upper bound"),
     ("untere Grenze", "lower bound"), ("Fliessbeginn", "Yield onset"), ("Zugfestigkeit", "Tensile strength"),
     ("zurückgestuft", "downgraded"), ("unwahrscheinlich", "unlikely"), ("Kandidat", "Candidate"),
-    ("Schwelle", "Threshold"), ("vor Bruch", "before break"), ("Bruch", "Break"), ("Setzen", "Settling"),
+    ("Schwelle", "Threshold"), ("vor Bruch", "before break"), ("Bruch", "Break"), ("Setzen", "Settling"), ("Lastspitzen", "Load peaks"), ("Anstieg", "Rise"),
     ("elastisch", "elastic"), ("plastisch", "plastic"), ("Dicke", "Thickness"), ("Kennwerte", "Key values"),
     ("Edelstahl", "Stainless steel"), ("Gusseisen", "Cast iron"), ("Stahl", "Steel"), ("Kupfer", "Copper"),
     ("Titan", "Titanium"), ("Kunststoff verstärkt", "Reinforced plastics"), ("Kunststoff", "Plastics"),
@@ -334,15 +340,19 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
         vals.append(("refRm", "$R_m$ Referenz" if lang == "de" else "Reference $R_m$", num(r.reference.rm, 0, lang, "MPa"), f"{r.reference.rm:.0f} MPa"))
         if r.ref_cmp and r.ref_cmp.get("d_rm_pct") is not None:
             vals.append(("refdRm", "dRm (Referenz)" if lang == "de" else "dRm (reference)",num(r.ref_cmp["d_rm_pct"], 1, lang, "%"), f"{r.ref_cmp['d_rm_pct']:.1f} %"))
+    has_pk = C.has_peaks(r)
+    ep_on = (r.kv.get("ep") or {}).get("on", True)
+    if has_pk:
+        vals += _peak_values(r, lang)
     if inc.get("values", True):
         b.add_values(vals)
 
     if inc.get("figures", True):
         b.add_figure(_fig(lambda ax: C.chart1(r, ax, title=False), lang, keep), "verlauf",
-                     L["fig_curve"].format(q=q, n=n, thr=thr, ref=ref_lbl))
+                     L["fig_curve" if ep_on else "fig_curve_np"].format(q=q, n=n, thr=thr, ref=ref_lbl))
         b.add_figure(_fig(lambda ax: C.chart2_fit(r, ax, full=True), lang, keep), "linear", L["fig_fit"].format(n=n))
         b.add_figure(_fig(lambda ax: C.chart2_dev(r, ax), lang, keep, (6.4, 2.8)), "abweichung",
-                     L["fig_dev"].format(thr=thr, ref=ref_lbl))
+                     L["fig_dev" if ep_on else "fig_dev_np"].format(thr=thr, ref=ref_lbl))
         if st and r.strain is not None and r.comparison:
             refpart = (f" und dem Referenzwerkstoff {tex_escape(r.reference.name)}" if lang == "de" else
                        f" and the reference material {tex_escape(r.reference.name)}") if r.reference else ""
@@ -367,6 +377,8 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
                          L["fig_cand"].format(g=tex_escape(r.group)), cites=cites.get("cand"))
         b.add_figure(_fig(lambda ax: C.specimen_sketch(r, ax), lang, keep, (5.0, 2.0)), "probe",
                      L["fig_sketch"].format(s=tex_escape(specimen_label(r))), width="0.6")
+        if has_pk:
+            _peak_figures(b, r, lang, keep)
 
     if inc.get("tables", True):
         R = L["rows"]
@@ -410,6 +422,8 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
                         L["tab_ref"].format(n=n, r=tex_escape(ref.name)), cites=cites.get("mat"))
         if st and r.comparison and "field" in cites:
             _source_tables(b, r, lang, cites)
+        if has_pk:
+            _peak_tables(b, r, lang)
 
     if inc.get("data", True):
         header = ["t_s", "F_N"] + (["sigma_MPa"] if st else []) + (["eps_pct"] if r.strain is not None else []) + ["phase"]
@@ -503,9 +517,7 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
         m.append("Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen "
                  "Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als "
                  f"{V('tol')} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann "
-                 "(gierige Suche, nicht notwendig das längste solche Fenster). Als Fliessbeginn gilt der erste Messpunkt "
-                 f"nach diesem Fenster, der um mehr als {V('thr')} des Maximums von der verlängerten Geraden abweicht. "
-                 "Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$.")
+                 "(gierige Suche, nicht notwendig das längste solche Fenster). " + _ep_text(r, "de", V))
         m.append(f"Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens "
                  f"{V('holdthr')} des Maximums beträgt.")
         if r.kv.get("A_pct") is not None:
@@ -573,9 +585,7 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
         m.append("The linear section was found by growing a window from the point of steepest slope, one data point at a "
                  "time to the left and to the right, as long as all points of the window deviate from their regression "
                  f"line by less than {V('tol')}; the search stops when neither side can grow (a greedy search, not "
-                 "necessarily the longest such window). Yield onset is the first point after this window that deviates "
-                 f"from the extended line by more than {V('thr')} of the maximum. This threshold is a convention, not a "
-                 "proof stress $R_{p0.2}$.")
+                 "necessarily the longest such window). " + _ep_text(r, "en", V))
         m.append(f"The hold time is the duration of the contiguous section around the maximum in which the load stays at "
                  f"or above {V('holdthr')} of the maximum.")
         if r.kv.get("A_pct") is not None:
@@ -619,10 +629,269 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
                        f"the tensile strength deviates by {V('refdRm')}. Agreement in $R_m$ alone does not identify the material.")
         if r.e_schein_gpa is not None:
             res.append(f"The apparent modulus of {V('E')} is not a material property.")
+    if C.has_peaks(r):
+        pm, pr = _peak_texts(r, lang, V)
+        m += pm
+        res += pr
     L = T[lang]
     b.add_text("methodik", " ".join(m).replace("$ \\labval", "$\\labval") + "\n" + ("\n" + eq_text if eq_text else ""),
                L["methods_t"])
     b.add_text("ergebnisse", " ".join(res) + "\n", L["results_t"])
+
+
+def _ep_text(r: Result, lang: str, V) -> str:
+    """Methodensatz zur Einteilung elastisch/plastisch (Fliessbeginn), je nach Einstellung und Kurve."""
+    ep = r.kv.get("ep") or {"on": True, "progressive": False, "setting": "auto"}
+    de = lang == "de"
+    if ep["on"]:
+        until = (("vor der ersten Lastspitze" if de else "before the first load peak") if ep["progressive"]
+                 else ("vor dem Maximum" if de else "before the maximum"))
+        if de:
+            return (f"Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster und {until}, der um mehr als "
+                    f"{V('thr')} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung "
+                    "und keine Dehngrenze $R_{p0,2}$.")
+        return (f"Yield onset is the first point after this window and {until} that deviates from the extended line "
+                f"by more than {V('thr')} of the maximum. This threshold is a convention, not a proof stress $R_{{p0.2}}$.")
+    n_pk = (r.kv.get("peaks") or {}).get("n", 0)
+    if de:
+        why = (f", weil die Kurve {n_pk} Lastspitzen zeigt (fortschreitendes Versagen: Teile versagen nacheinander, eine "
+               "Grenze auf der Kraftkurve beschreibt keinen Werkstoffzustand)" if ep["setting"] == "auto"
+               else " (abgeschaltet)")
+        return (f"Die Kurve wurde nicht in elastisch und plastisch eingeteilt{why}; sie ist in Anstieg"
+                + (", Lastspitzen" if ep["progressive"] else "") + " und Abfall gegliedert. Ein Fliessbeginn und die "
+                "plastischen Dehnungen $A_g$ und $A$ werden nicht angegeben; die Steigung des linearen Abschnitts "
+                "beschreibt die Steifigkeit des Anstiegs.")
+    why = (f" because the curve shows {n_pk} load peaks (progressive failure: parts fail one after another, so a limit "
+           "on the force curve does not describe a state of the material)" if ep["setting"] == "auto" else " (switched off)")
+    return (f"The curve was not divided into elastic and plastic{why}; it is divided into rise"
+            + (", load peaks" if ep["progressive"] else "") + " and drop. No yield onset and no plastic extensions "
+            "$A_g$ and $A$ are given; the slope of the linear section describes the stiffness of the rise.")
+
+
+# ----------------------------------------------------------------------------- Lastspitzen (fortschreitendes Versagen)
+PEAK_ROWS_PER_TABLE = 40
+_MODEL = {"de": {"line": "Gerade", "exp": "Exponentialfunktion"}, "en": {"line": "straight line", "exp": "exponential"}}
+_FORMULA = {"line": r"$y = a + b\,x$", "exp": r"$y = a\,\mathrm{e}^{b x}$"}
+
+
+def _nd_sig(u, v, sig_u: int = 2, sig_v: int = 4) -> int:
+    """Nachkommastellen: 2 geltende Ziffern der Unsicherheit, ohne sie 4 geltende Ziffern des Werts."""
+    import math
+    ref, sig = (u, sig_u) if (u is not None and u > 0 and math.isfinite(u)) else (abs(v) if v else 1.0, sig_v)
+    if not ref or not math.isfinite(ref):
+        return 2
+    return max(0, min(8, sig - 1 - int(math.floor(math.log10(ref)))))
+
+
+def _pm(v, u, lang, unit="") -> tuple[str, str]:
+    """(LaTeX, Text) für Wert ± Standardunsicherheit."""
+    nd = _nd_sig(u, v)
+    if u is None:
+        return num(v, nd, lang, unit), f"{v:.{nd}f} {unit}".strip()
+    return (num(v, nd, lang) + r" $\pm$ " + num(u, nd, lang, unit), f"{v:.{nd}f} ± {u:.{nd}f} {unit}".strip())
+
+
+def _x_text(pk: dict, lang: str) -> str:
+    app = pk.get("x_apparent")
+    if lang == "de":
+        return {"strain": "die Dehnung bei der Spitze ($100\\,v\\,(t - t_0)/L_0$" + (", scheinbar)" if app else ")"),
+                "travel": "den Traversenweg $v\\,(t - t_0)$ bei der Spitze (enthält die Nachgiebigkeit des Aufbaus)",
+                "time": "die Zeit $t$ bei der Spitze (ohne Prüfgeschwindigkeit gibt es keine Verlängerung)"}[pk["x_kind"]]
+    return {"strain": "the strain at the peak ($100\\,v\\,(t - t_0)/L_0$" + (", apparent)" if app else ")"),
+            "travel": "the crosshead travel $v\\,(t - t_0)$ at the peak (it includes the compliance of the set-up)",
+            "time": "the time $t$ at the peak (without a test speed there is no elongation)"}[pk["x_kind"]]
+
+
+def _peak_values(r: Result, lang: str) -> list:
+    pk = r.kv["peaks"]
+    de = lang == "de"
+    u = r.unit
+    nd = _nd_sig(None, pk["delta"], sig_v=3)
+    vals = [("npk", "Anzahl Lastspitzen" if de else "Number of load peaks", str(pk["n"]), str(pk["n"])),
+            ("pkthr", "Schwelle Lastabfall" if de else "Load-drop threshold", num(pk["frac"] * 100, 1, lang) + r"\,\%",
+             f"{pk['frac'] * 100:.1f} %"),
+            ("pkdelta", "Mindestabfall Delta" if de else "Minimum drop Delta", num(pk["delta"], nd, lang, u),
+             f"{pk['delta']:.{nd}f} {u}")]
+    fit = pk.get("fit") or {}
+    if not fit.get("reason"):
+        vals.append(("pkn", "Spitzen im Ausgleich" if de else "Peaks in the fit", str(fit["n"]), str(fit["n"])))
+        for m, tag in (("line", "L"), ("exp", "E")):
+            d = fit.get(m)
+            if not (d and d.get("ok")):
+                continue
+            name = _MODEL[lang][m]
+            for p in ("a", "b"):
+                lx, tx = _pm(d[p], d[p + "_u"], lang, d[p + "_unit"])
+                vals.append((f"pk{tag}{p}", f"{name}: {p}", lx, tx))
+            vals.append((f"pk{tag}R2", f"{name}: R2", num(d["r2"], 4, lang), f"{d['r2']:.4f}"))
+        if fit.get("best"):
+            nm = _MODEL[lang][fit["best"]]
+            vals.append(("pkbest", "Besseres Modell" if de else "Better model", nm, nm))
+    return vals
+
+
+def _peak_figures(b: Bundle, r: Result, lang: str, keep: set[str]):
+    pk = r.kv["peaks"]
+    n = tex_escape(r.name)
+    nd = _nd_sig(None, pk["delta"], sig_v=3)
+    d = num(pk["delta"], nd, lang, r.unit)
+    fit = pk.get("fit") or {}
+    best = fit.get("best")
+    if lang == "de":
+        cap = (f"Lastspitzen der Messung {n} (fortschreitendes Versagen): {pk['n']} nummerierte Spitzen, jede mit einem "
+               f"Lastabfall von mindestens {d} danach, die Täler dazwischen"
+               + (f" und als Hüllkurve die besser passende {_MODEL['de'][best]} der Spitzenlasten." if best else "."))
+    else:
+        cap = (f"Load peaks of measurement {n} (progressive failure): {pk['n']} numbered peaks, each followed by a load "
+               f"drop of at least {d}, the valleys between them"
+               + (f" and, as envelope, the better-fitting {_MODEL['en'][best]} of the peak loads." if best else "."))
+    b.add_figure(_fig(lambda ax: C.peaks_curve(r, ax, lang), lang, keep), "lastspitzen", cap)
+    if best:
+        cap = (f"Spitzenlasten der Messung {n} über {_x_text(pk, 'de')} mit Ausgleichsgerade und Exponentialfunktion "
+               "(beide direkt nach kleinsten Quadraten in $y$); durchgezogen und kräftig die besser passende."
+               if lang == "de" else
+               f"Peak loads of measurement {n} against {_x_text(pk, 'en')} with a straight line and an exponential "
+               "(both direct least squares in $y$); solid and bold: the better fit.")
+        b.add_figure(_fig(lambda ax: C.peaks_fit_chart(r, ax, lang), lang, keep, (6.4, 3.4)), "lastspitzen-ausgleich",
+                     cap)
+
+
+def _peak_tables(b: Bundle, r: Result, lang: str):
+    pk = r.kv["peaks"]
+    de = lang == "de"
+    st = r.mode == "Spannung"
+    n = tex_escape(r.name)
+    xu = tex_escape(pk["x_unit"])
+    has_w = any(e["W_J"] is not None for e in pk["list"])
+    head = ["Nr.", "$t$ [s]", f"$x$ [{xu}]", "$F$ [N]"] + (["$\\sigma$ [MPa]"] if st else []) + \
+        [("Abfall" if de else "Drop") + " [\\%]", ("Dauer" if de else "Duration") + " [s]", "$F_i/F_{i-1}$",
+         "$k$ [N/s]"] + (["$W$ [J]"] if has_w else [])
+    xnd = 1 if pk["x_unit"] == "s" else 2
+    rows = []
+    for e in pk["list"]:
+        rows.append([str(e["nr"]) + ("*" if e.get("excluded") else ""), num(e["t"], 1, lang), num(e["x"], xnd, lang),
+                     num(e["F"], 1, lang)] + ([num(e["y"], 1, lang)] if st else [])
+                    + [num(e["drop_pct"], 1, lang), num(e["dauer"], 1, lang), num(e["ratio"], 3, lang),
+                       num(e["k_N_s"], 3, lang)] + ([num(e["W_J"], 4, lang)] if has_w else []))
+    dt = num(pk["dt"], 2, lang, "s") if pk.get("dt") else "--"
+    star = any(e.get("excluded") for e in pk["list"])
+    if de:
+        cap = (f"Lastspitzen der Messung {n}. $x$: {_x_text(pk, 'de')}. Abfall: von der Spitze bis zum Tal danach, in "
+               f"\\% der Spitze; Dauer: Spitze bis Tal ($\\pm$ ein Abtastintervall, {dt}); $F_i/F_{{i-1}}$: Verhältnis "
+               "zur vorigen Spitze; $k$: Steigung des Wiederanstiegs zwischen 20 und 80\\,\\% des Anstiegs vom vorigen "
+               "Tal (erste Spitze: ab $t_0$)"
+               + ("; $W$: Arbeit vom vorigen Tal bis zum Tal nach der Spitze" if has_w else "")
+               + (". * nicht im Ausgleich" if star else "") + ".")
+        cont = ", Fortsetzung"
+    else:
+        cap = (f"Load peaks of measurement {n}. $x$: {_x_text(pk, 'en')}. Drop: from the peak to the following valley, "
+               f"in \\% of the peak; duration: peak to valley ($\\pm$ one sampling interval, {dt}); $F_i/F_{{i-1}}$: "
+               "ratio to the previous peak; $k$: slope of the reloading between 20 and 80\\,\\% of the rise from the "
+               "previous valley (first peak: from $t_0$)"
+               + ("; $W$: work from the previous valley to the valley after the peak" if has_w else "")
+               + (". * excluded from the fit" if star else "") + ".")
+        cont = ", continued"
+    align = "r" * len(head)
+    for k in range(0, len(rows), PEAK_ROWS_PER_TABLE):
+        b.add_table("lastspitzen" + (f"-{k // PEAK_ROWS_PER_TABLE + 1}" if k else ""),
+                    booktabs(head, rows[k:k + PEAK_ROWS_PER_TABLE], align, small=True, escape_header=False),
+                    cap if not k else cap.split(". ")[0] + cont + ".")
+    fit = pk.get("fit") or {}
+    if fit.get("reason"):
+        return
+    frows = []
+    for m in ("line", "exp"):
+        d = fit.get(m)
+        if not d:
+            continue
+        name = _MODEL[lang][m].capitalize() + " " + _FORMULA[m]
+        if fit.get("best") == m:
+            name = r"\textbf{" + name + "}"
+        if not d.get("ok"):
+            frows.append([name, "--", tex_escape(str(d.get("error"))), "", "", ""])
+            continue
+        for p in ("a", "b"):
+            nd = _nd_sig(d[p + "_u"], d[p])
+            frows.append([name if p == "a" else "", f"${p}$", num(d[p], nd, lang), num(d[p + "_u"], nd, lang),
+                          num(d[p + "_ci"], nd, lang), tex_escape(d[p + "_unit"] or "")])
+        frows.append(["", "$R^2$", num(d["r2"], 4, lang), "", "", ""])
+    head = [("Modell" if de else "Model"), ("Parameter" if de else "Parameter"), ("Wert" if de else "Value"),
+            "$u$", "$\\pm$ 95\\,\\%", ("Einheit" if de else "Unit")]
+    nfit = fit["n"]
+    if de:
+        cap = (f"Ausgleich der Spitzenlasten der Messung {n} über {_x_text(pk, 'de')} mit {nfit} Spitzen. Beide Modelle "
+               "direkt nach kleinsten Quadraten in $y$; beide haben zwei Parameter und dieselben $y$, also ist das Modell "
+               "mit der kleineren Summe der Fehlerquadrate (dem grösseren $R^2$) das bessere (fett). $u$: "
+               f"Standardunsicherheit; 95\\,\\%: Vertrauensbereich mit dem Student-$t$-Quantil für {nfit - 2} "
+               "Freiheitsgrade.")
+    else:
+        cap = (f"Fit of the peak loads of measurement {n} against {_x_text(pk, 'en')}, {nfit} peaks. Both models are "
+               "direct least squares in $y$; both have two parameters and the same $y$, so the model with the smaller "
+               "sum of squared residuals (the larger $R^2$) is the better one (bold). $u$: standard uncertainty; "
+               f"95\\,\\%: confidence interval with the Student $t$ quantile for {nfit - 2} degrees of freedom.")
+    b.add_table("lastspitzen-ausgleich", booktabs(head, frows, "llrrrl", small=True, escape_header=False), cap)
+
+
+def _peak_texts(r: Result, lang: str, V) -> tuple[list[str], list[str]]:
+    pk = r.kv["peaks"]
+    st = r.mode == "Spannung"
+    ref = "$R_m$" if st else "$F_\\mathrm{max}$"
+    fit = pk.get("fit") or {}
+    best = fit.get("best")
+    res_lim = pk["delta_basis"] == "aufloesung"
+    if lang == "de":
+        m = [f"Lastspitzen (fortschreitendes Versagen) wurden mit einer Schwellenregel mit Hysterese erkannt: Ein "
+             f"laufendes Maximum gilt als Lastspitze, sobald die Last um mindestens $\\Delta = $ {V('pkdelta')} darunter "
+             f"fällt ({V('pkthr')} von {ref}, mindestens das Dreifache der Anzeigeauflösung"
+             + (", hier massgebend" if res_lim else "") + "); danach wird das Minimum (Tal) verfolgt, bis die Last "
+             "wieder um mindestens $\\Delta$ darüber steigt, und die Suche nach der nächsten Spitze beginnt dort. Bei "
+             "einem flachen Maximum oder Minimum zählt der erste Punkt; nach der letzten Spitze ist das Tal das Minimum "
+             "bis zum Ende des aktiven Abschnitts. Die Schwelle ist eine Festlegung, keine Norm."]
+        if not fit.get("reason"):
+            m.append(f"Die Spitzenlasten wurden gegen {_x_text(pk, 'de')} mit einer Geraden {_FORMULA['line']} und "
+                     f"einer Exponentialfunktion {_FORMULA['exp']} ausgeglichen, beide direkt nach kleinsten Quadraten "
+                     "in $y$ (die Exponentialfunktion mit Levenberg--Marquardt). Da beide Modelle zwei Parameter haben "
+                     "und an dieselben Werte angepasst sind, gilt das Modell mit der kleineren Summe der "
+                     "Fehlerquadrate, also dem grösseren $R^2$, als das bessere. Die Unsicherheiten sind "
+                     "Standardunsicherheiten aus der Kovarianzmatrix am Optimum, die Vertrauensbereiche 95\\,\\% mit "
+                     "dem Student-$t$-Quantil für $n - 2$ Freiheitsgrade.")
+        res = [f"Die Kurve zeigt {V('npk')} Lastspitzen (fortschreitendes Versagen); {ref} ist die höchste davon, "
+               "Haltezeit, Plateau und Bruch beziehen sich auf dieses globale Maximum."]
+        if best:
+            o = "exp" if best == "line" else "line"
+            tb, to = ("L", "E") if best == "line" else ("E", "L")
+            dat = {"line": "Geraden", "exp": "Exponentialfunktion"}[best]
+            res.append(f"Die Spitzenlasten folgen besser einer {dat} ($R^2 = $ {V('pk' + tb + 'R2')}"
+                       + (f" gegenüber {V('pk' + to + 'R2')} für die {_MODEL['de'][o]}" if (fit.get(o) or {}).get("ok") else "")
+                       + f"; $a = $ {V('pk' + tb + 'a')}, $b = $ {V('pk' + tb + 'b')}).")
+        elif fit.get("reason"):
+            res.append("Für einen Ausgleich der Spitzenlasten sind es zu wenige Spitzen (mindestens drei nötig).")
+    else:
+        m = [f"Load peaks (progressive failure) were detected with a threshold rule with hysteresis: a running maximum "
+             f"counts as a load peak as soon as the load falls by at least $\\Delta = $ {V('pkdelta')} below it "
+             f"({V('pkthr')} of {ref}, at least three times the display resolution"
+             + (", which governs here" if res_lim else "") + "); then the minimum (valley) is tracked until the load "
+             "rises again by at least $\\Delta$ above it, and the search for the next peak starts there. For a flat "
+             "maximum or minimum the first point counts; after the last peak the valley is the minimum up to the end of "
+             "the active section. The threshold is a convention, not a standard."]
+        if not fit.get("reason"):
+            m.append(f"The peak loads were fitted against {_x_text(pk, 'en')} with a straight line {_FORMULA['line']} "
+                     f"and an exponential {_FORMULA['exp']}, both by direct least squares in $y$ (the exponential with "
+                     "Levenberg--Marquardt). Both models have two parameters and are fitted to the same values, so the "
+                     "model with the smaller sum of squared residuals, i.e. the larger $R^2$, is taken as the better "
+                     "one. Uncertainties are standard uncertainties from the covariance matrix at the optimum; the 95\\,\\% "
+                     "confidence intervals use the Student $t$ quantile for $n - 2$ degrees of freedom.")
+        res = [f"The curve shows {V('npk')} load peaks (progressive failure); {ref} is the highest of them, and hold "
+               "time, plateau and break refer to this global maximum."]
+        if best:
+            o = "exp" if best == "line" else "line"
+            tb, to = ("L", "E") if best == "line" else ("E", "L")
+            res.append(f"The peak loads are better described by the {_MODEL['en'][best]} ($R^2 = $ {V('pk' + tb + 'R2')}"
+                       + (f" against {V('pk' + to + 'R2')} for the {_MODEL['en'][o]}" if (fit.get(o) or {}).get("ok") else "")
+                       + f"; $a = $ {V('pk' + tb + 'a')}, $b = $ {V('pk' + tb + 'b')}).")
+        elif fit.get("reason"):
+            res.append("There are too few peaks to fit the peak loads (at least three are needed).")
+    return m, res
 
 
 # ----------------------------------------------------------------------------- Mehrere Messungen

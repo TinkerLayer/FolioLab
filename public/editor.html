@@ -30,7 +30,7 @@
     <button class="btn" id="btn-logs" title="Logs and errors"></button>
     <span class="sep"></span>
     <button class="btn ghost icon" id="btn-download" title="Download PDF" data-icon="download"></button>
-    <button class="btn ghost icon" id="btn-zip" title="Download source as .zip" data-icon="folder"></button>
+    <button class="btn ghost icon" id="btn-zip" title="Download as .zip: Folio project, or portable LaTeX for other projects" data-icon="folder"></button>
     <button class="btn ghost icon" id="btn-settings" title="Settings" data-icon="settings"></button>
     <button class="btn ghost icon" id="btn-theme" title="Toggle light/dark"></button>
   </header>
@@ -46,6 +46,7 @@
         </div>
         <div class="tree" id="tree"></div>
       </div>
+      <div class="hgutter" id="gutter-outline"></div>
       <div class="side-section outline" id="outline-section">
         <div class="pane-toolbar"><span class="label" id="outline-toggle" style="cursor:pointer">Outline</span></div>
         <div class="outline-list" id="outline"></div>
@@ -69,6 +70,7 @@
         <button class="btn ghost sm" data-fmt="plot" title="Insert plot (pgfplots)" data-icon="chart"></button>
         <button class="btn ghost sm" data-fmt="cite" title="Insert citation" data-icon="cite"></button>
         <button class="btn ghost sm lab-btn" data-fmt="lab" title="Insert analysis results: figures, tables, values, data, references (Folio Lab)" data-icon="flask"></button>
+        <button class="btn ghost sm" data-fmt="import" title="Import figures, tables, equations, sections, images, data and values from other reports, analysis results, shared data or a ZIP/LaTeX project" data-icon="merge"></button>
         <button class="btn ghost icon sm" data-fmt="ref" title="Insert cross-reference" data-icon="ref"></button>
         <button class="btn ghost icon sm" data-fmt="link" title="Insert link" data-icon="link"></button>
         <span style="flex:1"></span>

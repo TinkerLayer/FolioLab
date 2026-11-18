@@ -12,7 +12,7 @@ For how to use the page, see the [module README](../../modules/rechner/README.md
 
 State the software and the module version:
 
-> Calculated with Folio Lab 0.2.0, module Rechner 1.4.0.
+> Calculated with Folio Lab 0.3.0, module Rechner 1.4.0.
 
 - The Folio Lab version is `version` in the top-level `package.json`.
 - The module version is `version` in `modules/rechner/module.json` (`"1.4.0"`). It is identical to `__version__` in

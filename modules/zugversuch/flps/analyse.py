@@ -12,6 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from . import alloys as alloys_mod
+from . import peaks as peaks_mod
 from .parser import FlpsFile
 from .prepare import Prepared, prepare
 
@@ -37,7 +38,11 @@ MANUAL_SHAPE = "Frei"
 YIELD_DETENTS = (0.005, 0.01, 0.02, 0.05)
 PLATEAU_FRACTION = 0.8      # Plateau: von 80 % bis 100 % der Zeit vom Kraftanstieg t0 bis zum Maximum
 
-PHASES = ["Setzen", "elastisch", "plastisch", "Abfall", "Bruch", "nach Bruch"]
+PHASES = ["Setzen", "elastisch", "plastisch", "Abfall", "Bruch", "nach Bruch", "Anstieg", "Lastspitzen"]
+# Reihenfolge, in der die Phasen einer Kurve aufeinander folgen (Diagramme, Phasentabellen); 4 und 5 sind keine Linien
+PHASE_ORDER = (0, 1, 2, 6, 7, 3)
+# Elastisch/plastisch-Einteilung (4.4): "auto" teilt nicht bei fortschreitendem Versagen (>= 2 Lastspitzen)
+EP_MODES = ("auto", "ein", "aus")
 
 
 @dataclass
@@ -67,10 +72,16 @@ class Config:
     tol_stress_mpa: float = 1.0
     tol_force_n: float = 0.20
     yield_threshold: float = 0.02
+    # Einteilung elastisch/plastisch mit Fliessbeginn: "auto" (aus bei >= 2 Lastspitzen), "ein" oder "aus"
+    elastic_plastic: str = "auto"
     break_upper: float = 0.10
     break_lower: float = 0.01
     hold_threshold: float = 0.90
     fit_start_points: int = 3
+    # Lastspitzen (fortschreitendes Versagen, flps/peaks.py): Mindestabfall als Anteil von y_max; Spitzen (Nummern
+    # ab 1), die nicht in den Ausgleich der Spitzenlasten gehen
+    peak_drop_frac: float = 0.05
+    peak_fit_exclude: list | None = None
     # Zusätzlich im Spannungs-Dehnungs-Feld gezeigte Werkstoffe (Namen), gleich welcher Gruppe
     extra_refs: list | None = None
     # Eigene Gleichungen (vollständige Einträge, damit der Bericht sie auch nach Änderungen reproduziert)
@@ -90,9 +101,26 @@ class Config:
                 v = [str(x) for x in (v or []) if isinstance(x, str) and x.strip()][:20] or None
                 kw[f.name] = v
                 continue
+            if f.name == "peak_fit_exclude":
+                if isinstance(v, str):
+                    v = [x for x in v.replace(";", ",").replace(" ", ",").split(",") if x.strip()]
+                out = []
+                for x in v or []:
+                    try:
+                        k = int(float(str(x).strip()))
+                    except ValueError:
+                        continue
+                    if k >= 1 and k not in out:
+                        out.append(k)
+                kw[f.name] = sorted(out)[:200] or None
+                continue
             if f.name in ("equations", "ext_values"):
                 v = [x for x in (v or []) if isinstance(x, dict)][:200 if f.name == "ext_values" else 60] or None
                 kw[f.name] = v
+                continue
+            if f.name == "elastic_plastic":
+                v = str(v or "").strip().lower()
+                kw[f.name] = v if v in EP_MODES else "auto"
                 continue
             if isinstance(v, str) and f.type in ("float | None", "float", "int"):
                 v = v.strip().replace(",", ".")
@@ -189,14 +217,16 @@ def line_fit(t: np.ndarray, y: np.ndarray, lo: int, hi: int) -> LineFit:
     return LineFit(lo, hi, float(k), float(q), r2, float(np.max(np.abs(r))))
 
 
-def grow_fit_window(t: np.ndarray, y: np.ndarray, center: int, tol: float, start: int = 3) -> LineFit:
+def grow_fit_window(t: np.ndarray, y: np.ndarray, center: int, tol: float, start: int = 3,
+                    end: int | None = None) -> LineFit:
     """Start mit `start` Punkten beidseits der groessten Steigung, abwechselnd links und rechts
     wachsen, solange die groesste Abweichung unter der Toleranz bleibt.
 
     Gierige Suche: jeder Schritt wird nur behalten, wenn die neue Gerade die Toleranz einhaelt, und die Suche endet,
     sobald keine Seite mehr wachsen kann. Das Ergebnis ist ein zusammenhaengendes Fenster um die Startstelle, nicht
-    notwendig das laengste Fenster, das die Toleranz einhaelt."""
-    n = len(y)
+    notwendig das laengste Fenster, das die Toleranz einhaelt. `end`: das Fenster reicht hoechstens bis zu diesem
+    Index (erste Lastspitze bei fortschreitendem Versagen)."""
+    n = len(y) if end is None else max(2, min(len(y), end + 1))
     lo, hi = max(0, center - start), min(n - 1, center + start)
     best = line_fit(t, y, lo, hi)
     while True:
@@ -214,9 +244,12 @@ def grow_fit_window(t: np.ndarray, y: np.ndarray, center: int, tol: float, start
 
 
 # --- 4.4 Fliessbeginn ---------------------------------------------------------------
-def find_yield(t: np.ndarray, y: np.ndarray, fit: LineFit, threshold_abs: float) -> int | None:
+def find_yield(t: np.ndarray, y: np.ndarray, fit: LineFit, threshold_abs: float, end: int | None = None) -> int | None:
+    """Erster Punkt nach dem Fitfenster, der um mehr als die Schwelle unter der Geraden liegt; gesucht wird nur vor
+    `end` (Maximum bzw. erste Lastspitze), weil ein Fliessbeginn nach dem Maximum auf der fallenden Flanke läge."""
     dev = (fit.k * t + fit.q) - y
-    for i in range(fit.hi + 1, len(y)):
+    stop = len(y) if end is None else min(len(y), end)
+    for i in range(fit.hi + 1, stop):
         if dev[i] > threshold_abs:
             return i
     return None
@@ -324,6 +357,14 @@ TEXT_7_3 = ("Einschnürung ist nicht belegt: gemessen ist nur, dass die Kraft na
 TEXT_7_4 = ("Elastisch und plastisch sind ausgelegt: die Grenze stammt aus einer gesetzten Schwelle von {thr} "
             "auf der Kraftkurve, nicht aus einer Dehnungsmessung. Die Schwelle ist eine Festlegung, keine Norm; "
             "der Wert ist keine Rp0,2.")
+TEXT_7_4_AUTO = ("Elastisch/plastisch ist nicht eingeteilt: die Kurve hat {n} Lastspitzen (fortschreitendes Versagen, "
+                 "z. B. Seil, Faserbündel, Verbund). Teile versagen nacheinander, eine Grenze elastisch/plastisch auf "
+                 "der Kraftkurve beschriebe keinen Werkstoffzustand. Gezeigt werden Anstieg, Lastspitzen und Abfall; "
+                 "Fliessbeginn, Ag und A entfallen, die Steigung bleibt als Steifigkeit des Anstiegs. Unter "
+                 "Auswerteparameter lässt sich die Einteilung erzwingen.")
+TEXT_7_4_OFF = ("Elastisch/plastisch ist ausgeschaltet (Auswerteparameter): gezeigt werden Anstieg, bei mindestens 2 "
+                "Lastspitzen ({n} erkannt) die Lastspitzen, und Abfall; Fliessbeginn, Ag und A entfallen, die "
+                "Steigung bleibt als Steifigkeit des Anstiegs.")
 TEXT_7_5 = ("Die Belastungsart prägt die Kurve: ohne dokumentierte Vorschubgeschwindigkeit lässt sich ein "
             "Fliessplateau nicht von der Grenze dessen trennen, was von Hand aufgebracht wurde.")
 TEXT_7_1 = ("Ohne Querschnitt keine Spannung: A0 fehlt, die App rechnet in Kraft. Spannungen, Vergleiche und "
@@ -395,27 +436,40 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
     # 4.1 / 4.2
     wp = max(2, int(round(prep.rate_hz * cfg.slope_window_s))) if math.isfinite(prep.rate_hz) else 10
     slope = sliding_slope(t, y, wp)
-    center = int(np.argmax(slope))
-    fit = grow_fit_window(t, y, center, tol, cfg.fit_start_points)
+    imax = int(np.argmax(y))
+    ymax = float(y[imax])
+    # Bei fortschreitendem Versagen (>= 2 Lastspitzen, 4.9) ist ein Wiederanstieg nach einem Lastabfall oft steiler
+    # als die Erstbelastung. Die groesste Steigung wird dann nur bis zur ersten Spitze gesucht, damit Fitgerade,
+    # E und t0 aus der Erstbelastung kommen.
+    frac = cfg.peak_drop_frac if cfg.peak_drop_frac and 0 < cfg.peak_drop_frac < 1 else peaks_mod.DEFAULT_DROP_FRAC
+    pk_idx = peaks_mod.detect(y, peaks_mod.threshold(ymax, resolution, frac)[0])
+    search_end = pk_idx[0][0] + 1 if len(pk_idx) >= 2 else n
+    center = int(np.argmax(slope[:max(1, search_end)]))
+    fit = grow_fit_window(t, y, center, tol, cfg.fit_start_points, search_end - 1 if len(pk_idx) >= 2 else None)
 
     # 4.3
     t0 = -fit.q / fit.k if fit.k else 0.0
 
     # 4.5
-    imax = int(np.argmax(y))
-    ymax = float(y[imax])
 
-    # 4.4
+    # 4.4 Einteilung elastisch/plastisch. Der Anstieg endet am Maximum, bei fortschreitendem Versagen an der ersten
+    # Lastspitze; danach folgen Lastspitzen (bis zur letzten) und der Abfall. "auto" teilt den Anstieg nur bei einer
+    # einzelnen Spitze: bei Seilen, Faserbündeln und Verbunden versagen Teile nacheinander, eine Grenze elastisch/
+    # plastisch auf der Kraftkurve beschreibt dort keinen Werkstoffzustand.
+    progressive = len(pk_idx) >= 2
+    rise_end = int(pk_idx[0][0]) if progressive else imax
+    last_peak = int(pk_idx[-1][0]) if progressive else imax
+    ep_on = cfg.elastic_plastic == "ein" or (cfg.elastic_plastic == "auto" and not progressive)
     thr_abs = cfg.yield_threshold * ymax
-    yield_idx = find_yield(t, y, fit, thr_abs)
+    yield_idx = find_yield(t, y, fit, thr_abs, rise_end) if ep_on else None
     yield_table = []
     for d in YIELD_DETENTS:
-        yi = find_yield(t, y, fit, d * ymax)
+        yi = find_yield(t, y, fit, d * ymax, rise_end) if ep_on else None
         yield_table.append({"schwelle": d, "idx": yi,
                             "y": float(y[yi]) if yi is not None else None,
                             "F": float(force[yi]) if yi is not None else None,
                             "t": float(t[yi]) if yi is not None else None})
-    if thr_abs < 2 * resolution:
+    if ep_on and thr_abs < 2 * resolution:
         _warn(warnings, "4.4", f"Schwelle des Fliessbeginns ({fmt(thr_abs, 2, unit)}) liegt unter dem Doppelten "
                                f"der Anzeigeauflösung ({fmt(2 * resolution, 2, unit)}) und löst auf Rauschen aus.")
 
@@ -426,10 +480,14 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
     # Phasen
     phases = np.full(prep.n_total, 5, dtype=int)
     phases[:n] = 0
-    phases[fit.lo:n] = 1
+    phases[fit.lo:n] = 1 if ep_on else 6
     if yield_idx is not None:
         phases[yield_idx:n] = 2
-    phases[imax:n] = 3
+    if progressive:
+        phases[rise_end:n] = 7
+        phases[last_peak:n] = 3
+    else:
+        phases[imax:n] = 3
     if drop_idx is not None:
         phases[drop_idx] = 4
 
@@ -458,7 +516,11 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
     else:
         kv["yield"] = None
         kv["ratio"] = None
-        _warn(warnings, "4.4", "Kein Fliessbeginn gefunden: die Abweichung zur Geraden überschreitet die Schwelle nie.")
+        if ep_on:
+            _warn(warnings, "4.4", "Kein Fliessbeginn gefunden: die Abweichung zur Geraden überschreitet die Schwelle "
+                                   + ("vor der ersten Lastspitze" if progressive else "vor dem Maximum") + " nie.")
+    kv["ep"] = {"setting": cfg.elastic_plastic, "on": ep_on, "progressive": progressive,
+                "rise_end": rise_end, "last_peak": last_peak}
     if break_idx is not None:
         yb = float(y[break_idx])
         kv["break"] = {"idx": break_idx, "drop_idx": drop_idx, "y": yb, "F": float(force[break_idx]),
@@ -490,7 +552,8 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
         # Ag = Agt − y_max/m_E, A = At − y_Bruch/m_E (Extensometerverfahren: der elastische Anteil wird abgezogen).
         # m_E ist die Steigung des linearen Abschnitts in derselben Dehnung (dy/dε = k·L0/v), also dieselbe
         # Nachgiebigkeit wie in der gemessenen Dehnung.
-        m_e = fit.k * l0 / v if fit.k > 0 else None
+        # Ohne Einteilung elastisch/plastisch gibt es keinen elastischen Anteil abzuziehen: Ag und A entfallen.
+        m_e = fit.k * l0 / v if (fit.k > 0 and ep_on) else None
         agt = float(strain[imax] * 100)
         at = float(strain[break_idx] * 100) if break_idx is not None else None
         kv["strain_max_pct"] = agt                 # alter Schlüssel, = Agt
@@ -499,7 +562,7 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
         kv["At_pct"] = at
         kv["Ag_pct"] = agt - 100.0 * ymax / m_e if m_e else None
         kv["A_pct"] = (at - 100.0 * float(y[break_idx]) / m_e) if (m_e and at is not None) else None
-        kv["E_fit"] = m_e                          # MPa (Spannung) bzw. N (Kraft) je Dehnung 1
+        kv["E_fit"] = fit.k * l0 / v if fit.k > 0 else None                         # MPa (Spannung) bzw. N (Kraft) je Dehnung 1
 
     # 4.8 scheinbarer Modul
     e_schein = None
@@ -537,7 +600,11 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
                                    f"dem Bereich der Vergleichsgruppe {group} ({fmt(emin, 1)} bis {fmt(emax, 1, 'GPa')}). "
                                    "Das ist die Nachgiebigkeit des Aufbaus, nicht der Werkstoff.")
     _warn(warnings, "7.3", TEXT_7_3, "info")
-    _warn(warnings, "7.4", TEXT_7_4.format(thr=pct(cfg.yield_threshold) + (" von Rm" if a0 else " von Fmax")), "info")
+    if ep_on:
+        _warn(warnings, "7.4", TEXT_7_4.format(thr=pct(cfg.yield_threshold) + (" von Rm" if a0 else " von Fmax")), "info")
+    else:
+        _warn(warnings, "7.4", (TEXT_7_4_AUTO if cfg.elastic_plastic == "auto" else TEXT_7_4_OFF).format(n=len(pk_idx)),
+              "info")
     if not v:
         _warn(warnings, "7.5", TEXT_7_5)
     shape = SHAPES.get(cfg.shape, {}) if cfg.specimen_mode == "norm" else {}
@@ -603,6 +670,10 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
         alloys=group_list, all_alloys=alloy_list, reference=reference, ref_cmp=ref_cmp, group=group,
     )
     kv["phases"] = res.phase_bounds()
+    # 4.9 Lastspitzen (fortschreitendes Versagen)
+    kv["peaks"] = peak_analysis(res)
+    if kv["peaks"]["progressive"]:
+        _warn(warnings, "4.9", peaks_mod.warning_text(kv["peaks"], bool(a0), fmt), "info")
     seen = {a.name for a in group_list}
     for nm in cfg.extra_refs or []:
         a = alloys_mod.find(alloy_list, nm)
@@ -677,6 +748,20 @@ def equation_variables(r: "Result") -> dict:
     w = work_to_break(r)
     if w is not None:
         put("Wbreak", w[0], "J", "Arbeit bis zum Bruch " + w[1])
+    pk = kv.get("peaks")
+    if pk:
+        put("npk", pk["n"], "", "Anzahl Lastspitzen (je mit Lastabfall ≥ Δ danach)")
+        if pk["n"] >= 2:
+            for e in pk["list"][:peaks_mod.MAX_VARS]:
+                put(f"Fpk{e['nr']}", e["F"], "N", f"Kraft der Lastspitze {e['nr']}")
+            fit = pk.get("fit") or {}
+            xs = f"x = {pk['x_label']} in {pk['x_unit']}"
+            for m, tag, name in (("line", "L", "Gerade y = a + b·x"), ("exp", "E", "Exponentialfunktion y = a·exp(b·x)")):
+                d = fit.get(m)
+                if d and d.get("ok"):
+                    put(f"pk{tag}a", d["a"], d["a_unit"], f"Spitzenlasten, {name}: a ({xs})")
+                    put(f"pk{tag}b", d["b"], d["b_unit"], f"Spitzenlasten, {name}: b ({xs})")
+                    put(f"pk{tag}R2", d["r2"], "", f"Spitzenlasten, {name}: R²")
     ref = r.reference
     if ref is not None:
         put("Rm_ref", ref.rm, "MPa", f"Rm von {ref.name}")
@@ -714,6 +799,32 @@ def work_to_break(r: "Result") -> tuple[float, str] | None:
         x = np.clip(r.t[sel] - r.t0, 0, None) * r.v_mm_s           # Weg in mm ab Kraftanstieg
         return _trapz(r.force[sel], x) / 1000.0, "(aus dem Traversenweg v·(t − t0))"
     return None
+
+
+def elongation_path_mm(r: "Result") -> tuple[np.ndarray | None, str | None]:
+    """Verlängerung in mm für Arbeitsintegrale (wie work_to_break): die gemessene, sonst der Traversenweg
+    x = max(t − t0, 0)·v, sonst (None, None). Zweiter Wert: "gemessen" oder "traverse"."""
+    dl = measured_elongation_mm(r)
+    if dl is not None:
+        return dl, "gemessen"
+    if r.v_mm_s:
+        return np.clip(r.t - r.t0, 0, None) * r.v_mm_s, "traverse"
+    return None, None
+
+
+def peak_analysis(r: "Result") -> dict:
+    """4.9 Lastspitzen im aktiven Abschnitt (flps/peaks.py), Schwelle und Ausschlüsse aus der Konfiguration."""
+    path, basis = elongation_path_mm(r)
+    res = r.prep.resolution / r.a0 if r.a0 else r.prep.resolution
+    dt = r.prep.dt if math.isfinite(r.prep.dt) else None
+    frac = r.config.peak_drop_frac
+    if not (frac and 0 < frac < 1):
+        frac = peaks_mod.DEFAULT_DROP_FRAC
+    pk = peaks_mod.evaluate(r.t, r.y, r.force, ymax=float(r.y[r.imax]), resolution=res, frac=frac, t0=r.t0,
+                            v_mm_s=r.v_mm_s, l0=r.l0, a0=r.a0, path_mm=path, work_basis=basis, dt=dt,
+                            exclude=r.config.peak_fit_exclude, unit=r.unit)
+    pk["x_apparent"] = pk["x_kind"] != "time" and r.config.displacement_source != "probe"
+    return pk
 
 
 def evaluate_equations(defs, variables: dict, lang: str = "de") -> list:

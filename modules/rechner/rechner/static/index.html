@@ -99,14 +99,15 @@ main { min-height: 0; display: grid; }
 .pane.sel { display: grid; }
 
 /* ================= Rechnen: Variablen | Blätter | Bibliothek */
-#p-work { grid-template-columns: 340px minmax(0, 1fr) 330px; }
-#p-work.libclosed { grid-template-columns: 340px minmax(0, 1fr); }
+/* UR: Variablen- und Bibliotheksspalte durch Ziehen breiter/schmaler (--lab-var, --lab-lib; nur in den offenen Varianten) */
+#p-work { grid-template-columns: var(--lab-var, 340px) minmax(0, 1fr) var(--lab-lib, 330px); }
+#p-work.libclosed { grid-template-columns: var(--lab-var, 340px) minmax(0, 1fr); }
 #p-work.libclosed #lib { display: none; }
 .vpanel { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
 .vpanel .vh { padding: 10px 12px 6px; border-bottom: 1px solid var(--line); }
 .vpanel .vh b { font-size: 14px; }
 /* UI-04: Variablen und Bibliothek klappen weg; eingeklappt bleibt eine schmale Leiste mit der Anzahl */
-#p-work.varclosed { grid-template-columns: 34px minmax(0, 1fr) 330px; }
+#p-work.varclosed { grid-template-columns: 34px minmax(0, 1fr) var(--lab-lib, 330px); }
 #p-work.varclosed.libclosed { grid-template-columns: 34px minmax(0, 1fr); }
 .vrail { display: none; }
 #p-work.varclosed .vpanel > :not(.vrail) { display: none; }
@@ -276,7 +277,7 @@ details.ref summary { cursor: pointer; font-weight: 600; font-size: 12.5px; padd
 details.ref .chips { margin: 4px 0 8px; }
 
 /* ================= Grafik */
-#p-plot { grid-template-columns: 370px minmax(0, 1fr); }
+#p-plot { grid-template-columns: var(--lab-xl, 370px) minmax(0, 1fr); }   /* UR: Ausdrucksliste ziehbar */
 .xl { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; position: relative; }
 .xtools { display: flex; align-items: center; gap: 4px; padding: 4px 6px; background: var(--soft); border-bottom: 1px solid var(--line); height: 40px; }
 .xtools .big { font-size: 22px; line-height: 1; padding: 0 8px; color: var(--ink); }
@@ -366,7 +367,7 @@ table.xt th.tadd, table.xt td:last-child { border: 0; background: transparent; }
 #gHint { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); color: var(--muted); font-size: 14px; text-align: center; pointer-events: none; }
 
 /* Matrizen */
-#p-mat { grid-template-columns: 230px minmax(0, 1fr); }
+#p-mat { grid-template-columns: var(--lab-mside, 230px) minmax(0, 1fr); }   /* UR: Matrixliste ziehbar */
 .mside { border-right: 1px solid var(--line); background: var(--panel); padding: 10px; overflow-y: auto; }
 .mlist .mi { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 6px; cursor: pointer; }
 .mlist .mi:hover { background: var(--accent-soft); }
@@ -394,6 +395,8 @@ table.xt th.tadd, table.xt td:last-child { border: 0; background: transparent; }
 .sysmats { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; margin: 8px 0; }
 table.m td.aug { border-left: 1px dashed var(--muted); }
 #sysRes .solrow { margin: 6px 0; }
+/* UR: Datensatz-Dialoge – nach dem Ziehen wächst die Liste mit (statt bei 60vh zu bleiben) */
+#dsPick.lab-rs > ul, #dsvPick.lab-rs > ul { flex: 1 1 auto; min-height: 0; max-height: none !important; }
 
 /* Fuss */
 footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; }
@@ -451,7 +454,7 @@ footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; backg
 <main>
   <!-- ================= Rechnen -->
   <section class="pane sel" id="p-work">
-    <div class="vpanel">
+    <div class="vpanel" data-size-col="var">
       <button class="vrail" id="varRail" type="button" data-i18n-title="rc.var_open_t" title="Variablen einblenden"></button>
       <div class="vh">
         <div class="row" style="margin:0"><button class="ghost" id="varFold" type="button" data-i18n-title="rc.var_fold_t" title="Variablen einklappen">◂</button><b data-i18n="rc.vars">Variablen</b><span class="grow"></span><button class="primary" id="varAdd" data-i18n="rc.var_add">+ Variable</button></div>
@@ -473,7 +476,7 @@ footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; backg
       <div id="envs"></div>
     </div>
 
-    <aside id="lib">
+    <aside id="lib" data-size-col="lib" data-size-edge="left">
       <div class="libhead">
         <nav class="minitabs"><button data-lt="eq" class="sel">Formeln</button><button data-lt="fn">Funktionen</button></nav>
         <span class="grow"></span><button class="ghost" id="libClose" title="Schliessen">✕</button>
@@ -494,7 +497,7 @@ footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; backg
 
   <!-- ================= Grafik -->
   <section class="pane" id="p-plot">
-    <div class="xl" data-symscope=".xnew">
+    <div class="xl" data-symscope=".xnew" data-size-col="xl">
       <div class="xtools">
         <button class="ghost big" id="xAdd" title="Hinzufügen: Ausdruck, Tabelle, Formelkurve">+</button>
         <span class="grow"></span>
@@ -542,7 +545,7 @@ footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; backg
 
   <!-- ================= Matrizen -->
   <section class="pane" id="p-mat">
-    <div class="mside">
+    <div class="mside" data-size-col="mside">
       <h4>Matrizen und Vektoren</h4>
       <div class="mlist" id="matList"></div>
       <div class="row"><button id="matNew">+ Neue Matrix</button></div>
@@ -3333,6 +3336,9 @@ async function init() {
     },
   });
   if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.onLang(() => { renderVarFold(); renderDsVars(); }); }
+  // UR: Spalten (Variablen, Bibliothek, Ausdrucksliste, Matrixliste) durch Ziehen an der Kante; Dialoge automatisch.
+  // Die Grafik zeichnet über den vorhandenen ResizeObserver auf #stage neu.
+  if (window.LabUI && LabUI.sizes) LabUI.sizes("rechner");
   $("#envBtn").addEventListener("click", () => ENVS.dialog());
   $("#indexBtn").addEventListener("click", () => LabIndex.browse(api, toast, takeIndex));
   $("#varList").addEventListener("click", (ev) => {        // A8: Herkunft einer übernommenen Grösse

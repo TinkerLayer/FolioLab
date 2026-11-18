@@ -109,7 +109,7 @@ what each module can do without it.
 
 Cite the software as given in [CITATION.cff](CITATION.cff) (GitHub: *Cite this repository*), and state:
 
-- the Folio Lab version (for example *0.2.0*) and the version of each module you used (shown in the module header
+- the Folio Lab version (for example *0.3.0*) and the version of each module you used (shown in the module header
   and stored in each report bundle);
 - the methods and settings that matter for your result, as written in the methods text Folio Lab puts in the
   report, and the original references it cites for them. Those are the scientific sources; Folio Lab is the
