@@ -248,11 +248,13 @@ self-check; stiffness, work and the exponential fit are app values. Report bundl
 `pkdelta`, `pkn`, `pkLa`, `pkLb`, `pkLR2`, `pkEa`, `pkEb`, `pkER2`, `pkbest`, and a methods and results paragraph.
 Equation variables: section 5. The PNG `_Diagramm_5.png` is written only with ≥ 2 peaks.
 
-## 4. Material comparison (`flps/alloys.py`, `data/alloys.json`)
+## 4. Material comparison (`flps/alloys.py`, shared materials database)
 
 ### 4.1 Material data
 
-`data/alloys.json` holds 88 materials in 15 categories (aluminium 17, steel 9, stainless steel 4, cast iron 2, copper
+The comparison materials are the rows with `"zugversuch": true` in the materials database shared with the Rechner
+(`sdk/python/labcalc/data/materials.json`; until 18 Nov 2026 a separate `data/alloys.json` with the same rows and
+fields). `--legierungen <file>` still reads a file in the old format instead. There are 88 materials in 15 categories (aluminium 17, steel 9, stainless steel 4, cast iron 2, copper
 6, titanium 4, magnesium 2, nickel 3, plastics 20, reinforced plastics 2, films 4, elastomers 6, paper 3, wood 3,
 fibre composites 3). Each row has Rp0.2 (may be empty), Rm, A, E, Rm_min, Rm_max, a `basis` and a `quelle` (source),
 optionally a URL, a year and an access date. Sources are standards (minimum values), manufacturer data sheets of named

@@ -720,6 +720,9 @@ const ENVS = window.ENVS = LabEnv.create({
   extra: () => ({ ext: S.ext || [] }),
   done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.sel = sel; S.view = null; S.mode = "spec"; selectSp(S.sel); if (OV) setTimeout(() => OV.sync(), 0); },
   summary: envSummary,
+  // Berichtsauftrag (alle Spektren der Umgebung), damit „Import“ im Bericht diese Umgebung lesen kann
+  report: () => S.sps.length ? { items: S.sps.map(s => ({ id: s.id, state: stateOf(s) })), lang: "de", include: {},
+    title: "FTIR " + (S.sps.length === 1 ? S.sps[0].name : `${S.sps.length} Spektren`) } : null,
 });
 function envSave() { ENVS.save(); }
 function envFlush(keepalive = false) { return ENVS.flush(keepalive); }
@@ -1725,7 +1728,7 @@ async function runSearch() {
   o.hitSel = 0; o.searchStale = false;
   if (activeEqs().length) { await analyse(o); updateEq(); }      // hqi1 in eigenen Gleichungen
   S.mode = "search"; S.view = keepX();
-  updateSearch(); updateMode(); draw();
+  updateSearch(); updateMode(); draw(); envSave();               // Treffer gehören zum Berichtsstand
   $("#stInfo").textContent = `Suche: ${j.hits.length} Treffer in ${fmt((performance.now() - t0) / 1000, 2)} s`;
 }
 async function runMixture() {
@@ -1737,7 +1740,7 @@ async function runMixture() {
   if (!j.combos.length) { toast(j.note || "Keine passende Kombination gefunden.", true); }
   o.mix = j; o.mixSel = 0; o.mixStale = false;
   if (j.combos.length) { S.mode = "mix"; S.view = keepX(); }
-  updateMix(); updateMode(); draw();
+  updateMix(); updateMode(); draw(); envSave();
 }
 function updateMix() {
   const o = cur();

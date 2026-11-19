@@ -11,15 +11,16 @@ Legend: **built** = in the app (module features are covered by each module's tes
 
 | Module | Version | What it is for | Test methods |
 |---|---|---|---|
-| Report editor (Folio) and hub | – | LaTeX reports, projects, module launcher, results in reports with revisions | smoke test (compiles every template), `suite-test.js`, revisions test |
-| Shared SDK (`sdk/python`, `sdk/web`) | – | Calculation core, sources, environments, sharing, datasets, index, provenance, page parts | 79 |
-| Zugversuch (tensile test) | 1.4.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, load peaks of progressive failure, PDF report | 80 |
+| Report editor (Folio) and hub | – | LaTeX reports, projects, module launcher, results in reports with revisions, import from module environments | smoke test (compiles every template), `suite-test.js`, revisions, report-import and Folio-import tests |
+| Shared SDK (`sdk/python`, `sdk/web`) | – | Calculation core, sources, environments, sharing, datasets, index, provenance, page parts, materials database | 138 |
+| Zugversuch (tensile test) | 1.4.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, load peaks of progressive failure, PDF report | 81 |
 | Mikroskopie (microscopy) | 1.3.0 | Micrographs: processing, threshold, watershed, measuring, particle analysis, comparison with a dataset | 58 |
-| Rechner (calculator) | 1.4.0 | Units, sheets, line variables, 282 sourced equations, equation and system solver, graph with large datasets and fits, matrices, symbol picker, values with origin | 83 |
+| Rechner (calculator) | 1.5.0 | Units, sheets, line variables, 365 sourced equations (incl. materials science), sourced materials database (`mat()`), equation and system solver, graph with large datasets and fits, matrices, symbol picker, values with origin | 93 |
 | FTIR | 1.5.0 | IR spectra: processing, bands, groups, library search, mixtures, OPUS, spectra from datasets | 73 |
-| TGA | 0.13.0 | Thermogravimetry: steps, composition, library search, kinetics, DSC, TGA–FTIR, runs from datasets | 84 (1 skipped) |
+| TGA | 0.13.1 | Thermogravimetry: steps, composition, library search, kinetics, DSC, TGA–FTIR, runs from datasets | 84 (1 skipped) |
 | Elementrechner (chemistry) | 0.11.0 | Equations, substances, thermochemistry, designer, redox, pH, lab workflows, nuclear, kinetics (also from datasets), speciation | 261 |
 | Datenaufbereitung (Data Purification) | 0.3.0 | Excel/CSV/typed tables → marked, parsed, cleaned datasets with units, outlier flags, templates, exports, report; used by Rechner, Elementrechner, TGA, FTIR | 83 (1 skipped) + `tools/e2e_datasets.py` |
+| Werkstoffe (materials) | 0.1.0 | Ashby selection with own values, material cards, crystallography, lattice model, XRD files, phase diagrams (schematic and computed), steel, laminates, fatigue, Weibull and fracture, hardness, corrosion, creep | 88 |
 
 Every module (except the Elementrechner, which has its own board) opens on the same **overview**: the project index,
 shares addressed to it, its environments and its own shares; a click opens an environment. **⇄** next to a value
@@ -66,7 +67,13 @@ and floating windows can be resized by dragging an edge; the sizes are kept in p
 - **built** ZIP export adds `lab/dependencies.json` (every result and kept revision: module version, file hashes,
   shared versions and index values used).
 - **built** First insert adds `\input{lab/labdata}`, the packages and the bibliography to the main file if missing.
-- **built** **Import** button in the editor: figures, tables, equations, sections, images, data files and values from
+- **built** **Import from Folio:** the Import dialog opens on the modules of the active project; pick a module, then
+  one of its environments, and its graphs (with previews), tables, text blocks and every single value appear on the
+  right. Tick what you need and **Insert**: figures and tables go in at the cursor, values as `\labval` with unit, the
+  methods text (equations, assumptions) as an optional paragraph; the references come along. The import is a result of
+  the real module, linked to the environment (live/pinned/copy) with Refresh and Update; an environment changed in its
+  module shows "source changed".
+- **built** **Import** button in the editor, further sources below the modules: figures, tables, equations, sections, images, data files and values from
   other reports, whole analysis results, shared data and index values of the active project, or an uploaded ZIP of
   any LaTeX project. Each piece brings its files, `.bib` entries, macros, packages and values. Labels are prefixed and
   clashing cite keys renamed. The import becomes a result `lab/import-…/` and is inserted from the Lab dialog.
@@ -156,7 +163,8 @@ and floating windows can be resized by dragging an edge; the sizes are kept in p
 - **Analysis:** slope and fit window, foot point (seating phase removed), yield onset per threshold, break, key values
   (Fmax, Rm, Rp, A, E, work to break, hold time …) and mandatory warnings.
 - **Materials:** 88 reference materials in 15 categories (aluminium, steels, cast iron, copper, titanium, magnesium,
-  nickel, plastics, reinforced plastics, films, elastomers, paper, wood, composites), each with source and basis;
+  nickel, plastics, reinforced plastics, films, elastomers, paper, wood, composites), each with source and basis, read
+  from the materials database shared with the Rechner (`labcalc/data/materials.json`);
   measured vs nominal (Rm, Rp, A, E); comparison group; ranking with candidate / downgraded / unlikely / excluded;
   stress–strain field with numbered curves and key.
 - **Own materials:** values plus structured source, optional own curve (e.g. digitised from a paper), stored in
@@ -253,10 +261,19 @@ and floating windows can be resized by dragging an edge; the sizes are kept in p
   templates, inserted at the cursor with the first gap selected. You don't need to type the code form.
 - **Matrices:** matrix window; use in any line (`inv(A)*b`, `A'`, `det(A)`); matrix chips insert at the cursor;
   autocompletion; **→ Matrix** stores a line's matrix result.
-- **Equation library, 274 equations:** mechanics, strength of materials (tensile, bending, torsion, buckling, fracture
-  mechanics, hardness), geometry, heat, fluids, electrical, optics/microscopy, mathematics, and chemistry (acids and
+- **Equation library, 365 equations:** mechanics, strength of materials (tensile, bending, torsion, buckling, fracture
+  mechanics, hardness), geometry, heat, fluids, electrical, optics/microscopy, mathematics, chemistry (acids and
   bases incl. exact weak-acid pH, buffers, titration; solubility; thermodynamics; electrochemistry; colligative
-  properties; kinetics; gases; radioactivity).
+  properties; kinetics; gases; radioactivity) and **materials science** (83 equations: crystallography and Bragg,
+  vacancies and diffusion incl. erf profiles, lever rule and Avrami, Hall–Petch and hardening, creep and Larson–Miller,
+  fatigue (Basquin, Goodman, Miner), fracture and Weibull, rule of mixtures and Halpin–Tsai, polymers (WLF, Fox, rubber
+  elasticity), conductivity and semiconductors, corrosion rate and Pilling–Bedworth, carbon equivalent and Ms,
+  performance indices).
+- **Materials database** (shared with the Zugversuch): 136 materials in eight classes, every value with source and value
+  kind. In lines: `mat("1.4301", "Rm")`, `E_mat("Cu")`, `Rp_mat("S235JR")`, `a_lat("Fe-rein")`,
+  `D_diff("C", "γ-Fe", T)`. Library tab "Werkstoffe" with search, class chips and cards; a click inserts the
+  function, names and properties autocomplete; the report cites each value's source. Optional: computed Materials
+  Project data (`tools/fetch_optional_data.py mp`, own API key), marked as DFT values.
 - **Sources:** every equation and constant names its source (textbook or standard; CODATA 2022, SI Brochure, Green
   Book), shown on the card and cited in the report.
 - **Equation cards** fill in matching variables (symbol and kind must agree), solve for the one missing quantity
@@ -453,7 +470,54 @@ Detail: `modules/datenaufbereitung/README.md`; methods: `docs/methods/datenaufbe
 - `.xls` is read via xlrd but has no unit test. Step texts and server notes are German (also in the English report).
 - Replicates group by exact equality; formulas have no row shift (differences to the previous row).
 
-## 10. Suite-wide plans
+## 10. Werkstoffe (materials)
+
+Detail: `modules/werkstoffe/README.md`; methods: `docs/methods/werkstoffe.md`.
+
+### Built
+- **Selection:** Ashby chart of any two properties of the shared materials database (log axes, ranges as bars, class
+  colours), performance index with lines of equal M (draggable), own index from exponents, limits, ranked list with
+  the reason for every excluded material; own values with a free-text source, ranked when the index uses only the
+  two axes and cited in the report; Materials Project points only with the toggle, labelled *berechnet (DFT)*.
+- **Cards:** 2–6 materials side by side with value kind and source.
+- **Crystallography:** 38 built-in phases (Wyckoff) and CIF import (symmetry operators, publication cited); d, plane
+  and direction angles, X-ray density, structure factors from Cromer–Mann form factors, LP factor, computed powder
+  pattern for Cu/Co/Mo/Fe/Cr/Ag tubes; rotatable unit cell with (hkl) plane and [uvw] direction.
+- **Lattice (Gitter):** a section of a base element's lattice at a temperature: phase and a(T); dissolved atoms on
+  interstitial (H, B, C, N, O) or lattice sites in their true number; second phase above the solubility limit (lever
+  rule, own limit with source); equilibrium vacancies (true count, optional labelled exaggeration), Debye vibration,
+  distortion around solutes; schematic edge dislocation, stacking fault and tilt grain boundary; 3D view (rotate,
+  zoom), unit cell highlighted and on its own, atomic layer (hkl) at true size; report section with the equations.
+- **XRD:** xy/CSV/TXT, `.xrdml`, `.brml`, `.raw` (RAW1.01), `.uxd`, `.ras` with wavelength from the file; SNIP
+  background, smoothing, Kα2 stripping, pseudo-Voigt Kα-doublet peak fit, cubic indexing, lattice parameter by least
+  squares and Nelson–Riley, Scherrer, Williamson–Hall, phase search against built-in and CIF phases, stick overlays,
+  semi-quantification from computed intensities.
+- **Phases:** Fe–Fe₃C, Pb–Sn, Al–Si, Cu–Ag, Cu–Ni drawn schematically from cited key points (labelled
+  *schematisch*); ideal and regular-solution diagrams computed by convex hull; click sets the point; lever rule,
+  constituents, cooling path.
+- **Steel:** CE (IIW), CET, Pcm, preheat (EN 1011-2), Ms, Ac1, Ac3, Hollomon–Jaffe, carburising profile and case
+  depth.
+- **Mechanics:** CLT laminate (ABD, engineering constants, ply stresses, max stress / Tsai–Hill / Tsai–Wu / Hashin,
+  first-ply failure); S–N fit with run-outs, Haigh diagram, Marin factors, rainflow (E1049) and Miner; Weibull (LSQ,
+  MLE, bootstrap, size effect); K_Q for SE(B) and C(T) with the E399 checks, critical crack size; HV/HB/HK from
+  indents, conversion only with the user's own table file (otherwise only the labelled rule Rm ≈ 3,3·HV), E112 grain
+  size, Hall–Petch; Tafel and Butler–Volmer fit, Stern–Geary, G102 corrosion rate; Larson–Miller and
+  Norton–Arrhenius.
+- **Report and sharing:** every tool as a report section (figures, tables, `\labval` values, pgfplots data, methods
+  text, a reference for every source and data file), Refresh from the stored request; environments, overview, datasets
+  from the Datenaufbereitung, project index.
+
+### Limits
+- Cromer–Mann coefficients were transcribed without the original at hand (checked by f(0) = Z and line orders);
+  no real instrument files were available, so the readers are tested on synthetic files written to the published
+  layouts. Bruker RAW4 is refused.
+- Cubic indexing only; Cu–Ni from the ideal model deviates from the assessed diagram by up to about 25 K; the ideal
+  critical diameter (Grossmann) is not built; Weibull MLE without the small-sample unbiasing factor.
+- No ICDD data and no hardness conversion tables are included.
+- Lattice model: defect and precipitate geometry is schematic; no short-range order or segregation; a constant α away
+  from tabulated points.
+
+## 11. Suite-wide plans
 
 ### Cross-module features – built
 - TGA step loss vs the theoretical loss of a decomposition; FTIR peak table vs a drawn structure; Elementrechner values

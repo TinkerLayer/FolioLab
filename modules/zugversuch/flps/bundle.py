@@ -219,7 +219,7 @@ def _value_type_text(s: str, lang: str) -> str:
 
 
 def _mat_cite(b: Bundle, a, lang: str) -> str:
-    """Literaturangabe der Kennwerte eines Vergleichswerkstoffs (Quelle und Basis aus data/alloys.json)."""
+    """Literaturangabe der Kennwerte eines Vergleichswerkstoffs (Quelle und Basis aus der Werkstoffdatenbank)."""
     key = "mat-" + slugify(a.name, 30)
     rec = getattr(a, "cite", None)
     if rec:  # strukturierte Quelle (eigener Werkstoff): richtiger Eintragstyp mit Autoren, DOI, Jahr

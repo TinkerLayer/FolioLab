@@ -487,6 +487,11 @@ def _gamma(x):
     return np.vectorize(lambda v: math.nan if (v < 0 and v == int(v)) else math.gamma(v) if v < 171 else math.inf)(a)
 
 
+def _erf(x):
+    v = np.vectorize(math.erf, otypes=[float])(np.asarray(x, dtype=float))
+    return float(v) if v.ndim == 0 else v
+
+
 def _fact(c, n):
     a = np.asarray(n, dtype=float)
     if np.any(a < 0):
@@ -609,6 +614,7 @@ BUILTINS = {
     "gcd": (lambda c, a, b: np.gcd(np.asarray(a, int), np.asarray(b, int)).astype(float), 2, 2),
     "lcm": (lambda c, a, b: np.lcm(np.asarray(a, int), np.asarray(b, int)).astype(float), 2, 2),
     "fact": (_fact, 1, 1), "factorial": (_fact, 1, 1), "gamma": (lambda c, x: _gamma(x), 1, 1),
+    "erf": (lambda c, x: _erf(x), 1, 1), "erfc": (lambda c, x: 1.0 - _erf(x), 1, 1),          # Fick 2 (Diffusion)
     "binom": (_binom, 2, 2), "nCr": (_binom, 2, 2), "nPr": (lambda c, n, k: np.round(_gamma(np.asarray(n, float) + 1) / _gamma(np.asarray(n, float) - k + 1)), 2, 2),
     "deg": (lambda c, x: np.degrees(x), 1, 1), "rad": (lambda c, x: np.radians(x), 1, 1),
     "hypot": (lambda c, a, b: np.hypot(a, b), 2, 2),
@@ -1027,7 +1033,8 @@ SPECIAL = {"integral": _sp_integral, "deriv": _sp_deriv, "nsolve": _sp_nsolve, "
 
 FUNC_DOC = [
     ("Grundfunktionen", ["sqrt(x)", "cbrt(x)", "root(x, n)", "exp(x)", "ln(x)", "log(x, b)", "log10(x)", "abs(x)",
-                         "round(x, n)", "floor(x)", "ceil(x)", "mod(a, b)", "n!", "binom(n, k)", "gcd(a, b)", "lcm(a, b)"]),
+                         "round(x, n)", "floor(x)", "ceil(x)", "mod(a, b)", "n!", "binom(n, k)", "gcd(a, b)", "lcm(a, b)",
+                         "erf(x)", "erfc(x)"]),
     ("Trigonometrie", ["sin(x)", "cos(x)", "tan(x)", "asin(x)", "acos(x)", "atan(x)", "atan2(y, x)", "sinh(x)",
                        "cosh(x)", "tanh(x)", "deg(x)", "rad(x)", "hypot(a, b)"]),
     ("Analysis", ["integral(f, x, a, b)", "deriv(f, x, x0)", "deriv(f, x, x0, 2)", "nsolve(f == g, x, x0)",
@@ -1047,15 +1054,26 @@ FUNC_DOC = [
 STRFUNCS: dict = {}          # Name -> (fn(ctx, *args), nmin, nmax, Dimension, Beschreibung)
 
 
-def register_string_function(name, fn, nmin, nmax, dims, doc=""):
+def register_string_function(name, fn, nmin, nmax, dims, doc="", group="Chemie"):
+    """``dims``: Dimension des Ergebnisses, oder eine Funktion der Argumente in Anführungszeichen, die sie liefert
+    (mat("Cu", "E") -> Elastizitätsmodul); ``group``: Abschnitt in der Funktionsübersicht."""
     STRFUNCS[name] = (fn, nmin, nmax, dims, doc)
-    group = next((g for g in FUNC_DOC if g[0] == "Chemie"), None)
+    gname = group
+    group = next((g for g in FUNC_DOC if g[0] == gname), None)
     if group is None:
-        group = ("Chemie", [])
+        group = (gname, [])
         FUNC_DOC.append(group)
     entry = doc.split(" – ")[0] if doc else f'{name}("…")'
     if entry not in group[1]:
         group[1].append(entry)
+
+
+def strfunc_dims(node):
+    """Dimension eines Aufrufs wie M("H2O") oder mat("Cu", "E"); None, wenn sie sich nicht bestimmen lässt."""
+    d = STRFUNCS[node.func.id][3]
+    if callable(d):                                           # Einheit hängt von den Textargumenten ab
+        return d(*[a.value if isinstance(a, ast.Constant) and isinstance(a.value, str) else None for a in node.args])
+    return d
 
 
 # ----------------------------------------------------------------------------- Dimensionen
@@ -1063,7 +1081,7 @@ class DimError(ValueError):
     pass
 
 
-_DIMLESS_FUNCS = {"sin", "cos", "tan", "cot", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "exp", "ln",
+_DIMLESS_FUNCS = {"sin", "cos", "tan", "cot", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "exp", "ln", "erf", "erfc",
                   "log", "log10", "log2", "asinh", "acosh", "atanh", "fact", "gamma", "eigvec"}
 # Ergebnis hat die Einheit des ersten Arguments
 _SAME_DIMS = {"std", "sort", "cumsum", "diff", "transpose", "trace", "eig", "svd", "norm", "diag", "row", "col",
@@ -1257,7 +1275,7 @@ def dims_of(node, dims: dict, strict=False, consts=True):
                 raise DimError("hypot aus unterschiedlichen Einheiten")
             return ds[0]
         if n in STRFUNCS and node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
-            return STRFUNCS[n][3]
+            return strfunc_dims(node)
         if n in _DIMLESS_FUNCS:
             if strict and any(d is not None and not U.deq(d, U.D0) for d in ds[:1]) and n != "atan2":
                 raise DimError(f"{n}() braucht ein dimensionsloses Argument")
@@ -1360,7 +1378,7 @@ def to_json(v):
 
 # ----------------------------------------------------------------------------- Chemie-Funktionen
 def _register_chem():
-    from . import acidbase, chem, ionization, nuclear, prep, redox, substances, thermo, vapor
+    from . import acidbase, chem, ionization, materials, nuclear, prep, redox, substances, thermo, vapor
     ionization.register_calc_functions()
     vapor.register_calc_functions()
     nuclear.register_calc_functions()
@@ -1370,6 +1388,7 @@ def _register_chem():
     redox.register_calc_functions()
     acidbase.register_calc_functions()
     prep.register_calc_functions()
+    materials.register_calc_functions()
     substances.install()        # Stoffnamen (DE/EN) aus der Sammlung in Formeln: M("Essigsäure")
 
 

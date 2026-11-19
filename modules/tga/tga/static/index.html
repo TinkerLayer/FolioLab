@@ -1092,7 +1092,7 @@ function updateSearch() {
   $("#sWrap").innerHTML = hits.length ? `<table class="res"><thead><tr><th>#</th><th class="l">Referenz</th><th>HQI</th><th>Kurve</th><th>Stufen</th><th>ΔT</th><th class="l">Atm.</th></tr></thead><tbody>${hits.map((h, i) =>
     `<tr class="click${i === o.hitSel ? " hl" : ""}" data-i="${i}"><td>${i + 1}</td><td class="l wrap">${esc(h.name)} ${h.modelled ? '<span class="badge model">Modell</span>' : '<span class="badge own">gemessen</span>'}${h.warnings && h.warnings.length ? " ⚠" : ""}<div class="small">${esc(srcShort(h.source))}</div></td><td><b>${fx(h.hqi, 1)}</b></td><td>${fx(h.curve, 0)}</td><td>${fx(h.step, 0)}</td><td>${h.shift ? (h.shift > 0 ? "+" : "") + h.shift : "0"}</td><td class="l">${esc(h.atmosphere || "")}</td></tr>`).join("")}</tbody></table>`
     : `<div class="small" style="padding:8px">Keine Treffer.</div>`;
-  $$("#sWrap tr[data-i]").forEach(tr => tr.addEventListener("click", () => { o.hitSel = +tr.dataset.i; S.mode = "search"; updateMode(); updateSearch(); draw(); }));
+  $$("#sWrap tr[data-i]").forEach(tr => tr.addEventListener("click", () => { o.hitSel = +tr.dataset.i; S.mode = "search"; updateMode(); updateSearch(); draw(); if (window.ENVS) ENVS.save(); }));
   const h = hits[o.hitSel];
   $("#sDetail").hidden = !h;
   if (h) {
@@ -1112,7 +1112,7 @@ async function runSearch() {
   const j = await withBusy(() => api("api/search", { id: o.id, state: stateOf(o), libs, mode: $("#sMode").value, shift: pnum($("#sShift").value) ?? 20, category: $("#sCat").value, same_atm: $("#sAtm").checked, w_curve: Math.min(100, Math.max(0, pnum($("#sWc").value) ?? 60)) / 100 }));
   if (j.error) return toast(j.error, true);
   o.search = j; o.hitSel = 0; o.searchStale = false;
-  S.mode = "search"; updateMode(); updateSearch(); draw();
+  S.mode = "search"; updateMode(); updateSearch(); draw(); if (window.ENVS) ENVS.save();
 }
 async function runMixture() {
   const o = cur(); if (!o) return;
@@ -1121,7 +1121,7 @@ async function runMixture() {
   const j = await withBusy(() => api("api/mixture", { id: o.id, state: stateOf(o), libs, max: +$("#mMax").value, shift: pnum($("#sShift").value) ?? 20 }));
   if (j.error) return toast(j.error, true);
   o.mix = j; o.mixSel = 0; o.mixStale = false;
-  S.mode = "mix"; updateMode(); updateMix(); draw();
+  S.mode = "mix"; updateMode(); updateMix(); draw(); if (window.ENVS) ENVS.save();
 }
 function updateMix() {
   const o = cur();
@@ -1130,7 +1130,7 @@ function updateMix() {
   if (!o || !o.mix) { $("#mList").innerHTML = `<div class="empty">Noch nicht gerechnet.</div>`; $("#mDetail").hidden = true; return; }
   const cs = o.mix.combos;
   $("#mList").innerHTML = cs.length ? cs.map((c, i) => `<div class="combo${i === o.mixSel ? " sel" : ""}" data-i="${i}"><div class="h"><b>${c.components.map(x => esc(x.name)).join(" + ")}</b><span class="hqi">${fx(c.hqi, 1)}</span></div><div class="c">${c.components.map(x => `${esc(x.name)} ${fx(100 * x.frac, 1)} %`).join(" · ")}${c.inert > 0.005 ? ` · inert ${fx(100 * c.inert, 1)} %` : ""}</div></div>`).join("") : `<div class="empty">${esc(o.mix.note || "Keine Kombination gefunden.")}</div>`;
-  $$("#mList .combo").forEach(el => el.addEventListener("click", () => { o.mixSel = +el.dataset.i; S.mode = "mix"; updateMode(); updateMix(); draw(); }));
+  $$("#mList .combo").forEach(el => el.addEventListener("click", () => { o.mixSel = +el.dataset.i; S.mode = "mix"; updateMode(); updateMix(); draw(); if (window.ENVS) ENVS.save(); }));
   const c = cs[o.mixSel];
   $("#mDetail").hidden = !c;
   if (c) $("#mDetail").innerHTML = `${o.mix.note ? `<div class="note warn">${esc(o.mix.note)}</div>` : ""}Vorhergesagter Rückstand ${fx(c.residue_pred, 1)} %${o.data && o.data.residue ? `, gemessen ${fx(o.data.residue.end, 1)} %` : ""}<ol>${c.components.map(x => `<li>${esc(x.name)} (${esc(x.lib_name)}${x.modelled ? ", modelliert" : ""}): ${fx(100 * x.frac, 1)} %${x.shift ? `, ${x.shift > 0 ? "+" : ""}${x.shift} K` : ""}<div class="small">${esc(srcText(x.source))}</div></li>`).join("")}</ol>`;
@@ -1232,7 +1232,7 @@ async function runKin() {
   const j = await withBusy(() => api("api/kinetics", { ids, pipelines: pipes, T_lo: lo, T_hi: hi, opts }));
   if (j.error) return toast(j.error, true);
   S.kin = { ids, T_lo: lo, T_hi: hi, opts, res: j };
-  S.mode = "kin"; updateMode(); updateKin(); S.view = null; draw();
+  S.mode = "kin"; updateMode(); updateKin(); S.view = null; draw(); if (window.ENVS) ENVS.save();
 }
 
 // ---------------------------------------------------------------- Trennung
@@ -2158,6 +2158,14 @@ async function init() {
     reset: () => { S.runs = []; S.sel = -1; S.ext = []; },
     add: async (d, saved) => { const o = Object.assign(newRun(d), saved); S.runs.push(o); await refresh(o); },
     extra: () => ({ kinSel: S.kinSel || null, ext: S.ext || [] }), summary: envSummary,
+    // Berichtsauftrag (alle Läufe, Kinetik wenn gerechnet), damit „Import“ im Bericht diese Umgebung lesen kann
+    report: () => {
+      if (!S.runs.length) return null;
+      const body = { items: S.runs.map(s => ({ id: s.id, state: stateOf(s, true) })), lang: "de", include: {},
+        title: "TGA " + (S.runs.length === 1 ? S.runs[0].name : `${S.runs.length} Läufe`) };
+      if (S.kin && S.kin.res) body.kinetics = { T_lo: S.kin.T_lo, T_hi: S.kin.T_hi, opts: S.kin.opts };
+      return body;
+    },
     done: (sel, extra) => { S.sel = sel; if (extra && Array.isArray(extra.kinSel)) S.kinSel = extra.kinSel; S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.view = null; updateChips(); updateAll(); draw(); if (OV) setTimeout(() => OV.sync(), 0); },
   });
   await withBusy(() => ENVS.open());

@@ -60,6 +60,17 @@ def clean(o):
     return o
 
 
+def materials_payload(lang: str = "de") -> dict:
+    """Alle Werkstoffe (Kurzform), Klassen, Eigenschaften und Diffusionspaare für die Auswahl in der Bibliothek."""
+    from labcalc import materials as MAT
+    i = 0 if lang == "de" else 1
+    return {"items": [MAT.summary(r, lang) for r in MAT.materials()],
+            "classes": [{"key": k, "label": v[i]} for k, v in MAT.CLASSES.items()],
+            "props": [{"key": k, "kind": v[0], "unit": v[1], "label": v[2 + i]} for k, v in MAT.PROPS.items()],
+            "diffusion": [{"species": d["teilchen"], "host": d["wirt"]} for d in MAT._db()["diffusion"]],
+            "shortcuts": MAT.SHORTCUTS}
+
+
 def meta_payload() -> dict:
     global _META
     if _META is None:
@@ -248,6 +259,14 @@ class Handler(BaseHTTPRequestHandler):
         if p.startswith("/api/prov/"):                 # A8: Herkunftskette, Abhängigkeiten
             import labprov
             return self._json(labprov.route(ENVS, p.rsplit("/", 1)[1], req))
+        if p == "/api/materials":                      # Werkstoffdatenbank für die Auswahl in der Bibliothek
+            return self._json(materials_payload(req.get("lang") or "de"))
+        if p == "/api/material":
+            from labcalc import materials as MAT
+            try:
+                return self._json(MAT.card(req.get("id") or "", req.get("lang") or "de"))
+            except MAT.MatError as e:
+                return self._json({"error": str(e)}, 400)
         if p == "/api/eval":
             return self._json(CON.evaluate_line(req))
         if p == "/api/sheet":
@@ -303,6 +322,29 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": str(e)}, 400)
 
 
+def env_bundle(_stored, report: dict, lang: str) -> dict:
+    """Bündel einer gespeicherten Umgebung aus dem Berichtsauftrag ihrer Seite (keine Dateien)."""
+    from . import bundle as B
+    from . import dsvars as DV
+    req = DV.attach({**report, "lang": lang}, ENVS)
+    return B.build(req, lang=lang, include=req.get("include"), title=req.get("title"))
+
+
+def env_default_report(_stored, client: dict, _eid: str = "") -> dict | None:
+    """Umgebungen, die vor dem Import aus Folio gespeichert wurden: Blätter, Werte und Variablen aus dem Seitenzustand; Diagramme
+    brauchen die Seite (Kurvendaten) und fehlen, bis die Umgebung einmal geöffnet war."""
+    ex = (client or {}).get("extra") or {}
+    if not isinstance(ex, dict) or not ex.get("envs"):
+        return None
+    vars_ = ex.get("vars") or {}
+    mats: dict = {}                                     # Matrizen erst mit dem Berichtsauftrag der Seite
+    return {"values": ex.get("values") or [], "vars": vars_, "dsvars": ex.get("dsvars") or [], "plots": [],
+            "envs": [{"id": e.get("id"), "name": e.get("name"), "items": e.get("items") or [], "derive": e.get("derive") is not False}
+                     for e in ex["envs"] if isinstance(e, dict)],
+            "matrices": mats, "angle": ex.get("angle"), "complex": ex.get("complex"), "digits": ex.get("digits"),
+            "include": {}, "title": "Berechnung"}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Rechner, lokale Oberfläche")
     ap.add_argument("--port", type=int, default=8767)
@@ -311,7 +353,9 @@ def main(argv=None):
     a = ap.parse_args(argv)
     global ENVS
     ENVS = ModuleEnvs(Path(a.aus).resolve(), "rechner")
-    srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
+    ENVS.env_bundle = env_bundle
+    ENVS.env_default_report = env_default_report
+    srv =ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}/"
     print(f"Rechner läuft auf {url}  (Beenden mit Strg+C)")
     if not a.kein_browser:

@@ -162,6 +162,53 @@ async function insert(raw, need) {
   return true;
 }
 
+/** Insert the pieces just imported from a module environment at the cursor, in the order chosen: figures and
+ *  tables as floats, text blocks linked, single values as \labval, then the methods paragraph (equations, assumptions)
+ *  when wanted. Data series stay in the Lab dialog (they need an axis choice). Returns what was inserted. */
+export async function insertImported(b, keys, { methods = true } = {}) {
+  const parts = [];
+  const need = { cite: false };
+  const vals = [];
+  const valueLabel = new Map(b.items.filter((i) => i.kind === 'values').flatMap((i) => i.values || []).map((v) => [v.key, v.label || v.key]));
+  const isMethods = (it) => it.kind === 'text' && /method|methodik/i.test(`${it.id} ${it.title || ''}`);
+  let data = 0;
+  for (const k of keys) {
+    const [kind, id] = [k.slice(0, k.indexOf(':')), k.slice(k.indexOf(':') + 1)];
+    if (kind === 'value') {
+      vals.push(id);
+      continue;
+    }
+    const it = b.items.find((i) => i.id === id && i.kind !== 'citation' && i.kind !== 'values');
+    if (!it) continue;
+    const cites = /\\cite/.test(it.caption || '') || (it.cites || []).length > 0;
+    if (it.kind === 'figure') {
+      parts.push(figureTex(b, it));
+      need.graphics = true;
+      need.cite ||= cites;
+    } else if (it.kind === 'table') {
+      parts.push(tableTex(b, it));
+      need.tables = true;
+      need.cite ||= cites;
+    } else if (it.kind === 'text' && !isMethods(it)) {
+      parts.push(`\\input{lab/${b.slug}/${it.file.replace(/\.tex$/i, '')}}\n`);
+      need.cite = true;
+    } else if (it.kind === 'data') data++;
+  }
+  if (vals.length === 1) parts.push(`\\labval{${b.slug}}{${vals[0]}}`);
+  else if (vals.length) {
+    parts.push(`\\begin{itemize}\n${vals.map((v) => `\t\\item ${valueLabel.get(v)}: \\labval{${b.slug}}{${v}}`).join('\n')}\n\\end{itemize}\n`);
+  }
+  if (methods) {
+    for (const it of b.items.filter(isMethods)) {
+      parts.push(`\\input{lab/${b.slug}/${it.file.replace(/\.tex$/i, '')}}\n`);
+      need.cite = true;
+    }
+  }
+  if (!parts.length) return { inserted: 0, data };
+  const ok = await insert(parts.join('\n'), need);
+  return { inserted: ok ? parts.length : 0, data };
+}
+
 // UI-09: status of a result at a glance – revision, issued or draft, shared inputs it uses
 function statusChips(b) {
   const n = (b.history_count || 0) + 1;
@@ -182,7 +229,7 @@ const LINK_MODE = { live: 'Live', pin: 'Pinned', copy: 'Copy' };
 function linkPill(b, st) {
   const l = b.link;
   if (!l) return '';
-  const from = l.type === 'suite' ? 'the shared data of the project' : l.type === 'zip' ? `the ZIP ${l.name || ''}`.trim() : `"${l.title || l.project || ''}"`;
+  const from = l.type === 'suite' ? 'the shared data of the project' : l.type === 'env' ? `the environment "${l.env_name || l.env}" (${l.title || l.module})` : l.type === 'zip' ? `the ZIP ${l.name || ''}`.trim() : `"${l.title || l.project || ''}"`;
   if (l.type === 'zip' || l.mode === 'copy') return `<span class="pill" title="Imported from ${esc(from)}; no link to the source">copy</span>`;
   if (!st) return `<span class="pill" title="Checking ${esc(from)}">${LINK_MODE[l.mode] || l.mode} · checking…</span>`;
   const what = [...(st.changed || []), ...(st.missing || [])].join(', ');

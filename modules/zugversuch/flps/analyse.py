@@ -62,7 +62,7 @@ class Config:
     speed_mm_min: float | None = None
     displacement_source: str | None = None   # "probe", "traverse" oder None
     material: str = ""
-    material_ref: str | None = None       # gewaehlter Referenzwerkstoff aus data/alloys.json
+    material_ref: str | None = None       # gewaehlter Referenzwerkstoff (gemeinsame Werkstoffdatenbank)
     compare_group: str | None = None      # Vergleichsgruppe der Rangliste, leer = Aluminium
     batch: str = ""
     operator: str = ""

@@ -1800,6 +1800,9 @@ async function init() {
       S.files.push(o); await analyse(o);
     },
     summary: envSummary,
+    // Berichtsauftrag (alle Messungen der Umgebung), damit „Import“ im Bericht diese Umgebung lesen kann
+    report: () => S.files.length ? { items: S.files.map(o => ({ id: o.id, config: o.cfg })), lang: "de", include: {},
+      title: "Zugversuch " + (S.files.length === 1 ? S.files[0].name : `${S.files.length} Messungen`) } : null,
     extra: () => ({ ext: S.ext || [] }),
     done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.sel = sel; renderAll(); if (OV) setTimeout(() => OV.sync(), 0); zvDsFollow(); },
   });

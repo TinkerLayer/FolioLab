@@ -1,0 +1,25 @@
+{
+  "id": "werkstoffe",
+  "name": "Werkstoffe",
+  "name_en": "Materials",
+  "description": "Werkstoffauswahl (Ashby-Diagramme, Kennzahlen, Rangliste, Kennwertkarten mit Quellen) aus der gemeinsamen Werkstoffdatenbank; Kristallographie (Zelle, Netzebenen, berechnete Pulvermuster, CIF) und XRD-Auswertung (xy, CSV, xrdml, brml, raw, ras: Reflexe, Scherrer, Williamson–Hall, Indizierung, Gitterkonstante, Phasensuche); Zustandsdiagramme (schematisch nach zitierten Eckpunkten oder berechnet) mit Hebelgesetz, Stahlkennwerte; Laminattheorie, Ermüdung (Wöhler, Haigh, Rainflow, Miner), Weibull, Bruchmechanik (E399), Härte und Korngrösse, Tafel-Korrosion, Kriechen.",
+  "description_en": "Material selection (Ashby charts, performance indices, ranking, property cards with sources) from the shared materials database; crystallography (cell, planes, computed powder patterns, CIF) and XRD evaluation (xy, CSV, xrdml, brml, raw, ras: peaks, Scherrer, Williamson–Hall, indexing, lattice parameter, phase search); phase diagrams (schematic after cited key points or computed) with the lever rule, steel values; laminate theory, fatigue (S–N, Haigh, rainflow, Miner), Weibull, fracture mechanics (E399), hardness and grain size, Tafel corrosion, creep.",
+  "icon": "layers",
+  "icon_svg": "<path d=\"M12 3l8 4.5v9L12 21l-8-4.5v-9z\"/><path d=\"M4 7.5l8 4.5 8-4.5M12 12v9\"/><circle cx=\"12\" cy=\"12\" r=\"1.6\"/>",
+  "color": "#455a64",
+  "status": "ready",
+  "order": 45,
+  "version": "0.1.0",
+  "accepts": [".xy", ".xye", ".xrdml", ".brml", ".raw", ".uxd", ".ras", ".asc", ".dat", ".cif", ".csv", ".txt"],
+  "produces": ["figure", "table", "values", "data", "citation", "text"],
+  "runtime": {
+    "type": "python",
+    "args": ["-m", "werk.server", "--port", "{port}", "--aus", "{outputs}", "--kein-browser"],
+    "health": "/api/meta",
+    "requires": ["numpy", "matplotlib"]
+  },
+  "bundle": {
+    "build": "/api/bundle",
+    "rebuild": "/api/bundle/rebuild"
+  }
+}

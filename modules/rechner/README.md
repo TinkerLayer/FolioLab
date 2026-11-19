@@ -150,9 +150,19 @@ variables** (*Als Variablen*). From the overview, the target environment is chos
 
 ## Formula cards, derive, search for missing values
 
-* *Formeln* ("formulas", 282, sorted by field and searchable): mechanics, strength of materials (tensile test,
+* *Werkstoffe* ("materials", third library tab): search 136 materials (metals, polymers, ceramics, glasses,
+  composites, fibres, semiconductors, natural materials) and open a card with each value, its value kind (typical,
+  minimum, middle of range) and source; ⚠ marks values not yet checked against the source. A click on a value inserts
+  `mat("…", "…")` into the last used line. In a line, `mat("1.4301", "Rm")`, `E_mat("Cu")`, `Rp_mat("S235JR")`,
+  `rho_mat("PE-HD")`, `a_lat("Fe-rein")` or `D_diff("C", "γ-Fe", T)` give the value in SI with its unit; names and
+  properties autocomplete after `mat("`. The report cites the source of every value used. Computed Materials Project
+  values can be added with `python tools/fetch_optional_data.py mp` (own free API key in `MP_API_KEY`); they appear as
+  separate entries "… (berechnet, mp-…)".
+* *Formeln* ("formulas", 365, sorted by field and searchable): mechanics, strength of materials (tensile test,
   bending, torsion, buckling, fracture mechanics with K_I, hardness), geometry, heat, fluid mechanics, electrical
-  engineering, optics/microscopy, mathematics and **chemistry**:
+  engineering, optics/microscopy, mathematics, **materials science** (crystallography, diffusion, phase
+  transformations, strengthening, creep, fatigue, fracture and Weibull, composites, polymers, semiconductors,
+  corrosion, steels, performance indices) and **chemistry**:
   - *Acids and bases:* pKa/pKb, ion product, pH of strong acids/bases, **weak acids and bases** (approximation and
     exact quadratic solution, e.g. 0.1 M acetic acid with pKa 4.76: pH 2.88), degree of dissociation, Ostwald's
     dilution law, Henderson–Hasselbalch, buffer capacity, ampholyte, diprotic acid, equivalence point of weak acids,

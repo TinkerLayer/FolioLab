@@ -12,7 +12,7 @@ How the resulting numbers are traced back to the raw file in a report is describ
 
 State the software and the module version:
 
-> Data were prepared with Folio Lab 0.3.0, module Datenaufbereitung 0.3.0.
+> Data were prepared with Folio Lab 0.4.0, module Datenaufbereitung 0.3.0.
 
 The Folio Lab version is in `package.json`; a report result records it as `provenance.suite_version`. The module version is in `modules/datenaufbereitung/module.json`
 (`"version": "0.3.0"`, identical to `daten/__init__.py`). Every dataset records the version of the module process

@@ -1,0 +1,6003 @@
+{
+ "_format": "folio-materials/1",
+ "_hinweis": "Gemeinsame Werkstoffdatenbank (Rechner, Zugversuch). Zeilen mit \"zugversuch\": true sind die Vergleichswerkstoffe des Zugversuchs; ihre Felder (Rp02_MPa, Rm_MPa, A_pct, E_GPa, Rm_min, Rm_max, wertart, basis, quelle, url, jahr, abgerufen, nicht_geprueft) folgen der Beschreibung in modules/zugversuch (Kennwerte des Zugversuchs). Weitere Kennwerte stehen in \"werte\": je Eigenschaft v (Wert), u (Einheit), art (typ, min, max, mitte = Mitte der Spanne min..max, unklar), q (Quellenschlüssel aus labcalc/sources.py oder Quellentext; fehlt q, gilt das q des Werkstoffs). Werte gelten bei Raumtemperatur, sofern nicht anders angegeben. 'nicht_geprueft' bzw. 'werte_hinweis' nennt, was nicht gegen die Quelle geprüft ist. Reine Elemente (Feld element) erhalten Dichte und Schmelztemperatur aus labcalc/data/elements.json.",
+ "werkstoffe": [
+  {
+   "id": "en-aw-1050a-weich",
+   "name": "EN AW-1050A, weich",
+   "name_en": "EN AW-1050A, annealed",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "Al99,5 weich",
+    "1050A-O"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 25,
+   "Rm_MPa": 76,
+   "A_pct": 30,
+   "E_GPa": 68.0,
+   "Rm_min": 76,
+   "Rm_max": 140,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Literatur",
+   "quelle": "MakeItFrom, 1050 gegen 7075 (Rm 76 bis 140 MPa); MakeItFrom, 1050A-F gegen 5754-F (E 68 GPa)",
+   "nicht_geprueft": "Rm 76 MPa ist die Untergrenze der Spanne 76 bis 140 MPa, die die Quelle für 1050 über alle Zustände nennt: weder Normmindestwert noch Typwert des weichen Zustands; Rm_min/Rm_max umfassen auch kaltverfestigte Zustände. Herkunft von Rp und A in der Quelle nicht geprüft."
+  },
+  {
+   "id": "en-aw-5052-h32",
+   "name": "EN AW-5052-H32",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMg2,5 H32",
+    "5052-H32"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 130,
+   "Rm_MPa": 235,
+   "A_pct": 12,
+   "E_GPa": 70.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Datenblatt",
+   "quelle": "Baetro, Aluminium 5052"
+  },
+  {
+   "id": "en-aw-5052-h38",
+   "name": "EN AW-5052-H38",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMg2,5 H38",
+    "5052-H38"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 220,
+   "Rm_MPa": 285,
+   "A_pct": 7,
+   "E_GPa": 70.0,
+   "Rm_min": 270,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Datenblatt",
+   "quelle": "Baetro, Aluminium 5052 (5052-H38 ab 270 MPa und 220 MPa)"
+  },
+  {
+   "id": "en-aw-5083-o-h111",
+   "name": "EN AW-5083-O/H111",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMg4,5Mn0,7 O",
+    "5083-O"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 125,
+   "Rm_MPa": 310,
+   "A_pct": 16,
+   "E_GPa": 70.0,
+   "Rm_min": 275,
+   "Rm_max": 350,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Datenblatt",
+   "quelle": "Righton Blackburns, 5083 O/H111 (Blech 0,2 bis 6,3 mm, Rp0,2 ab 125 MPa, Rm 275 bis 350 MPa)"
+  },
+  {
+   "id": "en-aw-5086-h116-h32",
+   "name": "EN AW-5086-H116/H32",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMg4 H32",
+    "5086-H32"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 207,
+   "Rm_MPa": 290,
+   "A_pct": 12,
+   "E_GPa": 71.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Datenblatt",
+   "quelle": "Aerospace Metals, 5086-H116/H32 (Rm 290 MPa, Rp0,2 207 MPa, E 71 GPa)"
+  },
+  {
+   "id": "en-aw-6061-t6",
+   "name": "EN AW-6061-T6",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMg1SiCu T6",
+    "6061-T6"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 276,
+   "Rm_MPa": 310,
+   "A_pct": 12,
+   "E_GPa": 68.9,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Datenblatt",
+   "quelle": "Protolabs, Datenblatt 6061-T651/T6 (Rm 310, Rp0,2 276 MPa); Powertec, Aluminium 6061-T6 (E 68,9 GPa)",
+   "werte": {
+    "rho": {
+     "v": 2.7,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "G": {
+     "v": 26,
+     "art": "typ",
+     "u": "GPa",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.33,
+     "art": "typ",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 23.6,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 167,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 896,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 4,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "en-aw-2024-t3",
+   "name": "EN AW-2024-T3",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlCu4Mg1 T3",
+    "2024-T3"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 345,
+   "Rm_MPa": 483,
+   "A_pct": 18,
+   "E_GPa": 73.1,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Datenblatt",
+   "quelle": "United Aluminum, 6061/7075/2024 (2024-T3 mit 483 und 345 MPa)",
+   "werte": {
+    "rho": {
+     "v": 2.77,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "G": {
+     "v": 28,
+     "art": "typ",
+     "u": "GPa",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.33,
+     "art": "typ",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 44,
+     "art": "typ",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 22.9,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 120,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 875,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 5.82,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "en-aw-7075-t6",
+   "name": "EN AW-7075-T6",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlZn5,5MgCu T6",
+    "7075-T6"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 503,
+   "Rm_MPa": 572,
+   "A_pct": 11,
+   "E_GPa": 71.7,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar",
+    "Rp": "unklar"
+   },
+   "basis": "Datenblatt",
+   "quelle": "United Aluminum, 6061/7075/2024 (7075-T6 mit 572,3 und 503,3 MPa)",
+   "werte": {
+    "rho": {
+     "v": 2.8,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "G": {
+     "v": 26,
+     "art": "typ",
+     "u": "GPa",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.33,
+     "art": "typ",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 24,
+     "art": "typ",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 23.4,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 130,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 960,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 5.22,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "en-aw-1050a-h14",
+   "name": "EN AW-1050A-H14",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "Al99,5 H14",
+    "1050A-H14"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 85,
+   "Rm_MPa": 125,
+   "A_pct": 4,
+   "E_GPa": 69.0,
+   "Rm_min": 105,
+   "Rm_max": 145,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 485-2, Blech 0,5 bis 1,5 mm"
+  },
+  {
+   "id": "en-aw-3003-h14",
+   "name": "EN AW-3003-H14",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMn1Cu H14",
+    "3003-H14"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 125,
+   "Rm_MPa": 165,
+   "A_pct": 4,
+   "E_GPa": 69.0,
+   "Rm_min": 145,
+   "Rm_max": 185,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 485-2, Blech 0,5 bis 1,5 mm"
+  },
+  {
+   "id": "en-aw-5754-o-h111",
+   "name": "EN AW-5754-O/H111",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMg3 O",
+    "5754-O"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 80,
+   "Rm_MPa": 215,
+   "A_pct": 18,
+   "E_GPa": 70.5,
+   "Rm_min": 190,
+   "Rm_max": 240,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 485-2"
+  },
+  {
+   "id": "en-aw-5754-h22",
+   "name": "EN AW-5754-H22",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMg3 H22",
+    "5754-H22"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 130,
+   "Rm_MPa": 245,
+   "A_pct": 10,
+   "E_GPa": 70.5,
+   "Rm_min": 220,
+   "Rm_max": 270,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 485-2"
+  },
+  {
+   "id": "en-aw-6060-t6",
+   "name": "EN AW-6060-T6",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlMgSi T6",
+    "6060-T6"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 150,
+   "Rm_MPa": 190,
+   "A_pct": 8,
+   "E_GPa": 69.0,
+   "Rm_min": 190,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "EN 755-2, Strangpressprofil"
+  },
+  {
+   "id": "en-aw-6082-t6",
+   "name": "EN AW-6082-T6",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlSi1MgMn T6",
+    "6082-T6"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 260,
+   "Rm_MPa": 310,
+   "A_pct": 10,
+   "E_GPa": 70.0,
+   "Rm_min": 310,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "EN 485-2, Blech"
+  },
+  {
+   "id": "en-aw-7020-t6",
+   "name": "EN AW-7020-T6",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlZn4,5Mg1 T6",
+    "7020-T6"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 280,
+   "Rm_MPa": 350,
+   "A_pct": 10,
+   "E_GPa": 70.0,
+   "Rm_min": 350,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "EN 485-2, Blech"
+  },
+  {
+   "id": "en-aw-2017a-t4",
+   "name": "EN AW-2017A-T4",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "AlCu4MgSi(A) T4",
+    "2017A-T4"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 260,
+   "Rm_MPa": 390,
+   "A_pct": 12,
+   "E_GPa": 72.5,
+   "Rm_min": 390,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "EN 485-2, Blech"
+  },
+  {
+   "id": "en-aw-8011a-o-folie",
+   "name": "EN AW-8011A-O, Folie",
+   "klasse": "metall",
+   "familie": "Aluminium",
+   "aliase": [
+    "8011A-O"
+   ],
+   "zugversuch": true,
+   "kategorie": "Aluminium",
+   "Rp02_MPa": 50,
+   "Rm_MPa": 105,
+   "A_pct": 4,
+   "E_GPa": 69.0,
+   "Rm_min": 80,
+   "Rm_max": 130,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "typ"
+   },
+   "basis": "Normspanne, Rp und A Typwert (dickenabhängig)",
+   "quelle": "EN 546-2, Folie"
+  },
+  {
+   "id": "s235jr",
+   "name": "S235JR",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.0038",
+    "St37-2"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 235,
+   "Rm_MPa": 435,
+   "A_pct": 26,
+   "E_GPa": 210.0,
+   "Rm_min": 360,
+   "Rm_max": 510,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, ReH Mindestwert",
+   "quelle": "EN 10025-2, Dicke bis 16 mm"
+  },
+  {
+   "id": "s275jr",
+   "name": "S275JR",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.0044",
+    "St44-2"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 275,
+   "Rm_MPa": 485,
+   "A_pct": 23,
+   "E_GPa": 210.0,
+   "Rm_min": 410,
+   "Rm_max": 560,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, ReH Mindestwert",
+   "quelle": "EN 10025-2, Dicke bis 16 mm"
+  },
+  {
+   "id": "s355j2",
+   "name": "S355J2",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.0577",
+    "St52-3"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 355,
+   "Rm_MPa": 550,
+   "A_pct": 22,
+   "E_GPa": 210.0,
+   "Rm_min": 470,
+   "Rm_max": 630,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, ReH Mindestwert",
+   "quelle": "EN 10025-2, Dicke bis 16 mm"
+  },
+  {
+   "id": "s460n",
+   "name": "S460N",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.8901"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 460,
+   "Rm_MPa": 630,
+   "A_pct": 17,
+   "E_GPa": 210.0,
+   "Rm_min": 540,
+   "Rm_max": 720,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, ReH Mindestwert",
+   "quelle": "EN 10025-3, Dicke bis 16 mm"
+  },
+  {
+   "id": "dc01",
+   "name": "DC01",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.0330",
+    "St12"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 210,
+   "Rm_MPa": 340,
+   "A_pct": 28,
+   "E_GPa": 210.0,
+   "Rm_min": 270,
+   "Rm_max": 410,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "typ"
+   },
+   "basis": "Normspanne Rm, Rp Typwert (Norm: höchstens 280)",
+   "quelle": "EN 10130, Kaltband"
+  },
+  {
+   "id": "dc04",
+   "name": "DC04",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.0338",
+    "St14"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 170,
+   "Rm_MPa": 310,
+   "A_pct": 38,
+   "E_GPa": 210.0,
+   "Rm_min": 270,
+   "Rm_max": 350,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "typ"
+   },
+   "basis": "Normspanne Rm, Rp Typwert (Norm: höchstens 210)",
+   "quelle": "EN 10130, Kaltband"
+  },
+  {
+   "id": "c45e-n",
+   "name": "C45E +N",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.1191 +N",
+    "Ck45 +N"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 340,
+   "Rm_MPa": 620,
+   "A_pct": 14,
+   "E_GPa": 210.0,
+   "Rm_min": 620,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "EN 10083-2, normalgeglüht, d bis 16 mm"
+  },
+  {
+   "id": "c45e-qt",
+   "name": "C45E +QT",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.1191 +QT",
+    "Ck45 +QT"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 490,
+   "Rm_MPa": 775,
+   "A_pct": 14,
+   "E_GPa": 210.0,
+   "Rm_min": 700,
+   "Rm_max": 850,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Re Mindestwert",
+   "quelle": "EN 10083-2, vergütet, d bis 16 mm"
+  },
+  {
+   "id": "42crmo4-qt",
+   "name": "42CrMo4 +QT",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1.7225 +QT",
+    "AISI 4140 +QT"
+   ],
+   "zugversuch": true,
+   "kategorie": "Stahl",
+   "Rp02_MPa": 900,
+   "Rm_MPa": 1200,
+   "A_pct": 10,
+   "E_GPa": 210.0,
+   "Rm_min": 1100,
+   "Rm_max": 1300,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Re Mindestwert",
+   "quelle": "EN 10083-3, vergütet, d bis 16 mm"
+  },
+  {
+   "id": "1-4301-x5crni18-10",
+   "name": "1.4301 (X5CrNi18-10)",
+   "klasse": "metall",
+   "familie": "Edelstahl",
+   "aliase": [
+    "1.4301",
+    "X5CrNi18-10",
+    "AISI 304",
+    "304",
+    "V2A"
+   ],
+   "zugversuch": true,
+   "kategorie": "Edelstahl",
+   "Rp02_MPa": 230,
+   "Rm_MPa": 645,
+   "A_pct": 45,
+   "E_GPa": 200.0,
+   "Rm_min": 540,
+   "Rm_max": 750,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 10088-2, Kaltband C",
+   "werte": {
+    "rho": {
+     "v": 8,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "G": {
+     "v": 75,
+     "art": "typ",
+     "u": "GPa",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.3,
+     "art": "typ",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 17.2,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 16.2,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 500,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 72,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "1-4404-x2crnimo17-12-2",
+   "name": "1.4404 (X2CrNiMo17-12-2)",
+   "klasse": "metall",
+   "familie": "Edelstahl",
+   "aliase": [
+    "1.4404",
+    "X2CrNiMo17-12-2",
+    "AISI 316L",
+    "316L",
+    "V4A"
+   ],
+   "zugversuch": true,
+   "kategorie": "Edelstahl",
+   "Rp02_MPa": 240,
+   "Rm_MPa": 605,
+   "A_pct": 40,
+   "E_GPa": 200.0,
+   "Rm_min": 530,
+   "Rm_max": 680,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 10088-2, Kaltband C",
+   "werte": {
+    "rho": {
+     "v": 8,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 16,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 15.9,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 502,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 74,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "1-4571-x6crnimoti17-12-2",
+   "name": "1.4571 (X6CrNiMoTi17-12-2)",
+   "klasse": "metall",
+   "familie": "Edelstahl",
+   "aliase": [
+    "1.4571",
+    "X6CrNiMoTi17-12-2",
+    "AISI 316Ti",
+    "316Ti"
+   ],
+   "zugversuch": true,
+   "kategorie": "Edelstahl",
+   "Rp02_MPa": 240,
+   "Rm_MPa": 615,
+   "A_pct": 40,
+   "E_GPa": 200.0,
+   "Rm_min": 540,
+   "Rm_max": 690,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 10088-2, Kaltband C"
+  },
+  {
+   "id": "1-4016-x6cr17",
+   "name": "1.4016 (X6Cr17)",
+   "klasse": "metall",
+   "familie": "Edelstahl",
+   "aliase": [
+    "1.4016",
+    "X6Cr17",
+    "AISI 430",
+    "430"
+   ],
+   "zugversuch": true,
+   "kategorie": "Edelstahl",
+   "Rp02_MPa": 280,
+   "Rm_MPa": 525,
+   "A_pct": 20,
+   "E_GPa": 220.0,
+   "Rm_min": 450,
+   "Rm_max": 600,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 10088-2, Kaltband C"
+  },
+  {
+   "id": "en-gjl-250",
+   "name": "EN-GJL-250",
+   "klasse": "metall",
+   "familie": "Gusseisen",
+   "aliase": [
+    "GG-25",
+    "GJL-250"
+   ],
+   "zugversuch": true,
+   "kategorie": "Gusseisen",
+   "Rp02_MPa": 165,
+   "Rm_MPa": 250,
+   "A_pct": 0.5,
+   "E_GPa": 110.0,
+   "Rm_min": 250,
+   "Rm_max": 350,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "typ"
+   },
+   "basis": "Normwert, Rp0,1 und A Typwert",
+   "quelle": "EN 1561"
+  },
+  {
+   "id": "en-gjs-400-15",
+   "name": "EN-GJS-400-15",
+   "klasse": "metall",
+   "familie": "Gusseisen",
+   "aliase": [
+    "GGG-40",
+    "GJS-400-15"
+   ],
+   "zugversuch": true,
+   "kategorie": "Gusseisen",
+   "Rp02_MPa": 250,
+   "Rm_MPa": 400,
+   "A_pct": 15,
+   "E_GPa": 169.0,
+   "Rm_min": 400,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "EN 1563"
+  },
+  {
+   "id": "cu-etp-r220-weich",
+   "name": "Cu-ETP R220 (weich)",
+   "name_en": "Cu-ETP R220 (annealed)",
+   "klasse": "metall",
+   "familie": "Kupfer",
+   "aliase": [
+    "CW004A R220",
+    "Cu-ETP weich"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kupfer",
+   "Rp02_MPa": 80,
+   "Rm_MPa": 240,
+   "A_pct": 33,
+   "E_GPa": 127.0,
+   "Rm_min": 220,
+   "Rm_max": 260,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "typ"
+   },
+   "basis": "Normspanne Rm, Rp Typwert",
+   "quelle": "EN 1652",
+   "werte": {
+    "rho": {
+     "v": 8.89,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.34,
+     "art": "typ",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 17,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 388,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 385,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 1.72,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "cu-etp-r290-halbhart",
+   "name": "Cu-ETP R290 (halbhart)",
+   "name_en": "Cu-ETP R290 (half hard)",
+   "klasse": "metall",
+   "familie": "Kupfer",
+   "aliase": [
+    "CW004A R290",
+    "Cu-ETP halbhart"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kupfer",
+   "Rp02_MPa": 250,
+   "Rm_MPa": 325,
+   "A_pct": 8,
+   "E_GPa": 127.0,
+   "Rm_min": 290,
+   "Rm_max": 360,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 1652",
+   "werte": {
+    "rho": {
+     "v": 8.89,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.34,
+     "art": "typ",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 17,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 388,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 385,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 1.72,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "cuzn37-r300-messing-weich",
+   "name": "CuZn37 R300 (Messing weich)",
+   "name_en": "CuZn37 R300 (brass, annealed)",
+   "klasse": "metall",
+   "familie": "Kupfer",
+   "aliase": [
+    "CW508L R300",
+    "Ms63 weich"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kupfer",
+   "Rp02_MPa": 150,
+   "Rm_MPa": 335,
+   "A_pct": 38,
+   "E_GPa": 110.0,
+   "Rm_min": 300,
+   "Rm_max": 370,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "typ"
+   },
+   "basis": "Normspanne Rm, Rp Typwert",
+   "quelle": "EN 1652"
+  },
+  {
+   "id": "cuzn37-r410-messing-halbhart",
+   "name": "CuZn37 R410 (Messing halbhart)",
+   "name_en": "CuZn37 R410 (brass, half hard)",
+   "klasse": "metall",
+   "familie": "Kupfer",
+   "aliase": [
+    "CW508L R410",
+    "Ms63 halbhart"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kupfer",
+   "Rp02_MPa": 300,
+   "Rm_MPa": 450,
+   "A_pct": 12,
+   "E_GPa": 110.0,
+   "Rm_min": 410,
+   "Rm_max": 490,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 1652"
+  },
+  {
+   "id": "cusn6-r350-bronze-weich",
+   "name": "CuSn6 R350 (Bronze weich)",
+   "name_en": "CuSn6 R350 (bronze, annealed)",
+   "klasse": "metall",
+   "familie": "Kupfer",
+   "aliase": [
+    "CW452K R350"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kupfer",
+   "Rp02_MPa": 250,
+   "Rm_MPa": 385,
+   "A_pct": 45,
+   "E_GPa": 118.0,
+   "Rm_min": 350,
+   "Rm_max": 420,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "typ"
+   },
+   "basis": "Normspanne Rm, Rp Typwert",
+   "quelle": "EN 1652"
+  },
+  {
+   "id": "cusn6-r550-bronze-hart",
+   "name": "CuSn6 R550 (Bronze hart)",
+   "name_en": "CuSn6 R550 (bronze, hard)",
+   "klasse": "metall",
+   "familie": "Kupfer",
+   "aliase": [
+    "CW452K R550"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kupfer",
+   "Rp02_MPa": 500,
+   "Rm_MPa": 595,
+   "A_pct": 8,
+   "E_GPa": 118.0,
+   "Rm_min": 550,
+   "Rm_max": 640,
+   "wertart": {
+    "Rm": "mitte",
+    "Rp": "min"
+   },
+   "basis": "Normwert, Rp Mindestwert",
+   "quelle": "EN 1652"
+  },
+  {
+   "id": "titan-grade-1",
+   "name": "Titan Grade 1",
+   "name_en": "Titanium Grade 1",
+   "klasse": "metall",
+   "familie": "Titan",
+   "aliase": [
+    "3.7025",
+    "Ti Grade 1",
+    "Titanium Grade 1"
+   ],
+   "zugversuch": true,
+   "kategorie": "Titan",
+   "Rp02_MPa": 138,
+   "Rm_MPa": 240,
+   "A_pct": 24,
+   "E_GPa": 103.0,
+   "Rm_min": 240,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert (Rp0,2 138 MPa = 20 ksi, Rm 240 MPa = 35 ksi)",
+   "quelle": "ASTM B265"
+  },
+  {
+   "id": "titan-grade-2",
+   "name": "Titan Grade 2",
+   "name_en": "Titanium Grade 2",
+   "klasse": "metall",
+   "familie": "Titan",
+   "aliase": [
+    "3.7035",
+    "Ti Grade 2",
+    "Titanium Grade 2"
+   ],
+   "zugversuch": true,
+   "kategorie": "Titan",
+   "Rp02_MPa": 275,
+   "Rm_MPa": 345,
+   "A_pct": 20,
+   "E_GPa": 105.0,
+   "Rm_min": 345,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "ASTM B265"
+  },
+  {
+   "id": "titan-grade-4",
+   "name": "Titan Grade 4",
+   "name_en": "Titanium Grade 4",
+   "klasse": "metall",
+   "familie": "Titan",
+   "aliase": [
+    "3.7065",
+    "Ti Grade 4",
+    "Titanium Grade 4"
+   ],
+   "zugversuch": true,
+   "kategorie": "Titan",
+   "Rp02_MPa": 483,
+   "Rm_MPa": 550,
+   "A_pct": 15,
+   "E_GPa": 105.0,
+   "Rm_min": 550,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "ASTM B265"
+  },
+  {
+   "id": "ti-6al-4v-grade-5",
+   "name": "Ti-6Al-4V (Grade 5)",
+   "klasse": "metall",
+   "familie": "Titan",
+   "aliase": [
+    "Ti-6Al-4V",
+    "Ti64",
+    "3.7165",
+    "Grade 5"
+   ],
+   "zugversuch": true,
+   "kategorie": "Titan",
+   "Rp02_MPa": 828,
+   "Rm_MPa": 895,
+   "A_pct": 10,
+   "E_GPa": 114.0,
+   "Rm_min": 895,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Normmindestwert",
+   "quelle": "ASTM B265, geglühter Zustand",
+   "werte": {
+    "rho": {
+     "v": 4.43,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "G": {
+     "v": 44,
+     "art": "typ",
+     "u": "GPa",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.34,
+     "art": "typ",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 55,
+     "min": 44,
+     "max": 66,
+     "art": "mitte",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 8.6,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 6.7,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 610,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 171,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "az31b-o",
+   "name": "AZ31B-O",
+   "klasse": "metall",
+   "familie": "Magnesium",
+   "aliase": [
+    "3.5312 O"
+   ],
+   "zugversuch": true,
+   "kategorie": "Magnesium",
+   "Rp02_MPa": 150,
+   "Rm_MPa": 255,
+   "A_pct": 21,
+   "E_GPa": 45.0,
+   "Rm_min": 220,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert",
+   "quelle": "ASTM B90, typische Werte Blech",
+   "werte": {
+    "rho": {
+     "v": 1.77,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.35,
+     "art": "typ",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 26,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 96,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1000,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 9.2,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "az31b-h24",
+   "name": "AZ31B-H24",
+   "klasse": "metall",
+   "familie": "Magnesium",
+   "aliase": [
+    "3.5312 H24"
+   ],
+   "zugversuch": true,
+   "kategorie": "Magnesium",
+   "Rp02_MPa": 220,
+   "Rm_MPa": 290,
+   "A_pct": 15,
+   "E_GPa": 45.0,
+   "Rm_min": 270,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert",
+   "quelle": "ASTM B90, typische Werte Blech",
+   "werte": {
+    "rho": {
+     "v": 1.77,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.35,
+     "art": "typ",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 26,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 96,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1000,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    },
+    "rho_el": {
+     "v": 9.2,
+     "art": "typ",
+     "u": "µOhm*cm",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "nickel-200",
+   "name": "Nickel 200",
+   "klasse": "metall",
+   "familie": "Nickel",
+   "aliase": [
+    "2.4066",
+    "Ni 99,2"
+   ],
+   "zugversuch": true,
+   "kategorie": "Nickel",
+   "Rp02_MPa": 148,
+   "Rm_MPa": 462,
+   "A_pct": 47,
+   "E_GPa": 204.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert, geglühter Zustand",
+   "quelle": "Herstellerdatenblatt Special Metals, Nickel 200"
+  },
+  {
+   "id": "inconel-625",
+   "name": "Inconel 625",
+   "klasse": "metall",
+   "familie": "Nickel",
+   "aliase": [
+    "2.4856",
+    "Alloy 625"
+   ],
+   "zugversuch": true,
+   "kategorie": "Nickel",
+   "Rp02_MPa": 490,
+   "Rm_MPa": 930,
+   "A_pct": 42,
+   "E_GPa": 207.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert, geglühtes Blech",
+   "quelle": "Herstellerdatenblatt Special Metals, Inconel 625"
+  },
+  {
+   "id": "inconel-718-ausgehaertet",
+   "name": "Inconel 718 (ausgehärtet)",
+   "name_en": "Inconel 718 (aged)",
+   "klasse": "metall",
+   "familie": "Nickel",
+   "aliase": [
+    "2.4668",
+    "Alloy 718"
+   ],
+   "zugversuch": true,
+   "kategorie": "Nickel",
+   "Rp02_MPa": 1034,
+   "Rm_MPa": 1241,
+   "A_pct": 12,
+   "E_GPa": 200.0,
+   "Rm_min": 1241,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min",
+    "Rp": "min"
+   },
+   "basis": "Mindestwert",
+   "quelle": "AMS 5596"
+  },
+  {
+   "id": "pa6-trocken",
+   "name": "PA6 trocken",
+   "name_en": "PA6, dry",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "aliase": [
+    "PA6"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 80,
+   "Rm_MPa": 80,
+   "A_pct": 24,
+   "E_GPa": 3.1,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527 (50 mm/min), trocken; Rm = Streckspannung",
+   "quelle": "BASF, Product Information Ultramid B3K (PA6), ISO 527-1/-2",
+   "url": "https://download.basf.com/p1/8a8082587fd4b608017fd637941722b5/en/ULTRAMID%25C2%25AE_B3K",
+   "jahr": "2026",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "Tg": {
+     "v": 50,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    },
+    "Tm": {
+     "v": 220,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pa6-konditioniert",
+   "name": "PA6 konditioniert",
+   "name_en": "PA6, conditioned",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 40,
+   "Rm_MPa": 40,
+   "A_pct": 300,
+   "E_GPa": 1.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527 (50 mm/min), konditioniert; Rm = Streckspannung; A > 300 % (Untergrenze laut Quelle)",
+   "quelle": "BASF, Product Information Ultramid B3K (PA6), ISO 527-1/-2",
+   "url": "https://download.basf.com/p1/8a8082587fd4b608017fd637941722b5/en/ULTRAMID%25C2%25AE_B3K",
+   "jahr": "2026",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "pa66-trocken",
+   "name": "PA66 trocken",
+   "name_en": "PA66, dry",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "aliase": [
+    "PA66"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 85,
+   "Rm_MPa": 85,
+   "A_pct": 30,
+   "E_GPa": 3.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527 (50 mm/min), trocken; Rm = Streckspannung",
+   "quelle": "BASF, Product Information Ultramid A3K (PA66), ISO 527-1/-2",
+   "url": "https://download.basf.com/p1/8a8082587fd4b608017fd64108ab6d3b/en/ULTRAMID_A3K_Product_Data_Sheet_Asia_PacificEurope_English.pdf",
+   "jahr": "2026",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 1.14,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.39,
+     "art": "typ",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": 57,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "Tm": {
+     "v": 265,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 2.75,
+     "min": 2.5,
+     "max": 3,
+     "art": "mitte",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 144,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.24,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1670,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pa66-konditioniert",
+   "name": "PA66 konditioniert",
+   "name_en": "PA66, conditioned",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 50,
+   "Rm_MPa": 50,
+   "A_pct": 50,
+   "E_GPa": 1.1,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527 (50 mm/min), konditioniert; Rm = Streckspannung; A > 50 % (Untergrenze laut Quelle)",
+   "quelle": "BASF, Product Information Ultramid A3K (PA66), ISO 527-1/-2",
+   "url": "https://download.basf.com/p1/8a8082587fd4b608017fd64108ab6d3b/en/ULTRAMID_A3K_Product_Data_Sheet_Asia_PacificEurope_English.pdf",
+   "jahr": "2026",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "pa12",
+   "name": "PA12",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 50,
+   "Rm_MPa": 50,
+   "A_pct": 50,
+   "E_GPa": 1.5,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527, trocken (spritzfrisch); Rm = Streckspannung; A > 50 % (Untergrenze laut Quelle)",
+   "quelle": "Arkema, Technical Data Sheet RILSAMID AESNO TL (PA12)",
+   "url": "https://hpp.arkema.com/assets/arkema/TDS_RILSAMID%C2%AE%20AESNO%20TL_en_WW.pdf",
+   "jahr": "2026",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "Tm": {
+     "v": 178,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pom-copolymer",
+   "name": "POM (Copolymer)",
+   "name_en": "POM (copolymer)",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "aliase": [
+    "POM",
+    "POM-C"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 64,
+   "Rm_MPa": 64,
+   "A_pct": 30,
+   "E_GPa": 2.85,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527; Rm = Streckspannung, A = nominelle Bruchdehnung",
+   "quelle": "Celanese, CAMPUS Datasheet HOSTAFORM C 9021 (POM), abgerufen über plasticker.de",
+   "url": "https://plasticker.de/docs/recybase/41683_1747933985.pdf",
+   "jahr": "2024",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "Tm": {
+     "v": 170,
+     "min": 165,
+     "max": 175,
+     "art": "mitte",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pe-hd",
+   "name": "PE-HD",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 30,
+   "Rm_MPa": 30,
+   "A_pct": 600,
+   "E_GPa": 1.45,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527; Rm = Streckspannung; A nicht in der Quelle (Schätzwert)",
+   "quelle": "LyondellBasell, Technical Data Sheet Hostalen GC 7260 (PE-HD), ISO 527-1/-2",
+   "url": "https://www.lyondellbasell.com/en/polymers/p/Hostalen-GC-7260/26c02c33-be38-4d1e-9451-88918420a969",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 0.959,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.46,
+     "art": "typ",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": -90,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "Tm": {
+     "v": 137,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 152,
+     "min": 106,
+     "max": 198,
+     "art": "mitte",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.48,
+     "min": 0.46,
+     "max": 0.5,
+     "art": "mitte",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1850,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pe-ld",
+   "name": "PE-LD",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 9,
+   "Rm_MPa": 9,
+   "A_pct": 600,
+   "E_GPa": 0.2,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527; Rm = Streckspannung (Bruchspannung nicht angegeben); A nicht in der Quelle (Schätzwert)",
+   "quelle": "LyondellBasell, Technical Data Sheet Lupolen 1800H (PE-LD), ISO 527-1/-2",
+   "url": "https://productsafety.lyondellbasell.com/DirectRequest?ResponseTypeGuid=f1e32c20-d810-4db0-b25e-8e23a59f3733&ProductGuid=ed818e9b-8403-4d58-af91-b223f62404ad",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 0.925,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": -110,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "Tm": {
+     "v": 115,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 290,
+     "min": 180,
+     "max": 400,
+     "art": "mitte",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.33,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 2300,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pp-h",
+   "name": "PP-H",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "aliase": [
+    "PP"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 35,
+   "Rm_MPa": 35,
+   "A_pct": 50,
+   "E_GPa": 1.4,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527; Rm = Streckspannung; A > 50 % (Untergrenze laut Quelle)",
+   "quelle": "LyondellBasell, Technical Data Sheet Moplen HP500N (PP-H), ISO 527-1/-2",
+   "url": "https://productsafety.lyondellbasell.com/DirectRequest?ResponseTypeGuid=33194b44-5bf6-4a0c-9102-b9501f3502b7&ProductGuid=e8c2d3bb-d271-459f-a439-629a5d85a7da",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 0.905,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": -18,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "Tm": {
+     "v": 175,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 3.75,
+     "min": 3,
+     "max": 4.5,
+     "art": "mitte",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 163,
+     "min": 146,
+     "max": 180,
+     "art": "mitte",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.12,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1925,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "ps-standard",
+   "name": "PS (Standard)",
+   "name_en": "PS (general purpose)",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "aliase": [
+    "PS",
+    "GPPS"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": null,
+   "Rm_MPa": 55,
+   "A_pct": 1.5,
+   "E_GPa": 3.3,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 527, spröde (Streckspannung = Höchstspannung)",
+   "quelle": "INEOS Styrolution, Technical Datasheet Styrolution PS 158N/L (GPPS), ISO 527",
+   "url": "https://eshop.ineos-styrolution.com/Product/GPPS_Styrolution-PS-158N-L_SKU200300060584.html",
+   "jahr": "2026",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 1.05,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.33,
+     "art": "typ",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": 100,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 0.9,
+     "min": 0.7,
+     "max": 1.1,
+     "art": "mitte",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 120,
+     "min": 90,
+     "max": 150,
+     "art": "mitte",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.13,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1170,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "abs",
+   "name": "ABS",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 45,
+   "Rm_MPa": 45,
+   "A_pct": 10,
+   "E_GPa": 2.3,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527; Rm = Streckspannung, A = nominelle Bruchdehnung",
+   "quelle": "INEOS Styrolution, Technical Datasheet Terluran GP-22 (ABS), ISO 527",
+   "url": "https://eshop.ineos-styrolution.com/Product/Terluran_TERLURAN-GP-22_SKU300600120827.html",
+   "jahr": "2022",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 1.05,
+     "min": 1.04,
+     "max": 1.06,
+     "art": "mitte",
+     "u": "g/cm^3",
+     "q": "mark2007"
+    },
+    "Tg": {
+     "v": 105,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pc",
+   "name": "PC",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 63,
+   "Rm_MPa": 65,
+   "A_pct": 120,
+   "E_GPa": 2.35,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert (Streckspannung als Rp)",
+   "quelle": "Herstellerdatenblätter ISO 527, Mittel (z. B. Makrolon)",
+   "nicht_geprueft": "Quelle unbestimmt (Mittel aus nicht genannten Datenblättern); Werte nicht geprüft.",
+   "werte": {
+    "rho": {
+     "v": 1.2,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.36,
+     "art": "typ",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": 150,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 2.2,
+     "art": "typ",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 122,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.2,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 840,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pmma",
+   "name": "PMMA",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": null,
+   "Rm_MPa": 77,
+   "A_pct": 5.5,
+   "E_GPa": 3.3,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 527-2, Bruchspannung und Bruchdehnung (5 mm/min)",
+   "quelle": "Röhm, PLEXIGLAS 8N Technical Data (UL Prospector TDS-33101-en), abgerufen über ledil.com",
+   "url": "https://www.ledil.com/wp-content/uploads/2020/09/PLEXIGLAS%C2%AE-8N.pdf",
+   "jahr": "2019",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 1.19,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": 105,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 1.15,
+     "min": 0.7,
+     "max": 1.6,
+     "art": "mitte",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 126,
+     "min": 90,
+     "max": 162,
+     "art": "mitte",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.21,
+     "min": 0.17,
+     "max": 0.25,
+     "art": "mitte",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1460,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pet",
+   "name": "PET",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 80,
+   "Rm_MPa": 80,
+   "A_pct": 12,
+   "E_GPa": 2.8,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527 (teilkristallin, nukleiert); Rm = Streckspannung, A = nominelle Bruchdehnung",
+   "quelle": "Envalior (ehem. DSM), Datenblatt Arnite A04 900 (PET), Plastics Finder, ISO 527-1/-2",
+   "url": "https://plasticsfinder.envalior.com/en/datasheet/Arnite%C2%AE%20A04%20900/1Prz9?b=1",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 1.345,
+     "min": 1.29,
+     "max": 1.4,
+     "art": "mitte",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": 69,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "Tm": {
+     "v": 265,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "KIc": {
+     "v": 5,
+     "art": "typ",
+     "u": "MPa*m^0.5",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 117,
+     "art": "typ",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.15,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1170,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pbt",
+   "name": "PBT",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 53,
+   "Rm_MPa": 53,
+   "A_pct": 50,
+   "E_GPa": 2.2,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527 (50 mm/min); Rm = Streckspannung; A > 50 % (Untergrenze laut Quelle)",
+   "quelle": "BASF, Product Information Ultradur B 4520 High Speed (PBT), ISO 527-1/-2",
+   "url": "https://download.basf.com/p1/8a8081c57fd4b609017fd62e10475400/en/ULTRADUR%25C2%25AE_B4520_HIGH_SPEED",
+   "jahr": "2026",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "Tm": {
+     "v": 223,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pvc-u",
+   "name": "PVC-U",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "aliase": [
+    "PVC"
+   ],
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 58,
+   "Rm_MPa": 58,
+   "A_pct": 25,
+   "E_GPa": 3.3,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert DIN EN ISO 527 (Platte); Rm = Streckspannung; A nicht in der Quelle (Schätzwert)",
+   "quelle": "SIMONA AG, Technisches Datenblatt PVC-CAW (Rev. 22.11.2012), abgerufen über plasticker.de",
+   "url": "https://plasticker.de/docs/recybase/31599_1779970329.pdf",
+   "jahr": "2012",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 1.44,
+     "min": 1.3,
+     "max": 1.58,
+     "art": "mitte",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.38,
+     "art": "typ",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": 87,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "Tm": {
+     "v": 212,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 135,
+     "min": 90,
+     "max": 180,
+     "art": "mitte",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.18,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1050,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "ptfe",
+   "name": "PTFE",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": null,
+   "Rm_MPa": 22,
+   "A_pct": 220,
+   "E_GPa": 0.5,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ASTM D 4894 (nicht ISO 527); E nicht in der Quelle (Schätzwert)",
+   "quelle": "Ensinger, TECAFLON PTFE natural (Halbzeug), Produktdatenblatt",
+   "url": "https://www.ensingerplastics.com/en/shapes/tecaflon-ptfe-natural",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 2.17,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "callister"
+    },
+    "nu": {
+     "v": 0.46,
+     "art": "typ",
+     "q": "callister"
+    },
+    "Tg": {
+     "v": -97,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "Tm": {
+     "v": 327,
+     "art": "typ",
+     "u": "°C",
+     "q": "callister"
+    },
+    "alpha": {
+     "v": 171,
+     "min": 126,
+     "max": 216,
+     "art": "mitte",
+     "u": "µm/(m*K)",
+     "q": "callister"
+    },
+    "lambda": {
+     "v": 0.25,
+     "art": "typ",
+     "u": "W/(m*K)",
+     "q": "callister"
+    },
+    "cp": {
+     "v": 1050,
+     "art": "typ",
+     "u": "J/(kg*K)",
+     "q": "callister"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "peek",
+   "name": "PEEK",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 98,
+   "Rm_MPa": 98,
+   "A_pct": 45,
+   "E_GPa": 3.7,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert (Streckspannung als Rp)",
+   "quelle": "Herstellerdatenblatt Victrex 450G",
+   "werte": {
+    "rho": {
+     "v": 1.3,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "mark2007"
+    },
+    "Tg": {
+     "v": 143,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    },
+    "Tm": {
+     "v": 343,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pla",
+   "name": "PLA",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": null,
+   "Rm_MPa": 50,
+   "A_pct": 5,
+   "E_GPa": 3.5,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 527-1 (Spritzguss); A laut Quelle höchstens 5 %",
+   "quelle": "Corbion, Product Data Luminy L130 (PLA, rev. 4/K002), abgerufen über plasticker.de",
+   "url": "https://plasticker.de/docs/recybase/33920_1734679599.pdf",
+   "jahr": "2016",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "Tg": {
+     "v": 57.5,
+     "min": 55,
+     "max": 60,
+     "art": "mitte",
+     "u": "°C",
+     "q": "mark2007"
+    },
+    "Tm": {
+     "v": 165,
+     "min": 150,
+     "max": 180,
+     "art": "mitte",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "petg",
+   "name": "PETG",
+   "klasse": "polymer",
+   "familie": "Kunststoff",
+   "zugversuch": true,
+   "kategorie": "Kunststoff",
+   "Rp02_MPa": 50,
+   "Rm_MPa": 50,
+   "A_pct": 100,
+   "E_GPa": 2.1,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527 (23 °C/50 % r. F.); Rm = Streckspannung (Bruchspannung 28 MPa)",
+   "quelle": "Eastman, Eastar copolyester 6763 Technical Data Sheet",
+   "url": "https://productcatalog.eastman.com/tds/ProdDatasheet.aspx?product=71040786&pn=eastar-6763-copolyester",
+   "jahr": "2021",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "pa6-gf30-trocken",
+   "name": "PA6-GF30 trocken",
+   "name_en": "PA6-GF30, dry",
+   "klasse": "verbund",
+   "familie": "Kunststoff verstärkt",
+   "zugversuch": true,
+   "kategorie": "Kunststoff verstärkt",
+   "Rp02_MPa": null,
+   "Rm_MPa": 180,
+   "A_pct": 3.5,
+   "E_GPa": 9.5,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert",
+   "quelle": "Herstellerdatenblätter ISO 527, Mittel (z. B. Ultramid B3EG6)",
+   "nicht_geprueft": "Quelle unbestimmt (Mittel aus nicht genannten Datenblättern); Werte nicht geprüft."
+  },
+  {
+   "id": "pa66-gf30-trocken",
+   "name": "PA66-GF30 trocken",
+   "name_en": "PA66-GF30, dry",
+   "klasse": "verbund",
+   "familie": "Kunststoff verstärkt",
+   "zugversuch": true,
+   "kategorie": "Kunststoff verstärkt",
+   "Rp02_MPa": null,
+   "Rm_MPa": 190,
+   "A_pct": 3,
+   "E_GPa": 10.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert",
+   "quelle": "Herstellerdatenblätter ISO 527, Mittel (z. B. Ultramid A3EG6)",
+   "nicht_geprueft": "Quelle unbestimmt (Mittel aus nicht genannten Datenblättern); Werte nicht geprüft."
+  },
+  {
+   "id": "pet-folie-bopet-laengs",
+   "name": "PET-Folie (BOPET), längs",
+   "name_en": "PET film (BOPET), MD",
+   "klasse": "polymer",
+   "familie": "Folie",
+   "zugversuch": true,
+   "kategorie": "Folie",
+   "Rp02_MPa": 100,
+   "Rm_MPa": 200,
+   "A_pct": 120,
+   "E_GPa": 4.5,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert",
+   "quelle": "Herstellerdatenblätter, typisch (z. B. Mylar)",
+   "nicht_geprueft": "Quelle unbestimmt (\"typisch\", kein bestimmtes Datenblatt); Werte nicht geprüft."
+  },
+  {
+   "id": "pp-folie-bopp-laengs",
+   "name": "PP-Folie (BOPP), längs",
+   "name_en": "PP film (BOPP), MD",
+   "klasse": "polymer",
+   "familie": "Folie",
+   "zugversuch": true,
+   "kategorie": "Folie",
+   "Rp02_MPa": null,
+   "Rm_MPa": 150,
+   "A_pct": 190,
+   "E_GPa": 2.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ASTM D882, längs; E nicht in der Quelle (Schätzwert)",
+   "quelle": "Superfilm (SANKO), SUPLAIN 1021 SGL / 1022 SGL Technical Features (REV 06)",
+   "url": "https://superfilm.com/media/n5if1sx0/suplain1021sgl-1022sgl-rev-06.pdf",
+   "jahr": "2025",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "pe-ld-folie-blasfolie",
+   "name": "PE-LD-Folie (Blasfolie)",
+   "name_en": "PE-LD film (blown)",
+   "klasse": "polymer",
+   "familie": "Folie",
+   "zugversuch": true,
+   "kategorie": "Folie",
+   "Rp02_MPa": 11,
+   "Rm_MPa": 26,
+   "A_pct": 300,
+   "E_GPa": 0.26,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert ISO 527-3, Blasfolie 50 µm längs; Rp und E an Pressplatten (ISO 527-2)",
+   "quelle": "LyondellBasell, Technical Data Sheet Lupolen 2420F (PE-LD, Folie)",
+   "url": "https://www.lyondellbasell.com/en/polymers/p/Lupolen-2420F/61e46490-ed79-4c71-bd7a-35125886bb3a",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "pi-folie-kapton-hn-25-um",
+   "name": "PI-Folie (Kapton HN, 25 µm)",
+   "name_en": "PI film (Kapton HN, 25 µm)",
+   "klasse": "polymer",
+   "familie": "Folie",
+   "aliase": [
+    "Kapton HN"
+   ],
+   "zugversuch": true,
+   "kategorie": "Folie",
+   "Rp02_MPa": 69,
+   "Rm_MPa": 231,
+   "A_pct": 72,
+   "E_GPa": 2.5,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ",
+    "Rp": "typ"
+   },
+   "basis": "Typwert",
+   "quelle": "Herstellerdatenblatt DuPont Kapton HN"
+  },
+  {
+   "id": "nr-naturkautschuk",
+   "name": "NR (Naturkautschuk)",
+   "name_en": "NR (natural rubber)",
+   "klasse": "polymer",
+   "familie": "Elastomer",
+   "aliase": [
+    "NR",
+    "Naturkautschuk",
+    "Natural rubber"
+   ],
+   "zugversuch": true,
+   "kategorie": "Elastomer",
+   "Rp02_MPa": null,
+   "Rm_MPa": 20,
+   "A_pct": 500,
+   "E_GPa": 0.004,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 37, 60 Shore A; E nicht in der Quelle (Schätzwert)",
+   "quelle": "Angst+Pfister, Technical Data Sheet NR 60.01-02",
+   "url": "https://apsoparts.com/media/downloads/asset//std.lang.all/1-/02/NR_60_01-02.pdf",
+   "jahr": "2025",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "rho": {
+     "v": 0.93,
+     "art": "typ",
+     "u": "g/cm^3",
+     "q": "mark2007"
+    },
+    "Tg": {
+     "v": -72,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "epdm",
+   "name": "EPDM",
+   "klasse": "polymer",
+   "familie": "Elastomer",
+   "zugversuch": true,
+   "kategorie": "Elastomer",
+   "Rp02_MPa": null,
+   "Rm_MPa": 17,
+   "A_pct": 210,
+   "E_GPa": 0.0045,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 37, 70 Shore A (peroxidisch); E als Sekantenmodul aus M100 = 4,5 MPa",
+   "quelle": "Freudenberg Sealing Technologies, Material 70 EPDM EP703904 (Version 02)",
+   "url": "https://products.fst.com/medialibrary/materialdatasheets/70%20EPDM%20EP703904_en.pdf",
+   "jahr": "2025",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "nbr-70-shore-a",
+   "name": "NBR (70 Shore A)",
+   "klasse": "polymer",
+   "familie": "Elastomer",
+   "aliase": [
+    "NBR"
+   ],
+   "zugversuch": true,
+   "kategorie": "Elastomer",
+   "Rp02_MPa": null,
+   "Rm_MPa": 15,
+   "A_pct": 400,
+   "E_GPa": 0.006,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 37; E nicht in der Quelle (Schätzwert)",
+   "quelle": "Freudenberg Sealing Technologies, Material 70 NBR NB704816 (Version 03)",
+   "url": "https://products.fst.com/medialibrary/materialdatasheets/70%20NBR%20NB704816_en.pdf",
+   "jahr": "2025",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "silikon-vmq",
+   "name": "Silikon (VMQ)",
+   "name_en": "Silicone rubber (VMQ)",
+   "klasse": "polymer",
+   "familie": "Elastomer",
+   "aliase": [
+    "VMQ",
+    "Silikonkautschuk",
+    "Silicone rubber"
+   ],
+   "zugversuch": true,
+   "kategorie": "Elastomer",
+   "Rp02_MPa": null,
+   "Rm_MPa": 11,
+   "A_pct": 440,
+   "E_GPa": 0.003,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 37, 60 Shore A; E nicht in der Quelle (Schätzwert)",
+   "quelle": "Wacker Chemie, Solid and Liquid Silicone Rubber – Product Selection Guide (6858en/08.25), ELASTOSIL R 401/60 S",
+   "url": "https://www.wacker.com/h/en-us/medias/6858-EN.pdf",
+   "jahr": "2025",
+   "abgerufen": "2026-11-16",
+   "werte": {
+    "Tg": {
+     "v": -125,
+     "art": "typ",
+     "u": "°C",
+     "q": "mark2007"
+    }
+   },
+   "werte_hinweis": "werte: aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "fkm",
+   "name": "FKM",
+   "klasse": "polymer",
+   "familie": "Elastomer",
+   "zugversuch": true,
+   "kategorie": "Elastomer",
+   "Rp02_MPa": null,
+   "Rm_MPa": 12.5,
+   "A_pct": 203,
+   "E_GPa": 0.0064,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ASTM D412, 75 Shore A; E als Sekantenmodul aus M100 = 6,4 MPa",
+   "quelle": "Freudenberg Sealing Technologies, Material 75 FKM FP757101 (Version 03)",
+   "url": "https://products.fst.com/medialibrary/materialdatasheets/75%20FKM%20FP757101_en.pdf",
+   "jahr": "2023",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "tpu-90-shore-a",
+   "name": "TPU (90 Shore A)",
+   "klasse": "polymer",
+   "familie": "Elastomer",
+   "aliase": [
+    "TPU"
+   ],
+   "zugversuch": true,
+   "kategorie": "Elastomer",
+   "Rp02_MPa": null,
+   "Rm_MPa": 50,
+   "A_pct": 550,
+   "E_GPa": 0.025,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert DIN 53504-S2, 92 Shore A; E als Sekantenmodul aus der Spannung bei 20 % (5 MPa)",
+   "quelle": "BASF, Elastollan – Product Range (PMEI 2203 RE), Elastollan 1190 A 10",
+   "url": "https://download.basf.com/p1/8a8082587fd4b608017fd6411cdd6d63/en/Elastollan%3Csup%3E%C2%AE%3Csup%3E_%E2%80%93_Thermoplastic_Polyurethane_Elastomers_%28TPU%29_-_Product_Range_Range_Chart_English.pdf",
+   "jahr": "2022",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "kopierpapier-80-g-m-laengs",
+   "name": "Kopierpapier 80 g/m², längs",
+   "name_en": "Copy paper 80 g/m², MD",
+   "klasse": "naturstoff",
+   "familie": "Papier",
+   "zugversuch": true,
+   "kategorie": "Papier",
+   "Rp02_MPa": null,
+   "Rm_MPa": 41,
+   "A_pct": 2,
+   "E_GPa": 5.0,
+   "Rm_min": 41,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "min"
+   },
+   "basis": "Spezifikationsmindestwert ISO 1924-2: 4,5 kN/m bei 110 µm; A und E nicht in der Quelle (Schätzwerte)",
+   "quelle": "The Navigator Company, Technical Data Sheet Office Premium Cut-Size (Rev. 006), abgerufen über lyreco.com",
+   "url": "https://cdn-s1.lyreco.com/staticswebshop/sds/ENIR/14653271.pdf",
+   "jahr": "2017",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "kraftpapier-laengs",
+   "name": "Kraftpapier, längs",
+   "name_en": "Kraft paper, MD",
+   "klasse": "naturstoff",
+   "familie": "Papier",
+   "zugversuch": true,
+   "kategorie": "Papier",
+   "Rp02_MPa": null,
+   "Rm_MPa": 76,
+   "A_pct": 2.5,
+   "E_GPa": 6.0,
+   "Rm_min": 67,
+   "Rm_max": 82,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 1924-3: 8,1 kN/m bei 106 µm (80 g/m², Spanne über 70–110 g/m²); A aus Billerud Prime Brown; E nicht in der Quelle (Schätzwert)",
+   "quelle": "Billerud, Technical data sheet Axello Glaze X (2021); Dehnung: Billerud, Prime Brown (2017)",
+   "url": "https://www.billerud.com/globalassets/billerud/our-offer/packaging-materials/kraft-paper-bags/axello-glaze-x.pdf",
+   "jahr": "2021",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "karton-laengs",
+   "name": "Karton, längs",
+   "name_en": "Paperboard, MD",
+   "klasse": "naturstoff",
+   "familie": "Papier",
+   "zugversuch": true,
+   "kategorie": "Papier",
+   "Rp02_MPa": null,
+   "Rm_MPa": 65,
+   "A_pct": 2,
+   "E_GPa": 4.0,
+   "Rm_min": 61,
+   "Rm_max": 79,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert ISO 1924-2 für Vollkarton (SBS): 25,5 kN/m bei 395 µm (300 g/m², Spanne über 200–380 g/m²); A und E nicht in der Quelle (Schätzwerte)",
+   "quelle": "Holmen Iggesund, Invercote G – technische Daten (Webseite)",
+   "url": "https://www.holmen.com/en/board-and-paper/products/paperboard/invercote/invercote-g/",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "fichte-zug-parallel-zur-faser",
+   "name": "Fichte, Zug parallel zur Faser",
+   "name_en": "Spruce, tension parallel to grain",
+   "klasse": "naturstoff",
+   "familie": "Holz",
+   "zugversuch": true,
+   "kategorie": "Holz",
+   "Rp02_MPa": null,
+   "Rm_MPa": 95,
+   "A_pct": 1,
+   "E_GPa": 11.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar"
+   },
+   "basis": "Tabellenwert nach DIN 68364, Holzfeuchte 12–15 %; E = Biege-Elastizitätsmodul (Biegeversuch), kein Zug-E-Modul; A nicht in der Quelle (Schätzwert, Rm/E ≈ 0,9 %)",
+   "quelle": "Richter, K.; Ehmcke, G.: Das Holz der Fichte – Eigenschaften und Verwendung. LWF Wissen 80, Tab. 2",
+   "url": "https://lfl.bayern.de/mam/cms04/forsttechnik-holz/dateien/w80_richter_holz_der_fichte.pdf",
+   "jahr": "2017",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "buche-zug-parallel-zur-faser",
+   "name": "Buche, Zug parallel zur Faser",
+   "name_en": "Beech, tension parallel to grain",
+   "klasse": "naturstoff",
+   "familie": "Holz",
+   "zugversuch": true,
+   "kategorie": "Holz",
+   "Rp02_MPa": null,
+   "Rm_MPa": 135,
+   "A_pct": 1,
+   "E_GPa": 14.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar"
+   },
+   "basis": "Tabellenwert nach DIN 68364, Holzfeuchte 12–15 %; E = Biege-Elastizitätsmodul (Biegeversuch), kein Zug-E-Modul; A nicht in der Quelle (Schätzwert, Rm/E ≈ 1,0 %)",
+   "quelle": "Grosser, D.: Das Holz der Hainbuche – Seine Eigenschaften und seine Verwendung. LWF Wissen 12, Tab. 12",
+   "url": "https://www.lwf.bayern.de/mam/cms04/forsttechnik-holz/dateien/w12_das_holz_der_hainbuche.pdf",
+   "jahr": "1996",
+   "abgerufen": "2026-11-16",
+   "nicht_geprueft": "Die zitierte Schrift behandelt die Hainbuche (Carpinus betulus), nicht die Rotbuche (Fagus sylvatica); ob die Werte dort als Vergleichswerte der Buche stehen, ist nicht geprüft."
+  },
+  {
+   "id": "eiche-zug-parallel-zur-faser",
+   "name": "Eiche, Zug parallel zur Faser",
+   "name_en": "Oak, tension parallel to grain",
+   "klasse": "naturstoff",
+   "familie": "Holz",
+   "zugversuch": true,
+   "kategorie": "Holz",
+   "Rp02_MPa": null,
+   "Rm_MPa": 110,
+   "A_pct": 1,
+   "E_GPa": 13.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "unklar"
+   },
+   "basis": "Tabellenwert nach DIN 68364, Holzfeuchte 12–15 %; E = Biege-Elastizitätsmodul (Biegeversuch), kein Zug-E-Modul; A nicht in der Quelle (Schätzwert, Rm/E ≈ 0,85 %)",
+   "quelle": "Richter, K.; Ehmcke, G.: Das Holz der Fichte – Eigenschaften und Verwendung. LWF Wissen 80, Tab. 2 (Vergleichsholzart)",
+   "url": "https://lfl.bayern.de/mam/cms04/forsttechnik-holz/dateien/w80_richter_holz_der_fichte.pdf",
+   "jahr": "2017",
+   "abgerufen": "2026-11-16",
+   "nicht_geprueft": "Die zitierte Schrift behandelt die Fichte; die Werte stammen nach der Quellenangabe aus deren Vergleichstabelle (Sekundärangabe). Nicht geprüft."
+  },
+  {
+   "id": "cfk-unidirektional-0",
+   "name": "CFK unidirektional, 0°",
+   "name_en": "CFRP unidirectional, 0°",
+   "klasse": "verbund",
+   "familie": "Faserverbund",
+   "zugversuch": true,
+   "kategorie": "Faserverbund",
+   "Rp02_MPa": null,
+   "Rm_MPa": 2280,
+   "A_pct": 1.51,
+   "E_GPa": 134.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert Laminat, 60 % Faservolumen, trocken, Raumtemperatur (Prüfnorm nicht angegeben)",
+   "quelle": "Hexcel, HexPly 913 Product Data Sheet (FTA-317-MY20), AS4GP 12K/R913",
+   "url": "https://hexcel.com/wp-content/uploads/2026/01/HexPly_913_us_DataSheet.pdf",
+   "jahr": "2020",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "gfk-unidirektional-0",
+   "name": "GFK unidirektional, 0°",
+   "name_en": "GFRP unidirectional, 0°",
+   "klasse": "verbund",
+   "familie": "Faserverbund",
+   "zugversuch": true,
+   "kategorie": "Faserverbund",
+   "Rp02_MPa": null,
+   "Rm_MPa": 1000,
+   "A_pct": 2.5,
+   "E_GPa": 40.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert, 60 % Faservolumen, Epoxid 120 °C, trocken (Sekundärquelle, Prüfnorm nicht angegeben)",
+   "quelle": "Performance Composites Ltd., Mechanical Properties of Carbon Fibre Composite Materials (Tabelle E-Glas UD)",
+   "url": "http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "gfk-gewebe",
+   "name": "GFK Gewebe",
+   "name_en": "GFRP woven fabric",
+   "klasse": "verbund",
+   "familie": "Faserverbund",
+   "zugversuch": true,
+   "kategorie": "Faserverbund",
+   "Rp02_MPa": null,
+   "Rm_MPa": 450,
+   "A_pct": 2,
+   "E_GPa": 22.0,
+   "Rm_min": null,
+   "Rm_max": null,
+   "wertart": {
+    "Rm": "typ"
+   },
+   "basis": "Typwert Laminat 0°, Harzgehalt 37 %, trocken (Prüfnorm nicht angegeben); A nicht in der Quelle (Schätzwert, Rm/E ≈ 2,0 %)",
+   "quelle": "Hexcel, HexPly 913 Product Data Sheet (FTA-317-MY20), 7781GL/R913 (E-Glas-Atlasgewebe)",
+   "url": "https://hexcel.com/wp-content/uploads/2026/01/HexPly_913_us_DataSheet.pdf",
+   "jahr": "2020",
+   "abgerufen": "2026-11-16"
+  },
+  {
+   "id": "al-rein",
+   "name": "Aluminium (rein)",
+   "name_en": "Aluminium (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Al",
+    "Aluminium",
+    "Aluminum"
+   ],
+   "element": "Al",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 70,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 26,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.35,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 23.1,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 237,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 897,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 2.65,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "kfz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.40495,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "cu-rein",
+   "name": "Kupfer (rein)",
+   "name_en": "Copper (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Cu",
+    "Kupfer",
+    "Copper"
+   ],
+   "element": "Cu",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 130,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 48,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.34,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 16.5,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 401,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 385,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 1.68,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "kfz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.36149,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "fe-rein",
+   "name": "Eisen (rein, α-Fe)",
+   "name_en": "Iron (pure, α-Fe)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Fe",
+    "Eisen",
+    "Iron"
+   ],
+   "element": "Fe",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 211,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 82,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.29,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 11.8,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 80.4,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 449,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 9.7,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "krz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.28665,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "ni-rein",
+   "name": "Nickel (rein)",
+   "name_en": "Nickel (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Ni",
+    "Nickel"
+   ],
+   "element": "Ni",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 200,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 76,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.31,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 13.4,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 90.9,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 444,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 6.93,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "kfz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.3524,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "ti-rein",
+   "name": "Titan (rein, α-Ti)",
+   "name_en": "Titanium (pure, α-Ti)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Ti",
+    "Titan",
+    "Titanium"
+   ],
+   "element": "Ti",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 116,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 44,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.32,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 8.6,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 21.9,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 523,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 42,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "hdp",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.29508,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    },
+    "c": {
+     "v": 0.46855,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "mg-rein",
+   "name": "Magnesium (rein)",
+   "name_en": "Magnesium (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Mg",
+    "Magnesium"
+   ],
+   "element": "Mg",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 45,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 17,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.29,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 24.8,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 156,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 1023,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 4.39,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "hdp",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.32094,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    },
+    "c": {
+     "v": 0.52107,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "zn-rein",
+   "name": "Zink (rein)",
+   "name_en": "Zinc (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Zn",
+    "Zink",
+    "Zinc"
+   ],
+   "element": "Zn",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 108,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 43,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.25,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 30.2,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 116,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 388,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 5.9,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "hdp",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.26649,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    },
+    "c": {
+     "v": 0.49468,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "ag-rein",
+   "name": "Silber (rein)",
+   "name_en": "Silver (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Ag",
+    "Silber",
+    "Silver"
+   ],
+   "element": "Ag",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 83,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 30,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.37,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 18.9,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 429,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 235,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 1.59,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "kfz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.40862,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "au-rein",
+   "name": "Gold (rein)",
+   "name_en": "Gold (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Au",
+    "Gold"
+   ],
+   "element": "Au",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 79,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 27,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.44,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 14.2,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 318,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 129,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 2.21,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "kfz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.40782,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "pt-rein",
+   "name": "Platin (rein)",
+   "name_en": "Platinum (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Pt",
+    "Platin",
+    "Platinum"
+   ],
+   "element": "Pt",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 168,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 61,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.38,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 8.8,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 71.6,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 133,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 10.6,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "kfz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.39236,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "w-rein",
+   "name": "Wolfram (rein)",
+   "name_en": "Tungsten (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "W",
+    "Wolfram",
+    "Tungsten"
+   ],
+   "element": "W",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 411,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 161,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.28,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 4.5,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 173,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 132,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 5.28,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "krz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.31652,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "mo-rein",
+   "name": "Molybdän (rein)",
+   "name_en": "Molybdenum (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Mo",
+    "Molybdän",
+    "Molybdenum"
+   ],
+   "element": "Mo",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 329,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 126,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.31,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 4.8,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 138,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 251,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 5.34,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "krz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.3147,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "cr-rein",
+   "name": "Chrom (rein)",
+   "name_en": "Chromium (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Cr",
+    "Chrom",
+    "Chromium"
+   ],
+   "element": "Cr",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 279,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 115,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.21,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 4.9,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 93.9,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 449,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 12.5,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "krz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.28846,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "pb-rein",
+   "name": "Blei (rein)",
+   "name_en": "Lead (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Pb",
+    "Blei",
+    "Lead"
+   ],
+   "element": "Pb",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 16,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 5.6,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.44,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 28.9,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 35.3,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 129,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 20.8,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "kfz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.49502,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "sn-rein",
+   "name": "Zinn (rein, β-Sn)",
+   "name_en": "Tin (pure, β-Sn)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Sn",
+    "Zinn",
+    "Tin"
+   ],
+   "element": "Sn",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 50,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 18,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.36,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 22,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 66.8,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 228,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 11.5,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "tetragonal (β-Sn)",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.58318,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    },
+    "c": {
+     "v": 0.31819,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "co-rein",
+   "name": "Cobalt (rein)",
+   "name_en": "Cobalt (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Co",
+    "Cobalt"
+   ],
+   "element": "Co",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 209,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 75,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.31,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 13,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 100,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 421,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 6.24,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "hdp",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.2507,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    },
+    "c": {
+     "v": 0.4069,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "ta-rein",
+   "name": "Tantal (rein)",
+   "name_en": "Tantalum (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Ta",
+    "Tantal",
+    "Tantalum"
+   ],
+   "element": "Ta",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 186,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 69,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.34,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 6.3,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 57.5,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 140,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 13.1,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "krz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.3303,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "nb-rein",
+   "name": "Niob (rein)",
+   "name_en": "Niobium (pure)",
+   "klasse": "metall",
+   "familie": "Reinmetall",
+   "aliase": [
+    "Nb",
+    "Niob",
+    "Niobium"
+   ],
+   "element": "Nb",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 105,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 38,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.4,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 7.3,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 53.7,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 265,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 15.2,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "struktur": {
+     "v": "krz",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.33004,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Dichte und Schmelztemperatur aus der Elementtabelle (PubChem); Werte bei Raumtemperatur, polykristallin"
+  },
+  {
+   "id": "si",
+   "name": "Silicium (einkristallin)",
+   "name_en": "Silicon (single crystal)",
+   "klasse": "halbleiter",
+   "familie": "Halbleiter",
+   "aliase": [
+    "Si",
+    "Silicium",
+    "Silizium",
+    "Silicon"
+   ],
+   "element": "Si",
+   "q": "crc97",
+   "werte": {
+    "E": {
+     "v": 159,
+     "min": 130,
+     "max": 188,
+     "art": "mitte",
+     "u": "GPa",
+     "q": "hopcroft2010"
+    },
+    "nu": {
+     "v": 0.224,
+     "min": 0.048,
+     "max": 0.4,
+     "art": "mitte",
+     "q": "hopcroft2010"
+    },
+    "alpha": {
+     "v": 2.6,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 149,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 705,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "Eg": {
+     "v": 1.12,
+     "art": "typ",
+     "u": "eV",
+     "q": "sze2007"
+    },
+    "struktur": {
+     "v": "Diamant",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.5431,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "E und ν richtungsabhängig (Spanne über die Kristallrichtungen); Eg bei 300 K"
+  },
+  {
+   "id": "ge",
+   "name": "Germanium (einkristallin)",
+   "name_en": "Germanium (single crystal)",
+   "klasse": "halbleiter",
+   "familie": "Halbleiter",
+   "aliase": [
+    "Ge",
+    "Germanium"
+   ],
+   "element": "Ge",
+   "q": "crc97",
+   "werte": {
+    "alpha": {
+     "v": 5.9,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 60,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 320,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "Eg": {
+     "v": 0.66,
+     "art": "typ",
+     "u": "eV",
+     "q": "sze2007"
+    },
+    "struktur": {
+     "v": "Diamant",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.56575,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Eg bei 300 K"
+  },
+  {
+   "id": "gaas",
+   "name": "Galliumarsenid",
+   "name_en": "Gallium arsenide",
+   "klasse": "halbleiter",
+   "familie": "Halbleiter",
+   "aliase": [
+    "GaAs"
+   ],
+   "q": "sze2007",
+   "werte": {
+    "rho": {
+     "v": 5.32,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "Eg": {
+     "v": 1.42,
+     "art": "typ",
+     "u": "eV"
+    },
+    "struktur": {
+     "v": "Zinkblende",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.56533,
+     "art": "typ",
+     "u": "nm"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Eg bei 300 K"
+  },
+  {
+   "id": "aisi-1020-warmgewalzt",
+   "name": "AISI 1020, warmgewalzt",
+   "name_en": "AISI 1020, hot rolled",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1020",
+    "C22 (ähnlich)"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 7.85,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 207,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 83,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.3,
+     "art": "typ"
+    },
+    "Rp": {
+     "v": 210,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Rm": {
+     "v": 380,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "A": {
+     "v": 25,
+     "art": "typ",
+     "u": "%"
+    },
+    "alpha": {
+     "v": 11.7,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 51.9,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 486,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 16,
+     "art": "typ",
+     "u": "µOhm*cm"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "aisi-1040-warmgewalzt",
+   "name": "AISI 1040, warmgewalzt",
+   "name_en": "AISI 1040, hot rolled",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "1040",
+    "C40 (ähnlich)"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 7.85,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 207,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 83,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.3,
+     "art": "typ"
+    },
+    "Rp": {
+     "v": 290,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Rm": {
+     "v": 520,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "A": {
+     "v": 18,
+     "art": "typ",
+     "u": "%"
+    },
+    "alpha": {
+     "v": 11.3,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 51.9,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 486,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 16,
+     "art": "typ",
+     "u": "µOhm*cm"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "aisi-4340-qt260",
+   "name": "AISI 4340, vergütet (Anlassen 260 °C)",
+   "name_en": "AISI 4340, quenched and tempered at 260 °C",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "4340 QT260"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 7.85,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 207,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 80,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.3,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 12.3,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 44.5,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 475,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 24.8,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "Rp": {
+     "v": 1640,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "KIc": {
+     "v": 50,
+     "art": "typ",
+     "u": "MPa*m^0.5"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Rp und KIc nach Callister Tab. 8.1 (Bruchzähigkeit bei Raumtemperatur)"
+  },
+  {
+   "id": "aisi-4340-qt425",
+   "name": "AISI 4340, vergütet (Anlassen 425 °C)",
+   "name_en": "AISI 4340, quenched and tempered at 425 °C",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "4340 QT425"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 7.85,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 207,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 80,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.3,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 12.3,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 44.5,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 475,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 24.8,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "Rp": {
+     "v": 1420,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "KIc": {
+     "v": 87.4,
+     "art": "typ",
+     "u": "MPa*m^0.5"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Rp und KIc nach Callister Tab. 8.1"
+  },
+  {
+   "id": "aisi-4340-geglueht",
+   "name": "AISI 4340, geglüht",
+   "name_en": "AISI 4340, annealed",
+   "klasse": "metall",
+   "familie": "Stahl",
+   "aliase": [
+    "4340 geglüht",
+    "34CrNiMo6 (ähnlich)"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 7.85,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 207,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 80,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.3,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 12.3,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 44.5,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 475,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "rho_el": {
+     "v": 24.8,
+     "art": "typ",
+     "u": "µOhm*cm"
+    },
+    "Rp": {
+     "v": 472,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Rm": {
+     "v": 745,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "A": {
+     "v": 22,
+     "art": "typ",
+     "u": "%"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "ep",
+   "name": "Epoxidharz (EP), ungefüllt",
+   "name_en": "Epoxy resin (EP), unfilled",
+   "klasse": "polymer",
+   "familie": "Duroplast",
+   "aliase": [
+    "EP",
+    "Epoxid",
+    "Epoxy"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 1.255,
+     "min": 1.11,
+     "max": 1.4,
+     "art": "mitte",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 2.41,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "Rm": {
+     "v": 58.8,
+     "min": 27.6,
+     "max": 90,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "A": {
+     "v": 4.5,
+     "min": 3,
+     "max": 6,
+     "art": "mitte",
+     "u": "%"
+    },
+    "KIc": {
+     "v": 0.6,
+     "art": "typ",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 99,
+     "min": 81,
+     "max": 117,
+     "art": "mitte",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 0.19,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 1050,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "pf",
+   "name": "Phenolharz (PF), ungefüllt",
+   "name_en": "Phenol-formaldehyde (PF), unfilled",
+   "klasse": "polymer",
+   "familie": "Duroplast",
+   "aliase": [
+    "PF",
+    "Phenolharz",
+    "Bakelit"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 1.28,
+     "min": 1.24,
+     "max": 1.32,
+     "art": "mitte",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 3.795,
+     "min": 2.76,
+     "max": 4.83,
+     "art": "mitte",
+     "u": "GPa"
+    },
+    "Rm": {
+     "v": 48.3,
+     "min": 34.5,
+     "max": 62.1,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "A": {
+     "v": 1.75,
+     "min": 1.5,
+     "max": 2,
+     "art": "mitte",
+     "u": "%"
+    },
+    "alpha": {
+     "v": 122,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 0.15,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 1675,
+     "min": 1590,
+     "max": 1760,
+     "art": "mitte",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "al2o3-999",
+   "name": "Aluminiumoxid (99,9 %)",
+   "name_en": "Alumina (99.9 %)",
+   "klasse": "keramik",
+   "familie": "Oxidkeramik",
+   "aliase": [
+    "Al2O3",
+    "Korund",
+    "Alumina",
+    "Tonerde"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 3.98,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 380,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.22,
+     "art": "typ"
+    },
+    "sigma_f": {
+     "v": 416.5,
+     "min": 282,
+     "max": 551,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "KIc": {
+     "v": 5.05,
+     "min": 4.2,
+     "max": 5.9,
+     "art": "mitte",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 7.4,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 39,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 775,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "Tm": {
+     "v": 2054,
+     "art": "typ",
+     "u": "°C",
+     "q": "crc97"
+    },
+    "struktur": {
+     "v": "Korund (trigonal)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "sic-gesintert",
+   "name": "Siliciumcarbid (gesintert)",
+   "name_en": "Silicon carbide (sintered)",
+   "klasse": "keramik",
+   "familie": "Nichtoxidkeramik",
+   "aliase": [
+    "SiC",
+    "Siliziumkarbid",
+    "Silicon carbide"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 3.2,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 345,
+     "min": 207,
+     "max": 483,
+     "art": "mitte",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.19,
+     "art": "typ"
+    },
+    "sigma_f": {
+     "v": 460,
+     "min": 100,
+     "max": 820,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "KIc": {
+     "v": 4.6,
+     "art": "typ",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 4.1,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 71,
+     "art": "typ",
+     "u": "W/(m*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "si3n4-heissgepresst",
+   "name": "Siliciumnitrid (heißgepresst)",
+   "name_en": "Silicon nitride (hot pressed)",
+   "klasse": "keramik",
+   "familie": "Nichtoxidkeramik",
+   "aliase": [
+    "Si3N4",
+    "Siliziumnitrid",
+    "Silicon nitride"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 3.3,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 304,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.3,
+     "art": "typ"
+    },
+    "sigma_f": {
+     "v": 850,
+     "min": 700,
+     "max": 1000,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "KIc": {
+     "v": 5.05,
+     "min": 4.1,
+     "max": 6,
+     "art": "mitte",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 3.1,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "zro2-3y",
+   "name": "Zirkonoxid, 3 mol% Y2O3 (gesintert)",
+   "name_en": "Zirconia, 3 mol% Y2O3 (sintered)",
+   "klasse": "keramik",
+   "familie": "Oxidkeramik",
+   "aliase": [
+    "ZrO2",
+    "3Y-TZP",
+    "Zirconia",
+    "Zirkonia"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 6,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 205,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.31,
+     "art": "typ"
+    },
+    "sigma_f": {
+     "v": 1150,
+     "min": 800,
+     "max": 1500,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "KIc": {
+     "v": 9.5,
+     "min": 7,
+     "max": 12,
+     "art": "mitte",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 9.6,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 2.7,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 481,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "mgo",
+   "name": "Magnesiumoxid (Periklas)",
+   "name_en": "Magnesia (periclase)",
+   "klasse": "keramik",
+   "familie": "Oxidkeramik",
+   "aliase": [
+    "MgO",
+    "Magnesia",
+    "Periklas"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 3.58,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 225,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.18,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 13.5,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 37.7,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 940,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "Tm": {
+     "v": 2852,
+     "art": "typ",
+     "u": "°C",
+     "q": "crc97"
+    },
+    "struktur": {
+     "v": "Steinsalz (NaCl-Typ)",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "diamant",
+   "name": "Diamant (synthetisch)",
+   "name_en": "Diamond (synthetic)",
+   "klasse": "keramik",
+   "familie": "Kohlenstoff",
+   "aliase": [
+    "Diamond",
+    "C (Diamant)"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 3.51,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 950,
+     "min": 700,
+     "max": 1200,
+     "art": "mitte",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.15,
+     "min": 0.1,
+     "max": 0.2,
+     "art": "mitte"
+    },
+    "KIc": {
+     "v": 3.4,
+     "art": "typ",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 0.655,
+     "min": 0.11,
+     "max": 1.2,
+     "art": "mitte",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 2725,
+     "min": 1450,
+     "max": 4000,
+     "art": "mitte",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 520,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    },
+    "struktur": {
+     "v": "Diamant",
+     "q": "kittel"
+    },
+    "a": {
+     "v": 0.35668,
+     "art": "typ",
+     "u": "nm",
+     "q": "kittel"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "quarzglas",
+   "name": "Quarzglas (Kieselglas)",
+   "name_en": "Fused silica",
+   "klasse": "glas",
+   "familie": "Glas",
+   "aliase": [
+    "SiO2-Glas",
+    "Fused silica",
+    "Kieselglas"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 2.2,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 73,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 31,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.17,
+     "art": "typ"
+    },
+    "KIc": {
+     "v": 0.79,
+     "art": "typ",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 0.4,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 1.4,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 740,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "kalk-natron-glas",
+   "name": "Kalk-Natron-Glas",
+   "name_en": "Soda-lime glass",
+   "klasse": "glas",
+   "familie": "Glas",
+   "aliase": [
+    "Flachglas",
+    "Fensterglas",
+    "Soda-lime glass",
+    "Kalknatronglas"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 2.5,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 69,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 28,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.23,
+     "art": "typ"
+    },
+    "KIc": {
+     "v": 0.75,
+     "art": "typ",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 9,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 1.7,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 840,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "borosilikatglas",
+   "name": "Borosilikatglas (Pyrex)",
+   "name_en": "Borosilicate glass (Pyrex)",
+   "klasse": "glas",
+   "familie": "Glas",
+   "aliase": [
+    "Borosilikat",
+    "Pyrex",
+    "Duran (ähnlich)",
+    "Borosilicate glass"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 2.23,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 70,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 29,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.2,
+     "art": "typ"
+    },
+    "alpha": {
+     "v": 3.3,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 1.4,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 850,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "glaskeramik",
+   "name": "Glaskeramik (Pyroceram)",
+   "name_en": "Glass-ceramic (Pyroceram)",
+   "klasse": "glas",
+   "familie": "Glaskeramik",
+   "aliase": [
+    "Pyroceram",
+    "Glass-ceramic"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 2.6,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 120,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G": {
+     "v": 47,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.25,
+     "art": "typ"
+    },
+    "KIc": {
+     "v": 1.85,
+     "min": 1.6,
+     "max": 2.1,
+     "art": "mitte",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 6.5,
+     "art": "typ",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 3.3,
+     "art": "typ",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 975,
+     "art": "typ",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "beton",
+   "name": "Beton",
+   "name_en": "Concrete",
+   "klasse": "keramik",
+   "familie": "Baustoff",
+   "aliase": [
+    "Concrete"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 2.4,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E": {
+     "v": 31,
+     "min": 25.4,
+     "max": 36.6,
+     "art": "mitte",
+     "u": "GPa"
+    },
+    "nu": {
+     "v": 0.2,
+     "art": "typ"
+    },
+    "sigma_c": {
+     "v": 40,
+     "min": 20,
+     "max": 60,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "KIc": {
+     "v": 0.8,
+     "min": 0.2,
+     "max": 1.4,
+     "art": "mitte",
+     "u": "MPa*m^0.5"
+    },
+    "alpha": {
+     "v": 11.8,
+     "min": 10,
+     "max": 13.6,
+     "art": "mitte",
+     "u": "µm/(m*K)"
+    },
+    "lambda": {
+     "v": 1.5,
+     "min": 1.25,
+     "max": 1.75,
+     "art": "mitte",
+     "u": "W/(m*K)"
+    },
+    "cp": {
+     "v": 1000,
+     "min": 850,
+     "max": 1150,
+     "art": "mitte",
+     "u": "J/(kg*K)"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "e-glasfaser",
+   "name": "E-Glasfaser",
+   "name_en": "E-glass fibre",
+   "klasse": "faser",
+   "familie": "Glasfaser",
+   "aliase": [
+    "E-Glas",
+    "E-glass",
+    "Glasfaser"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 2.58,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "Rm": {
+     "v": 3450,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "E": {
+     "v": 72.5,
+     "art": "typ",
+     "u": "GPa"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "cf-standardmodul",
+   "name": "Kohlenstofffaser, Standardmodul (PAN)",
+   "name_en": "Carbon fibre, standard modulus (PAN)",
+   "klasse": "faser",
+   "familie": "Kohlenstofffaser",
+   "aliase": [
+    "CF-SM",
+    "Carbon fibre SM",
+    "Kohlenstofffaser"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 1.78,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "Rm": {
+     "v": 4000,
+     "min": 3800,
+     "max": 4200,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "E": {
+     "v": 230,
+     "art": "typ",
+     "u": "GPa"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "cf-mittelmodul",
+   "name": "Kohlenstofffaser, Intermediate Modulus (PAN)",
+   "name_en": "Carbon fibre, intermediate modulus (PAN)",
+   "klasse": "faser",
+   "familie": "Kohlenstofffaser",
+   "aliase": [
+    "CF-IM"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 1.78,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "Rm": {
+     "v": 5300,
+     "min": 4400,
+     "max": 6200,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "E": {
+     "v": 290,
+     "art": "typ",
+     "u": "GPa"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "cf-hochmodul",
+   "name": "Kohlenstofffaser, Hochmodul (PAN)",
+   "name_en": "Carbon fibre, high modulus (PAN)",
+   "klasse": "faser",
+   "familie": "Kohlenstofffaser",
+   "aliase": [
+    "CF-HM"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 1.81,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "Rm": {
+     "v": 3500,
+     "min": 2500,
+     "max": 4500,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "E": {
+     "v": 575,
+     "min": 390,
+     "max": 760,
+     "art": "mitte",
+     "u": "GPa"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "aramidfaser-kevlar49",
+   "name": "Aramidfaser (Kevlar 49)",
+   "name_en": "Aramid fibre (Kevlar 49)",
+   "klasse": "faser",
+   "familie": "Aramidfaser",
+   "aliase": [
+    "Kevlar 49",
+    "Aramid",
+    "Aramidfaser"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 1.44,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "Rm": {
+     "v": 3850,
+     "min": 3600,
+     "max": 4100,
+     "art": "mitte",
+     "u": "MPa"
+    },
+    "E": {
+     "v": 131,
+     "art": "typ",
+     "u": "GPa"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "uhmwpe-faser",
+   "name": "UHMW-PE-Faser (Spectra 900)",
+   "name_en": "UHMW-PE fibre (Spectra 900)",
+   "klasse": "faser",
+   "familie": "Polymerfaser",
+   "aliase": [
+    "Spectra 900",
+    "UHMWPE-Faser",
+    "Dyneema (ähnlich)"
+   ],
+   "q": "callister",
+   "werte": {
+    "rho": {
+     "v": 0.97,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "Rm": {
+     "v": 2600,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "E": {
+     "v": 117,
+     "art": "typ",
+     "u": "GPa"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen"
+  },
+  {
+   "id": "as4-3501-6",
+   "name": "CFK-UD AS4/3501-6",
+   "name_en": "CFRP UD AS4/3501-6",
+   "klasse": "verbund",
+   "familie": "UD-Schicht",
+   "aliase": [
+    "AS4/3501-6",
+    "Carbon/Epoxy UD"
+   ],
+   "q": "daniel2006",
+   "werte": {
+    "rho": {
+     "v": 1.58,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E1": {
+     "v": 147,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "E2": {
+     "v": 10.3,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G12": {
+     "v": 7,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu12": {
+     "v": 0.27,
+     "art": "typ"
+    },
+    "Xt": {
+     "v": 2280,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Xc": {
+     "v": 1725,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Yt": {
+     "v": 57,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Yc": {
+     "v": 228,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "S12": {
+     "v": 76,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "phi_f": {
+     "v": 0.63,
+     "art": "typ"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Kennwerte der unidirektionalen Einzelschicht: 1 = Faserrichtung, 2 = quer; X/Y Festigkeiten längs/quer (t Zug, c Druck), S12 Schub"
+  },
+  {
+   "id": "eglas-epoxid-ud",
+   "name": "GFK-UD E-Glas/Epoxid",
+   "name_en": "GFRP UD E-glass/epoxy",
+   "klasse": "verbund",
+   "familie": "UD-Schicht",
+   "aliase": [
+    "E-glass/epoxy UD",
+    "Glass/Epoxy UD"
+   ],
+   "q": "daniel2006",
+   "werte": {
+    "rho": {
+     "v": 1.97,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E1": {
+     "v": 41,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "E2": {
+     "v": 10.4,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G12": {
+     "v": 4.3,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu12": {
+     "v": 0.28,
+     "art": "typ"
+    },
+    "Xt": {
+     "v": 1140,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Xc": {
+     "v": 620,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Yt": {
+     "v": 39,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Yc": {
+     "v": 128,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "S12": {
+     "v": 89,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "phi_f": {
+     "v": 0.55,
+     "art": "typ"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Kennwerte der unidirektionalen Einzelschicht: 1 = Faserrichtung, 2 = quer; X/Y Festigkeiten längs/quer (t Zug, c Druck), S12 Schub"
+  },
+  {
+   "id": "kevlar49-epoxid-ud",
+   "name": "AFK-UD Kevlar 49/Epoxid",
+   "name_en": "AFRP UD Kevlar 49/epoxy",
+   "klasse": "verbund",
+   "familie": "UD-Schicht",
+   "aliase": [
+    "Kevlar/epoxy UD",
+    "Aramid/Epoxy UD"
+   ],
+   "q": "daniel2006",
+   "werte": {
+    "rho": {
+     "v": 1.38,
+     "art": "typ",
+     "u": "g/cm^3"
+    },
+    "E1": {
+     "v": 80,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "E2": {
+     "v": 5.5,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "G12": {
+     "v": 2.2,
+     "art": "typ",
+     "u": "GPa"
+    },
+    "nu12": {
+     "v": 0.34,
+     "art": "typ"
+    },
+    "Xt": {
+     "v": 1400,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Xc": {
+     "v": 335,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Yt": {
+     "v": 30,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "Yc": {
+     "v": 158,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "S12": {
+     "v": 49,
+     "art": "typ",
+     "u": "MPa"
+    },
+    "phi_f": {
+     "v": 0.6,
+     "art": "typ"
+    }
+   },
+   "nicht_geprueft": "aus dem Gedächtnis nach der genannten Quelle eingetragen, nicht gegen die Ausgabe geprüft; für belastbare Rechnungen den Wert in der Quelle nachschlagen",
+   "hinweis": "Kennwerte der unidirektionalen Einzelschicht: 1 = Faserrichtung, 2 = quer; X/Y Festigkeiten längs/quer (t Zug, c Druck), S12 Schub"
+  }
+ ],
+ "diffusion": [
+  {
+   "teilchen": "Fe",
+   "wirt": "α-Fe",
+   "gitter": "krz",
+   "D0_m2_s": 0.00028,
+   "Q_kJ_mol": 251,
+   "q": "callister"
+  },
+  {
+   "teilchen": "Fe",
+   "wirt": "γ-Fe",
+   "gitter": "kfz",
+   "D0_m2_s": 5e-05,
+   "Q_kJ_mol": 284,
+   "q": "callister"
+  },
+  {
+   "teilchen": "C",
+   "wirt": "α-Fe",
+   "gitter": "krz",
+   "D0_m2_s": 1.1e-06,
+   "Q_kJ_mol": 87,
+   "q": "callister"
+  },
+  {
+   "teilchen": "C",
+   "wirt": "γ-Fe",
+   "gitter": "kfz",
+   "D0_m2_s": 2.3e-05,
+   "Q_kJ_mol": 148,
+   "q": "callister"
+  },
+  {
+   "teilchen": "Cu",
+   "wirt": "Cu",
+   "gitter": "kfz",
+   "D0_m2_s": 7.8e-05,
+   "Q_kJ_mol": 211,
+   "q": "callister"
+  },
+  {
+   "teilchen": "Zn",
+   "wirt": "Cu",
+   "gitter": "kfz",
+   "D0_m2_s": 2.4e-05,
+   "Q_kJ_mol": 189,
+   "q": "callister"
+  },
+  {
+   "teilchen": "Al",
+   "wirt": "Al",
+   "gitter": "kfz",
+   "D0_m2_s": 0.00023,
+   "Q_kJ_mol": 144,
+   "q": "callister"
+  },
+  {
+   "teilchen": "Cu",
+   "wirt": "Al",
+   "gitter": "kfz",
+   "D0_m2_s": 6.5e-05,
+   "Q_kJ_mol": 136,
+   "q": "callister"
+  },
+  {
+   "teilchen": "Mg",
+   "wirt": "Al",
+   "gitter": "kfz",
+   "D0_m2_s": 0.00012,
+   "Q_kJ_mol": 130,
+   "q": "callister"
+  },
+  {
+   "teilchen": "Cu",
+   "wirt": "Ni",
+   "gitter": "kfz",
+   "D0_m2_s": 2.7e-05,
+   "Q_kJ_mol": 256,
+   "q": "callister"
+  }
+ ]
+}

@@ -87,6 +87,20 @@ class TestMaterialsAndSpecimens(unittest.TestCase):
         self.assertTrue(all(a.source for a in al), "jede Zeile braucht eine Quelle")
         self.assertEqual(len({a.name for a in al}), len(al), "Namen eindeutig")
 
+    def test_shared_database_and_own_file(self):
+        """The comparison materials come from the shared SDK database; --legierungen still reads a file."""
+        import json
+        from labcalc import materials
+        rows = materials.zugversuch_rows()
+        self.assertEqual([a.name for a in alloys.load_alloys()], [r["name"] for r in rows])
+        self.assertEqual(materials.find("S235JR")["Rm_MPa"], alloys.find(alloys.load_alloys(), "S235JR").rm)
+        keep = ("name", "Rp02_MPa", "Rm_MPa", "A_pct", "E_GPa", "quelle", "kategorie")
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "eigene.json"
+            p.write_text(json.dumps({"werkstoffe": [{k: rows[0][k] for k in keep}]}), encoding="utf-8")
+            own = alloys.load_alloys(p)
+        self.assertEqual([a.name for a in own], [rows[0]["name"]])
+
     def test_default_group_is_aluminium(self):
         grp = alloys.select_group(alloys.load_alloys(), None)
         self.assertTrue(grp and all(a.category == "Aluminium" for a in grp))

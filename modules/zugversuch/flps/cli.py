@@ -93,7 +93,7 @@ def main(argv=None) -> int:
     ap.add_argument("--werkstoff"), ap.add_argument("--charge"), ap.add_argument("--pruefer")
     ap.add_argument("--bemerkung")
     ap.add_argument("--schwelle", type=float, default=2.0, help="Schwelle Fliessbeginn in %% (Vorgabe 2)")
-    ap.add_argument("--legierungen", help="Pfad zu alloys.json")
+    ap.add_argument("--legierungen", help="eigene Werkstoffdatei (Format des früheren alloys.json) statt der gemeinsamen Werkstoffdatenbank")
     ap.add_argument("--aus", default="Ausgaben", help="Wurzelordner der Ausgaben")
     ap.add_argument("--formate", default="csv,xlsx,png,pdf,bericht",
                     help="Auswahl aus csv, xlsx, png, pdf, bericht (grafischer Bericht)")

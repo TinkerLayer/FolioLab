@@ -367,6 +367,7 @@ _K = [
     ("spring", "Federsteifigkeit", "Spring rate", "N/m", ["N/m", "N/mm", "kN/m"], "k"),
     ("stress_int", "Spannungsintensität", "Stress intensity", "Pa*m^0.5", ["MPa*m^0.5", "Pa*m^0.5"], "K_I"),
     ("surface_energy", "Oberflächenenergie", "Surface energy", "J/m^2", ["J/m^2", "N/m"], "gamma_s"),
+    ("energy_density", "Energiedichte (Energie je Volumen)", "Energy density (energy per volume)", "J/m^3", ["J/m^3", "kJ/m^3", "MJ/m^3"], "u_V", False),
     # Waerme
     ("temperature", "Temperatur", "Temperature", "K", ["K", "°C", "°F"], "T"),
     ("temp_diff", "Temperaturdifferenz", "Temperature difference", "K", ["K"], "dT", False, True),
@@ -398,6 +399,8 @@ _K = [
     ("molar_abs", "Molarer Absorptionskoeffizient", "Molar absorptivity", "m^2/mol", ["L/(mol*cm)", "m^2/mol"], "eps_m"),
     ("wavenumber", "Wellenzahl", "Wavenumber", "1/m", ["1/cm", "1/m"], "nu_t"),
     ("diffusivity", "Diffusionskoeffizient", "Diffusion coefficient", "m^2/s", ["m^2/s", "cm^2/s", "µm^2/s"], "D_c"),
+    ("diff_flux", "Diffusionsstromdichte (Masse)", "Diffusion flux (mass)", "kg/(m^2*s)", ["kg/(m^2*s)", "g/(m^2*s)"], "J_d", False),
+    ("penetration_rate", "Abtragsrate (Korrosion)", "Penetration rate (corrosion)", "m/s", ["mm/a", "µm/a", "m/s"], "v_corr"),
     ("spec_gas", "Spez. Gaskonstante", "Specific gas constant", "J/(kg*K)", ["J/(kg*K)"], "R_s"),
     # U-01: Messgrössen der Chemie, Wasser- und Umweltanalytik
     ("ph", "pH-Wert", "pH value", "1", ["pH"], "pH", False),
@@ -423,6 +426,9 @@ _K = [
     ("inductance", "Induktivität", "Inductance", "H", ["H", "mH", "µH"], "L_i"),
     ("temp_coeff", "Temperaturkoeffizient", "Temperature coefficient", "1/K", ["1/K"], "alpha_R", False),
     ("el_conductivity", "Elektrische Leitfähigkeit", "Electrical conductivity", "S/m", ["µS/cm", "mS/cm", "S/m", "mS/m"], "kappa"),
+    ("mobility", "Beweglichkeit (Ladungsträger)", "Mobility (charge carriers)", "m^2/(V*s)", ["m^2/(V*s)", "cm^2/(V*s)"], "mu_q"),
+    ("current_density", "Stromdichte", "Current density", "A/m^2", ["A/m^2", "mA/cm^2", "µA/cm^2"], "j_A", False),
+    ("lorenz", "Lorenz-Zahl", "Lorenz number", "W*Ohm/K^2", ["W*Ohm/K^2"], "L_WF"),
     ("conductance", "Leitwert", "Conductance", "S", ["S", "mS", "µS"], "G_el"),
     ("redox", "Redoxpotential (ORP)", "Redox potential (ORP)", "V", ["mV", "V"], "E_h", False),
     # U-01: Umwelt, Licht, Schall, Strahlung

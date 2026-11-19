@@ -43,7 +43,13 @@
       items: Object.fromEntries(o.list().map((x) => [x.id, Object.fromEntries(o.keep.map((k) => [k, x[k]]))])),
       extra: o.extra ? o.extra() : null,
       ...(o.summary ? { summary: fitSummary(o.summary()) } : {}),      // UI-10: kurze Zusammenfassung für die Übersicht
+      ...(o.report ? { report: reportOf() } : {}),                     // Berichtsauftrag für „Import“ im Bericht
     });
+    // Der Körper, den „Zum Bericht“ jetzt an /api/bundle schicken würde; damit baut der Hub den Bericht dieser
+    // Umgebung, ohne dass sie offen sein muss. Fehler im Seitencode dürfen das Speichern nicht verhindern.
+    const reportOf = () => {
+      try { const r = o.report(); return r && typeof r === "object" ? r : null; } catch (e) { return null; }
+    };
     const title = () => {
       if (!info || !o.label) return;
       const e = info.envs.find((x) => x.id === info.active);

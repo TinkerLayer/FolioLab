@@ -74,6 +74,28 @@ def add_image(st, data: bytes, name: str, iid: str | None = None) -> dict:
     return d
 
 
+def env_bundle(stored, report: dict, lang: str) -> dict:
+    """Bündel einer gespeicherten Umgebung (nicht der aktiven) aus ihren Bildern und dem Berichtsauftrag der
+    Seite (Körper von /api/bundle: items[{id, state}])."""
+    from . import bundle as B
+    by_id = {iid: (raw, fname) for iid, raw, fname, _i, _n, _x in stored}
+    items, req_items = [], []
+    for it in report.get("items") or []:
+        got = by_id.get(it.get("id"))
+        if got is None:
+            continue
+        raw, fname = got
+        st = load_bytes(raw, fname)
+        state = it.get("state") or {}
+        items.append((st, raw, state))
+        req_items.append({"name": st.name, "state": state})
+    if not items:
+        raise EnvError("Kein Bild dieser Umgebung im Berichtsstand")
+    request = {"items": req_items, "lang": lang, "include": report.get("include") or {},
+               "title": report.get("title") or None, "slug": None}
+    return B.build(items, request, lang=lang, include=request["include"], title=request["title"])
+
+
 def reload_env() -> list[dict]:
     """Bilder der aktiven Umgebung neu einlesen (A2); IDs bleiben gleich."""
     with STATE.lock:
@@ -496,6 +518,7 @@ def main(argv=None):
     ap.add_argument("--kein-browser", action="store_true")
     a = ap.parse_args(argv)
     STATE = State(Path(a.aus).resolve())
+    STATE.envs.env_bundle = env_bundle
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}/"
     print(f"Mikroskopie läuft auf {url}  (Beenden mit Strg+C)")

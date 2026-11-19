@@ -215,7 +215,8 @@ def qty_html(v, unit, lang="de", digits=4):
 P_ADD, P_MUL, P_NEG, P_POW, P_ATOM = 1, 2, 3, 4, 5
 FUNC_TEX = {"sin": r"\sin", "cos": r"\cos", "tan": r"\tan", "cot": r"\cot", "sinh": r"\sinh", "cosh": r"\cosh",
             "tanh": r"\tanh", "asin": r"\arcsin", "acos": r"\arccos", "atan": r"\arctan", "ln": r"\ln",
-            "log10": r"\log_{10}", "log2": r"\log_{2}", "exp": r"\exp", "min": r"\min", "max": r"\max", "det": r"\det"}
+            "log10": r"\log_{10}", "log2": r"\log_{2}", "exp": r"\exp", "min": r"\min", "max": r"\max", "det": r"\det",
+            "erf": r"\operatorname{erf}", "erfc": r"\operatorname{erfc}"}
 FUNC_HTML = {"asin": "arcsin", "acos": "arccos", "atan": "arctan", "log10": "log<sub>10</sub>", "log2": "log<sub>2</sub>"}
 
 

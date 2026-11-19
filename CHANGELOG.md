@@ -8,7 +8,114 @@ follows [Semantic Versioning](https://semver.org/). Each analysis module also ha
 Versions below 1.0.0 mean that the methods are tested by the project's own test suites (see `docs/VALIDATION.md`)
 but have not yet been validated independently.
 
-## [Unreleased]
+## [0.4.0] – 2026-11-19
+
+Changes since 0.3.0:
+- materials science in the calculator, on a shared, sourced materials database;
+- a new Werkstoffe (materials) module, including a lattice viewer;
+- "Import from Folio": graphs, tables and values of any module environment go into a report at the cursor, with their
+  references.
+
+No module computes different numbers than in 0.3.0, except for one TGA fix (below). The Rechner's report output
+changes (new equations and citations), so it gets a new version, and TGA gets a patch version for the fix. The other
+modules only gained the environment import, so their versions stay the same.
+
+| Component | Version | Since 0.3.0 |
+|---|---|---|
+| Report editor and hub | 0.4.0 | Import from Folio (module → environment → pieces) |
+| Zugversuch (tensile test) | 1.4.0 | unchanged results; comparison materials from the shared database; environment import |
+| Mikroskopie (microscopy) | 1.3.0 | unchanged (environment import) |
+| Rechner (calculator) | 1.5.0 | was 1.4.0: materials science equations and functions, `mat()`, `erf`; report cites material sources |
+| FTIR | 1.5.0 | unchanged (environment import) |
+| TGA | 0.13.1 | was 0.13.0: report of a later run in a file with several runs (fix below); environment import |
+| Elementrechner (chemistry) | 0.11.0 | unchanged (environment import) |
+| Datenaufbereitung (data purification) | 0.3.0 | unchanged (environment import) |
+| Werkstoffe (materials) | 0.1.0 | new |
+
+### Added
+
+**Shared materials database** (`sdk/python/labcalc/data/materials.json`, `labcalc/materials.py`)
+- 136 materials in eight classes: metals and alloys, polymers, ceramics, glasses, composites (UD plies), fibres,
+  semiconductors, natural materials. They include 18 pure elements, steels in several heat-treatment states, technical
+  ceramics and glasses.
+- Properties: density, E, G, ν, Rp, Rm, A, compressive and flexural strength, hardness, K_Ic, Weibull modulus,
+  Tm/Tg, α, λ, c_p, electrical resistivity, band gap, lattice parameters, crystal structure, and the ply values of UD
+  composites. Each value has a source, a value kind (typical, minimum, maximum, mid-range, unclear) and, where given, a
+  range.
+- Values that were not checked against their original source in this round are marked as such, in the picker and in
+  the report.
+- Diffusion data D₀ and Q for ten species/host pairs.
+
+**Rechner**
+- New area "Werkstoffkunde" with 83 equations in 13 sections, each with a source. The sections run from
+  crystallography, defects and diffusion through deformation, creep, fatigue, fracture and Weibull, composites,
+  polymers, electrical and thermal properties, corrosion, and steel and heat treatment, to materials selection.
+  The library now has 365 equations.
+- New functions in calculation lines (group "Werkstoffe"):
+  - `mat("1.4301", "Rm")`
+  - the shortcuts `E_mat`, `Rp_mat`, `rho_mat`, `Tm_mat`, `alpha_mat`, `a_lat` and others
+  - `D_diff("C", "γ-Fe", T)`, `Q_diff`, `D0_diff`
+
+  Names work in German or English and as designations (EN AW-6061-T6, 1.4301, AISI 304). The report cites the source
+  of every material value used.
+- New basic functions `erf` and `erfc`.
+- New quantity kinds: energy density, diffusion flux, corrosion rate, mobility, current density, Lorenz number.
+- Library tab "Werkstoffe": search, class chips, a card per material with value, value kind and source. Clicking a
+  value inserts `mat("…", "…")`. Material names and properties autocomplete inside `mat("` and the `_mat("`
+  functions.
+
+**Optional data:** `python tools/fetch_optional_data.py mp` adds computed Materials Project data. It needs your own free
+API key in `MP_API_KEY`. The data covers density, bulk and shear modulus, isotropic E and ν, band gap and space group
+of the stable phase of 38 elements and compounds. The entries are kept apart from the measured ones as
+"… (berechnet, mp-…)" and are marked as DFT values. They are left out of the public repository like the other optional
+parts.
+
+**Werkstoffe module 0.1.0** (`modules/werkstoffe`, new): materials science in one page.
+- Selection: Ashby chart of any two properties from the shared database, performance index lines, limits, ranked list
+  with reasons, your own values with their source; Materials Project points only with the toggle, labelled
+  *berechnet (DFT)*. Material cards for 2–6 materials.
+- Crystallography and XRD: 38 built-in phases and CIF import, computed powder patterns, rotatable unit cell; readers
+  for xy/CSV/TXT, `.xrdml`, `.brml`, `.raw` (RAW1.01), `.uxd`, `.ras`; background, peak fit, cubic indexing,
+  Nelson–Riley, Scherrer, Williamson–Hall, phase search, semi-quantification.
+- Phases and steel: five diagrams drawn schematically from cited key points and labelled so, computed
+  ideal/regular-solution diagrams, lever rule and cooling path; carbon equivalents, preheat, Ms, Ac1/Ac3,
+  Hollomon–Jaffe, carburising.
+- Mechanics and lab data: laminate theory with four failure criteria, fatigue (S–N with run-outs, Haigh, Marin,
+  rainflow, Miner), Weibull with bootstrap, E399 fracture toughness, hardness from indents (conversion only from your
+  own table file), E112 grain size, Hall–Petch, Tafel/Butler–Volmer corrosion, Larson–Miller and Norton creep.
+- Every tool goes to the report with figures, tables, values, data and cited methods text; synthetic example data in
+  every tool, labelled as such. Methods: `docs/methods/werkstoffe.md`.
+- Lattice tool *Gitter* (Kristall area): lattice section of a base element at a temperature with phase and a(T),
+  dissolved atoms on interstitial or lattice sites in their true number, second phase above the solubility limit,
+  equilibrium vacancies, Debye vibration and distortion, schematic edge dislocation, stacking fault and tilt grain
+  boundary; 3D, unit-cell and slice views; exaggeration of vacancies and vibration only with a visible factor. Report
+  section with 3D, cell and slice figures, table, values, atom positions as data, and the equations in the methods text.
+
+**Import from Folio** (editor, hub, all modules)
+- The Import dialog starts with the modules of the active project: module → environment → its graphs, tables, text
+  blocks and single values on the right, with previews and "comes with: n references · methods text". The chosen
+  pieces go in at the cursor with their references; the methods text is optional. Other reports, shared values and ZIP
+  upload stay below as further sources.
+- Every module builds a report for any stored environment without switching to it (`/api/env/bundle`, SDK
+  `ModuleEnvs.peek`/`bundle_of`). The page keeps its current report request in the saved environment, so an
+  environment can be imported after it has been opened once in this version (Zugversuch, Rechner and
+  Datenaufbereitung also derive it from older environments where their saved state allows).
+- The import is saved as a result of the real module (only the chosen pieces), linked to the environment
+  (live/pinned/copy). "Source changed" when the environment's files or report request change; Update rebuilds from
+  the environment, Refresh keeps the choice.
+
+### Changed
+- The Zugversuch reads its 88 comparison materials from the shared database. `modules/zugversuch/data/alloys.json` was
+  removed; its rows are in the database unchanged. `--legierungen` still accepts a file in the old format. Results,
+  reports and goldens are identical.
+- Shared report text (`labbundle.tex_escape`): a run of superscript or subscript characters becomes one LaTeX group
+  (10⁻⁶ → `$^{-6}$` instead of one group per character), and ₄–₉, ⁰, ⁴–⁹, ⁺, ⇌, <, > are now converted. Report text of
+  other modules changes only where these characters occur; the output looks the same.
+- The overview's module names include "Werkstoffe".
+
+### Fixed
+- TGA: when a file holds several runs, the report of the second or a later run used the data of the first run. The
+  report now uses the chosen run, and Refresh keeps it. Reports of files with a single run are unchanged.
 
 ## [0.3.0] – 2026-11-18
 

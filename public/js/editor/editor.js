@@ -39,7 +39,7 @@ const settings = {
 document.querySelectorAll('[data-icon]').forEach((el) => {
   el.insertAdjacentHTML('afterbegin', icon(el.dataset.icon));
 });
-const labelled = { figure: 'Figure', table: 'Table', plot: 'Plot', cite: 'Cite', lab: 'Lab' };
+const labelled = { figure: 'Figure', table: 'Table', plot: 'Plot', cite: 'Cite', lab: 'Lab', import: 'Import' };
 document.querySelectorAll('[data-fmt]').forEach((b) => {
   if (labelled[b.dataset.fmt]) b.insertAdjacentHTML('beforeend', `<span>${labelled[b.dataset.fmt]}</span>`);
 });

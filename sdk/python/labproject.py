@@ -569,10 +569,61 @@ class ModuleEnvs:
                 "columns": [{k: c.get(k) for k in ("key", "name", "unit", "kind", "dtype", "role")} for c in ds.columns],
                 "ext": ext, "first": {"keys": keys, "n": n, "values": first}, "versions": versions[:40], "thumb": th}
 
+    # ------------------------------------------------------------------ Bericht aus jeder Umgebung
+    # Das Modul setzt `env_bundle = fn(stored, report, lang) -> Bündel`: `stored` wie stored(), aber aus der gewünschten
+    # Umgebung, `report` der Berichtsauftrag, den die Seite im gespeicherten Seitenzustand ablegt (client.report, genau
+    # der Körper von /api/bundle). Die aktive Umgebung des Moduls bleibt dabei unverändert.
+    env_bundle = None
+    env_default_report = None          # optional: fn(stored, client, eid) -> Berichtsauftrag für Umgebungen ohne client.report
+
+    def peek(self, eid: str) -> dict:
+        """Manifest, gespeicherte Dateien und Seitenzustand einer beliebigen Umgebung lesen, ohne umzuschalten."""
+        with self.lock:
+            self.ensure()
+            envs = self.envs
+            man = envs.manifest(_check_id(eid, "Umgebung"))
+            st = envs.load_state(eid, {}) or {}
+            items = st.get("items") if isinstance(st.get("items"), dict) else {}
+            stored = []
+            for iid, v in list(items.items()):
+                try:
+                    stored.append((iid, envs.raw(eid, v["raw"]), v["file"], v.get("idx", 0), v.get("name"),
+                                   v.get("extra") or {}))
+                except (EnvError, KeyError, TypeError):
+                    continue
+            return {"manifest": man, "stored": stored, "client": st.get("client")}
+
+    def bundle_of(self, eid: str, lang: str | None = None) -> dict:
+        if not callable(self.env_bundle):
+            raise EnvError("Dieses Modul kann keinen Bericht aus einer gespeicherten Umgebung bauen")
+        pk = self.peek(eid)
+        client = pk["client"] if isinstance(pk["client"], dict) else {}
+        rep = client.get("report")
+        if (not isinstance(rep, dict) or not rep) and callable(self.env_default_report):
+            rep = self.env_default_report(pk["stored"], client, eid)      # ältere Umgebungen: aus dem Seitenzustand ableiten
+        if not isinstance(rep, dict) or not rep:
+            raise EnvError("In dieser Umgebung liegt noch kein Berichtsstand vor: die Umgebung einmal im Modul öffnen "
+                           "und auswerten")
+        rep = dict(rep)
+        if lang in ("de", "en"):
+            rep["lang"] = lang
+        try:
+            b = self.env_bundle(pk["stored"], rep, rep.get("lang") or "de")
+        except EnvError:
+            raise
+        except (ValueError, KeyError, TypeError) as e:          # Modulfehler als verständliche Meldung weitergeben
+            raise EnvError(f"Bericht dieser Umgebung nicht baubar: {e}") from e
+        man = pk["manifest"]
+        b["origin"] = {"module": self.module, "project": self.project, "env": man.get("id") or eid,
+                       "env_name": man.get("name"), "modified": man.get("modified")}
+        return b
+
     def route(self, action: str, req: dict, reload) -> dict:
         """Gemeinsame Endpunkte /api/env/<action>. `reload()` lädt die gespeicherten Dateien in den Server und gibt die
         Beschreibungen der Einträge zurück (modulspezifisch)."""
-        if action == "datasets":                       # I-02: Import-Fenster – Liste aller Datensätze des Projekts
+        if action == "bundle":                         # Bündel aus einer gespeicherten Umgebung
+            return self.bundle_of(str(req.get("env") or ""), req.get("lang"))
+        if action == "datasets":                      # I-02: Import-Fenster – Liste aller Datensätze des Projekts
             return self.datasets()
         if action == "dataset":                        # I-02: Vorschau eines Datensatzes
             return self.dataset_preview(str(req.get("id") or ""), req.get("version"))

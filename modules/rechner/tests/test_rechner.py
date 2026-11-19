@@ -119,6 +119,8 @@ class Library(unittest.TestCase):
                 for v in eq.vars[1:]:
                     k = U.KINDS[v["kind"]]
                     vals[v["sym"]] = float(rng.uniform(0.2, 0.9) if k.key in ("angle", "number", "strain") else rng.uniform(0.5, 3))
+                    if v["sym"] in eq.sample:                         # Exponent mit kB·T: typische Werte statt 0,5 … 3
+                        vals[v["sym"]] = eq.sample[v["sym"]] * float(rng.uniform(0.9, 1.1))
                 first = eq.vars[0]
                 roots = S.solve_for(eq, first["sym"], vals)
                 r = S.pick_root(roots, U.KINDS[first["kind"]])
@@ -153,6 +155,66 @@ def card(eq, target, **vars):
     out = S.eval_sheet({"values": [], "cards": [{"id": "c", "eq": eq, "target": target, "vars": vs}]})["cards"][0]
     assert out["status"] == "ok", out
     return out["result"]["si"]
+
+
+class MaterialsScience(unittest.TestCase):
+    """Werkstoffkunde: Lehrbuchwerte und Anbindung an die Werkstoffdatenbank."""
+
+    def test_sources_and_count(self):
+        wk = [e for e in L.EQUATIONS if e.cat == "Werkstoffkunde"]
+        self.assertGreaterEqual(len(wk), 80)
+        self.assertTrue(all(e.source and e.source.get("title") for e in wk))
+        self.assertEqual(L.BY_ID["wk_avrami"].source_key, "avrami1939")
+
+    def test_bragg_alpha_iron_110(self):
+        # α-Fe (110), a = 0,28665 nm, Cu-Kα 0,15406 nm: 2θ = 44,67°
+        d = card("wk_d_hkl", "d_hkl", a_g=(0.28665, "nm"), h_i=1, k_i=1, l_i=0)
+        theta = card("wk_bragg", "theta", d_hkl=(d, "m"), n_o=1, lambda_=(0.15406, "nm"))
+        self.assertAlmostEqual(math.degrees(2 * theta), 44.67, places=2)
+
+    def test_theoretical_density_copper(self):
+        rho = card("wk_rho_th", "rho", n_at=4, M=(63.546, "g/mol"), a_g=(0.36149, "nm"))
+        self.assertAlmostEqual(rho, 8935, delta=3)
+
+    def test_carbon_equivalent_and_ms(self):
+        self.assertAlmostEqual(card("wk_ce_iiw", "CE", w_C=0.2, w_Mn=1.5, w_Cr=0, w_Mo=0, w_V=0, w_Ni=0, w_Cu=0), 0.45)
+        ms = card("wk_ms", "theta_Ms", w_C=0.4, w_Mn=0.7, w_Ni=0, w_Cr=1.0, w_Mo=0.2)
+        self.assertAlmostEqual(ms, 539 - 423 * 0.4 - 30.4 * 0.7 - 12.1 - 7.5 * 0.2)
+
+    def test_avrami_and_wlf(self):
+        self.assertAlmostEqual(card("wk_avrami", "y_A", t=(10, "s"), tau_A=(10, "s"), n_A=2.5), 1 - math.exp(-1))
+        self.assertAlmostEqual(card("wk_wlf", "a_T", C_1=17.44, C_2=(51.6, "K"), T=(373.15, "K"), T_r=(373.15, "K")), 1.0)
+
+    def test_pilling_bedworth_aluminium(self):
+        pbr = card("wk_pbr", "PBR", M_ox=(101.96, "g/mol"), rho_me=(2.70, "g/cm^3"), n_me=2, M_me=(26.98, "g/mol"),
+                   rho_ox=(3.95, "g/cm^3"))
+        self.assertAlmostEqual(pbr, 1.29, places=2)
+
+    def test_corrosion_rate_iron(self):
+        # ASTM G102: Eisen, 1 µA/cm² entspricht etwa 11,6 µm/a
+        v = card("wk_corr_rate", "v_corr", i_corr=(1, "µA/cm^2"), M=(55.845, "g/mol"), z_e=2, rho=(7.87, "g/cm^3"))
+        self.assertAlmostEqual(v / U.to_si(1, "µm/a"), 11.6, places=1)
+
+    def test_report_cites_material_sources(self):
+        req = {"envs": [{"id": "e1", "name": "W", "items": [
+            {"id": "l1", "type": "calc", "src": 'E_mat("Cu")/G_mat("Cu")'},
+            {"id": "l2", "type": "calc", "src": 'Rm_mat("1.4301") -> MPa'}]}], "values": [], "angle": "rad", "lang": "de"}
+        d = B.build(req, lang="de", include={"plots": False})
+        bib = base64.b64decode(d["files"]["refs.bib"]).decode()
+        side = base64.b64decode(d["files"]["text-nebenrechnungen.tex"]).decode("latin-1")
+        self.assertIn("@book{rf-crc97", bib)                      # reines Kupfer: CRC Handbook
+        self.assertIn("EN 10088-2, Kaltband C", bib)              # 1.4301: Quelle der Zugversuch-Zeile
+        self.assertRegex(side, r"\\cite\{rf-crc97\}")
+        self.assertRegex(side, r"\\cite\{mw-")
+
+    def test_values_from_material_database(self):
+        # Wärmespannung in S235JR mit E aus der Datenbank: 210 GPa · 12e-6/K · 50 K = 126 MPa
+        o = W.evaluate({"values": [], "angle": "rad", "lang": "de", "complex": False, "envs": [{"id": "e1", "name": "A", "items": [
+            {"id": "l0", "type": "calc", "src": 'sigma_th = E_mat("S235JR")*12e-6*50'},
+            {"id": "l1", "type": "calc", "src": 'mat("Al2O3", "KIc") -> MPa*m^0.5'}]}]})
+        lines = o["envs"]["e1"]["lines"]
+        self.assertAlmostEqual(lines["l0"]["result"]["value"], 126e6)
+        self.assertAlmostEqual(lines["l1"]["result"]["value"], 5.05)
 
 
 class Chemistry(unittest.TestCase):
@@ -402,6 +464,22 @@ class Server(unittest.TestCase):
         code, b2 = self.call("/api/bundle/rebuild", {"source": b["source"], "lang": "en"})
         self.assertEqual(code, 200, b2)
         self.assertEqual(b2["lang"], "en")
+
+    def test_materials_routes(self):
+        code, d = self.call("/api/materials", {"lang": "de"})
+        self.assertEqual(code, 200)
+        self.assertGreater(len(d["items"]), 100)
+        self.assertIn("metall", [c["key"] for c in d["classes"]])
+        self.assertEqual(d["shortcuts"]["Rp_mat"], "Rp")
+        self.assertTrue(any(p["species"] == "C" for p in d["diffusion"]))
+        code, c = self.call("/api/material", {"id": "S235JR", "lang": "en"})
+        self.assertEqual(code, 200, c)
+        rp = next(w for w in c["werte"] if w["prop"] == "Rp")
+        self.assertAlmostEqual(rp["si"], 235e6, delta=1e6)
+        self.assertTrue(rp["source"])
+        code, e = self.call("/api/material", {"id": "Unobtainium"})
+        self.assertEqual(code, 400)
+        self.assertIn("error", e)
 
 
 class DatasetRoute(unittest.TestCase):

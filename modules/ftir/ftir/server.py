@@ -260,6 +260,40 @@ def reload_env() -> list[dict]:
     return out
 
 
+def env_bundle(stored, report: dict, lang: str) -> dict:
+    """Bündel einer gespeicherten Umgebung (nicht der aktiven) aus ihren Spektren und dem Berichtsauftrag der
+    Seite (Körper von /api/bundle: items[{id, state}])."""
+    from . import bundle as B
+    by_id = {iid: (raw, fname, idx, name, extra) for iid, raw, fname, idx, name, extra in stored}
+    labelled, req_items = [], []
+    for x in report.get("items") or []:
+        got = by_id.get(x.get("id"))
+        if got is None:
+            continue
+        raw, fname, idx, name, extra = got
+        read = (extra or {}).get("read") or None
+        if not name:
+            try:
+                name = load_bytes(raw, fname, read)[idx].name
+            except (ReadError, IndexError, ValueError):
+                continue
+        state = x.get("state") or {}
+        rx = {"name": fname, "idx": idx, "label": name, "state": state}
+        if read:
+            rx["read"] = read
+        ds = (extra or {}).get("dataset") or {}
+        if ds.get("share"):
+            rx["dataset"] = {"share": ds["share"], "version": ds.get("version"), "title": ds.get("title")}
+        st = dict(state, _label=name, **({"_read": read} if read else {}))
+        labelled.append((raw, fname, idx, st))
+        req_items.append(rx)
+    if not labelled:
+        raise EnvError("Kein Spektrum dieser Umgebung im Berichtsstand")
+    request = {"items": req_items, "lang": lang, "include": report.get("include") or {},
+               "title": report.get("title") or None, "slug": None}
+    return B.build(labelled, request, lang=lang, include=request["include"], title=request["title"])
+
+
 def load_file(data: bytes, name: str, opts: dict | None = None) -> list[dict]:
     sps = load_bytes(data, name, opts)
     return [add_item(sp, data, name, i) for i, sp in enumerate(sps)]
@@ -879,6 +913,7 @@ def main(argv=None):
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
     STATE = State(Path(a.out).resolve())
+    STATE.envs.env_bundle = env_bundle
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}/"
     print(f"FTIR läuft auf {url}  (Beenden mit Strg+C)")

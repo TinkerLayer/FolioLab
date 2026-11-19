@@ -1,0 +1,65 @@
+{
+  "_hinweis": "Daten des Gitterbetrachters. Gitterparameter bei Raumtemperatur aus phases.json (wyckoff1963), Ausdehnungskoeffizient und Querkontraktionszahl aus der gemeinsamen Werkstoffdatenbank (crc97); hier nur, was dort fehlt. Werte aus dem Gedächtnis nach der genannten Quelle, nicht am Original geprüft (nicht_geprueft). Hochtemperaturformen: Gitterparameter an einem Stützpunkt [T in °C, a in Å], dazwischen und darüber mit dem Ausdehnungskoeffizienten fortgesetzt.",
+  "elemente": {
+    "Fe": {"Tm": 1538, "theta_D": 470, "Hv": 1.6, "formen": [
+      {"name": "α-Fe", "gitter": "krz", "bis": 912, "phase": "fe-alpha", "a_punkte": [[20, 2.8665], [912, 2.9044]], "q": ["wyckoff1963", "basinski1955"]},
+      {"name": "γ-Fe", "gitter": "kfz", "bis": 1394, "a_punkte": [[912, 3.6468]], "alpha": 23.0, "q": ["basinski1955"]},
+      {"name": "δ-Fe", "gitter": "krz", "bis": 1538, "a_punkte": [[1394, 2.932]], "q": ["basinski1955"]}]},
+    "Cu": {"Tm": 1084.62, "theta_D": 343, "Hv": 1.28, "formen": [{"name": "Cu", "gitter": "kfz", "bis": 1084.62, "phase": "cu"}]},
+    "Al": {"Tm": 660.32, "theta_D": 428, "Hv": 0.67, "formen": [{"name": "Al", "gitter": "kfz", "bis": 660.32, "phase": "al"}]},
+    "Ni": {"Tm": 1455, "theta_D": 450, "Hv": 1.79, "formen": [{"name": "Ni", "gitter": "kfz", "bis": 1455, "phase": "ni"}]},
+    "Ag": {"Tm": 961.78, "theta_D": 225, "Hv": 1.11, "formen": [{"name": "Ag", "gitter": "kfz", "bis": 961.78, "phase": "ag"}]},
+    "Au": {"Tm": 1064.18, "theta_D": 165, "Hv": 0.93, "formen": [{"name": "Au", "gitter": "kfz", "bis": 1064.18, "phase": "au"}]},
+    "Pt": {"Tm": 1768.3, "theta_D": 240, "Hv": 1.35, "formen": [{"name": "Pt", "gitter": "kfz", "bis": 1768.3, "phase": "pt"}]},
+    "Pb": {"Tm": 327.46, "theta_D": 105, "Hv": 0.58, "formen": [{"name": "Pb", "gitter": "kfz", "bis": 327.46, "phase": "pb"}]},
+    "Cr": {"Tm": 1907, "theta_D": 630, "Hv": 2.0, "formen": [{"name": "Cr", "gitter": "krz", "bis": 1907, "phase": "cr"}]},
+    "Mo": {"Tm": 2623, "theta_D": 450, "Hv": 3.0, "formen": [{"name": "Mo", "gitter": "krz", "bis": 2623, "phase": "mo"}]},
+    "W": {"Tm": 3422, "theta_D": 400, "Hv": 4.0, "formen": [{"name": "W", "gitter": "krz", "bis": 3422, "phase": "w"}]},
+    "Nb": {"Tm": 2477, "theta_D": 275, "Hv": 2.6, "formen": [{"name": "Nb", "gitter": "krz", "bis": 2477, "phase": "nb"}]},
+    "Ta": {"Tm": 3017, "theta_D": 240, "Hv": 2.9, "formen": [{"name": "Ta", "gitter": "krz", "bis": 3017, "a_punkte": [[20, 3.3030]], "q": ["kittel"]}]},
+    "Mg": {"Tm": 650, "theta_D": 400, "Hv": 0.79, "formen": [{"name": "Mg", "gitter": "hdp", "bis": 650, "phase": "mg"}]},
+    "Zn": {"Tm": 419.53, "theta_D": 327, "Hv": 0.54, "formen": [{"name": "Zn", "gitter": "hdp", "bis": 419.53, "phase": "zn"}]},
+    "Ti": {"Tm": 1668, "theta_D": 420, "Hv": 1.55, "formen": [
+      {"name": "α-Ti", "gitter": "hdp", "bis": 882, "phase": "ti-alpha"},
+      {"name": "β-Ti", "gitter": "krz", "bis": 1668, "a_punkte": [[900, 3.3065]], "q": ["wyckoff1963"]}]},
+    "Co": {"Tm": 1495, "theta_D": 445, "Hv": 1.34, "formen": [
+      {"name": "ε-Co", "gitter": "hdp", "bis": 422, "phase": "co-hcp"},
+      {"name": "α-Co", "gitter": "kfz", "bis": 1495, "a_punkte": [[20, 3.5447]], "q": ["wyckoff1963"]}]}
+  },
+  "q_elemente": {"Tm": "crc97", "theta_D": "kittel", "Hv": "ehrhart1991"},
+  "Sv_k": 1.5,
+  "Sv_hinweis": "Bildungsentropie der Leerstelle einheitlich 1,5 k angenommen (Literaturwerte etwa 0,5 bis 3 k); in der Seite änderbar",
+  "radien_zusatz": {
+    "_q": "callister",
+    "Si": 1.18, "Sn": 1.51, "Mn": 1.12, "V": 1.32, "Cd": 1.49
+  },
+  "zwischengitter": {
+    "_q": "cordero2008",
+    "_hinweis": "Kovalenzradien in Å; H, B, C, N und O lösen sich in Metallen auf Zwischengitterplätzen (callister, porter)",
+    "H": 0.31, "B": 0.84, "C": 0.76, "N": 0.71, "O": 0.66
+  },
+  "platz": {
+    "_hinweis": "Bevorzugte Zwischengitterlücke je Gittertyp; C und N im krz-Eisen oktaedrisch (porter), H im krz-Eisen tetraedrisch (hirth1980); kfz und hdp: Oktaederlücke (die grössere)",
+    "krz": {"H": "tet", "B": "okt", "C": "okt", "N": "okt", "O": "okt"},
+    "kfz": {"H": "okt", "B": "okt", "C": "okt", "N": "okt", "O": "okt"},
+    "hdp": {"H": "okt", "B": "okt", "C": "okt", "N": "okt", "O": "okt"}
+  },
+  "vollstaendig": {
+    "_q": "massalski1990",
+    "_hinweis": "Lückenlose Mischkristallreihe im festen Zustand (bei Cu–Au oberhalb der Ordnungstemperaturen)",
+    "paare": [["Cu", "Ni"], ["Ag", "Au"], ["Mo", "W"], ["Cu", "Au"]]
+  },
+  "diagramme": {
+    "fe-c": {"phasen": {"α": {"el": "Fe", "form": "α-Fe"}, "γ": {"el": "Fe", "form": "γ-Fe"}, "δ": {"el": "Fe", "form": "δ-Fe"}, "L": {"fluessig": true}, "Fe₃C": {"name": "Zementit Fe₃C"}}},
+    "pb-sn": {"phasen": {"α": {"el": "Pb", "form": "Pb"}, "β": {"name": "β-Sn"}, "L": {"fluessig": true}}},
+    "al-si": {"phasen": {"(Al)": {"el": "Al", "form": "Al"}, "(Si)": {"name": "Si"}, "L": {"fluessig": true}}},
+    "cu-ag": {"phasen": {"α": {"el": "Cu", "form": "Cu"}, "β": {"el": "Ag", "form": "Ag"}, "L": {"fluessig": true}}}
+  },
+  "beispiele": [
+    {"id": "stahl-c45", "name": "Stahl C45 bei 20 °C (Ferrit + Zementit)", "name_en": "Steel C45 at 20 °C (ferrite + cementite)", "wirt": "Fe", "geloest": [{"el": "C", "c": 0.45, "einheit": "wt"}], "T": 20},
+    {"id": "austenit", "name": "Austenit, Fe–0,8 % C bei 900 °C", "name_en": "Austenite, Fe–0.8 % C at 900 °C", "wirt": "Fe", "geloest": [{"el": "C", "c": 0.8, "einheit": "wt"}], "T": 900},
+    {"id": "cuni", "name": "Kupfer–Nickel 30 % (Mischkristall)", "name_en": "Copper–nickel 30 % (solid solution)", "wirt": "Cu", "geloest": [{"el": "Ni", "c": 30, "einheit": "wt"}], "T": 20},
+    {"id": "alsi", "name": "Al–7 % Si bei 500 °C", "name_en": "Al–7 % Si at 500 °C", "wirt": "Al", "geloest": [{"el": "Si", "c": 7, "einheit": "wt"}], "T": 500},
+    {"id": "cu-rein-heiss", "name": "Reines Kupfer kurz unter dem Schmelzpunkt", "name_en": "Pure copper just below melting", "wirt": "Cu", "geloest": [], "T": 1050}
+  ]
+}

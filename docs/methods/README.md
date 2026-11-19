@@ -19,6 +19,7 @@ page says so.
 | Elementrechner (element calculator) | [elementrechner.md](elementrechner.md) | formulas and balancing, thermochemistry, equilibria, acid–base, speciation, redox, nuclear chemistry, kinetics; data sets used |
 | FTIR | [ftir.md](ftir.md) | readers, processing, bands and areas, assignments, library search, mixtures |
 | TGA | [tga.md](tga.md) | readers, steps and onsets, composition, library search, kinetics, DSC |
+| Werkstoffe (materials) | [werkstoffe.md](werkstoffe.md) | materials selection, crystallography, XRD readers and evaluation, phase diagrams, steel, laminates, fatigue, Weibull and fracture, hardness, corrosion, creep |
 | Mikroskopie (microscopy) | [mikroskopie.md](mikroskopie.md) | calibration, processing, thresholds, particle analysis, measurements |
 | Zugversuch (tensile test) | [zugversuch.md](zugversuch.md) | `.flps` reader, preparation, fit window, key values, comparison with reference materials |
 

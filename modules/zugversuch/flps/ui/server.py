@@ -103,6 +103,35 @@ def reload_env() -> list[dict]:
     return out
 
 
+def env_bundle(stored, report: dict, lang: str) -> dict:
+    """Bündel einer gespeicherten Umgebung aus ihren Messdateien und dem Berichtsauftrag der Seite
+    (Körper von /api/bundle: items[{id, config}]); die aktive Umgebung bleibt unverändert."""
+    from .. import bundle as bundle_mod
+    by_id = {fid: (raw, name) for fid, raw, name, _i, _n, _x in stored}
+    results, raw, items = [], {}, []
+    for item in report.get("items") or []:
+        got = by_id.get(item.get("id"))
+        if got is None:
+            continue
+        data, name = got
+        cfg = Config.from_dict(item.get("config"))
+        results.append(run(parse_bytes(data, name), cfg, STATE.alloys))
+        raw[name] = data
+        items.append({"name": name, "config": cfg.to_dict()})
+    if not results:
+        raise EnvError("Keine Messung dieser Umgebung im Berichtsstand")
+    request = {"items": items, "lang": lang, "include": report.get("include") or {},
+               "title": report.get("title") or None, "slug": None, "own_materials": own_used(results)}
+    return bundle_mod.build(results, raw, request, lang=lang, include=request["include"], title=request["title"])
+
+
+def env_default_report(stored, client: dict, _eid: str = "") -> dict | None:
+    """Umgebungen, die vor dem Import aus Folio gespeichert wurden: Einstellungen je Messung stehen in client.items[id].cfg."""
+    saved = (client or {}).get("items") or {}
+    items = [{"id": fid, "config": (saved.get(fid) or {}).get("cfg")} for fid, *_ in stored]
+    return {"items": items, "include": {}} if items else None
+
+
 def _ds_open(sid: str, mode: str, version=None):
     """(Datensatz, Umschlag) einer Freigabe; live = neueste Version, pin = die genannte."""
     from labshare import Sharebox, dataset_of
@@ -593,10 +622,12 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="FLPS Auswerte-App, lokale Oberfläche")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--aus", default=str(ROOT / "Ausgaben"), help="Wurzelordner der Ausgaben")
-    ap.add_argument("--legierungen", help="Pfad zu alloys.json")
+    ap.add_argument("--legierungen", help="eigene Werkstoffdatei (Format des früheren alloys.json) statt der gemeinsamen Werkstoffdatenbank")
     ap.add_argument("--kein-browser", action="store_true")
     a = ap.parse_args(argv)
     STATE = State(Path(a.aus).resolve(), a.legierungen)
+    STATE.envs.env_bundle = env_bundle
+    STATE.envs.env_default_report = env_default_report
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}/"
     print(f"FLPS Auswerte-App läuft auf {url}  (Beenden mit Strg+C)")

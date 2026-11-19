@@ -49,11 +49,33 @@ _SPECIAL = {"\\": r"\textbackslash{}", "&": r"\&", "%": r"\%", "$": r"\$", "#": 
             "{": r"\{", "}": r"\}", "~": r"\textasciitilde{}", "^": r"\textasciicircum{}"}
 
 
+_SUP = {"⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-",
+        "⁺": "+"}
+_SUB = {"₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4", "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9"}
+_RUN = re.compile("([" + "".join(_SUP) + "]{2,}|[" + "".join(_SUB) + "]{2,})")
+
+
+def _runs(s: str) -> str:
+    """Runs of two or more super-/subscript characters as one group (10⁻⁶ -> $^{-6}$, not $^-^6$)."""
+    def rep(m):
+        t = m.group(0)
+        if t[0] in _SUP:
+            return "\x02" + "".join(_SUP[c] for c in t) + "\x03"
+        return "\x04" + "".join(_SUB[c] for c in t) + "\x05"
+    return _RUN.sub(rep, s)
+
+
 def tex_escape(s) -> str:
     """Plain text -> LaTeX text-mode source (special characters and Greek letters handled)."""
     out = []
-    for ch in str(s):
-        if ch in _SPECIAL:
+    for ch in _runs(str(s)):
+        if ch == "\x02":
+            out.append("$^{")
+        elif ch == "\x04":
+            out.append("$_{")
+        elif ch in "\x03\x05":
+            out.append("}$")
+        elif ch in _SPECIAL:
             out.append(_SPECIAL[ch])
         elif ch in _UNI:
             out.append(_UNI[ch])

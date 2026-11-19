@@ -111,9 +111,33 @@ computed by Folio Lab from those positions. They are labelled "modelled" everywh
 - `modules/tga/tga/data/referenzen.json`: decomposition steps (onset, peak, mass loss, residue) of reference
   materials. The values come from the text and tables of the publications named in each entry. Folio Lab computes the
   DTG curves from these values and labels them as modelled.
-- `modules/zugversuch/data/alloys.json`: comparison values (Rm, Rp0.2, A, E) of materials. Each row names its source
-  (standard, datasheet or database entry, with URL and access date). Individual values are given with citation.
-  `specimens.json`: specimen dimensions from the standards named in each entry.
+- `sdk/python/labcalc/data/materials.json` (shared materials database of the Rechner, the Zugversuch and the
+  Werkstoffe module): property
+  values of 136 materials. Each value names its source: a handbook or textbook (e.g. CRC Handbook, Callister, Kittel,
+  Ashby, Daniel & Ishai, Mark), a standard with product form, or a manufacturer data sheet or database entry with URL
+  and access date (the 88 former Zugversuch rows). Individual values are given with citation; the selection and
+  arrangement are Folio Lab's own work. Values not yet compared against their source are marked.
+- `modules/zugversuch/data/specimens.json`: specimen dimensions from the standards named in each entry.
+- `modules/werkstoffe/werk/data/phases.json`: 38 crystal structures (space group, cell, atom positions) from
+  Wyckoff, *Crystal Structures*, 2nd ed., Wiley 1963. Structural data are facts; the selection is Folio Lab's own.
+- `modules/werkstoffe/werk/formfactors.py`: Cromer–Mann form-factor coefficients after *International Tables for
+  Crystallography* Vol. C, Table 6.1.1.4 (individual numerical constants, cited; transcribed and marked as not
+  checked against the original).
+- `modules/werkstoffe/werk/data/diagrams.json`: key points (temperatures, compositions) of five binary phase
+  diagrams from Callister & Rethwisch, Murray & McAlister 1984 and Subramanian & Perepezko 1993, cited per diagram.
+  The lines between them are drawn by Folio Lab and labelled *schematisch*.
+- `modules/werkstoffe/werk/data/gitter.json` (lattice model): allotropes and transition temperatures, lattice
+  parameters and expansion coefficients, Debye temperatures, vacancy formation enthalpies, interstitial sites and
+  miscible pairs of 17 base elements, from the CRC Handbook, Wyckoff 1963, Basinski et al. 1955, Kittel, Ehrhart 1991,
+  Porter & Easterling and Massalski 1990; covalent radii from Cordero et al. 2008. Individual numerical facts, each
+  cited in the data and in reports, written after the named source and marked as not checked against the original;
+  the selection is Folio Lab's own.
+- X-ray tube wavelengths: standard values (Bearden 1967) as used by instrument software.
+- XRD file readers: written from published format descriptions (PANalytical XRDML schema, Bruker documentation, the
+  xylib format notes for RAW1.01). No code from xylib or other readers is included.
+- CIF files from the Crystallography Open Database (CC0) can be opened by the user; none are included.
+- No ICDD/PDF reference patterns and no hardness conversion tables (ISO 18265, ASTM E140) are included; the hardness
+  tool converts only with a table file the user makes from their own copy.
 - `server/templates/`: report templates and sample images. These are Folio Lab's own work; the images are generated
   by `scripts/make-sample-images.js`.
 
@@ -130,6 +154,7 @@ Folio Lab commercially.
 | `srd46` | NIST SRD 46 v8.0, critically selected stability constants | NIST Standard Reference Data are copyrighted (15 U.S.C. §290e); the dataset README grants broad use. Because the two statements conflict, it is not redistributed | NIST SRD 46, doi:10.18434/M32154 (after Martell & Smith, *Critical Stability Constants*) |
 | `asd` | NIST Atomic Spectra Database (SRD 78): ionisation energies | Standard Reference Data, "all rights reserved" | Kramida, Ralchenko, Reader & NIST ASD Team, doi:10.18434/T4W30F |
 | `burcat` | Burcat/Goos/Ruscic thermochemical database (3,062 species, NASA-7 polynomials, ATcT values) | free with citation; sale and copying into commercial publications need the author's written agreement | Goos, Burcat & Ruscic, *Extended Third Millennium … Thermochemical Database*, burcat.technion.ac.il |
+| `mp` | Materials Project: computed density, bulk and shear modulus, band gap and space group of 38 elements and compounds | CC BY 4.0, so it could be redistributed; it is not in the repository because the API needs each user's own free key (`MP_API_KEY`) and the data change with database versions | Jain et al. 2013, APL Mater. 1, 011002, doi:10.1063/1.4812323; de Jong et al. 2015, Sci. Data 2, 150009, doi:10.1038/sdata.2015.9 |
 | `openspecy` | 1,486 further Open Specy spectra: RRUFF, SWGDRUG, Kimmel Center, FLOPP, AWI 2024, Kozloski, PSLC, Thermo Fisher, NREL and others | per source: CC BY-NC, "personal educational purposes" (RRUFF), "all rights reserved" (SWGDRUG), or no licence stated | Cowger et al. 2021 and 2025 and the source of each spectrum (kept in the data) |
 
 Without these parts:

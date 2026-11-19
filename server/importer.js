@@ -524,6 +524,7 @@ function checkMode(mode) {
 async function importPieces(id, body = {}, opts = {}) {
   await P.readMeta(id);
   const desc = body.source || {};
+  if (desc.type === 'env') return require('./folio').importEnv(id, body, opts); // Pieces of a module environment
   const mode = checkMode(body.mode);
   const keys = Array.isArray(body.keys) ? body.keys.map(String).slice(0, 500) : [];
   if (!keys.length) throw new HttpError(400, 'Choose at least one piece to import');
@@ -667,6 +668,7 @@ async function linkState(id, man, cache = new Map()) {
     state: missing.length ? 'failed' : changed.length ? (link.mode === 'live' ? 'stale' : 'update') : 'current',
   });
   try {
+    if (link.type === 'env') return await require('./folio').linkState(man);
     if (link.type === 'result') {
       const dir = link.project && PID_RE.test(link.project) ? P.filesDir(link.project) : null;
       if (!dir) return { ...base, state: null };
@@ -739,6 +741,7 @@ async function update(id, slug, opts = {}) {
     const res = await importSuite(id, { type: 'suite' }, link.keys, mode, { title: man.title }, { slug, prev: link, latest: true });
     return res.results[0];
   }
+  if (link.type === 'env') return require('./folio').update(id, man, { ...opts, mode });
   throw new HttpError(400, 'Unknown link');
 }
 

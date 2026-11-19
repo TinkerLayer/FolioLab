@@ -214,6 +214,8 @@ async function save(id, bundle, mode, info) {
     issued: null,
     // where an imported result came from and how it follows its source (server/importer.js)
     link: bundle.link && typeof bundle.link === 'object' ? JSON.parse(JSON.stringify(bundle.link)) : null,
+    // The pieces chosen from a module environment (server/folio.js); Refresh keeps the same subset
+    ...(bundle.pick && typeof bundle.pick === 'object' ? { pick: JSON.parse(JSON.stringify(bundle.pick)) } : {}),
   };
   await fsp.writeFile(path.join(target, 'bundle.json'), JSON.stringify(manifest, null, 2));
   await rebuildReferences(id);
@@ -236,7 +238,40 @@ async function refresh(id, slug, opts = {}) {
   if (opts.lang) body.lang = opts.lang;
   const fresh = await modules.call(man.module, endpoint, body);
   fresh.slug = slug;
+  if (man.pick) {
+    // a subset imported from a module environment: rebuild from the stored source, keep the same pieces and link
+    const { items, keep } = applyPick(fresh, man.pick);
+    fresh.items = items;
+    fresh.files = Object.fromEntries(Object.entries(fresh.files || {}).filter(([rel]) => keep(rel)));
+    fresh.pick = man.pick;
+    fresh.title = man.title;
+  }
+  if (man.link && !fresh.link) fresh.link = man.link;
   return save(id, fresh, 'replace', { action: opts.lang ? 'language' : 'refresh' });
+}
+
+const METHODS_RE = /method|methodik/i;
+
+/** Items and files of a bundle that stay for a pick {items: [ids], values: [keys], methods: bool}. Citations and the
+ *  values file stay whole (only what the inserted text cites or uses is printed); methods texts stay unless switched off. */
+function applyPick(b, pick) {
+  const isMethods = (it) => it.kind === 'text' && (METHODS_RE.test(it.id) || METHODS_RE.test(it.title || ''));
+  if (!pick || typeof pick !== 'object') return { items: [...(b.items || [])], keep: () => true, isMethods };   // no pick: whole bundle
+  const want = new Set(pick.items || []);
+  const methodsToo = pick.methods !== false;
+  const keepItem = (it) => {
+    if (it.kind === 'citation' || it.kind === 'values') return true;
+    if (want.has(it.id)) return true;
+    return methodsToo && isMethods(it);
+  };
+  const items = (b.items || []).filter(keepItem);
+  const dropped = new Set();
+  for (const it of b.items || []) {
+    if (keepItem(it)) continue;
+    for (const f of [it.file, it.preview]) if (f) dropped.add(f);
+    if (it.file && /\.pdf$/i.test(it.file)) dropped.add(it.file.replace(/\.pdf$/i, '.png'));
+  }
+  return { items, keep: (rel) => !dropped.has(rel), isMethods };
 }
 
 // ---------------------------------------------------------------- A1 revisions
@@ -535,4 +570,4 @@ async function dependencies(id) {
   };
 }
 
-module.exports = { FORMAT, list, save, refresh, remove, rebuildReferences, readManifest, uniqueSlug, labDir, revisions, compare, restore, issue, issueAll, history, dependencies };
+module.exports = { FORMAT, list, save, refresh, applyPick, remove, rebuildReferences, readManifest, uniqueSlug, labDir, revisions, compare, restore, issue, issueAll, history, dependencies };

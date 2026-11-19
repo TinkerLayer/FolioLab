@@ -80,6 +80,27 @@ The dialog lets the user pick or create a report (template **Lab report**), the 
 calls `build()` and stores the returned bundle. If a result with the same name exists, the user chooses *Replace*
 or *Keep both*. `include` is a map `{id: true|false}` of the switches you offered.
 
+### Import from any environment
+
+The editor's **Import from Folio** dialog lists the environments of every module and imports single pieces of their
+reports. For that a module must be able to build the report of a stored environment without switching to it:
+
+- **Page:** pass `report: () => body` to `LabEnv.create({...})`, where `body` is exactly what *Send to report* would
+  POST to `api/bundle` now (sections/scope, `lang`, `include`, `title`), or `null` if there is nothing to report. It is
+  saved with the environment as `client.report`; errors in it never block saving.
+- **Server:** set `ModuleEnvs.env_bundle = fn(stored, report, lang) -> bundle`. `stored` has the same shape as
+  `stored()`, but for the requested environment; build the bundle from those files and the request, as the
+  stateless rebuild (`/api/bundle/rebuild`) does. Optionally set `env_default_report = fn(stored, client, eid)` to
+  derive a request for environments saved before `client.report` existed (Zugversuch, Rechner and
+  Datenaufbereitung do). The SDK serves
+  `POST /api/env/bundle {env, lang}` and adds `origin` (module, project, environment, name, modified). Raise
+  `EnvError` (or `ValueError`/`KeyError`) with a German message when nothing can be built; the dialog shows it.
+- **Hub:** `GET /api/folio/modules`, `GET /api/folio/env?module&env&lang&target` (pieces: figures with PNG preview,
+  tables, text, data, every `\labval` value; references; methods text; cached by content hash), `GET /api/folio/file`
+  (previews). `POST /api/projects/:id/import` with `{source: {type: "env", stage}, keys, mode, methods}` saves the
+  chosen pieces as a result of the real module with `pick` and `link: {type: "env", …}`; the link is "changed" when
+  the hash of the environment's files and report request differs.
+
 ## 3. The bundle (`folio-lab-bundle/1`)
 
 Build it in Python with `sdk/python/labbundle.py`:
@@ -243,6 +264,15 @@ records (CODATA 2022, SI Brochure, IUPAC Green Book, standard textbooks, ISO sta
 source of every constant in `labcalc.units`, and `units.constants_list()` returns it with each constant. Cite them with
 `labcite.to_bib(b, "rf-" + key, sources.REFS[key])`. A new constant or library equation without a source fails the
 Rechner tests.
+
+**Materials database (`sdk/python/labcalc/materials.py`, `labcalc/data/materials.json`).** One sourced list of material
+properties for every module (the Rechner, the Zugversuch and the Werkstoffe module). Use
+`materials.value(name, prop)` (SI value, value kind, range, source key or record, "not checked" note),
+`materials.get(name, prop)` (SI float), `materials.search(q, klasse, prop)` and `materials.card(name, lang)`; cite a
+value with its `key` from `sources.REFS` or, when `key` is `None`, with `labcite.to_bib` on its `source` record (the
+Rechner uses `labcite.key_for("mw", source)`). Never copy values into a module's own file; add or correct them in the
+database (`materials.validate()` must stay empty, `sdk/python/tests/test_materials.py`). Optional parts
+(`data/optional/materials_*.json`, e.g. the Materials Project part) are appended without replacing curated entries.
 
 **Report rules.**
 

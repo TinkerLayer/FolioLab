@@ -166,6 +166,42 @@ class Store(unittest.TestCase):
         finally:
             os.environ.pop("FOLIO_SUITE_DIR", None)
 
+    def test_bundle_of_any_environment(self):
+        """Bericht aus einer gespeicherten, nicht aktiven Umgebung; aktive Umgebung bleibt, Fehler verständlich."""
+        os.environ["FOLIO_SUITE_DIR"] = str(self.root)
+        try:
+            me = LP.ModuleEnvs("ignored", "zugversuch")
+            me.remember("p1", b"RAW-1", "probe1.csv", 0, "Probe 1")
+            me.set_client({"report": {"sections": ["feld"], "lang": "de"}})
+            second = me.route("create", {"name": "Zweite"}, list)["active"]
+            self.assertNotEqual(second, "standard")
+            with self.assertRaises(LP.EnvError):                                   # Modul ohne env_bundle
+                me.route("bundle", {"env": "standard"}, list)
+            seen = {}
+
+            def env_bundle(stored, report, lang):
+                seen.update(stored=[(i, raw, name) for i, raw, name, *_ in stored], report=report, lang=lang)
+                return {"items": [], "title": "T"}
+            me.env_bundle = env_bundle
+            b = me.route("bundle", {"env": "standard", "lang": "en"}, list)
+            self.assertEqual(seen["stored"], [("p1", b"RAW-1", "probe1.csv")])
+            self.assertEqual((seen["report"]["sections"], seen["lang"]), (["feld"], "en"))
+            self.assertEqual((b["origin"]["module"], b["origin"]["env"], b["origin"]["env_name"]), ("zugversuch", "standard", "Standard"))
+            self.assertEqual(me.eid, second)                                        # nicht umgeschaltet
+            self.assertEqual(me.peek("standard")["client"]["report"]["lang"], "de")  # Auftrag nicht verändert
+            with self.assertRaises(LP.EnvError):                                   # Zweite: noch kein Berichtsstand
+                me.route("bundle", {"env": second}, list)
+            me.env_default_report = lambda stored, client, eid: {"sections": ["auto"], "lang": "de"}
+            me.route("bundle", {"env": second}, list)
+            self.assertEqual((seen["report"]["sections"], seen["stored"]), (["auto"], []))
+            me.env_bundle = lambda stored, report, lang: (_ for _ in ()).throw(KeyError("x"))
+            with self.assertRaises(LP.EnvError):                                   # Modulfehler als EnvError
+                me.route("bundle", {"env": "standard"}, list)
+            with self.assertRaises(LP.EnvError):
+                me.route("bundle", {"env": "../x"}, list)
+        finally:
+            os.environ.pop("FOLIO_SUITE_DIR", None)
+
     def test_env_values_between_environments(self):
         """Verbindung Umgebung → Umgebung in jedem Modul: eine Freigabe je Quellumgebung, neue Version nur bei Änderung."""
         os.environ["FOLIO_SUITE_DIR"] = str(self.root)

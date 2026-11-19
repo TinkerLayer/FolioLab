@@ -109,6 +109,116 @@ REFS: dict[str, dict] = {
         "title": "IUPAC-IUGS recommendation on the half life of 87Rb",
         "container": "Geochimica et Cosmochimica Acta", "year": "2015", "volume": "164", "pages": "382-385",
         "doi": "10.1016/j.gca.2015.05.025"},
+    # ------------------------------------------------------------------ Werkstoffkunde (Formeln und Werkstoffdaten)
+    "crc97": {
+        "type": "book", "authors": "Haynes, W. M.", "title": "CRC Handbook of Chemistry and Physics",
+        "container": "CRC Press", "year": "2016", "edition": "97. Auflage",
+        "note": "Hrsg.; Eigenschaften der Elemente (elastische Konstanten, Wärmeleitfähigkeit, Ausdehnung, spez. Widerstand)"},
+    "kittel": {
+        "type": "book", "authors": "Kittel, C.", "title": "Introduction to Solid State Physics", "container": "Wiley",
+        "year": "2005", "edition": "8. Auflage", "note": "Kristallstrukturen und Gitterkonstanten der Elemente"},
+    "mark2007": {
+        "type": "book", "authors": "Mark, J. E.", "title": "Physical Properties of Polymers Handbook",
+        "container": "Springer", "year": "2007", "edition": "2. Auflage", "doi": "10.1007/978-0-387-69002-5",
+        "note": "Hrsg.; Glasübergangs- und Schmelztemperaturen"},
+    "sze2007": {
+        "type": "book", "authors": "Sze, S. M.; Ng, K. K.", "title": "Physics of Semiconductor Devices",
+        "container": "Wiley", "year": "2007", "edition": "3. Auflage", "doi": "10.1002/0470068329",
+        "note": "Bandlücken bei 300 K"},
+    "hopcroft2010": {
+        "type": "article", "authors": "Hopcroft, M. A.; Nix, W. D.; Kenny, T. W.",
+        "title": "What is the Young's modulus of silicon?", "container": "Journal of Microelectromechanical Systems",
+        "year": "2010", "volume": "19", "issue": "2", "pages": "229-238", "doi": "10.1109/JMEMS.2009.2039697"},
+    "jain2013": {
+        "type": "article", "authors": "Jain, A.; Ong, S. P.; Hautier, G.; Chen, W.; Richards, W. D.; Dacek, S.; Cholia, S.; "
+                                      "Gunter, D.; Skinner, D.; Ceder, G.; Persson, K. A.",
+        "title": "Commentary: The Materials Project: A materials genome approach to accelerating materials innovation",
+        "container": "APL Materials", "year": "2013", "volume": "1", "pages": "011002", "doi": "10.1063/1.4812323",
+        "note": "Materials Project; berechnete Daten (DFT), Lizenz CC BY 4.0"},
+    "dejong2015": {
+        "type": "article", "authors": "de Jong, M.; Chen, W.; Angsten, T.; Jain, A.; Notestine, R.; Gamst, A.; Sluiter, M.; "
+                                      "Ande, C. K.; van der Zwaag, S.; Plata, J. J.; Toher, C.; Curtarolo, S.; Ceder, G.; "
+                                      "Persson, K. A.; Asta, M.",
+        "title": "Charting the complete elastic properties of inorganic crystalline compounds",
+        "container": "Scientific Data", "year": "2015", "volume": "2", "pages": "150009", "doi": "10.1038/sdata.2015.9",
+        "note": "elastische Konstanten der Materials Project Datenbank (Voigt-Reuss-Hill-Mittel)"},
+    "daniel2006": {
+        "type": "book", "authors": "Daniel, I. M.; Ishai, O.", "title": "Engineering Mechanics of Composite Materials",
+        "container": "Oxford University Press", "year": "2006", "edition": "2. Auflage",
+        "note": "Kennwerte unidirektionaler Schichten; Laminattheorie, Versagenskriterien"},
+    "ashby": {
+        "type": "book", "authors": "Ashby, M. F.", "title": "Materials Selection in Mechanical Design",
+        "container": "Butterworth-Heinemann", "year": "2017", "edition": "5. Auflage",
+        "note": "Werkstoffkennzahlen (Leistungsindizes)"},
+    "dowling": {
+        "type": "book", "authors": "Dowling, N. E.", "title": "Mechanical Behavior of Materials", "container": "Pearson",
+        "year": "2013", "edition": "4. Auflage", "note": "Ermüdung, Kriechen, Verformungsgesetze"},
+    "cullity": {
+        "type": "book", "authors": "Cullity, B. D.; Stock, S. R.", "title": "Elements of X-Ray Diffraction",
+        "container": "Pearson", "year": "2014", "edition": "3. Auflage", "note": "Kristallitgrösse (Scherrer)"},
+    "treloar1975": {
+        "type": "book", "authors": "Treloar, L. R. G.", "title": "The Physics of Rubber Elasticity",
+        "container": "Oxford University Press", "year": "1975", "edition": "3. Auflage"},
+    "avrami1939": {
+        "type": "article", "authors": "Avrami, M.", "title": "Kinetics of phase change. I. General theory",
+        "container": "The Journal of Chemical Physics", "year": "1939", "volume": "7", "issue": "12",
+        "pages": "1103-1112", "doi": "10.1063/1.1750380"},
+    "larsonmiller1952": {
+        "type": "article", "authors": "Larson, F. R.; Miller, J.",
+        "title": "A time-temperature relationship for rupture and creep stresses", "container": "Transactions of the ASME",
+        "year": "1952", "volume": "74"},
+    "basquin1910": {
+        "type": "article", "authors": "Basquin, O. H.", "title": "The exponential law of endurance tests",
+        "container": "Proceedings of the American Society for Testing and Materials", "year": "1910", "volume": "10"},
+    "miner1945": {
+        "type": "article", "authors": "Miner, M. A.", "title": "Cumulative damage in fatigue",
+        "container": "Journal of Applied Mechanics", "year": "1945", "volume": "12", "issue": "3",
+        "pages": "A159-A164", "doi": "10.1115/1.4009458"},
+    "weibull1951": {
+        "type": "article", "authors": "Weibull, W.", "title": "A statistical distribution function of wide applicability",
+        "container": "Journal of Applied Mechanics", "year": "1951", "volume": "18", "issue": "3",
+        "pages": "293-297", "doi": "10.1115/1.4010337"},
+    "wlf1955": {
+        "type": "article", "authors": "Williams, M. L.; Landel, R. F.; Ferry, J. D.",
+        "title": "The temperature dependence of relaxation mechanisms in amorphous polymers and other glass-forming "
+                 "liquids", "container": "Journal of the American Chemical Society", "year": "1955", "volume": "77",
+        "issue": "14", "pages": "3701-3707", "doi": "10.1021/ja01619a008"},
+    "fox1956": {
+        "type": "article", "authors": "Fox, T. G.",
+        "title": "Influence of diluent and of copolymer composition on the glass temperature of a polymer system",
+        "container": "Bulletin of the American Physical Society", "year": "1956", "volume": "1"},
+    "halpin1976": {
+        "type": "article", "authors": "Halpin, J. C.; Kardos, J. L.", "title": "The Halpin-Tsai equations: a review",
+        "container": "Polymer Engineering and Science", "year": "1976", "volume": "16", "issue": "5",
+        "pages": "344-352", "doi": "10.1002/pen.760160512"},
+    "pilling1923": {
+        "type": "article", "authors": "Pilling, N. B.; Bedworth, R. E.", "title": "The oxidation of metals at high temperatures",
+        "container": "Journal of the Institute of Metals", "year": "1923", "volume": "29"},
+    "hollomon1945": {
+        "type": "article", "authors": "Hollomon, J. H.", "title": "Tensile deformation",
+        "container": "Transactions of the American Institute of Mining and Metallurgical Engineers", "year": "1945",
+        "volume": "162"},
+    "hollomonjaffe1945": {
+        "type": "article", "authors": "Hollomon, J. H.; Jaffe, L. D.", "title": "Time-temperature relations in tempering steel",
+        "container": "Transactions of the American Institute of Mining and Metallurgical Engineers", "year": "1945",
+        "volume": "162"},
+    "andrews1965": {
+        "type": "article", "authors": "Andrews, K. W.",
+        "title": "Empirical formulae for the calculation of some transformation temperatures",
+        "container": "Journal of the Iron and Steel Institute", "year": "1965", "volume": "203"},
+    "kingery1955": {
+        "type": "article", "authors": "Kingery, W. D.", "title": "Factors affecting thermal stress resistance of ceramic materials",
+        "container": "Journal of the American Ceramic Society", "year": "1955", "volume": "38", "issue": "1",
+        "pages": "3-15", "doi": "10.1111/j.1151-2916.1955.tb14545.x"},
+    "en1011_2": {
+        "type": "standard", "authors": "CEN", "container": "Europäisches Komitee für Normung",
+        "title": "EN 1011-2:2001 Schweissen – Empfehlungen zum Schweissen metallischer Werkstoffe – Teil 2: "
+                 "Lichtbogenschweissen von ferritischen Stählen", "year": "2001",
+        "note": "Kohlenstoffäquivalent CE (IIW)"},
+    "astmg102": {
+        "type": "standard", "authors": "ASTM", "container": "ASTM International",
+        "title": "ASTM G102 Standard Practice for Calculation of Corrosion Rates and Related Information from "
+                 "Electrochemical Measurements", "year": "2015", "note": "G102-89, bestätigt 2015"},
     # ------------------------------------------------------------------ Chemie
     "atkins": {
         "type": "book", "authors": "Atkins, P.; de Paula, J.; Keeler, J.", "title": "Atkins' Physical Chemistry",

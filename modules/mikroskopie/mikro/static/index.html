@@ -1791,6 +1791,7 @@ async function runParticles() {
   const j = await withBusy(() => api("api/particles", { id: img.id, pipeline: img.pipeline, slice: img.slice, params, calib: img.calib, region }));
   if (j.error) return toast(j.error, true);
   img.particles = params; img.region = region; img.part = j;
+  if (window.ENVS) ENVS.save();                                   // Partikelanalyse gehört zum Berichtsstand
   img.partImg = await new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = "data:image/png;base64," + j.overlay; });
   img.showPart = true;
   updatePartPane(); updateResults(); draw();
@@ -2616,6 +2617,9 @@ async function init() {
     list: () => S.imgs, sel: () => S.sel,
     reset: () => { S.imgs = []; S.sel = -1; S.ext = []; },
     add: (d, saved) => addImage(d, saved), summary: envSummary,
+    // Berichtsauftrag (alle Bilder mit Messungen und Partikelanalyse), für „Import“ im Bericht
+    report: () => S.imgs.length ? { items: S.imgs.map(o => ({ id: o.id, state: stateOf(o) })), lang: "de", include: {},
+      title: "Bildanalyse " + (S.imgs.length === 1 ? stem(S.imgs[0].name) : `${S.imgs.length} Bilder`) } : null,
     extra: () => ({ ext: S.ext || [] }),
     done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; renderExt(); selectImage(sel); if (OV) setTimeout(() => OV.sync(), 0); mkCmpFollow().catch(() => {}); },
   });

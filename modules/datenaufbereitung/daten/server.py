@@ -421,6 +421,16 @@ def tpl_route(action: str, req: dict) -> dict:
     raise LookupError("unbekannte Aktion")
 
 
+def env_default_report(_stored, _client, eid: str) -> dict | None:
+    """Bericht einer Umgebung = ihr neuester veröffentlichter Datensatz (neueste Version, folgt der Quelle)."""
+    mine = [d for d in STATE.envs.datasets()["datasets"]
+            if (d.get("producer") or {}).get("module") == "datenaufbereitung" and (d.get("producer") or {}).get("env") == eid]
+    if not mine:
+        return None
+    d = max(mine, key=lambda x: str(x.get("modified") or ""))
+    return {"share": d["id"], "version": d.get("latest"), "mode": "live", "include": {}, "title": d.get("title")}
+
+
 def bundle_route(action: str, req: dict) -> dict:
     """DP-10: report bundle of a dataset (share + version).
 
@@ -707,6 +717,9 @@ def main(argv=None):
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
     STATE = State(Path(a.out).resolve())
+    # Der Bericht eines Datensatzes hängt nur an Freigabe und Version (projektweit), nicht an Dateien der Umgebung
+    STATE.envs.env_bundle = lambda _stored, report, lang: bundle_route("bundle", {**report, "lang": lang})
+    STATE.envs.env_default_report = env_default_report
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}/"
     print(f"Datenaufbereitung läuft auf {url}  (Beenden mit Strg+C)")

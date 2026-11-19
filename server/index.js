@@ -15,6 +15,7 @@ const lab = require('./lab');
 const suite = require('./suite');
 const portable = require('./portable');
 const importer = require('./importer');
+const folio = require('./folio');
 
 // 4330 by default so Folio Lab can run next to a plain Folio (4321). Override with FOLIO_PORT or --port=N.
 const PORT = +(process.argv.find((a) => a.startsWith('--port=')) || '').slice(7) || +process.env.FOLIO_PORT || 4330;
@@ -279,6 +280,10 @@ route('POST', '/api/import/stage', async (req, res, p, q) => {
   const buf = await readBody(req);
   json(res, await combiner.stageZip(q.get('name') || 'Project.zip', buf), 201);
 });
+// Module environments of the active suite project as import sources (server/folio.js)
+route('GET', '/api/folio/modules', async (req, res) => json(res, await folio.listModules()));
+route('GET', '/api/folio/env', async (req, res, p, q) => json(res, await folio.envPieces(q.get('module'), q.get('env'), q.get('lang'), q.get('target'))));
+route('GET', '/api/folio/file', async (req, res, p, q) => sendFile(res, await folio.stageFile(q.get('stage'), q.get('path'))));
 route('POST', '/api/projects/:id/import', async (req, res, p) => json(res, await importer.importPieces(p.id, await readJson(req)), 201));
 route('GET', '/api/projects/:id/import/links', async (req, res, p) => json(res, await importer.linkStates(p.id)));
 route('POST', '/api/projects/:id/import/:slug/update', async (req, res, p) => json(res, await importer.update(p.id, p.slug, await readJson(req))));

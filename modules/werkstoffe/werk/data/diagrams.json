@@ -1,0 +1,112 @@
+{
+  "_hinweis": "Schematische Lehrdiagramme: nur die zitierten Punkte (Schmelzpunkte, invariante Reaktionen, grösste Löslichkeiten) sind Literaturwerte; die Linien sind gerade zwischen ihnen gezogen, Löslichkeitslinien enden am unteren Rand bei 0 bzw. 100 %. Zum Ablesen von Löslichkeiten bei anderen Temperaturen nicht geeignet. Werte nicht am Original geprüft.",
+  "systeme": [
+    {
+      "id": "fe-c", "name": "Fe–Fe₃C (metastabil)", "name_en": "Fe–Fe₃C (metastable)", "A": "Fe", "B": "C",
+      "x_label": "Kohlenstoff [Gew.-%]", "x_label_en": "Carbon [wt%]", "xlim": [0, 6.7], "Tlim": [400, 1600],
+      "q": ["callister", "massalski1990"],
+      "points": [
+        {"x": 0, "T": 1538, "label": "Fe schmilzt", "label_en": "Fe melts"},
+        {"x": 0, "T": 1394, "label": "δ → γ"}, {"x": 0, "T": 912, "label": "γ → α (A₃)"},
+        {"x": 0.09, "T": 1493}, {"x": 0.17, "T": 1493, "label": "Peritektikum", "label_en": "Peritectic"}, {"x": 0.53, "T": 1493},
+        {"x": 2.14, "T": 1147}, {"x": 4.30, "T": 1147, "label": "Eutektikum", "label_en": "Eutectic"}, {"x": 6.70, "T": 1147},
+        {"x": 0.022, "T": 727}, {"x": 0.76, "T": 727, "label": "Eutektoid", "label_en": "Eutectoid"}, {"x": 6.70, "T": 727},
+        {"x": 6.70, "T": 1252, "label": "Fe₃C (schematisch)", "label_en": "Fe₃C (schematic)"}
+      ],
+      "regions": [
+        {"label": "L", "phases": ["L"], "poly": [[0, 1600], [6.7, 1600], [6.7, 1252], [4.30, 1147], [0.53, 1493], [0, 1538]]},
+        {"label": "δ", "phases": ["δ"], "poly": [[0, 1538], [0.09, 1493], [0, 1394]]},
+        {"label": "δ + L", "phases": ["δ", "L"], "poly": [[0, 1538], [0.53, 1493], [0.09, 1493]]},
+        {"label": "δ + γ", "phases": ["δ", "γ"], "poly": [[0.09, 1493], [0.17, 1493], [0, 1394]]},
+        {"label": "γ + L", "phases": ["γ", "L"], "poly": [[0.17, 1493], [0.53, 1493], [4.30, 1147], [2.14, 1147]]},
+        {"label": "γ", "phases": ["γ"], "poly": [[0, 1394], [0.17, 1493], [2.14, 1147], [0.76, 727], [0, 912]]},
+        {"label": "L + Fe₃C", "phases": ["L", "Fe₃C"], "poly": [[4.30, 1147], [6.7, 1252], [6.7, 1147]]},
+        {"label": "γ + Fe₃C", "phases": ["γ", "Fe₃C"], "poly": [[2.14, 1147], [6.7, 1147], [6.7, 727], [0.76, 727]]},
+        {"label": "α + γ", "phases": ["α", "γ"], "poly": [[0, 912], [0.76, 727], [0.022, 727]]},
+        {"label": "α", "phases": ["α"], "poly": [[0, 912], [0.022, 727], [0, 400]]},
+        {"label": "α + Fe₃C", "phases": ["α", "Fe₃C"], "poly": [[0.022, 727], [6.7, 727], [6.7, 400], [0, 400]]}
+      ],
+      "invariants": [
+        {"T": 1493, "type": "peritectic", "x": [0.09, 0.17, 0.53], "reaction": "δ + L ⇌ γ"},
+        {"T": 1147, "type": "eutectic", "x": [2.14, 4.30, 6.70], "reaction": "L ⇌ γ + Fe₃C",
+         "constituents": ["primärer Austenit", "Ledeburit", "primärer Zementit"],
+         "constituents_en": ["primary austenite", "ledeburite", "primary cementite"]},
+        {"T": 727, "type": "eutectoid", "x": [0.022, 0.76, 6.70], "reaction": "γ ⇌ α + Fe₃C",
+         "constituents": ["voreutektoider Ferrit", "Perlit", "voreutektoider Zementit"],
+         "constituents_en": ["proeutectoid ferrite", "pearlite", "proeutectoid cementite"]}
+      ]
+    },
+    {
+      "id": "pb-sn", "name": "Pb–Sn", "name_en": "Pb–Sn", "A": "Pb", "B": "Sn",
+      "x_label": "Zinn [Gew.-%]", "x_label_en": "Tin [wt%]", "xlim": [0, 100], "Tlim": [0, 350],
+      "q": ["callister", "massalski1990"],
+      "points": [
+        {"x": 0, "T": 327, "label": "Pb schmilzt", "label_en": "Pb melts"}, {"x": 100, "T": 232, "label": "Sn schmilzt", "label_en": "Sn melts"},
+        {"x": 18.3, "T": 183}, {"x": 61.9, "T": 183, "label": "Eutektikum", "label_en": "Eutectic"}, {"x": 97.8, "T": 183}
+      ],
+      "regions": [
+        {"label": "L", "phases": ["L"], "poly": [[0, 350], [100, 350], [100, 232], [61.9, 183], [0, 327]]},
+        {"label": "α", "phases": ["α"], "poly": [[0, 327], [18.3, 183], [0, 0]]},
+        {"label": "α + L", "phases": ["α", "L"], "poly": [[0, 327], [61.9, 183], [18.3, 183]]},
+        {"label": "β", "phases": ["β"], "poly": [[100, 232], [100, 0], [97.8, 183]]},
+        {"label": "β + L", "phases": ["L", "β"], "poly": [[61.9, 183], [100, 232], [97.8, 183]]},
+        {"label": "α + β", "phases": ["α", "β"], "poly": [[18.3, 183], [97.8, 183], [100, 0], [0, 0]]}
+      ],
+      "invariants": [
+        {"T": 183, "type": "eutectic", "x": [18.3, 61.9, 97.8], "reaction": "L ⇌ α + β",
+         "constituents": ["primäres α", "Eutektikum (α + β)", "primäres β"],
+         "constituents_en": ["primary α", "eutectic (α + β)", "primary β"]}
+      ]
+    },
+    {
+      "id": "al-si", "name": "Al–Si", "name_en": "Al–Si", "A": "Al", "B": "Si",
+      "x_label": "Silicium [Gew.-%]", "x_label_en": "Silicon [wt%]", "xlim": [0, 100], "Tlim": [300, 1500],
+      "q": ["murray1984"],
+      "points": [
+        {"x": 0, "T": 660, "label": "Al schmilzt", "label_en": "Al melts"}, {"x": 100, "T": 1414, "label": "Si schmilzt", "label_en": "Si melts"},
+        {"x": 1.65, "T": 577}, {"x": 12.6, "T": 577, "label": "Eutektikum", "label_en": "Eutectic"}
+      ],
+      "regions": [
+        {"label": "L", "phases": ["L"], "poly": [[0, 1500], [100, 1500], [100, 1414], [12.6, 577], [0, 660]]},
+        {"label": "(Al)", "phases": ["(Al)"], "poly": [[0, 660], [1.65, 577], [0, 300]]},
+        {"label": "(Al) + L", "phases": ["(Al)", "L"], "poly": [[0, 660], [12.6, 577], [1.65, 577]]},
+        {"label": "L + (Si)", "phases": ["L", "(Si)"], "poly": [[12.6, 577], [100, 1414], [100, 577]]},
+        {"label": "(Al) + (Si)", "phases": ["(Al)", "(Si)"], "poly": [[1.65, 577], [100, 577], [100, 300], [0, 300]]}
+      ],
+      "invariants": [
+        {"T": 577, "type": "eutectic", "x": [1.65, 12.6, 100], "reaction": "L ⇌ (Al) + (Si)",
+         "constituents": ["primäres (Al)", "Eutektikum", "primäres Si"], "constituents_en": ["primary (Al)", "eutectic", "primary Si"]}
+      ]
+    },
+    {
+      "id": "cu-ag", "name": "Cu–Ag", "name_en": "Cu–Ag", "A": "Cu", "B": "Ag",
+      "x_label": "Silber [Gew.-%]", "x_label_en": "Silver [wt%]", "xlim": [0, 100], "Tlim": [200, 1200],
+      "q": ["callister", "subramanian1993"],
+      "points": [
+        {"x": 0, "T": 1085, "label": "Cu schmilzt", "label_en": "Cu melts"}, {"x": 100, "T": 962, "label": "Ag schmilzt", "label_en": "Ag melts"},
+        {"x": 8.0, "T": 779}, {"x": 71.9, "T": 779, "label": "Eutektikum", "label_en": "Eutectic"}, {"x": 91.2, "T": 779}
+      ],
+      "regions": [
+        {"label": "L", "phases": ["L"], "poly": [[0, 1200], [100, 1200], [100, 962], [71.9, 779], [0, 1085]]},
+        {"label": "α", "phases": ["α"], "poly": [[0, 1085], [8.0, 779], [0, 200]]},
+        {"label": "α + L", "phases": ["α", "L"], "poly": [[0, 1085], [71.9, 779], [8.0, 779]]},
+        {"label": "β", "phases": ["β"], "poly": [[100, 962], [100, 200], [91.2, 779]]},
+        {"label": "β + L", "phases": ["L", "β"], "poly": [[71.9, 779], [100, 962], [91.2, 779]]},
+        {"label": "α + β", "phases": ["α", "β"], "poly": [[8.0, 779], [91.2, 779], [100, 200], [0, 200]]}
+      ],
+      "invariants": [
+        {"T": 779, "type": "eutectic", "x": [8.0, 71.9, 91.2], "reaction": "L ⇌ α + β",
+         "constituents": ["primäres α", "Eutektikum (α + β)", "primäres β"],
+         "constituents_en": ["primary α", "eutectic (α + β)", "primary β"]}
+      ]
+    }
+  ],
+  "berechnet": [
+    {
+      "id": "cu-ni", "name": "Cu–Ni (ideale Lösung, berechnet)", "name_en": "Cu–Ni (ideal solution, computed)",
+      "A": "Cu", "B": "Ni", "MA": 63.546, "MB": 58.693, "TmA": 1084.62, "TmB": 1455, "HA": 13.26, "HB": 17.48,
+      "omega_L": 0, "omega_S": 0, "Tlim": [1000, 1500], "q": ["porter", "crc97"],
+      "note": "Schmelztemperaturen und Schmelzenthalpien nach CRC Handbook; ideale Lösung in Schmelze und Mischkristall angenommen"
+    }
+  ]
+}

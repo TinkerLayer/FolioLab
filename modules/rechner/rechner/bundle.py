@@ -191,12 +191,22 @@ def build(request: dict, lang="de", include=None, title=None) -> dict:
     # Quellen: je Formel ihre Quelle, je verwendete Konstante deren Quelle (CODATA 2022, SI-Broschüre, …)
     import labcite
     from labcalc import sources as SRC
+    from labcalc import materials as MAT
     cited: dict[str, str] = {}
 
     def cite_src(skey):
         if skey not in cited:
             cited[skey] = labcite.to_bib(b, "rf-" + skey, SRC.REFS[skey])
         return cited[skey]
+
+    def cite_mat(r):
+        """Quelle eines Werkstoffwerts: Schlüssel aus sources.py oder Quellentext (Datenblatt, Norm) der Zeile."""
+        if r["key"]:
+            return cite_src(r["key"])
+        k = labcite.key_for("mw", r["source"])
+        if k not in cited:
+            cited[k] = labcite.to_bib(b, k, r["source"])
+        return cited[k]
 
     def eq_cites(eq):
         keys = [cite_src(eq.source_key)]
@@ -412,6 +422,7 @@ def build(request: dict, lang="de", include=None, title=None) -> dict:
                 names = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", it.get("src") or ""))
                 ck = [cite_src(SRC.CONSTANT_SOURCES[c][0]) for c in names
                       if c in SRC.CONSTANT_SOURCES and c in U.CONSTANTS and SRC.CONSTANT_SOURCES[c][0] != "bronstein"]
+                ck += [cite_mat(r) for r in MAT.cite_records(it.get("src") or "")]   # Werte aus der Werkstoffdatenbank
                 tail = (r" \quad \mbox{\cite{%s}}" % ",".join(dict.fromkeys(ck))) if ck else ""
                 if o.get("kind") == "func" and o.get("tex"):
                     mine.append(r"\[ %s%s \]" % (o["tex"], tail))

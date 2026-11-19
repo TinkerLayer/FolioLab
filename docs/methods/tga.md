@@ -1,6 +1,6 @@
 # TGA: methods and validation
 
-This document describes what the TGA module (`modules/tga/`, module version 0.13.0) computes, how, with which
+This document describes what the TGA module (`modules/tga/`, module version 0.13.1) computes, how, with which
 defaults and limits, which reference the code cites, and which automated test checks it. It is written so that you
 can decide whether a number from this module is fit to report. Statements refer to the code in
 `modules/tga/tga/*.py`; file names below are relative to `modules/tga/`.

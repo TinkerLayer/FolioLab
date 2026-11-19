@@ -608,7 +608,7 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
     L = T[lang]
     analyses = []
     for raw, fname, mapping, state in items:
-        r = load_bytes(raw, fname, mapping or None)[0]
+        r = load_bytes(raw, fname, mapping or None)[int(state.get("_idx") or 0)]    # Lauf idx einer Datei mit mehreren Läufen
         if state.get("_label"):
             r.name = str(state["_label"])
         analyses.append((run(r, state, lang), fname, len(raw)))

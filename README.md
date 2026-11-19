@@ -23,6 +23,7 @@ Every number in a report can be traced back to its raw file, the software versio
 | **TGA** (thermogravimetry) | Text exports of common instruments: DTG, steps and onsets (ISO 11358-1), composition (ASTM E1131, D7582), kinetics from several heating rates, peak separation, library search | [guide](modules/tga/README.md) | [methods](docs/methods/tga.md) |
 | **Datenaufbereitung** (data purification) | Excel, ODS, CSV and typed tables become datasets with units: parsing, unit conversion, cleaning, outlier tests with recorded exclusions, exports | [guide](modules/datenaufbereitung/README.md) | [methods](docs/methods/datenaufbereitung.md) |
 | **Elementrechner** (chemistry) | Equations and balancing, stoichiometry, thermochemistry, pH and speciation, redox, solution preparation, gases, nuclear chemistry, kinetics, molecule designer | [guide](modules/elementrechner/README.md) | [methods](docs/methods/elementrechner.md) |
+| **Werkstoffe** (materials) | Ashby selection from a sourced materials database, crystallography and XRD files (xy, `.xrdml`, `.brml`, `.raw`, `.ras`), phase diagrams, steel, laminates, fatigue, Weibull and fracture, hardness, corrosion and creep data | [guide](modules/werkstoffe/README.md) | [methods](docs/methods/werkstoffe.md) |
 
 All features are listed on one page in [FEATURES.md](FEATURES.md). The module user interfaces start in German and
 switch to English with **DE | EN** in the header.

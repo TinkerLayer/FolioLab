@@ -521,7 +521,7 @@ def _has_dims(node, ctx) -> bool:
                 return True
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id in E.STRFUNCS and n.args \
                 and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str) \
-                and not U.deq(E.STRFUNCS[n.func.id][3], U.D0):
+                and (E.strfunc_dims(n) is None or not U.deq(E.strfunc_dims(n), U.D0)):
             return True
     return False
 

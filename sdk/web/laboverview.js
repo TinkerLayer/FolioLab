@@ -43,7 +43,7 @@
 (function (g) {
   "use strict";
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const MOD = { tga: "TGA", ftir: "FTIR", rechner: "Rechner", zugversuch: "Zugversuch", mikroskopie: "Mikroskopie", elementrechner: "Elementrechner", datenaufbereitung: "Datenaufbereitung" };
+  const MOD = { tga: "TGA", ftir: "FTIR", rechner: "Rechner", zugversuch: "Zugversuch", mikroskopie: "Mikroskopie", elementrechner: "Elementrechner", datenaufbereitung: "Datenaufbereitung", werkstoffe: "Werkstoffe" };
   const CSS = `
 .lov{padding:12px 16px 20px;overflow:auto;min-height:0}
 .lov .lov-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}

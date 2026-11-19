@@ -1,0 +1,2192 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Werkstoffe</title>
+<style>
+:root {
+  --bg: #f4f5f8; --panel: #ffffff; --ink: #1d2027; --muted: #5d6472; --line: #d8dce4; --soft: #eef0f5;
+  --accent: #3d5f70; --accent-ink: #ffffff; --accent-soft: rgba(61,95,112,.11); --accent2: #b45309;
+  --err-bg: #fde7e7; --err-ink: #a50e0e; --ok-bg: #e6f4ef; --ok-ink: #12602a;
+  --plot: #ffffff; --grid: #e8eaf0; --warn-bg: #fff4e0; --warn-ink: #7a4a00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131519; --panel: #1b1e24; --ink: #e8eaf0; --muted: #9ca3b0; --line: #343945; --soft: #242832;
+    --accent: #8fb6c9; --accent-ink: #10161a; --accent-soft: rgba(143,182,201,.15); --accent2: #f59e0b;
+    --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #163126; --ok-ink: #a8dab5;
+    --plot: #171a1f; --grid: #2a2f39; --warn-bg: #3a2c12; --warn-ink: #f0c98a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131519; --panel: #1b1e24; --ink: #e8eaf0; --muted: #9ca3b0; --line: #343945; --soft: #242832;
+  --accent: #8fb6c9; --accent-ink: #10161a; --accent-soft: rgba(143,182,201,.15); --accent2: #f59e0b;
+  --err-bg: #3b1a1a; --err-ink: #f6aea9; --ok-bg: #163126; --ok-ink: #a8dab5;
+  --plot: #171a1f; --grid: #2a2f39; --warn-bg: #3a2c12; --warn-ink: #f0c98a;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; height: 100vh; overflow: hidden; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.link { border: 0; background: transparent; color: var(--accent); padding: 0 2px; text-decoration: underline; }
+button:disabled { opacity: .45; cursor: default; }
+input[type=text], input[type=number], input:not([type]), select, textarea { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; width: 100%; }
+textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12px; min-height: 70px; resize: vertical; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+label.chk { display: flex; gap: 6px; align-items: center; color: var(--ink); font-size: 13px; margin: 6px 0; }
+label .u { color: var(--muted); font-size: 11px; }
+code { font-size: 12px; background: var(--soft); padding: 0 3px; border-radius: 3px; }
+.small { font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 8px; }
+.row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 6px; }
+
+header { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; white-space: nowrap; }
+.brand svg { color: var(--accent); }
+.chips { display: flex; gap: 6px; flex: 1; overflow-x: auto; min-width: 0; padding: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); white-space: nowrap; max-width: 260px; font-size: 12px; }
+.chip span { overflow: hidden; text-overflow: ellipsis; }
+.chip .k { color: var(--muted); font-size: 11px; }
+.chip .x { border: 0; background: transparent; padding: 0 5px; color: var(--muted); }
+body.lov-board { grid-template-rows: auto minmax(0, 1fr) auto; }
+header .lov-only { display: none; }
+body.lov-board header .lov-only { display: block; flex: 1; }
+
+#menubar { display: flex; gap: 2px; padding: 2px 8px; background: var(--panel); border-bottom: 1px solid var(--line); position: relative; z-index: 20; }
+#menubar > .m { position: relative; }
+#menubar > .m > button { border: 0; background: transparent; padding: 4px 10px; border-radius: 5px; }
+#menubar > .m > button.open, #menubar > .m > button:hover { background: var(--accent-soft); }
+.dd { position: absolute; top: 100%; left: 0; min-width: 300px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; }
+.dd button { display: flex; width: 100%; justify-content: space-between; gap: 18px; border: 0; background: transparent; text-align: left; padding: 5px 10px; border-radius: 5px; }
+.dd button:hover:not(:disabled) { background: var(--accent-soft); }
+.dd button .k { color: var(--muted); font-size: 12px; }
+.dd button.on::before { content: "✓"; margin-right: -12px; color: var(--accent); }
+.dd hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+
+main { display: grid; grid-template-columns: 52px minmax(0, 1fr) var(--lab-side, 420px); min-height: 0; }
+#tools { display: flex; flex-direction: column; gap: 4px; padding: 6px 5px; background: var(--panel); border-right: 1px solid var(--line); }
+#tools button { width: 42px; height: 42px; padding: 0; display: grid; place-items: center; border-color: transparent; background: transparent; font-size: 9.5px; color: var(--muted); line-height: 1; }
+#tools button svg { margin-bottom: 1px; }
+#tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.viewer { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#opts { display: flex; align-items: center; gap: 10px; padding: 5px 10px; background: var(--soft); border-bottom: 1px solid var(--line); min-height: 36px; font-size: 12px; flex-wrap: wrap; }
+#opts .hint { color: var(--muted); flex: 1; min-width: 160px; }
+#stage { position: relative; flex: 1; min-height: 0; background: var(--plot); overflow: hidden; }
+#plot { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; user-select: none; }
+#plot text { font: 11px system-ui, sans-serif; fill: var(--ink); }
+#plot .ax text { fill: var(--muted); }
+#plot .pk { cursor: pointer; }
+#plot .drag { cursor: grab; }
+#html { position: absolute; inset: 0; overflow: auto; padding: 14px 18px; background: var(--plot); }
+#tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 7px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.15); max-width: 340px; z-index: 5; white-space: pre-line; }
+#empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; background: var(--plot); }
+#empty .box { border: 2px dashed var(--line); border-radius: 12px; padding: 24px 32px; max-width: 560px; }
+#empty .box b { font-size: 15px; color: var(--ink); display: block; margin-bottom: 6px; }
+#empty button { margin: 12px 4px 0; }
+#stage.drop { outline: 2px dashed var(--accent); outline-offset: -8px; }
+.tag { position: absolute; right: 12px; bottom: 8px; font-style: italic; font-size: 11.5px; color: var(--muted); pointer-events: none; }
+
+aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 6px 0; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 5px 7px; color: var(--muted); font-size: 12.5px; }
+.tabs button.sel { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tabs button.more { margin-left: auto; }
+.tabmenu { display: flex; flex-direction: column; gap: 2px; min-width: 240px; }
+.tabmenu button { text-align: left; border: 1px solid transparent; background: transparent; padding: 5px 8px; border-radius: 6px; }
+.tabmenu button:hover, .tabmenu button:focus-visible { border-color: var(--accent); }
+.tabmenu small { display: block; color: var(--muted); font-size: 11.5px; }
+.pane { padding: 10px 12px 16px; overflow-y: auto; flex: 1; min-height: 0; }
+.pane h4.sub { margin: 16px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.pane h4.sub:first-child { margin-top: 2px; }
+.pane details.lab-fold > summary { margin: 14px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; cursor: pointer; }
+.pane details.lab-fold > summary .cnt { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.note { padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); font-size: 12px; margin: 6px 0; }
+.note.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.note.err { background: var(--err-bg); color: var(--err-ink); }
+.note.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 12.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kv b { font-weight: 600; }
+.kv span:nth-child(odd) { color: var(--muted); }
+.big { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.tw { overflow: auto; max-height: 300px; border: 1px solid var(--line); border-radius: 6px; margin-top: 6px; }
+table.res { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; width: 100%; }
+table.res th, table.res td { padding: 3px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.res th { position: sticky; top: 0; background: var(--soft); font-weight: 600; z-index: 1; }
+table.res td.l, table.res th.l { text-align: left; }
+table.res td.wrap { white-space: normal; text-align: left; min-width: 120px; }
+table.res tbody tr.click { cursor: pointer; }
+table.res tbody tr.click:hover td { background: var(--soft); }
+table.res tr.hl td { background: var(--accent-soft) !important; }
+table.grid td { padding: 1px 2px; }
+table.grid td input[type=text] { padding: 2px 4px; min-width: 52px; text-align: right; }
+table.grid td button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+table.cmp { border-collapse: collapse; font-size: 12.5px; }
+table.cmp th, table.cmp td { padding: 5px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.cmp td small, table.cmp th small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
+table.cmp th button.link { font-size: 11px; font-weight: 400; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 3px 9px; font-size: 12px; }
+.seg button.sel { background: var(--accent); color: var(--accent-ink); }
+.badge { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; border: 1px solid currentColor; white-space: nowrap; color: var(--muted); }
+.badge.model { color: var(--warn-ink); }
+.list { border: 1px solid var(--line); border-radius: 6px; margin-top: 6px; max-height: 240px; overflow-y: auto; }
+.list .it { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.list .it:last-child { border-bottom: 0; }
+.list .it .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.3; }
+.list .it .cv { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+.list .it button { padding: 0 6px; border: 0; background: transparent; color: var(--muted); }
+.list .it button:hover { color: var(--ink); }
+.list .empty { padding: 10px; color: var(--muted); font-size: 12px; }
+.refs { font-size: 12px; margin: 4px 0 0; padding-left: 18px; }
+.refs li { margin: 2px 0; }
+.ok-y { color: var(--ok-ink); } .ok-n { color: var(--err-ink); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
+footer #stPos { min-width: 260px; color: var(--ink); }
+footer #stInfo { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+#busy { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); }
+#busy::before { content: ""; width: 10px; height: 10px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 0; width: min(480px, calc(100vw - 32px)); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+dialog.wide { width: min(820px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(8,12,14,.45); }
+dialog h3 { margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+dialog .body { padding: 8px 16px 12px; max-height: 72vh; overflow-y: auto; }
+dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
+dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: center; }
+#toasts { position: fixed; right: 14px; bottom: 34px; display: flex; flex-direction: column; gap: 8px; z-index: 50; max-width: min(460px, calc(100vw - 28px)); }
+.toast { padding: 9px 12px; border-radius: 8px; background: var(--ok-bg); color: var(--ok-ink); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.15); font-size: 12.5px; white-space: pre-line; }
+.toast.err { background: var(--err-bg); color: var(--err-ink); }
+
+@media (max-width: 980px) {
+  body { overflow: auto; height: auto; }
+  main { grid-template-columns: 52px minmax(0, 1fr); }
+  aside { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
+  #stage { min-height: 60vh; }
+}
+@media (max-width: 700px) { header { flex-wrap: wrap; } header .chips { order: 9; flex-basis: 100%; } #menubar, #opts { flex-wrap: wrap; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/><circle cx="12" cy="12" r="1.6"/></svg>
+    <span data-i18n="ws.brand">Werkstoffe</span>
+  </div>
+  <span id="crumbs"></span>
+  <div class="chips" id="chips" data-lov-detail></div>
+  <span class="hsp lov-only"></span>
+  <span id="langSw"></span>
+  <button id="labBtn" class="primary" hidden data-lov-detail data-i18n="ws.lab" data-i18n-title="ws.lab_t" title="Diagramme, Tabellen, Kennwerte und Quellen in einen Folio Lab Bericht übernehmen">Zum Bericht …</button>
+</header>
+
+<nav id="menubar" aria-label="Menü"></nav>
+
+<main>
+  <div id="tools" role="toolbar" aria-label="Bereiche"></div>
+  <div class="viewer">
+    <div id="opts">
+      <span class="hint" id="optHint"></span>
+      <div class="seg" id="viewSeg"></div>
+      <button id="viewAll" data-i18n="ws.all" data-i18n-title="ws.all_t" title="Ganzer Bereich (Doppelklick)">Ganz</button>
+    </div>
+    <div id="stage">
+      <svg id="plot"></svg>
+      <div id="html" hidden></div>
+      <div id="empty" hidden><div class="box" id="emptyBox"></div></div>
+      <div id="tip" hidden></div>
+      <div class="tag" id="stageTag"></div>
+    </div>
+  </div>
+  <aside data-size-col="side">
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+    <section class="pane" id="pane"></section>
+  </aside>
+</main>
+
+<footer>
+  <span id="stPos">–</span>
+  <span id="stInfo"></span>
+  <span id="envName" hidden title="Projekt · Umgebung (Datei ▸ Umgebungen …)"></span>
+  <span id="busy" hidden>rechnet …</span>
+</footer>
+
+<input type="file" id="file" multiple hidden>
+<dialog id="dlg"><form method="dialog"><h3 id="dlgTitle"></h3><div class="body" id="dlgBody"></div><div class="foot" id="dlgFoot"></div></form></dialog>
+<div id="toasts" aria-live="polite"></div>
+
+<script src="/lab/sdk.js"></script>
+<script src="labenv.js"></script>
+<script src="labindex.js"></script>
+<script src="labui.js"></script>
+<script src="labboard.js"></script>
+<script src="laboverview.js"></script>
+<script src="labimport.js"></script>
+<script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
+   Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
+(function (g) {
+  const msg = "Der laufende Modulserver ist älter als diese Seite. Bitte das Modul bzw. den Hub neu starten; bis dahin fehlen Umgebungen und Projektindex.";
+  if (!g.LabEnv) g.LabEnv = { stub: true, create: (o) => ({ ready: false, info: null, open: async () => o.toast(msg, true), save() {}, flush: () => Promise.resolve(), check() {}, dialog: () => o.toast(msg, true) }) };
+  const no = (a, t) => { t(msg, true); return Promise.resolve(null); };
+  if (!g.LabIndex) g.LabIndex = { stub: true, add: no, addMany: no, browse: no, history: no, exportDeps: no };
+})(window);</script>
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const WS_T = {
+  de: { "ws.brand": "Werkstoffe", "ws.lab": "Zum Bericht …", "ws.lab_t": "Diagramme, Tabellen, Kennwerte und Quellen in einen Folio Lab Bericht übernehmen",
+        "ws.all": "Ganz", "ws.all_t": "Ganzer Bereich (Doppelklick)" },
+  en: { "ws.brand": "Materials", "ws.lab": "To report …", "ws.lab_t": "Send charts, tables, values and sources to a Folio Lab report",
+        "ws.all": "Full", "ws.all_t": "Full range (double-click)" },
+};
+if (window.LabUI) LabUI.strings(WS_T);
+const lang = () => (window.LabUI && LabUI.lang ? LabUI.lang() : "de");
+const EN = () => lang() === "en";
+const L = (de, en) => (EN() ? en : de);
+let OV = null, META = null;
+
+// ---------------------------------------------------------------- Zahlen
+const NF = {};
+function fmt(v, nd = 3) {
+  if (v === null || v === undefined || v === "" || !isFinite(v)) return "–";
+  const k = lang() + nd;
+  NF[k] = NF[k] || new Intl.NumberFormat(EN() ? "en-GB" : "de-DE", { maximumFractionDigits: nd, minimumFractionDigits: 0, useGrouping: false });
+  return NF[k].format(v);
+}
+function sig(v, n = 4) {                     // signifikante Stellen, wissenschaftlich bei sehr grossen/kleinen Werten
+  if (v === null || v === undefined || v === "" || !isFinite(v)) return "–";
+  if (v === 0) return "0";
+  const a = Math.abs(v);
+  if (a >= 1e6 || a < 1e-3) {
+    const e = Math.floor(Math.log10(a)), m = v / 10 ** e;
+    return fmt(+m.toPrecision(n), n) + "·10" + String(e).replace(/-/, "⁻").replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]);
+  }
+  return fmt(+v.toPrecision(n), Math.max(0, n - 1 - Math.floor(Math.log10(a))));
+}
+const pnum = (v) => { const s = String(v ?? "").trim().replace(",", "."); if (s === "") return null; const x = Number(s); return isFinite(x) ? x : null; };
+const numList = (s) => String(s || "").split(/[\s;]+|,(?=\s)|\n/).map(t => pnum(t)).filter(v => v !== null);
+
+// ---------------------------------------------------------------- Server, Dialoge
+const S = { busy: 0, grp: "auswahl", tool: "auswahl", inp: {}, res: {}, err: {}, view: {}, items: [], phases: [], ext: [], seq: {} };
+async function api(path, body, raw) {
+  const opt = { method: body === undefined ? "GET" : "POST" };
+  if (body !== undefined) { opt.body = raw ? body : JSON.stringify(body); opt.headers = { "Content-Type": raw ? "application/octet-stream" : "application/json" }; }
+  try {
+    const r = await fetch(path, opt);
+    const j = await r.json().catch(() => ({ error: L("Antwort unlesbar", "Unreadable response") }));
+    j._status = r.status;
+    return j;
+  } catch (e) { return { error: L("Keine Verbindung zum Modul (", "No connection to the module (") + e.message + ")", _status: 0 }; }
+}
+function busy(d) { S.busy += d; $("#busy").hidden = S.busy <= 0; }
+async function withBusy(fn) { busy(1); try { return await fn(); } finally { busy(-1); } }
+function toast(msg, err = false) {
+  const t = document.createElement("div");
+  t.className = "toast" + (err ? " err" : "");
+  t.textContent = msg;
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), err ? 9000 : 5000);
+}
+function download(name, text, type = "text/csv;charset=utf-8") {
+  const blob = text instanceof Blob ? text : new Blob(["﻿" + text], { type });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function dialog(title, bodyHtml, buttons, leftHtml = "", onOpen = null, wide = false) {
+  const d = $("#dlg");
+  d.classList.toggle("wide", wide);
+  $("#dlgTitle").textContent = title;
+  $("#dlgBody").innerHTML = bodyHtml;
+  $("#dlgFoot").innerHTML = (leftHtml ? `<div class="left">${leftHtml}</div>` : "") +
+    buttons.map(b => `<button value="${b.value}" ${b.primary ? 'class="primary"' : ""}>${esc(b.label)}</button>`).join("");
+  if (onOpen) onOpen($("#dlgBody"));
+  return new Promise((res) => {
+    const done = () => { d.removeEventListener("close", done); res(d.returnValue || "cancel"); };
+    d.returnValue = ""; d.addEventListener("close", done); d.showModal();
+    const f = $("input,select,textarea", $("#dlgBody")); if (f) f.focus();
+  });
+}
+
+// ---------------------------------------------------------------- Pfade in S.inp
+const getp = (o, p) => p.split(".").reduce((a, k) => (a == null ? undefined : a[k]), o);
+function setp(o, p, v) { const ks = p.split("."); let a = o; for (const k of ks.slice(0, -1)) { if (a[k] == null || typeof a[k] !== "object") a[k] = {}; a = a[k]; } a[ks[ks.length - 1]] = v; }
+const clone = (o) => JSON.parse(JSON.stringify(o));
+function merge(def, saved) {
+  if (saved === undefined || saved === null) return clone(def);
+  if (Array.isArray(def) || typeof def !== "object" || def === null) return clone(saved);
+  const out = clone(def);
+  for (const [k, v] of Object.entries(saved)) out[k] = (k in def) ? merge(def[k], v) : clone(v);
+  return out;
+}
+const I = () => S.inp[S.tool];
+
+// ---------------------------------------------------------------- Bausteine der Eingabe (an S.inp gebunden)
+function fld(k, label, o = {}) {
+  const v = getp(I(), k);
+  const val = v === null || v === undefined ? "" : (typeof v === "number" ? String(v).replace(".", EN() ? "." : ",") : v);
+  return `<label>${esc(label)}${o.u ? ` <span class="u">[${esc(o.u)}]</span>` : ""}</label><input type="text" inputmode="${o.text ? "text" : "decimal"}" data-k="${k}"${o.text ? " data-text" : ""} value="${esc(val)}"${o.ph ? ` placeholder="${esc(o.ph)}"` : ""}${o.title ? ` title="${esc(o.title)}"` : ""}>`;
+}
+function sel(k, label, opts, o = {}) {
+  const v = String(getp(I(), k) ?? "");
+  return `${label ? `<label>${esc(label)}</label>` : ""}<select data-k="${k}" data-text${o.num ? " data-numsel" : ""}>${opts.map(([a, b]) => `<option value="${esc(a)}"${String(a) === v ? " selected" : ""}>${esc(b)}</option>`).join("")}</select>`;
+}
+const chk = (k, label, title = "") => `<label class="chk"${title ? ` title="${esc(title)}"` : ""}><input type="checkbox" data-k="${k}"${getp(I(), k) ? " checked" : ""}> ${esc(label)}</label>`;
+const area = (k, label, ph = "") => `<label>${esc(label)}</label><textarea data-k="${k}" data-text placeholder="${esc(ph)}">${esc(getp(I(), k) || "")}</textarea>`;
+const fold = (id, title, inner, cnt = "") => `<details class="lab-fold" data-fold="${id}"><summary>${esc(title)} <span class="cnt">${esc(cnt)}</span></summary>${inner}</details>`;
+const segH = (k, opts) => `<div class="seg" data-segk="${k}">${opts.map(([a, b]) => `<button type="button" data-v="${esc(a)}"${String(getp(I(), k)) === String(a) ? ' class="sel"' : ""}>${esc(b)}</button>`).join("")}</div>`;
+// Tabelle mit Eingaben; Zeilen als Objekte in S.inp[k]; Einfügen aus Excel (Tab/Semikolon) in eine Zelle verteilt
+function grid(k, cols, o = {}) {
+  const rows = getp(I(), k) || [];
+  const head = cols.map(c => `<th class="l">${esc(c.label)}${c.u ? ` <span class="u">[${esc(c.u)}]</span>` : ""}</th>`).join("");
+  const body = rows.map((r, i) => `<tr>${cols.map(c => c.chk
+    ? `<td style="text-align:center"><input type="checkbox" data-g="${k}" data-r="${i}" data-c="${c.k}"${r[c.k] ? " checked" : ""}></td>`
+    : c.text
+    ? `<td><input type="text" data-g="${k}" data-r="${i}" data-c="${c.k}" data-txt="1"${c.ph ? ` placeholder="${esc(c.ph)}"` : ""} value="${esc(r[c.k] === null || r[c.k] === undefined ? "" : String(r[c.k]))}"${c.w ? ` style="min-width:${c.w}px"` : ""}></td>`
+    : `<td><input type="text" inputmode="decimal" data-g="${k}" data-r="${i}" data-c="${c.k}" value="${esc(r[c.k] === null || r[c.k] === undefined ? "" : String(r[c.k]).replace(".", EN() ? "." : ","))}"></td>`).join("")}<td><button type="button" data-gdel="${k}" data-r="${i}" title="${esc(L("Zeile löschen", "Delete row"))}">✕</button></td></tr>`).join("");
+  return `<div class="tw" style="max-height:${o.h || 220}px"><table class="res grid"><thead><tr>${head}<th></th></tr></thead><tbody>${body}</tbody></table></div>
+    <div class="row"><button type="button" data-gadd="${k}">+ ${esc(L("Zeile", "Row"))}</button><button type="button" data-gpaste="${k}" title="${esc(L("Spalten aus der Zwischenablage (Excel, Tab oder Semikolon) einfügen", "Paste columns from the clipboard (Excel, tab or semicolon)"))}">${esc(L("Einfügen", "Paste"))}</button>${o.file ? `<button type="button" data-gfile="${k}">${esc(L("Aus Datei …", "From file …"))}</button>` : ""}<button type="button" data-gclr="${k}">${esc(L("Leeren", "Clear"))}</button>${o.extra || ""}</div>`;
+}
+function refsHtml(refs) {
+  if (!refs || !refs.length) return "";
+  const un = refs.some(r => r.unchecked);
+  return fold("refs", L("Quellen", "Sources"), `<ol class="refs">${refs.map(r => `<li>${esc(r.text)}${r.unchecked ? " †" : ""}</li>`).join("")}</ol>` +
+    (un ? `<div class="small">† ${esc(L("nicht gegen das Original geprüft (aus dem Gedächtnis nach der genannten Quelle)", "not checked against the original (from memory after the cited source)"))}</div>` : ""), `(${refs.length})`);
+}
+function tbl(head, rows, o = {}) {
+  return `<div class="tw"${o.h ? ` style="max-height:${o.h}px"` : ""}><table class="res"><thead><tr>${head.map((h, i) => `<th${i === 0 || (o.left || []).includes(i) ? ' class="l"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r, ri) =>
+    `<tr${o.click ? ` class="click${o.hl && o.hl(ri) ? " hl" : ""}" data-row="${ri}"` : ""}>${r.map((c, i) => `<td${i === 0 || (o.left || []).includes(i) ? ' class="l"' : ""}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+const kv = (pairs) => `<div class="kv">${pairs.filter(Boolean).map(([a, b]) => `<span>${a}</span><b>${b}</b>`).join("")}</div>`;
+const note = (t, cls = "") => `<div class="note ${cls}">${t}</div>`;
+
+// ---------------------------------------------------------------- Plotter (SVG)
+const PL = { spec: null, view: null, key: "", hits: [], drag: null, tx: null };
+const SVGNS = "http://www.w3.org/2000/svg";
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const PAL = ["#3d5f70", "#b45309", "#15803d", "#a21caf", "#be123c", "#0e7490", "#4d7c0f", "#7c3aed", "#c2410c", "#0369a1"];
+const CLS_COL = { metall: "#3d5f70", polymer: "#15803d", keramik: "#b45309", glas: "#0e7490", verbund: "#7c3aed", faser: "#be123c", halbleiter: "#a16207", naturstoff: "#4d7c0f" };
+function niceTicks(a, b, n = 6) {
+  const span = b - a; if (!(span > 0)) return [a];
+  const step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0)), f = step0 / mag;
+  const step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * mag;
+  const out = []; for (let k = Math.ceil(a / step); k * step <= b + step * 1e-9; k++) out.push(k === 0 ? 0 : +(k * step).toPrecision(12));
+  return out;
+}
+function logTicks(a, b) {                  // a, b in log10
+  const out = [], d0 = Math.floor(a), d1 = Math.ceil(b), many = d1 - d0 > 6;
+  for (let d = d0; d <= d1; d++) {
+    if (!many || d % 2 === 0) out.push({ v: d, major: true });
+    if (b - a < 1.3) for (const m of [2, 3, 4, 5, 6, 7, 8, 9]) out.push({ v: d + Math.log10(m), major: false });
+    else if (d1 - d0 <= 3) for (const m of [2, 5]) out.push({ v: d + Math.log10(m), major: false });
+  }
+  return out.filter(t => t.v >= a - 1e-9 && t.v <= b + 1e-9);
+}
+const supNum = (e) => String(e).replace(/-/, "⁻").replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]);
+function tickLabel(v, log) {
+  if (log) { const e = Math.round(v); if (Math.abs(v - e) < 1e-6) return Math.abs(e) <= 3 ? fmt(10 ** e, 3) : "10" + supNum(e); return fmt(+(10 ** v).toPrecision(2), 4); }
+  const a = Math.abs(v); return a !== 0 && (a >= 1e5 || a < 1e-3) ? sig(v, 3) : fmt(v, 6);
+}
+function plot(spec) {
+  if (!spec) { PL.spec = null; drawPlot(); return; }
+  if (spec.key !== PL.key) PL.view = null;
+  PL.key = spec.key || ""; PL.spec = spec; drawPlot();
+}
+function dataBounds(sp) {
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  const ax = (v) => { if (v == null || !isFinite(v) || (sp.xlog && v <= 0)) return; const t = sp.xlog ? Math.log10(v) : v; if (t < x0) x0 = t; if (t > x1) x1 = t; };
+  const ay = (v) => { if (v == null || !isFinite(v) || (sp.ylog && v <= 0)) return; const t = sp.ylog ? Math.log10(v) : v; if (t < y0) y0 = t; if (t > y1) y1 = t; };
+  for (const l of sp.layers) {
+    if (l.nofit || !Array.isArray(l.x || l.pts)) continue;
+    if (Array.isArray(l.x)) l.x.forEach(ax); if (Array.isArray(l.y)) l.y.forEach(ay);
+    if (l.lo) l.lo.forEach(ay); if (l.hi) l.hi.forEach(ay);
+    if (l.xlo) l.xlo.forEach(ax); if (l.xhi) l.xhi.forEach(ax);
+    if (l.pts) l.pts.forEach(p => { ax(p[0]); ay(p[1]); });
+    if (l.t === "sticks") { l.x.forEach(ax); l.h.forEach(ay); ay(l.base || 0); }
+  }
+  if (!isFinite(x0)) { x0 = 0; x1 = 1; } if (!isFinite(y0)) { y0 = 0; y1 = 1; }
+  if (x1 - x0 < 1e-12) { x0 -= sp.xlog ? 0.5 : Math.abs(x0) * 0.1 || 1; x1 += sp.xlog ? 0.5 : Math.abs(x1) * 0.1 || 1; }
+  if (y1 - y0 < 1e-12) { y0 -= sp.ylog ? 0.5 : Math.abs(y0) * 0.1 || 1; y1 += sp.ylog ? 0.5 : Math.abs(y1) * 0.1 || 1; }
+  // fast konstante Werte (z. B. Gitterkonstante je Reflex): nicht bis auf Rundungsrauschen aufzoomen
+  else if (!sp.ylog && y1 - y0 < 1e-4 * Math.max(Math.abs(y0), Math.abs(y1))) { const m = (y0 + y1) / 2, h = 5e-5 * Math.abs(m); y0 = m - h; y1 = m + h; }
+  const px = sp.xpad ?? 0.03, py = sp.ypad ?? 0.06;
+  const dx = (x1 - x0) * px, dy = (y1 - y0) * py;
+  const T = (v, log) => (v == null ? null : log ? Math.log10(v) : v);
+  return { x0: sp.xr ? T(sp.xr[0], sp.xlog) : x0 - dx, x1: sp.xr ? T(sp.xr[1], sp.xlog) : x1 + dx,
+           y0: sp.yr ? T(sp.yr[0], sp.ylog) : y0 - dy, y1: sp.yr ? T(sp.yr[1], sp.ylog) : y1 + dy };
+}
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) if (v !== undefined && v !== null) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function drawPlot() {
+  const svg = $("#plot"), st = $("#stage");
+  svg.innerHTML = ""; PL.hits = [];
+  const sp = PL.spec;
+  $("#stageTag").textContent = sp && sp.tag ? sp.tag : "";
+  if (!sp) return;
+  if (sp.custom) { sp.custom(svg, st.clientWidth, st.clientHeight); return; }
+  const W = st.clientWidth, H = st.clientHeight;
+  if (W < 50 || H < 50) return;
+  const db = dataBounds(sp), v = PL.view || db;
+  const M = { l: 70, r: sp.right ? 70 : 18, t: sp.title ? 26 : 14, b: 46 };
+  const pw = W - M.l - M.r, ph = H - M.t - M.b;
+  const tx = (x) => { const t = sp.xlog ? Math.log10(x) : x; return M.l + (t - v.x0) / (v.x1 - v.x0) * pw; };
+  const ty = (y) => { const t = sp.ylog ? Math.log10(y) : y; return M.t + ph - (t - v.y0) / (v.y1 - v.y0) * ph; };
+  PL.tx = { tx, ty, M, pw, ph, v,
+    ix: (px) => { const t = v.x0 + (px - M.l) / pw * (v.x1 - v.x0); return sp.xlog ? 10 ** t : t; },
+    iy: (py) => { const t = v.y0 + (M.t + ph - py) / ph * (v.y1 - v.y0); return sp.ylog ? 10 ** t : t; } };
+  const ink = css("--ink"), muted = css("--muted"), gridc = css("--grid"), line = css("--line");
+  const ax = el("g", { class: "ax" }, svg);
+  // Gitter und Teilung
+  const xt = sp.xlog ? logTicks(v.x0, v.x1) : niceTicks(v.x0, v.x1, Math.max(3, Math.floor(pw / 90))).map(t => ({ v: t, major: true }));
+  const yt = sp.yticks ? sp.yticks.map(([val, lab]) => ({ v: sp.ylog ? Math.log10(val) : val, major: true, lab })) :
+    sp.ylog ? logTicks(v.y0, v.y1) : niceTicks(v.y0, v.y1, Math.max(3, Math.floor(ph / 60))).map(t => ({ v: t, major: true }));
+  for (const t of xt) {
+    const X = M.l + (t.v - v.x0) / (v.x1 - v.x0) * pw;
+    el("line", { x1: X, x2: X, y1: M.t, y2: M.t + ph, stroke: gridc, "stroke-width": t.major ? 1 : 0.5 }, ax);
+    if (t.major || xt.length < 12) { const tt = el("text", { x: X, y: M.t + ph + 15, "text-anchor": "middle" }, ax); tt.textContent = tickLabel(t.v, sp.xlog); }
+  }
+  for (const t of yt) {
+    const Y = M.t + ph - (t.v - v.y0) / (v.y1 - v.y0) * ph;
+    if (Y < M.t - 1 || Y > M.t + ph + 1) continue;
+    el("line", { x1: M.l, x2: M.l + pw, y1: Y, y2: Y, stroke: gridc, "stroke-width": t.major ? 1 : 0.5 }, ax);
+    if ((t.major || yt.length < 10) && !(sp.ylabMin !== undefined && t.v < sp.ylabMin - 1e-9)) { const tt = el("text", { x: M.l - 6, y: Y + 4, "text-anchor": "end" }, ax); tt.textContent = t.lab ?? tickLabel(t.v, sp.ylog); }
+  }
+  if (sp.y2ticks) for (const [val, lab] of sp.y2ticks) {
+    const Y = ty(val); if (Y < M.t || Y > M.t + ph) continue;
+    const tt = el("text", { x: M.l + pw + 6, y: Y + 4 }, ax); tt.textContent = lab;
+  }
+  el("rect", { x: M.l, y: M.t, width: pw, height: ph, fill: "none", stroke: line }, ax);
+  const xl = el("text", { x: M.l + pw / 2, y: H - 8, "text-anchor": "middle" }, ax); xl.textContent = sp.xlab || "";
+  const yl = el("text", { x: 14, y: M.t + ph / 2, "text-anchor": "middle", transform: `rotate(-90 14 ${M.t + ph / 2})` }, ax); yl.textContent = sp.ylab || "";
+  if (sp.y2lab) { const y2 = el("text", { x: W - 12, y: M.t + ph / 2, "text-anchor": "middle", transform: `rotate(90 ${W - 12} ${M.t + ph / 2})` }, ax); y2.textContent = sp.y2lab; }
+  if (sp.title) { const t = el("text", { x: M.l, y: 16, "font-weight": 600 }, ax); t.textContent = sp.title; }
+  // Daten (geclippt)
+  const defs = el("defs", {}, svg), cp = el("clipPath", { id: "clipP" }, defs);
+  el("rect", { x: M.l, y: M.t, width: pw, height: ph }, cp);
+  const g = el("g", { "clip-path": "url(#clipP)" }, svg);
+  const top = el("g", {}, svg);                                // Griffe und Beschriftungen ausserhalb des Clips
+  const legend = [];
+  const okx = (x) => x != null && isFinite(x) && (!sp.xlog || x > 0), oky = (y) => y != null && isFinite(y) && (!sp.ylog || y > 0);
+  sp.layers.forEach((l, li) => {
+    const c = l.c || PAL[li % PAL.length];
+    if (l.name && !l.nolegend) legend.push({ name: l.name, c, t: l.t, hollow: l.hollow, dash: l.dash, shape: l.shape });
+    if (l.t === "line") {
+      let d = "", pen = false;
+      for (let i = 0; i < l.x.length; i++) {
+        if (!okx(l.x[i]) || !oky(l.y[i])) { pen = false; continue; }
+        d += (pen ? "L" : "M") + tx(l.x[i]).toFixed(1) + " " + ty(l.y[i]).toFixed(1); pen = true;
+      }
+      el("path", { d, fill: "none", stroke: c, "stroke-width": l.w || 1.5, "stroke-dasharray": l.dash, opacity: l.op }, g);
+    } else if (l.t === "band") {
+      const up = [], dn = [];
+      for (let i = 0; i < l.x.length; i++) if (okx(l.x[i]) && oky(l.lo[i]) && oky(l.hi[i])) { up.push([tx(l.x[i]), ty(l.hi[i])]); dn.push([tx(l.x[i]), ty(l.lo[i])]); }
+      if (up.length) el("path", { d: "M" + up.concat(dn.reverse()).map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z", fill: c, opacity: l.op || 0.15, stroke: "none" }, g);
+    } else if (l.t === "err") {
+      for (let i = 0; i < l.x.length; i++) {
+        if (!okx(l.x[i]) || !oky(l.y[i])) continue;
+        const X = tx(l.x[i]), Y = ty(l.y[i]);
+        if (l.xlo && okx(l.xlo[i]) && okx(l.xhi[i])) el("line", { x1: tx(l.xlo[i]), x2: tx(l.xhi[i]), y1: Y, y2: Y, stroke: c, "stroke-width": 3, opacity: 0.35, "stroke-linecap": "round" }, g);
+        if (l.lo && oky(l.lo[i]) && oky(l.hi[i])) el("line", { x1: X, x2: X, y1: ty(l.lo[i]), y2: ty(l.hi[i]), stroke: c, "stroke-width": 3, opacity: 0.35, "stroke-linecap": "round" }, g);
+      }
+    } else if (l.t === "pts") {
+      const r = l.r || 4;
+      for (let i = 0; i < l.x.length; i++) {
+        if (!okx(l.x[i]) || !oky(l.y[i])) continue;
+        const X = tx(l.x[i]), Y = ty(l.y[i]);
+        const a = { fill: l.hollow ? "none" : c, stroke: c, "stroke-width": l.hollow ? 1.5 : 0.8 };
+        const sh = (l.shapes && l.shapes[i]) || l.shape;
+        let m;
+        if (sh === "tri") m = el("path", { d: `M${X} ${Y - r - 1}L${X + r + 1} ${Y + r}L${X - r - 1} ${Y + r}Z`, ...a }, g);
+        else if (sh === "sq") m = el("rect", { x: X - r, y: Y - r, width: 2 * r, height: 2 * r, ...a }, g);
+        else if (sh === "dia") m = el("path", { d: `M${X} ${Y - r - 1.5}L${X + r + 1.5} ${Y}L${X} ${Y + r + 1.5}L${X - r - 1.5} ${Y}Z`, ...a }, g);
+        else if (sh === "arrow") { m = el("circle", { cx: X, cy: Y, r, ...a, fill: "none", "stroke-width": 1.5 }, g); el("path", { d: `M${X + r} ${Y}l9 0m-3 -3l3 3l-3 3`, stroke: c, fill: "none", "stroke-width": 1.3 }, g); }
+        else m = el("circle", { cx: X, cy: Y, r, ...a }, g);
+        if (l.pick) m.setAttribute("class", "pk");
+        if (l.tips) PL.hits.push({ X, Y, tip: l.tips[i], li, i });
+        if (l.labels && l.labels[i]) { const t = el("text", { x: X + r + 3, y: Y - r - 1, "font-size": 10.5, fill: c }, g); t.textContent = l.labels[i]; }
+      }
+    } else if (l.t === "sticks") {
+      const b = l.base || 0;
+      for (let i = 0; i < l.x.length; i++) {
+        if (!okx(l.x[i])) continue;
+        const X = tx(l.x[i]);
+        el("line", { x1: X, x2: X, y1: ty(b), y2: ty(l.h[i]), stroke: c, "stroke-width": l.w || 1.5, opacity: l.op }, g);
+        if (l.tips) PL.hits.push({ X, Y: ty(l.h[i]), tip: l.tips[i], li, i });
+        if (l.labels && l.labels[i]) { const t = el("text", { x: X + 2, y: ty(l.h[i]) - 3, "font-size": 10, fill: c }, g); t.textContent = l.labels[i]; }
+      }
+    } else if (l.t === "poly") {
+      const pts = l.pts.filter(p => okx(p[0]) && oky(p[1]));
+      if (pts.length > 2) el("path", { d: "M" + pts.map(p => tx(p[0]).toFixed(1) + " " + ty(p[1]).toFixed(1)).join("L") + "Z", fill: l.fill || c, "fill-opacity": l.fop ?? 0.14, stroke: l.stroke || c, "stroke-width": l.w || 1.2 }, g);
+      if (l.label) {
+        const cx = pts.reduce((a, p) => a + tx(p[0]), 0) / pts.length, cy = pts.reduce((a, p) => a + ty(p[1]), 0) / pts.length;
+        const at = l.at ? [tx(l.at[0]), ty(l.at[1])] : [cx, cy];
+        const t = el("text", { x: at[0], y: at[1] + 4, "text-anchor": "middle", "font-size": 12, "font-weight": 600 }, g); t.textContent = l.label;
+      }
+    } else if (l.t === "seg") {
+      if (okx(l.x1) && okx(l.x2) && oky(l.y1) && oky(l.y2)) el("line", { x1: tx(l.x1), x2: tx(l.x2), y1: ty(l.y1), y2: ty(l.y2), stroke: c, "stroke-width": l.w || 1.5, "stroke-dasharray": l.dash }, g);
+    } else if (l.t === "hline" || l.t === "vline") {
+      const H_ = l.t === "hline";
+      if (H_ ? !oky(l.v) : !okx(l.v)) return;
+      const p = H_ ? ty(l.v) : tx(l.v);
+      const a = H_ ? { x1: l.from != null ? tx(l.from) : M.l, x2: l.to != null ? tx(l.to) : M.l + pw, y1: p, y2: p } : { y1: M.t, y2: M.t + ph, x1: p, x2: p };
+      el("line", { ...a, stroke: c, "stroke-width": l.w || 1, "stroke-dasharray": l.dash ?? "5 4" }, g);
+      if (l.label) { const t = el("text", H_ ? { x: (a.x2) - 4, y: p - 4, "text-anchor": "end", fill: c, "font-size": 10.5 } : { x: p + 4, y: M.t + 12, fill: c, "font-size": 10.5 }, g); t.textContent = l.label; }
+    } else if (l.t === "text") {
+      if (!okx(l.x) || !oky(l.y)) return;
+      const t = el("text", { x: tx(l.x) + (l.dx || 0), y: ty(l.y) + (l.dy || 0), "text-anchor": l.anchor || "start", fill: l.c || ink, "font-size": l.size || 11, "font-weight": l.bold ? 600 : null }, g); t.textContent = l.s;
+    } else if (l.t === "handle") {
+      if (!okx(l.x) || !oky(l.y)) return;
+      const h = el("circle", { cx: tx(l.x), cy: ty(l.y), r: 7, fill: css("--panel"), stroke: c, "stroke-width": 2, class: "drag" }, top);
+      h.dataset.handle = li;
+      h.appendChild(el("title")).textContent = l.title || "";
+    }
+  });
+  if (legend.length && !sp.nolegend) {
+    const lg = el("g", {}, top);
+    const lh = legend.length * 16 + 8, wmax = Math.max(...legend.map(x => x.name.length)) * 6.3 + 34;
+    const x0 = sp.legendLeft ? M.l + 8 : M.l + pw - wmax - 6, ytop = sp.legendPos === "br" ? M.t + ph - lh - 6 : M.t + 2;
+    let y = ytop + 6;
+    el("rect", { x: x0 - 4, y: ytop, width: wmax, height: lh, fill: css("--plot"), opacity: 0.88, stroke: line, rx: 4 }, lg);
+    for (const it of legend) {
+      if (it.t === "pts") {
+        if (it.shape === "tri") el("path", { d: `M${x0 + 9} ${y + 1}l4 7h-8z`, fill: it.hollow ? "none" : it.c, stroke: it.c }, lg);
+        else if (it.shape === "dia") el("path", { d: `M${x0 + 9} ${y}l5 5l-5 5l-5 -5z`, fill: it.hollow ? "none" : it.c, stroke: it.c, "stroke-width": 1.5 }, lg);
+        else el("circle", { cx: x0 + 9, cy: y + 5, r: 3.5, fill: it.hollow ? "none" : it.c, stroke: it.c }, lg);
+      } else el("line", { x1: x0, x2: x0 + 18, y1: y + 5, y2: y + 5, stroke: it.c, "stroke-width": it.t === "band" ? 6 : 2, opacity: it.t === "band" ? 0.3 : 1, "stroke-dasharray": it.dash }, lg);
+      const t = el("text", { x: x0 + 24, y: y + 9 }, lg); t.textContent = it.name;
+      y += 16;
+    }
+  }
+}
+function resetView() { PL.view = null; if (PL.spec && PL.spec.custom && PL.spec.reset) PL.spec.reset(); drawPlot(); }
+function bindPlot() {
+  const svg = $("#plot");
+  const pos = (e) => { const r = svg.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  svg.addEventListener("pointerdown", (e) => {
+    if (!PL.spec || e.button !== 0) return;
+    const [X, Y] = pos(e);
+    if (PL.spec.custom) { if (PL.spec.down) PL.spec.down(X, Y); PL.drag = { custom: true, X, Y, moved: false }; svg.setPointerCapture(e.pointerId); return; }
+    if (!PL.tx) return;
+    const h = e.target.closest("[data-handle]");
+    PL.drag = { X, Y, moved: false, view: { ...(PL.view || PL.tx.v) }, handle: h ? +h.dataset.handle : null };
+    svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener("pointermove", (e) => {
+    const [X, Y] = pos(e), d = PL.drag;
+    if (d && d.custom) { if (Math.abs(X - d.X) + Math.abs(Y - d.Y) > 3) d.moved = true; if (PL.spec.move) PL.spec.move(X - d.X, Y - d.Y); d.X = X; d.Y = Y; return; }
+    if (!PL.tx || !PL.spec || PL.spec.custom) return;
+    const T = PL.tx;
+    $("#stPos").textContent = (X >= T.M.l && X <= T.M.l + T.pw && Y >= T.M.t && Y <= T.M.t + T.ph) ? `x = ${sig(T.ix(X), 5)}   y = ${sig(T.iy(Y), 5)}` : "–";
+    if (d) {
+      if (Math.abs(X - d.X) + Math.abs(Y - d.Y) > 3) d.moved = true;
+      if (d.handle !== null) { const l = PL.spec.layers[d.handle]; if (l && l.onDrag) { l.onDrag(T.ix(X), T.iy(Y)); } return; }
+      if (d.moved) {
+        const fx = (d.view.x1 - d.view.x0) / T.pw, fy = (d.view.y1 - d.view.y0) / T.ph;
+        const ddx = (X - d.X) * fx, ddy = (Y - d.Y) * fy;
+        PL.view = { x0: d.view.x0 - ddx, x1: d.view.x1 - ddx, y0: PL.spec.zoom === "x" ? d.view.y0 : d.view.y0 + ddy, y1: PL.spec.zoom === "x" ? d.view.y1 : d.view.y1 + ddy };
+        drawPlot();
+      }
+      return;
+    }
+    // Hinweis am nächsten Punkt
+    let best = null, bd = 144;
+    for (const h of PL.hits) { const dd = (h.X - X) ** 2 + (h.Y - Y) ** 2; if (dd < bd) { bd = dd; best = h; } }
+    const tip = $("#tip");
+    if (best && best.tip) { tip.hidden = false; tip.textContent = best.tip; tip.style.left = Math.min(best.X + 12, $("#stage").clientWidth - 240) + "px"; tip.style.top = Math.max(best.Y - 30, 4) + "px"; }
+    else tip.hidden = true;
+  });
+  svg.addEventListener("pointerup", (e) => {
+    const d = PL.drag; PL.drag = null;
+    if (!d || !PL.spec) return;
+    const [X, Y] = pos(e);
+    if (d.custom) { if (!d.moved && PL.spec.click) PL.spec.click(X, Y); return; }
+    if (d.moved || d.handle !== null) { if (d.handle !== null) { const l = PL.spec.layers[d.handle]; if (l && l.onDrop) l.onDrop(); } return; }
+    let best = null, bd = 100;
+    for (const h of PL.hits) { const dd = (h.X - X) ** 2 + (h.Y - Y) ** 2; if (dd < bd) { bd = dd; best = h; } }
+    if (best && PL.spec.layers[best.li].pick) return PL.spec.layers[best.li].pick(best.i);
+    const T = PL.tx;
+    if (PL.spec.onClick && X >= T.M.l && X <= T.M.l + T.pw && Y >= T.M.t && Y <= T.M.t + T.ph) PL.spec.onClick(T.ix(X), T.iy(Y));
+  });
+  svg.addEventListener("pointerleave", () => { $("#tip").hidden = true; $("#stPos").textContent = "–"; });
+  svg.addEventListener("dblclick", resetView);
+  svg.addEventListener("wheel", (e) => {
+    if (!PL.spec || PL.spec.custom || !PL.tx) { if (PL.spec && PL.spec.wheel) { e.preventDefault(); PL.spec.wheel(e.deltaY); } return; }
+    e.preventDefault();
+    const [X, Y] = pos(e), T = PL.tx, v = PL.view || T.v, k = e.deltaY < 0 ? 1 / 1.25 : 1.25;
+    const cx = v.x0 + (X - T.M.l) / T.pw * (v.x1 - v.x0), cy = v.y0 + (T.M.t + T.ph - Y) / T.ph * (v.y1 - v.y0);
+    const zy = PL.spec.zoom !== "x" && !e.shiftKey, zx = !e.altKey;
+    PL.view = { x0: zx ? cx - (cx - v.x0) * k : v.x0, x1: zx ? cx + (v.x1 - cx) * k : v.x1, y0: zy ? cy - (cy - v.y0) * k : v.y0, y1: zy ? cy + (v.y1 - cy) * k : v.y1 };
+    drawPlot();
+  }, { passive: false });
+  new ResizeObserver(() => drawPlot()).observe($("#stage"));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => drawPlot());
+}
+function stageMode(m, html = "") {               // "plot" | "html" | "empty"
+  $("#plot").style.display = m === "plot" ? "" : "none";
+  $("#html").hidden = m !== "html"; $("#empty").hidden = m !== "empty";
+  if (m === "html") $("#html").innerHTML = html;
+  if (m === "empty") $("#emptyBox").innerHTML = html;
+  if (m !== "plot") { $("#tip").hidden = true; $("#stageTag").textContent = ""; }
+}
+
+// ---------------------------------------------------------------- Elementarzelle (eigene Projektion, ziehen dreht)
+const CELL = { rx: -0.45, ry: 0.6, zoom: 1 };
+const ELCOL = { H: "#9ca3af", C: "#374151", N: "#2563eb", O: "#dc2626", Na: "#7c3aed", Cl: "#16a34a", Si: "#a16207", Al: "#64748b", Fe: "#b45309", Cu: "#c2410c", Ti: "#475569", Zn: "#0e7490", Mg: "#15803d", Ca: "#65a30d", Ni: "#0f766e", Zr: "#0369a1" };
+const elCol = (e) => ELCOL[e] || PAL[[...String(e)].reduce((a, c) => a + c.charCodeAt(0), 0) % PAL.length];
+function planePoly(hkl) {
+  const [h, k, l] = hkl;
+  const corners = []; for (const a of [0, 1]) for (const b of [0, 1]) for (const c of [0, 1]) corners.push([a, b, c]);
+  const vals = corners.map(p => h * p[0] + k * p[1] + l * p[2]);
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  const c0 = lo < 1 && 1 <= hi ? 1 : (lo + hi) / 2;
+  const pts = [];
+  const edges = [];
+  for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) { const d = corners[i].map((v, q) => Math.abs(v - corners[j][q])).reduce((a, b) => a + b); if (d === 1) edges.push([corners[i], corners[j]]); }
+  for (const [p, q] of edges) {
+    const vp = h * p[0] + k * p[1] + l * p[2] - c0, vq = h * q[0] + k * q[1] + l * q[2] - c0;
+    if (Math.abs(vp) < 1e-9) pts.push(p); if (Math.abs(vq) < 1e-9) pts.push(q);
+    if (vp * vq < 0) { const t = vp / (vp - vq); pts.push(p.map((v, i) => v + t * (q[i] - v))); }
+  }
+  const uniq = []; for (const p of pts) if (!uniq.some(u => u.every((v, i) => Math.abs(v - p[i]) < 1e-6))) uniq.push(p);
+  return uniq;
+}
+function drawCell(svg, W, H) {
+  const r = S.res.kristall; if (!r || !r.basis) return;
+  const B = r.basis;                                               // Zeilen = a, b, c in Å
+  const frac2cart = (f) => [0, 1, 2].map(i => f[0] * B[0][i] + f[1] * B[1][i] + f[2] * B[2][i]);
+  const cen = frac2cart([0.5, 0.5, 0.5]);
+  const cx = Math.cos(CELL.rx), sx = Math.sin(CELL.rx), cy = Math.cos(CELL.ry), sy = Math.sin(CELL.ry);
+  const rot = (p) => { const x = p[0] - cen[0], y = p[1] - cen[1], z = p[2] - cen[2];
+    const x1 = cy * x + sy * z, z1 = -sy * x + cy * z; const y2 = cx * y - sx * z1, z2 = sx * y + cx * z1; return [x1, y2, z2]; };
+  const span = Math.max(...[0, 1, 2].map(i => Math.hypot(B[i][0], B[i][1], B[i][2]))) * 2.2;
+  const sc = Math.min(W, H) / span * CELL.zoom;
+  const P = (p) => { const q = rot(frac2cart(p)); return [W / 2 + q[0] * sc, H / 2 - q[1] * sc, q[2]]; };
+  const ink = css("--ink"), muted = css("--muted");
+  const corners = []; for (const a of [0, 1]) for (const b of [0, 1]) for (const c of [0, 1]) corners.push([a, b, c]);
+  const g = el("g", {}, svg);
+  for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) {
+    const d = corners[i].map((v, q) => Math.abs(v - corners[j][q])).reduce((a, b) => a + b);
+    if (d !== 1) continue;
+    const p = P(corners[i]), q = P(corners[j]);
+    el("line", { x1: p[0], y1: p[1], x2: q[0], y2: q[1], stroke: muted, "stroke-width": 1.2 }, g);
+  }
+  const I0 = S.inp.kristall;
+  const hkl = parseTriple(I0.hkl);
+  if (hkl && hkl.some(v => v)) {
+    const pts = planePoly(hkl);
+    if (pts.length >= 3) {
+      const pp = pts.map(P), mx = pp.reduce((a, p) => a + p[0], 0) / pp.length, my = pp.reduce((a, p) => a + p[1], 0) / pp.length;
+      pp.sort((a, b) => Math.atan2(a[1] - my, a[0] - mx) - Math.atan2(b[1] - my, b[0] - mx));
+      el("path", { d: "M" + pp.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z", fill: css("--accent2"), "fill-opacity": 0.22, stroke: css("--accent2"), "stroke-width": 1.5 }, g);
+    }
+  }
+  // Atome in der Zelle samt Bildern auf Flächen/Kanten/Ecken
+  const at = [];
+  for (const a of r.atoms || []) {
+    const f = [a.x, a.y, a.z].map(v => ((v % 1) + 1) % 1);
+    const shifts = [[0], [0], [0]].map((_, i) => (f[i] < 1e-4 ? [0, 1] : [0]));
+    for (const dx of shifts[0]) for (const dy of shifts[1]) for (const dz of shifts[2]) at.push({ el: a.el, f: [f[0] + dx, f[1] + dy, f[2] + dz] });
+  }
+  const pr = at.map(a => ({ ...a, p: P(a.f) })).sort((a, b) => a.p[2] - b.p[2]);
+  const rad = Math.max(3, Math.min(14, sc * 0.35));
+  for (const a of pr) {
+    const c = el("circle", { cx: a.p[0], cy: a.p[1], r: rad * (0.85 + 0.15 * Math.tanh(a.p[2])), fill: elCol(a.el), stroke: css("--panel"), "stroke-width": 1 }, g);
+    c.appendChild(el("title")).textContent = `${a.el} (${a.f.map(v => fmt(v, 3)).join(", ")})`;
+  }
+  // Achsen a, b, c
+  const o = P([0, 0, 0]);
+  [["a", [1, 0, 0]], ["b", [0, 1, 0]], ["c", [0, 0, 1]]].forEach(([n, f]) => { const q = P(f); const t = el("text", { x: o[0] + (q[0] - o[0]) * 1.08, y: o[1] + (q[1] - o[1]) * 1.08, fill: muted, "font-size": 12, "font-style": "italic" }, g); t.textContent = n; });
+  const els = [...new Set((r.atoms || []).map(a => a.el))];
+  els.forEach((e, i) => { el("circle", { cx: 20, cy: 20 + i * 18, r: 6, fill: elCol(e) }, g); const t = el("text", { x: 32, y: 24 + i * 18, fill: ink }, g); t.textContent = e; });
+  const t = el("text", { x: 14, y: H - 12, fill: muted }, g);
+  t.textContent = L("Ziehen dreht, Mausrad zoomt", "Drag to rotate, wheel to zoom") + (hkl && hkl.some(v => v) ? ` · (${hkl.join(" ")})` : "");
+}
+// ---------------------------------------------------------------- Gitter: Atome, Elementarzelle, Schnitt
+const LAT = { rx: -0.32, ry: 0.62, zoom: 1, raf: 0 };
+const latRedraw = () => { if (!LAT.raf) LAT.raf = requestAnimationFrame(() => { LAT.raf = 0; drawPlot(); }); };
+const hexMix = (h, t, w) => { const p = (s) => [1, 3, 5].map(k => parseInt(s.slice(k, k + 2), 16)); const a = p(h), b = p(t); return "#" + a.map((v, k) => Math.round(v + (b[k] - v) * w).toString(16).padStart(2, "0")).join(""); };
+const SLICE_OPTS = (g) => g === "hdp" ? [["", L("kein Schnitt", "no slice")], ["0001", "(0001)"], ["10-10", "(10-10)"], ["11-20", "(11-20)"]]
+  : [["", L("kein Schnitt", "no slice")], ["100", "(100)"], ["110", "(110)"], ["111", "(111)"]];
+function latNormal(r, s) {
+  const hcp = r.phase.gitter_id === "hdp";
+  const n = hcp ? { "0001": [0, 0, 1], "10-10": [Math.sqrt(3) / 2, 0.5, 0], "11-20": [0.5, Math.sqrt(3) / 2, 0] }[s] : { "100": [1, 0, 0], "110": [1, 1, 0], "111": [1, 1, 1] }[s];
+  if (!n) return null;
+  const v = r.frame.map(row => row[0] * n[0] + row[1] * n[1] + row[2] * n[2]);   // Zeilen des Rahmens = Bildachsen
+  const len = Math.hypot(...v); return v.map(x => x / len);
+}
+function latSpacing(r, s) {                       // Abstand der Atomlagen der Ebenenschar (für die Schnittdicke)
+  const a = r.lattice.a, c = r.lattice.c, g = r.phase.gitter_id;
+  if (g === "hdp") return { "0001": c / 2, "10-10": a / (2 * Math.sqrt(3)), "11-20": a / 2 }[s];
+  if (g === "kfz") return { "100": a / 2, "110": a / (2 * Math.SQRT2), "111": a / Math.sqrt(3) }[s];
+  return { "100": a / 2, "110": a / Math.SQRT2, "111": a / (2 * Math.sqrt(3)) }[s];
+}
+/** Bruchkoordinaten eines Punktes in der (ggf. verzerrten) Elementarzelle; Ecke k = 4x + 2y + z. */
+function cellFrac(cell) {
+  const C = cell.corners, o = C[0], e = [C[4], C[2], C[1]].map(q => q.map((v, k) => v - o[k]));
+  const m = [[e[0][0], e[1][0], e[2][0]], [e[0][1], e[1][1], e[2][1]], [e[0][2], e[1][2], e[2][2]]];
+  const det = m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  const inv = [[(m[1][1] * m[2][2] - m[1][2] * m[2][1]) / det, (m[0][2] * m[2][1] - m[0][1] * m[2][2]) / det, (m[0][1] * m[1][2] - m[0][2] * m[1][1]) / det],
+    [(m[1][2] * m[2][0] - m[1][0] * m[2][2]) / det, (m[0][0] * m[2][2] - m[0][2] * m[2][0]) / det, (m[0][2] * m[1][0] - m[0][0] * m[1][2]) / det],
+    [(m[1][0] * m[2][1] - m[1][1] * m[2][0]) / det, (m[0][1] * m[2][0] - m[0][0] * m[2][1]) / det, (m[0][0] * m[1][1] - m[0][1] * m[1][0]) / det]];
+  return (p) => { const d = [p[0] - o[0], p[1] - o[1], p[2] - o[2]]; return inv.map(row => row[0] * d[0] + row[1] * d[1] + row[2] * d[2]); };
+}
+function latDefs(svg, kinds) {
+  const defs = el("defs", {}, svg);
+  kinds.forEach((k, n) => {
+    const g = el("radialGradient", { id: "lg" + n, cx: "38%", cy: "35%", r: "65%" }, defs);
+    el("stop", { offset: "0%", "stop-color": hexMix(k.color, "#ffffff", 0.6) }, g);
+    el("stop", { offset: "70%", "stop-color": k.color }, g);
+    el("stop", { offset: "100%", "stop-color": hexMix(k.color, "#000000", 0.35) }, g);
+  });
+}
+function latLegend(g, r, counts, extra) {
+  const ink = css("--ink"), muted = css("--muted");
+  let y = 18;
+  r.kinds.forEach((k, n) => {
+    if (!counts[n]) return;
+    el("circle", { cx: 18, cy: y, r: 6, fill: `url(#lg${n})`, stroke: css("--panel") }, g);
+    const t = el("text", { x: 30, y: y + 4, fill: ink, "font-size": 12 }, g); t.textContent = `${k.name} · ${counts[n]}`;
+    y += 18;
+  });
+  for (const [label, draw] of extra) { draw(18, y); const t = el("text", { x: 30, y: y + 4, fill: ink, "font-size": 12 }, g); t.textContent = label; y += 18; }
+  return y;
+}
+function drawLattice(svg, W, H) {
+  const r = S.res.gitter; if (!r || W < 50 || H < 50) return;
+  const i = S.inp.gitter, v = view(), ink = css("--ink"), muted = css("--muted"), acc = css("--accent2");
+  latDefs(svg, r.kinds);
+  const g = el("g", {}, svg);
+  const shrink = +i.scale || 0.45;
+  const cen0 = r.box.map(x => x / 2);
+  const inCell = r.cell ? cellFrac(r.cell) : null;
+  const tol = 0.08;
+  const isIn = (p) => { if (!inCell) return false; const f = inCell(p); return f.every(x => x > -tol && x < 1 + tol); };
+  let atoms = r.atoms.map(a => ({ p: [a[0], a[1], a[2]], k: a[3] }));
+  let vac = (r.vacancies || []).map(p => ({ p }));
+  if (r.cell) { atoms.forEach(a => (a.in = isIn(a.p))); vac.forEach(a => (a.in = isIn(a.p))); }
+  const cellOnly = v === "cell" && r.cell;
+  if (cellOnly) { atoms = atoms.filter(a => a.in); vac = vac.filter(a => a.in); }
+  const cen = cellOnly ? [0, 1, 2].map(k => r.cell.corners.reduce((s, c) => s + c[k], 0) / 8) : cen0;
+  const span = cellOnly ? Math.max(...r.cell.corners.map(c => Math.hypot(c[0] - cen[0], c[1] - cen[1], c[2] - cen[2]))) * 2.5
+    : Math.hypot(...r.box) * 1.02;
+  const cx = Math.cos(LAT.rx), sx = Math.sin(LAT.rx), cy = Math.cos(LAT.ry), sy = Math.sin(LAT.ry);
+  const sc = Math.min(W, H) / span * LAT.zoom;
+  // Bild: x rechts, z oben (Gleitebene waagrecht), y in die Tiefe
+  const P = (p) => { const x = p[0] - cen[0], y = p[2] - cen[2], z = p[1] - cen[1];
+    const x1 = cy * x + sy * z, z1 = -sy * x + cy * z; const y2 = cx * y - sx * z1, z2 = sx * y + cx * z1; return [W / 2 + x1 * sc, H / 2 - y2 * sc, z2]; };
+  const seg = (a, b, attrs) => { const p = P(a), q = P(b); el("line", { x1: p[0], y1: p[1], x2: q[0], y2: q[1], ...attrs }, g); };
+  if (!cellOnly) {                                // Kasten
+    const B = r.box, cs = []; for (const a of [0, 1]) for (const b of [0, 1]) for (const c of [0, 1]) cs.push([a * B[0], b * B[1], c * B[2]]);
+    for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++) { const d = [0, 1, 2].filter(k => cs[a][k] !== cs[b][k]).length; if (d === 1) seg(cs[a], cs[b], { stroke: muted, "stroke-width": 0.8, "stroke-dasharray": "3 3", opacity: 0.6 }); }
+    const plane = (z, col, label) => { const B2 = r.box, q = [[0, 0, z], [B2[0], 0, z], [B2[0], B2[1], z], [0, B2[1], z]].map(P);
+      el("path", { d: "M" + q.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z", fill: col, "fill-opacity": 0.1, stroke: col, "stroke-opacity": 0.5, "stroke-dasharray": "5 3" }, g);
+      const t = el("text", { x: q[1][0] + 4, y: q[1][1], fill: col, "font-size": 11 }, g); t.textContent = label; };
+    if (r.sf) plane(r.sf.z, PAL[3], L("Stapelfehler", "Stacking fault"));
+    if (r.gb) plane(r.box[2] / 2, PAL[4], L(`Korngrenze ${fmt(r.gb.angle, 0)}°`, `Grain boundary ${fmt(r.gb.angle, 0)}°`));
+  }
+  const counts = r.kinds.map(() => 0);
+  atoms.forEach(a => counts[a.k]++);
+  const items = atoms.map(a => ({ ...a, q: P(a.p) })).concat(vac.map(a => ({ ...a, vac: true, q: P(a.p) }))).sort((a, b) => a.q[2] - b.q[2]);
+  const hostR = (r.kinds.find(k => k.role === "host" || k.role === "liq") || r.kinds[0]).r;
+  const hl = i.cellHl && r.cell && !cellOnly;
+  const dz = Math.max(...items.map(a => Math.abs(a.q[2])), 1);
+  for (const a of items) {
+    const depth = 0.88 + 0.12 * (a.q[2] / dz);
+    if (a.vac) {
+      el("circle", { cx: a.q[0], cy: a.q[1], r: Math.max(2, hostR * sc * shrink * depth), fill: "none", stroke: ink, "stroke-width": 1.2, "stroke-dasharray": "2 2", opacity: hl && !a.in ? 0.35 : 0.9 }, g);
+      continue;
+    }
+    // ausserhalb der Zelle nur die Matrix stark abblenden: Fremdatome und Ausscheidungen bleiben erkennbar
+    const k = r.kinds[a.k], dim = hl && !a.in, matrix = k.role === "host" || k.role === "liq";
+    const c = el("circle", { cx: a.q[0], cy: a.q[1], r: Math.max(1.5, k.r * sc * shrink * depth * (dim ? 0.8 : 1)), fill: `url(#lg${a.k})`, stroke: css("--panel"), "stroke-width": 0.6, opacity: dim ? (matrix ? 0.4 : 0.85) : 1 }, g);
+    if (items.length < 2500) c.appendChild(el("title")).textContent = `${k.name}\n(${a.p.map(x => fmt(x, 2)).join(", ")}) Å`;
+  }
+  if (r.cell) for (const [a, b] of r.cell.edges) seg(r.cell.corners[a], r.cell.corners[b], { stroke: acc, "stroke-width": 2, opacity: 0.9 });
+  if (r.disl && !cellOnly) { const c = r.disl.core; seg([c[0], 0, c[2]], [c[0], r.box[1], c[2]], { stroke: css("--err") || "#d33", "stroke-width": 2.5, "stroke-dasharray": "7 4" });
+    const q = P([c[0], 0, c[2]]); const t = el("text", { x: q[0] + 6, y: q[1] - 6, fill: css("--err") || "#d33", "font-size": 13, "font-weight": 600 }, g); t.textContent = "⊥"; }
+  const extra = [];
+  if (r.vacancies && r.vacancies.length) extra.push([L(`Leerstelle · ${vac.length}`, `Vacancy · ${vac.length}`) + (r.boost > 1 ? L(` (×${sig(r.boost, 2)} überhöht)`, ` (×${sig(r.boost, 2)} exaggerated)`) : ""), (x, y) => el("circle", { cx: x, cy: y, r: 6, fill: "none", stroke: ink, "stroke-dasharray": "2 2" }, g)]);
+  if (r.cell) extra.push([L("Elementarzelle", "Unit cell"), (x, y) => el("line", { x1: x - 7, y1: y, x2: x + 7, y2: y, stroke: acc, "stroke-width": 2 }, g)]);
+  if (r.disl && !cellOnly) extra.push([L(`Stufenversetzung, b = ${r.disl.burgers}`, `Edge dislocation, b = ${r.disl.burgers}`), (x, y) => el("line", { x1: x - 7, y1: y, x2: x + 7, y2: y, stroke: css("--err") || "#d33", "stroke-width": 2.5, "stroke-dasharray": "4 2" }, g)]);
+  latLegend(g, r, counts, extra);
+  const t = el("text", { x: 14, y: H - 12, fill: muted, "font-size": 12 }, g);
+  t.textContent = L("Ziehen dreht, Mausrad zoomt, Doppelklick setzt zurück", "Drag to rotate, wheel to zoom, double-click resets") + ` · ${L("Atome", "atoms")} ×${fmt(shrink, 2)} ${L("verkleinert", "scaled")}`;
+}
+function drawSlice(svg, W, H) {
+  const r = S.res.gitter; if (!r || W < 50 || H < 50) return;
+  const i = S.inp.gitter, ink = css("--ink"), muted = css("--muted");
+  const n = latNormal(r, i.slice); if (!n) return;
+  latDefs(svg, r.kinds);
+  const g = el("g", {}, svg);
+  const cen = r.box.map(x => x / 2);
+  const dot = (p) => (p[0] - cen[0]) * n[0] + (p[1] - cen[1]) * n[1] + (p[2] - cen[2]) * n[2];
+  const host = r.atoms.filter(a => r.kinds[a[3]].role === "host" || r.kinds[a[3]].role === "liq");
+  let s0 = 0, best = Infinity; for (const a of host) { const s = Math.abs(dot(a)); if (s < best) { best = s; s0 = dot(a); } }
+  const w = Math.min(0.45 * (latSpacing(r, i.slice) || 1), 0.4 + 2 * (r.sigma || 0) * (r.vib_boost || 1));
+  const up = Math.abs(n[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  let u = cross(up, n); const lu = Math.hypot(...u); u = u.map(x => x / lu); const vv = cross(n, u);
+  const pr = (p) => { const d = [p[0] - cen[0], p[1] - cen[1], p[2] - cen[2]]; return [d[0] * u[0] + d[1] * u[1] + d[2] * u[2], d[0] * vv[0] + d[1] * vv[1] + d[2] * vv[2]]; };
+  const sel_ = r.atoms.filter(a => Math.abs(dot(a) - s0) < w);
+  const vac = (r.vacancies || []).filter(p => Math.abs(dot(p) - s0) < w);
+  const pts = sel_.map(a => ({ q: pr(a), k: a[3] }));
+  const ext = Math.max(...pts.map(p => Math.max(Math.abs(p.q[0]), Math.abs(p.q[1]))), 1);
+  const sc = Math.min(W, H) / (2.15 * ext) * LAT.zoom;
+  const X = (q) => [W / 2 + q[0] * sc, H / 2 - q[1] * sc];
+  const counts = r.kinds.map(() => 0);
+  pts.sort((a, b) => r.kinds[b.k].r - r.kinds[a.k].r);
+  for (const p of pts) { counts[p.k]++; const [x, y] = X(p.q); const k = r.kinds[p.k];
+    const c = el("circle", { cx: x, cy: y, r: Math.max(2, k.r * sc * 0.92), fill: `url(#lg${p.k})`, stroke: css("--panel"), "stroke-width": 0.8 }, g);
+    c.appendChild(el("title")).textContent = k.name; }
+  const hostR = (r.kinds.find(k => k.role === "host") || r.kinds[0]).r;
+  for (const p of vac) { const [x, y] = X(pr(p)); el("circle", { cx: x, cy: y, r: hostR * sc * 0.92, fill: "none", stroke: ink, "stroke-width": 1.3, "stroke-dasharray": "3 2" }, g); }
+  const extra = vac.length ? [[L(`Leerstelle · ${vac.length}`, `Vacancy · ${vac.length}`), (x, y) => el("circle", { cx: x, cy: y, r: 6, fill: "none", stroke: ink, "stroke-dasharray": "2 2" }, g)]] : [];
+  latLegend(g, r, counts, extra);
+  const t = el("text", { x: 14, y: H - 12, fill: muted, "font-size": 12 }, g);
+  t.textContent = L(`Atomlage (${i.slice}) durch die Mitte, Dicke ±${fmt(w, 2)} Å, Atome in wahrer Grösse (Metallradius)`, `Atomic layer (${i.slice}) through the centre, thickness ±${fmt(w, 2)} Å, atoms at true size (metallic radius)`) + (r.gb ? L(" · Korngrenze: Ebene des unteren Korns", " · grain boundary: plane of the lower grain") : "");
+}
+const normEl = (s) => { const t = String(s || "").trim(); return t ? t[0].toUpperCase() + t.slice(1).toLowerCase() : ""; };
+
+const parseTriple = (s) => { const m = String(s || "").trim().match(/^\s*(-?\d+)[\s,]*(-?\d+)[\s,]*(-?\d+)\s*$/) || String(s || "").trim().match(/^(-?\d)(-?\d)(-?\d)$/); return m ? [+m[1], +m[2], +m[3]] : null; };
+
+// ---------------------------------------------------------------- Werkzeuge
+const GROUPS = [
+  { id: "auswahl", de: "Auswahl", en: "Selection", tools: ["auswahl", "karten"],
+    icon: '<circle cx="7" cy="16" r="1.6"/><circle cx="11" cy="11" r="1.6"/><circle cx="16" cy="7" r="1.6"/><path d="M4 20L20 4" opacity=".5"/>' },
+  { id: "kristall", de: "Kristall", en: "Crystal", tools: ["kristall", "gitter", "xrd"],
+    icon: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>' },
+  { id: "phasen", de: "Phasen", en: "Phases", tools: ["phasen", "stahl"],
+    icon: '<path d="M3 20h18M4 5c4 0 6 10 8 10s4-6 8-6"/><path d="M4 12h16" opacity=".5"/>' },
+  { id: "mechanik", de: "Mechanik", en: "Mechanics", tools: ["laminat", "ermuedung", "weibull", "haerte", "bruch", "korrosion", "kriechen"], main: ["laminat", "ermuedung", "weibull", "haerte"],
+    icon: '<path d="M4 4v16h16"/><path d="M6 8c3 0 4 3 7 6s4 3 6 3"/>' },
+];
+const NAMES = {
+  auswahl: ["Auswahl", "Selection", "Ashby-Diagramm, Kennzahl, Rangliste", "Ashby chart, index, ranking"],
+  karten: ["Karten", "Cards", "Kennwerte vergleichen, mit Quellen", "Compare properties, with sources"],
+  kristall: ["Kristall", "Crystal", "Zelle, Netzebenen, berechnetes Pulvermuster", "Cell, planes, computed powder pattern"],
+  gitter: ["Gitter", "Lattice", "Atome bei T: Zelle, Fremdatome, Leerstellen, Fehler", "Atoms at T: cell, solutes, vacancies, defects"],
+  xrd: ["XRD", "XRD", "Diffraktogramm auswerten", "Evaluate a diffractogram"],
+  phasen: ["Diagramm", "Diagram", "Zustandsdiagramm, Hebelgesetz, Abkühlung", "Phase diagram, lever rule, cooling"],
+  stahl: ["Stahl", "Steel", "CE, Ms, Ac1/Ac3, Vorwärmen, Anlassen, Aufkohlen", "CE, Ms, Ac1/Ac3, preheat, tempering, carburising"],
+  laminat: ["Laminat", "Laminate", "Klassische Laminattheorie, Erstversagen", "Classical laminate theory, first-ply failure"],
+  ermuedung: ["Ermüdung", "Fatigue", "Wöhlerlinie, Mittelspannung, Rainflow, Miner", "S–N curve, mean stress, rainflow, Miner"],
+  weibull: ["Weibull", "Weibull", "Festigkeitsstreuung, Vertrauensbereich, Grösseneffekt", "Strength scatter, confidence, size effect"],
+  haerte: ["Härte", "Hardness", "HV, HBW, HK, Korngrösse, Hall–Petch", "HV, HBW, HK, grain size, Hall–Petch"],
+  bruch: ["Bruch", "Fracture", "K_Q nach ASTM E399, kritische Risslänge", "K_Q per ASTM E399, critical crack length"],
+  korrosion: ["Korrosion", "Corrosion", "Tafel-Auswertung, Korrosionsrate", "Tafel analysis, corrosion rate"],
+  kriechen: ["Kriechen", "Creep", "Larson–Miller, Norton", "Larson–Miller, Norton"],
+};
+const tname = (t) => NAMES[t][EN() ? 1 : 0];
+
+const EX = {                                         // Beispieldaten (synthetisch, keine Messungen)
+  ermuedung: [{ sa: 400, sm: 0, N: 1.2e4 }, { sa: 360, sm: 0, N: 3.9e4 }, { sa: 330, sm: 0, N: 9.5e4 }, { sa: 300, sm: 0, N: 2.4e5 }, { sa: 280, sm: 0, N: 6.1e5 }, { sa: 265, sm: 0, N: 1.5e6 }, { sa: 255, sm: 0, N: 1e7, runout: true }],
+  weibull: "312 341 355 368 377 386 395 402 410 418 427 436 449 466",
+  haerte: [{ F: 98.07, d1: 0.301, d2: 0.303 }, { F: 98.07, d1: 0.298, d2: 0.300 }, { F: 98.07, d1: 0.304, d2: 0.302 }],
+  hp: [{ d: 8, s: 330 }, { d: 15, s: 290 }, { d: 30, s: 255 }, { d: 60, s: 232 }],
+  kriechen: [{ s: 200, T: 550, t: 1050 }, { s: 160, T: 575, t: 1400 }, { s: 140, T: 600, t: 1100 }, { s: 110, T: 600, t: 4300 }, { s: 90, T: 650, t: 800 }, { s: 70, T: 650, t: 3100 }],
+  norton: [{ s: 60, T: 600, rate: 2.1e-6 }, { s: 80, T: 600, rate: 9.8e-6 }, { s: 100, T: 600, rate: 3.0e-5 }, { s: 80, T: 650, rate: 6.5e-5 }],
+};
+
+const DEF = {
+  auswahl: { x: "rho", y: "E", index: "beam_E", classes: [], mp: false, limits: [], custom: false, expo: [{ p: "E", e: 0.5 }, { p: "rho", e: -1 }], anchor: null, eigen: [], eigen_ax: null },
+  karten: { names: [], q: "" },
+  kristall: { phase: "cu", tube: "Cu", tth_min: 10, tth_max: 120, fwhm: 0.1, hkl: "1 1 1", uvw: "1 1 0", hkl2: "1 0 0",
+              cust: { on: false, name: "", system: "cubic", centring: "F", a: 4.05, b: "", c: "", alpha: 90, beta: 90, gamma: 90, atoms: "Al 0 0 0" } },
+  gitter: { host: "Fe", T: 20, unit: "wt", sols: [{ el: "C", c: 0.45 }], n: 5, seed: 1, scale: 0.45, cellHl: true, slice: "",
+            fx: { vac: true, vib: true, distort: true, precip: true, disl: false, sf: false, gb: false }, boost: 1, vib_boost: 1, gb_angle: 16 },
+  xrd: { item: "", tube: "file", mono: false, opt: { min_rel: 2, smooth: 0, bg: true, bg_width: 2, strip_ka2: false, K: 0.9, inst_fwhm: 0, tol: 0.2, index_min: 3,
+         phase_ref: "", search: true, overlay: [], quant_ids: [] } },
+  phasen: { system: "fe-c", x: 0.35, T: 726, unit: "wt", model: { A: "Cu", B: "Ni", MA: 63.546, MB: 58.693, TmA: 1084.62, TmB: 1455, HA: 13.26, HB: 17.48, omega_L: 0, omega_S: 0 }, mx: 35, mT: 1225 },
+  stahl: { comp: { C: 0.18, Si: 0.3, Mn: 1.4, Cr: 0, Mo: 0, V: 0, Ni: 0, Cu: 0, B: 0 }, preheat: { on: false, d: 20, HD: 5, Q: 1.5 },
+           hj: { on: false, T1: 600, t1: 2, T2: 650, C: 20 }, carb: { on: false, T: 925, t: 4, c0: 0.2, cs: 0.9, limit: 0.4 } },
+  laminat: { material: "", own: false, ply: { E1: "", E2: "", G12: "", nu12: "", Xt: "", Xc: "", Yt: "", Yc: "", S12: "" }, layup: "[0/±45/90]s", t: 0.125,
+             Nx: 100, Ny: 0, Nxy: 0, Mx: 0, My: 0, Mxy: 0, F12: -0.5, ST: "" },
+  ermuedung: { rows: [], mat: { Rm: "", Re: "", sigma_f: "" }, model: "none", N_target: "", Se: "",
+               marin: { on: false, surface: "bearbeitet", d: "", loading: "biegung", rel: 50, kd: 1 }, series: "", hyst: 0, miner_model: "", miner_cutoff: false, repeats: 1 },
+  weibull: { values: "", method: "mle", boot: true, B: 1000, level: 0.9, seed: 20261118, size: { on: false, V1: "", kind1: "zug", Li1: "", L1: "", V2: "", kind2: "zug", Li2: "", L2: "" } },
+  bruch: { kq: { geom: "senb", P: "", Pmax: "", B: "", W: "", a: "", S: "", Rp: "" }, crack: { KIc: "", sigma: "", Y: 1 } },
+  haerte: { method: "HV", rows: [], D: 10, table: "", from: "", to: "", grain: { mode: "L", L: "", N: "", M: 1, NA: "" }, hp: [] },
+  korrosion: { item: "", colE: 0, colI: 1, Eunit: "V", iunit: "A", area: 1, eta_min: 0.05, eta_max: 0.15, Ecorr: "", bv: false, eta_fit: 0.02, metal: "Fe", EW: "", rho: "", data: null },
+  kriechen: { rows: [], C: 20, fitC: false, deg: 2, ps: "", pT: "" },
+};
+const VIEWS = {
+  kristall: [["lines", "Linien", "Lines"], ["cell", "Zelle", "Cell"]],
+  gitter: [["3d", "Gitter", "Lattice"], ["cell", "Elementarzelle", "Unit cell"], ["slice", "Schnitt", "Slice"]],
+  xrd: [["pattern", "Diffraktogramm", "Pattern"], ["wh", "Williamson–Hall", "Williamson–Hall"], ["nr", "Nelson–Riley", "Nelson–Riley"]],
+  phasen: [["diagram", "Diagramm", "Diagram"], ["cooling", "Abkühlung", "Cooling"]],
+  laminat: [["s1", "σ₁", "σ₁"], ["s2", "σ₂", "σ₂"], ["t12", "τ₁₂", "τ₁₂"]],
+  ermuedung: [["sn", "Wöhler", "S–N"], ["haigh", "Haigh", "Haigh"], ["rf", "Rainflow", "Rainflow"]],
+  haerte: [["ind", "Eindrücke", "Indents"], ["hp", "Hall–Petch", "Hall–Petch"]],
+  kriechen: [["lmp", "Larson–Miller", "Larson–Miller"], ["norton", "Norton", "Norton"]],
+};
+const view = () => S.view[S.tool] || (VIEWS[S.tool] ? VIEWS[S.tool][0][0] : "");
+
+// ---- Anfragen je Werkzeug
+const nz = (v) => (v === "" || v === undefined ? null : v);
+const ownRows = (i) => (i.eigen || []).filter(p => String(p.name || "").trim() || nz(p.x) !== null || nz(p.y) !== null);
+const ownAxesOk = (i) => !i.eigen_ax || (i.eigen_ax[0] === i.x && i.eigen_ax[1] === i.y);
+const REQ = {
+  auswahl: (i) => {
+    const r = { x: i.x, y: i.y, classes: i.classes, mp: !!i.mp, limits: (i.limits || []).filter(l => l.prop && (l.min !== null && l.min !== "" || l.max !== null && l.max !== "")).map(l => ({ prop: l.prop, min: nz(l.min), max: nz(l.max) })) };
+    if (i.custom) { r.expo = Object.fromEntries((i.expo || []).filter(e => e.p && pnum(e.e)).map(e => [e.p, pnum(e.e)])); if (!Object.keys(r.expo).length) delete r.expo; }
+    else if (i.index) r.index = i.index;
+    // Eigene Punkte gelten für die Achsen, unter denen sie eingegeben wurden (Einheiten); andere Achsen: nicht senden
+    const own = ownRows(i);
+    if (!own.length) i.eigen_ax = [i.x, i.y];
+    const full = own.filter(p => typeof p.x === "number" && typeof p.y === "number");   // halbe Zeilen erst, wenn x und y stehen
+    if (full.length && ownAxesOk(i)) r.own = full.map(p => ({ name: String(p.name || "").trim(), x: p.x, y: p.y, src: String(p.src || "").trim() }));
+    return r;
+  },
+  karten: (i) => ({ names: i.names }),
+  kristall: (i) => {
+    const r = { tube: i.tube, tth_min: i.tth_min, tth_max: i.tth_max, fwhm: i.fwhm, hkl: parseTriple(i.hkl), uvw: parseTriple(i.uvw), hkl2: parseTriple(i.hkl2) };
+    if (i.cust.on) {
+      const c = i.cust, sys = c.system;
+      const cell = { a: c.a, b: sys === "cubic" ? c.a : (c.b || c.a), c: ["cubic"].includes(sys) ? c.a : (c.c || c.a), alpha: c.alpha || 90, beta: c.beta || 90, gamma: sys === "hexagonal" ? 120 : (c.gamma || 90) };
+      if (sys === "tetragonal") cell.b = c.a;
+      if (sys === "hexagonal") { cell.b = c.a; cell.alpha = 90; cell.beta = 90; }
+      const atoms = String(c.atoms || "").split("\n").map(l => l.trim().split(/[\s;,]+/)).filter(p => p.length >= 4 && p[0]).map(p => ({ el: p[0], x: pnum(p[1]) || 0, y: pnum(p[2]) || 0, z: pnum(p[3]) || 0, occ: p[4] ? pnum(p[4]) : 1 }));
+      r.custom = { name: c.name || L("Eigene Zelle", "Own cell"), system: sys, centring: c.centring, cell, atoms };
+    } else r.phase = i.phase;
+    return r;
+  },
+  gitter: (i) => {
+    const rows = (i.sols || []).filter(s => normEl(s.el) && pnum(s.c) !== null && pnum(s.c) > 0);
+    const limits = {}, limit_src = {};
+    for (const s of rows) { const e = normEl(s.el); if (pnum(s.lim) !== null) { limits[e] = pnum(s.lim); if (String(s.src || "").trim()) limit_src[e] = String(s.src).trim(); } }
+    return { host: i.host, T: i.T, n: i.n, seed: i.seed, fx: { ...i.fx }, boost: i.boost || 1, vib_boost: i.vib_boost || 1, gb_angle: i.gb_angle,
+             solutes: rows.map(s => ({ el: normEl(s.el), c: pnum(s.c), einheit: i.unit })), limits, limit_src, slice: i.slice || "" };
+  },
+  xrd: (i) => ({ item: i.item, tube: i.tube, mono: i.mono, opt: { ...i.opt, phase_ref: i.opt.phase_ref || null } }),
+  phasen: (i) => {
+    const sysd = (META.systems || []).find(s => s.id === i.system);
+    if (sysd && sysd.kind === "computed") return { model: { ...i.model }, x: i.mx, T: i.mT, unit: i.unit };
+    return { system: i.system, x: i.x, T: i.T };
+  },
+  stahl: (i) => ({ comp: i.comp, preheat: i.preheat.on ? { d: i.preheat.d, HD: i.preheat.HD, Q: i.preheat.Q } : null,
+                   hj: i.hj.on ? { T1: i.hj.T1, t1: i.hj.t1, T2: i.hj.T2, C: i.hj.C } : {},
+                   carb: i.carb.on ? { T: i.carb.T, t: i.carb.t, c0: i.carb.c0, cs: i.carb.cs, limit: i.carb.limit } : {} }),
+  laminat: (i) => {
+    const r = { layup: i.layup, t: i.t, Nx: i.Nx, Ny: i.Ny, Nxy: i.Nxy, Mx: i.Mx, My: i.My, Mxy: i.Mxy, F12: i.F12, ST: i.ST };
+    if (i.material && !i.own) r.material = i.material;
+    if (i.own) r.ply = Object.fromEntries(Object.entries(i.ply).filter(([k, v]) => v !== "" && v !== null));
+    else if (i.material) r.ply = Object.fromEntries(Object.entries(i.ply).filter(([k, v]) => v !== "" && v !== null));
+    return r;
+  },
+  ermuedung: (i) => {
+    const r = { rows: (i.rows || []).filter(x => x.sa !== null && x.sa !== "" && x.N !== null && x.N !== "").map(x => ({ sa: x.sa, sm: nz(x.sm), N: x.N, runout: !!x.runout })),
+                mat: i.mat, model: i.model, N_target: nz(i.N_target), Se: nz(i.Se) };
+    if (i.marin.on && i.mat.Rm) r.marin = { Rm: i.mat.Rm, surface: i.marin.surface, d: nz(i.marin.d), loading: i.marin.loading, rel: i.marin.rel, kd: i.marin.kd };
+    const ser = numList(i.series);
+    if (ser.length >= 3) { r.series = ser; r.hyst = i.hyst; r.miner_model = i.miner_model || null; r.miner_cutoff = !!i.miner_cutoff; r.repeats = i.repeats; }
+    return r;
+  },
+  weibull: (i) => {
+    const r = { values: numList(i.values), method: i.method, boot: !!i.boot, B: i.B, level: i.level, seed: i.seed };
+    const z = i.size; if (z.on) r.size = { V1: z.V1, kind1: z.kind1, Li1: nz(z.Li1), L1: nz(z.L1), V2: z.V2, kind2: z.kind2, Li2: nz(z.Li2), L2: nz(z.L2) };
+    return r;
+  },
+  bruch: (i) => ({ kq: i.kq, crack: i.crack }),
+  haerte: (i) => {
+    const r = { method: i.method, indents: (i.rows || []).filter(x => x.F !== null && x.F !== "" && x.d1 !== null && x.d1 !== "").map(x => ({ F: x.F, d1: x.d1, d2: nz(x.d2), D: nz(x.D) || i.D })), D: i.D, hp: i.hp };
+    if (i.table) r.convert = { table: i.table, from: i.from || i.method, to: i.to || null };
+    const g = i.grain; r.grain = g.mode === "NA" ? { NA: g.NA } : { L: g.L, N: g.N, M: g.M };
+    return r;
+  },
+  korrosion: (i) => {
+    const r = { Eunit: i.Eunit, iunit: i.iunit, area: i.area, eta_min: i.eta_min, eta_max: i.eta_max, Ecorr: nz(i.Ecorr), bv: !!i.bv, eta_fit: i.eta_fit,
+                metal: i.metal || null, EW: nz(i.EW), rho: nz(i.rho) };
+    if (i.data) { r.E = i.data.E; r.i = i.data.i; } else { r.item = i.item; r.colE = i.colE; r.colI = i.colI; }
+    return r;
+  },
+  kriechen: (i) => ({ rows: i.rows, C: i.C, fitC: !!i.fitC, deg: i.deg, predict: { s: i.ps, T: i.pT } }),
+};
+const READY = {
+  xrd: (i) => !!i.item && S.items.some(x => x.id === i.item),
+  karten: (i) => i.names.length > 0,
+  ermuedung: (i) => REQ.ermuedung(i).rows.length >= 2 || numList(i.series).length >= 3 || (i.marin.on && i.mat.Rm),
+  weibull: (i) => numList(i.values).length >= 3,
+  bruch: (i) => (i.kq.P !== "" && i.kq.P !== null) || (i.crack.KIc !== "" && i.crack.KIc !== null),
+  haerte: (i) => REQ.haerte(i).indents.length > 0 || (i.hp || []).length >= 2 || (i.grain.L && i.grain.N) || i.grain.NA,
+  korrosion: (i) => !!(i.data || (i.item && S.items.some(x => x.id === i.item))),
+  kriechen: (i) => (i.rows || []).filter(r => r.s !== null && r.s !== "" && r.T !== null && r.T !== "").length >= 2,
+};
+const EMPTY = {
+  xrd: () => [L("Diffraktogramm öffnen", "Open a diffractogram"), L("xy/xye, CSV/TXT, PANalytical .xrdml, Bruker .brml und .raw (RAW1.01), Rigaku .ras, .uxd. Ohne Wellenlänge in der Datei wird Cu Kα1/Kα2 angenommen (einstellbar).", "xy/xye, CSV/TXT, PANalytical .xrdml, Bruker .brml and .raw (RAW1.01), Rigaku .ras, .uxd. Without a wavelength in the file, Cu Kα1/Kα2 is assumed (adjustable)."), "file"],
+  karten: () => [L("Werkstoffe vergleichen", "Compare materials"), L("Rechts suchen und hinzufügen, oder im Ashby-Diagramm auf Punkte klicken.", "Search and add on the right, or click points in the Ashby chart."), ""],
+  ermuedung: () => [L("Wöhlerversuch auswerten", "Evaluate S–N tests"), L("Rechts σa, σm und N eintragen oder aus Excel einfügen. Durchläufer werden als zensiert gewertet (Maximum-Likelihood).", "Enter σa, σm and N on the right or paste from Excel. Run-outs are treated as censored (maximum likelihood)."), "ex"],
+  weibull: () => [L("Festigkeiten auswerten", "Evaluate strengths"), L("Rechts mindestens drei Festigkeitswerte eintragen.", "Enter at least three strength values on the right."), "ex"],
+  bruch: () => [L("Bruchzähigkeit", "Fracture toughness"), L("Rechts Kraft und Probenmasse für K_Q eintragen, oder K_Ic und Spannung für die kritische Risslänge.", "Enter force and specimen dimensions for K_Q, or K_Ic and stress for the critical crack length."), ""],
+  haerte: () => [L("Härteeindrücke auswerten", "Evaluate hardness indents"), L("Rechts Prüfkraft und Diagonalen (bzw. Durchmesser) eintragen.", "Enter test force and diagonals (or diameters) on the right."), "ex"],
+  korrosion: () => [L("Polarisationskurve auswerten", "Evaluate a polarisation curve"), L("Tabelle mit Potential und Strom öffnen (CSV/TXT) oder aus einem Datensatz übernehmen.", "Open a table with potential and current (CSV/TXT) or take it from a dataset."), "table"],
+  kriechen: () => [L("Zeitstandversuche auswerten", "Evaluate creep-rupture tests"), L("Rechts σ, T und Bruchzeit (für Larson–Miller) oder Kriechrate (für Norton) eintragen.", "Enter σ, T and rupture time (Larson–Miller) or creep rate (Norton) on the right."), "ex"],
+};
+
+// ---- Eingabebereiche
+const supU = (u) => String(u || "").replace(/\^(-?\d+)/g, (m, e) => supNum(e));
+const propOf = (k) => (EN() ? META.props_en : META.props).find(p => p.key === k) || { key: k, label: k, unit: "" };
+function ownPane(i) {
+  const ax = i.eigen_ax || [i.x, i.y], px = propOf(ax[0]), py = propOf(ax[1]);
+  let h = `<div class="small" style="margin-bottom:4px">${esc(L("Eigene Werkstoffe als Rauten im Diagramm, z. B. aus einer eigenen Messung oder einem Datenblatt. Die Quelle erscheint im Tooltip und als Literaturangabe im Bericht.", "Own materials as diamonds in the chart, e.g. from your own test or a data sheet. The source shows in the tooltip and as a reference in the report."))}</div>`;
+  if (!ownAxesOk(i)) h += `<div class="note warn" style="margin-bottom:4px">${esc(L(`Die eigenen Werte gelten für ${py.label} über ${px.label} und werden bei diesen Achsen nicht gezeigt.`, `The own values are for ${py.label} versus ${px.label} and are not shown with these axes.`))} <button type="button" data-act="ownax">${esc(L("Achsen zurückstellen", "Restore axes"))}</button></div>`;
+  return h + grid("eigen", [{ k: "name", label: L("Name", "Name"), text: true, w: 90 }, { k: "x", label: px.label, u: supU(px.unit) }, { k: "y", label: py.label, u: supU(py.unit) },
+    { k: "src", label: L("Quelle", "Source"), text: true, w: 130, ph: L("z. B. Datenblatt, DOI", "e.g. data sheet, DOI") }], { h: 170 });
+}
+const propOpts = () =>(EN() ? META.props_en : META.props).map(p => [p.key, `${p.label}${p.unit ? " [" + supU(p.unit) + "]" : ""}`]);
+const PANE = {
+  auswahl: (i) => {
+    const idx = Object.entries(META.indices).map(([k, v]) => [k, EN() ? v.en : v.de]);
+    const cls = Object.entries(META.classes).map(([k, v]) => `<label class="chk"><input type="checkbox" data-cls="${k}"${i.classes.includes(k) ? " checked" : ""}><span class="sw" style="background:${CLS_COL[k] || "#888"}"></span>${esc(EN() ? v.en : v.de)}</label>`).join("");
+    return `<div class="row2"><div>${sel("x", L("x-Achse", "x axis"), propOpts())}</div><div>${sel("y", L("y-Achse", "y axis"), propOpts())}</div></div>
+      ${i.custom ? "" : sel("index", L("Kennzahl (grösser = besser)", "Performance index (larger = better)"), [["", L("keine", "none")], ...idx])}
+      ${chk("custom", L("Eigene Kennzahl", "Own index"))}
+      ${i.custom ? grid("expo", [{ k: "p", label: L("Eigenschaft (Schlüssel)", "Property (key)") }, { k: "e", label: L("Exponent", "Exponent") }], { h: 140 }) + `<div class="small">${esc(L("Schlüssel wie in der Datenbank, z. B. E, rho, Rp, KIc, lambda, alpha", "Keys as in the database, e.g. E, rho, Rp, KIc, lambda, alpha"))}</div>` : ""}
+      ${META.has_mp ? chk("mp", L("Materials Project einblenden (berechnet, DFT)", "Show Materials Project (computed, DFT)"), L("Berechnete Werte, nicht gemessen; eigene Markierung im Diagramm", "Computed values, not measured; own marker in the chart")) : ""}
+      ${fold("cls", L("Werkstoffklassen", "Material classes"), cls + `<div class="small">${esc(L("Keine Auswahl = alle", "None selected = all"))}</div>`, i.classes.length ? `(${i.classes.length})` : "")}
+      ${fold("lim", L("Grenzwerte", "Limits"), grid("limits", [{ k: "prop", label: L("Eigenschaft", "Property") }, { k: "min", label: "min" }, { k: "max", label: "max" }], { h: 150 }) + `<div class="small">${esc(L("In den Anzeigeeinheiten der Eigenschaft; Schlüssel wie oben.", "In the display units of the property; keys as above."))}</div>`, (i.limits || []).length ? `(${i.limits.length})` : "")}
+      ${fold("eigen", L("Eigene Werte", "Own values"), ownPane(i), ownRows(i).length ? `(${ownRows(i).length})` : "")}
+      <div id="res"></div>`;
+  },
+  karten: (i) => `<label>${esc(L("Werkstoff suchen", "Search material"))}</label><input type="text" id="kQ" data-k="q" data-text value="${esc(i.q)}" placeholder="${esc(L("Name, Nummer, Familie …", "Name, number, family …"))}">
+      <div class="list" id="kHits" style="max-height:200px"><div class="empty">${esc(L("Mindestens zwei Zeichen eingeben", "Type at least two characters"))}</div></div>
+      <h4 class="sub">${esc(L("Im Vergleich", "In the comparison"))} (${i.names.length})</h4>
+      <div class="list">${i.names.length ? i.names.map((n, k) => `<div class="it"><span class="nm">${esc(n)}</span><button type="button" data-kup="${k}" title="${esc(L("nach oben", "move up"))}">↑</button><button type="button" data-kdel="${k}">✕</button></div>`).join("") : `<div class="empty">${esc(L("noch leer", "empty"))}</div>`}</div>
+      <div id="res"></div>`,
+  kristall: (i) => {
+    const ph = S.phases.map(p => [p.id, `${p.name}${p.own ? " · CIF" : ""}`]);
+    const tubes = Object.entries(META.tubes).map(([k, v]) => [k, `${k} Kα (${fmt(v[0], 5)} Å)`]);
+    const c = i.cust;
+    return `${c.on ? "" : sel("phase", L("Phase", "Phase"), ph)}
+      <div class="row2"><div>${sel("tube", L("Röhre", "Tube"), tubes)}</div><div>${fld("fwhm", L("Linienbreite FWHM", "Line width FWHM"), { u: "°" })}</div></div>
+      <div class="row2"><div>${fld("tth_min", "2θ min", { u: "°" })}</div><div>${fld("tth_max", "2θ max", { u: "°" })}</div></div>
+      ${fold("planes", L("Ebenen und Richtungen", "Planes and directions"), `<div class="row3"><div>${fld("hkl", "(hkl)", { text: true })}</div><div>${fld("uvw", "[uvw]", { text: true })}</div><div>${fld("hkl2", L("2. Ebene", "2nd plane"), { text: true })}</div></div>
+        <div class="small">${esc(L("Die Ebene (hkl) wird in der Zellansicht gezeigt.", "The plane (hkl) is shown in the cell view."))}</div>`)}
+      ${fold("cust", L("Eigene Zelle", "Own cell"), `${chk("cust.on", L("Eigene Zelle statt Phase", "Own cell instead of a phase"))}
+        ${c.on ? `${fld("cust.name", L("Name", "Name"), { text: true })}
+        <div class="row2"><div>${sel("cust.system", L("Kristallsystem", "Crystal system"), [["cubic", L("kubisch", "cubic")], ["tetragonal", L("tetragonal", "tetragonal")], ["hexagonal", L("hexagonal", "hexagonal")], ["orthorhombic", L("orthorhombisch", "orthorhombic")], ["monoclinic", L("monoklin", "monoclinic")], ["triclinic", L("triklin", "triclinic")]])}</div>
+        <div>${sel("cust.centring", L("Zentrierung", "Centring"), [["P", "P"], ["I", "I"], ["F", "F"], ["C", "C"], ["R", "R"]])}</div></div>
+        <div class="row3"><div>${fld("cust.a", "a", { u: "Å" })}</div><div>${fld("cust.b", "b", { u: "Å" })}</div><div>${fld("cust.c", "c", { u: "Å" })}</div></div>
+        <div class="row3"><div>${fld("cust.alpha", "α", { u: "°" })}</div><div>${fld("cust.beta", "β", { u: "°" })}</div><div>${fld("cust.gamma", "γ", { u: "°" })}</div></div>
+        ${area("cust.atoms", L("Atome (Element x y z [Besetzung], je Zeile; Zentrierung wird ergänzt)", "Atoms (element x y z [occupancy], one per line; centring is added)"))}` : ""}`)}
+      <div class="row"><button type="button" data-act="cif">${esc(L("CIF öffnen …", "Open CIF …"))}</button></div>
+      <div id="res"></div>`;
+  },
+  gitter: (i) => {
+    const G = META.gitter || { hosts: [], solutes: [], examples: [] };
+    const hosts = G.hosts.map(h => [h.el, `${h.el} · ${h.forms.map(f => `${f.name} (${f.gitter})`).join(", ")} · Tₘ ${fmt(h.Tm, 0)} °C`]);
+    const ex = (EN() ? G.examples_en : G.examples) || [];
+    const r = S.res.gitter;
+    const fx = (k, de, en, title) => chk("fx." + k, L(de, en), title);
+    return `<label>${esc(L("Beispiel", "Example"))}</label><select data-gex><option value="">${esc(L("– wählen –", "– choose –"))}</option>${ex.map((x, k) => `<option value="${k}">${esc(x.name)}</option>`).join("")}</select>
+      <div class="row2"><div>${sel("host", L("Grundelement", "Base element"), hosts)}</div><div>${fld("T", L("Temperatur", "Temperature"), { u: "°C" })}</div></div>
+      <h4 class="sub">${esc(L("Fremdatome", "Solute atoms"))}</h4>
+      ${grid("sols", [{ k: "el", label: L("Element", "Element"), text: true, w: 44, ph: "C" }, { k: "c", label: L("Gehalt", "Content"), u: i.unit === "at" ? L("At.-%", "at%") : L("Gew.-%", "wt%") },
+        { k: "lim", label: L("eigene Löslichkeit", "own solubility"), u: L("Gew.-%", "wt%") }, { k: "src", label: L("Quelle dazu", "its source"), text: true, w: 100 }], { h: 150 })}
+      ${segH("unit", [["wt", L("Gewichtsprozent", "weight per cent")], ["at", L("Atomprozent", "atomic per cent")]])}
+      <div class="small">${esc(L(`H, B, C, N, O sitzen auf Zwischengitterplätzen, alle anderen auf Gitterplätzen. Bekannt: ${G.solutes.join(", ")}. „Eigene Löslichkeit“ nur, wenn weder Zustandsdiagramm noch lückenlose Mischbarkeit hinterlegt sind; der Überschuss erscheint dann als Ausscheidung.`,
+        `H, B, C, N, O sit on interstitial sites, all others on lattice sites. Known: ${G.solutes.join(", ")}. “Own solubility” only when neither a phase diagram nor complete miscibility is available; the excess then shows as a precipitate.`))}</div>
+      ${fold("gfx", L("Effekte", "Effects"), `${fx("vac", "Leerstellen (Gleichgewicht)", "Vacancies (equilibrium)")}
+        ${fx("vib", "Gitterschwingung (Debye)", "Thermal vibration (Debye)")}
+        ${fx("distort", "Verzerrung um Fremdatome", "Distortion around solutes")}
+        ${fx("precip", "Zweite Phase / Ausscheidung", "Second phase / precipitate")}
+        ${fx("disl", "Stufenversetzung (schematisch)", "Edge dislocation (schematic)")}
+        ${fx("sf", "Stapelfehler (schematisch)", "Stacking fault (schematic)")}
+        ${fx("gb", "Korngrenze (schematisch)", "Grain boundary (schematic)")}
+        <div class="row2"><div>${fld("boost", L("Leerstellen überhöhen ×", "Exaggerate vacancies ×"), { title: L("1 = wahre Anzahl; jede Überhöhung steht im Bild und im Bericht", "1 = true count; any exaggeration is labelled in the view and the report") })}</div>
+        <div>${fld("vib_boost", L("Schwingung überhöhen ×", "Exaggerate vibration ×"), { title: L("1 bis 10", "1 to 10") })}</div></div>
+        ${i.fx.gb ? fld("gb_angle", L("Kippwinkel der Korngrenze", "Tilt angle of the grain boundary"), { u: "°" }) : ""}
+        <div class="small">${esc(L("Ohne Überhöhung zeigt der Ausschnitt die wahre erwartete Zahl (bei Raumtemperatur meist keine Leerstelle).", "Without exaggeration the cell shows the true expected number (usually no vacancy at room temperature)."))}</div>`, Object.values(i.fx).filter(Boolean).length + "/7")}
+      ${fold("gshow", L("Darstellung", "Display"), `<div class="row2"><div>${fld("n", L("Zellen je Kante", "Cells per edge"), { title: "2–14" })}</div><div>${fld("seed", L("Startwert (Zufall)", "Seed (random)"))}</div></div>
+        <div class="row2"><div>${sel("scale", L("Atomgrösse", "Atom size"), [[0.3, L("klein (×0,3)", "small (×0.3)")], [0.45, L("mittel (×0,45)", "medium (×0.45)")], [0.7, "×0,7"], [1, L("wahr (Metallradius)", "true (metallic radius)")]], { num: true })}</div>
+        <div>${sel("slice", L("Schnitt (Ansicht „Schnitt“)", "Slice (view “Slice”)"), SLICE_OPTS(r ? r.phase.gitter_id : (i.host === "Mg" || i.host === "Zn" || i.host === "Co" || i.host === "Ti" ? "hdp" : "")))}</div></div>
+        ${chk("cellHl", L("Elementarzelle hervorheben", "Highlight the unit cell"))}`)}
+      <div id="res"></div>`;
+  },
+  xrd: (i) => {
+    const its = S.items.filter(x => x.kind === "xrd").map(x => [x.id, x.name]);
+    const tubes = [["file", L("aus der Datei", "from the file")], ...Object.entries(META.tubes).map(([k, v]) => [k, `${k} Kα (${fmt(v[0], 5)} Å)`])];
+    const ph = [["", L("keine", "none")], ...S.phases.map(p => [p.id, p.name])];
+    const o = i.opt;
+    const multi = (key, title) => `<div class="list" style="max-height:160px">${S.phases.map(p => `<label class="it chk" style="margin:0"><input type="checkbox" data-multi="${key}" value="${esc(p.id)}"${(o[key] || []).includes(p.id) ? " checked" : ""}> <span class="nm">${esc(p.name)}</span></label>`).join("")}</div>`;
+    return `${its.length ? sel("item", L("Diffraktogramm", "Diffractogram"), its) : note(esc(L("Noch kein Diffraktogramm geladen.", "No diffractogram loaded yet.")))}
+      <div class="row"><button type="button" data-act="open">${esc(L("Öffnen …", "Open …"))}</button><button type="button" data-act="cif">${esc(L("CIF öffnen …", "Open CIF …"))}</button></div>
+      <div class="row2"><div>${sel("tube", L("Wellenlänge", "Wavelength"), tubes)}</div><div style="align-self:end">${i.tube !== "file" ? chk("mono", L("nur Kα1 (Monochromator)", "Kα1 only (monochromator)")) : ""}</div></div>
+      ${sel("opt.phase_ref", L("Bezugsphase (Indizierung, Gitterkonstante)", "Reference phase (indexing, lattice parameter)"), ph)}
+      ${chk("opt.search", L("Phasen suchen (eingebaute Strukturen und CIF)", "Search phases (built-in structures and CIF)"))}
+      ${fold("xopt", L("Auswertung", "Evaluation"), `<div class="row2"><div>${fld("opt.min_rel", L("Mindesthöhe", "Minimum height"), { u: "%" })}</div><div>${fld("opt.smooth", L("Glättung (Fenster)", "Smoothing (window)"), { u: L("Punkte", "points") })}</div></div>
+        <div class="row2"><div>${fld("opt.bg_width", L("Untergrund-Breite", "Background width"), { u: "°" })}</div><div>${fld("opt.tol", L("Toleranz Zuordnung", "Matching tolerance"), { u: "°" })}</div></div>
+        <div class="row2"><div>${fld("opt.K", L("Scherrer-Konstante K", "Scherrer constant K"))}</div><div>${fld("opt.inst_fwhm", L("Gerätebreite", "Instrument width"), { u: "°" })}</div></div>
+        ${fld("opt.index_min", L("Indizierung ab", "Index from"), { u: "% I" })}
+        ${chk("opt.bg", L("Untergrund abziehen", "Subtract background"))}${chk("opt.strip_ka2", L("Kα2 abziehen (Rachinger)", "Strip Kα2 (Rachinger)"))}`)}
+      ${fold("xov", L("Strichmuster einblenden", "Overlay stick patterns"), multi("overlay"), o.overlay.length ? `(${o.overlay.length})` : "")}
+      ${fold("xq", L("Mengenanteile (berechnete RIR)", "Phase fractions (computed RIR)"), multi("quant_ids") + `<div class="small">${esc(L("Halbquantitativ: Referenz-Intensitätsverhältnisse aus den Strukturen berechnet, nicht gemessen.", "Semi-quantitative: reference intensity ratios computed from the structures, not measured."))}</div>`, o.quant_ids.length ? `(${o.quant_ids.length})` : "")}
+      <div id="res"></div>`;
+  },
+  phasen: (i) => {
+    const sy = (EN() ? META.systems_en : META.systems).map(s => [s.id, s.name]);
+    const comp = (META.systems || []).find(s => s.id === i.system);
+    const isC = comp && comp.kind === "computed";
+    return `${sel("system", L("System", "System"), sy)}
+      ${isC ? `<div class="row2"><div>${fld("mx", L("Zusammensetzung", "Composition"), { u: i.unit === "at" ? "At.-% B" : L("Gew.-% B", "wt% B") })}</div><div>${fld("mT", L("Temperatur", "Temperature"), { u: "°C" })}</div></div>
+        ${sel("unit", L("Einheit", "Unit"), [["wt", L("Gewichtsprozent", "weight per cent")], ["at", L("Atomprozent", "atomic per cent")]])}
+        ${fold("model", L("Modell (Lösungsmodell)", "Model (solution model)"), `<div class="row2"><div>${fld("model.A", "A", { text: true })}</div><div>${fld("model.B", "B", { text: true })}</div></div>
+          <div class="row2"><div>${fld("model.TmA", "T_m,A", { u: "°C" })}</div><div>${fld("model.TmB", "T_m,B", { u: "°C" })}</div></div>
+          <div class="row2"><div>${fld("model.HA", "ΔH_m,A", { u: "kJ/mol" })}</div><div>${fld("model.HB", "ΔH_m,B", { u: "kJ/mol" })}</div></div>
+          <div class="row2"><div>${fld("model.MA", "M_A", { u: "g/mol" })}</div><div>${fld("model.MB", "M_B", { u: "g/mol" })}</div></div>
+          <div class="row2"><div>${fld("model.omega_L", "Ω_L", { u: "kJ/mol" })}</div><div>${fld("model.omega_S", "Ω_S", { u: "kJ/mol" })}</div></div>
+          <div class="small">${esc(L("Ω = 0: ideale Lösung; Ω ≠ 0: reguläre Lösung. Vorgabe Cu–Ni nach CRC; das berechnete Diagramm weicht vom gemessenen um bis zu etwa 25 K ab.", "Ω = 0: ideal solution; Ω ≠ 0: regular solution. Cu–Ni default after CRC; the computed diagram deviates from the measured one by up to about 25 K."))}</div>`)}`
+      : `<div class="row2"><div>${fld("x", L("Zusammensetzung", "Composition"), { u: L("Gew.-%", "wt%") })}</div><div>${fld("T", L("Temperatur", "Temperature"), { u: "°C" })}</div></div>`}
+      <div class="small">${esc(L("Klick ins Diagramm setzt Zusammensetzung und Temperatur.", "Click in the diagram to set composition and temperature."))}</div>
+      <div id="res"></div>`;
+  },
+  stahl: (i) => {
+    const el_ = ["C", "Si", "Mn", "Cr", "Mo", "V", "Ni", "Cu", "B"];
+    return `<h4 class="sub">${esc(L("Zusammensetzung", "Composition"))} <span class="small">[${esc(L("Gew.-%", "wt%"))}]</span></h4>
+      <div class="row3">${el_.map(e => `<div>${fld("comp." + e, e)}</div>`).join("")}</div>
+      ${fold("pre", L("Vorwärmen (CET, EN 1011-2)", "Preheat (CET, EN 1011-2)"), `${chk("preheat.on", L("berechnen", "calculate"))}
+        <div class="row3"><div>${fld("preheat.d", L("Dicke", "Thickness"), { u: "mm" })}</div><div>${fld("preheat.HD", "HD", { u: "ml/100 g" })}</div><div>${fld("preheat.Q", L("Wärmeeinbringung", "Heat input"), { u: "kJ/mm" })}</div></div>`)}
+      ${fold("hj", L("Anlassen (Hollomon–Jaffe)", "Tempering (Hollomon–Jaffe)"), `${chk("hj.on", L("berechnen", "calculate"))}
+        <div class="row2"><div>${fld("hj.T1", "T₁", { u: "°C" })}</div><div>${fld("hj.t1", "t₁", { u: "h" })}</div></div>
+        <div class="row2"><div>${fld("hj.T2", L("T₂ (gleichwertig)", "T₂ (equivalent)"), { u: "°C" })}</div><div>${fld("hj.C", "C")}</div></div>`)}
+      ${fold("carb", L("Aufkohlen (Fick, erf-Lösung)", "Carburising (Fick, erf solution)"), `${chk("carb.on", L("berechnen", "calculate"))}
+        <div class="row2"><div>${fld("carb.T", "T", { u: "°C" })}</div><div>${fld("carb.t", "t", { u: "h" })}</div></div>
+        <div class="row3"><div>${fld("carb.c0", "c₀", { u: "%" })}</div><div>${fld("carb.cs", "c_s", { u: "%" })}</div><div>${fld("carb.limit", L("Grenze", "Limit"), { u: "%" })}</div></div>`)}
+      <div id="res"></div>`;
+  },
+  laminat: (i) => {
+    const pl = [["", L("– wählen –", "– choose –")], ...(META.plies || []).map(n => [n, n])];
+    const p = (k, lab, u) => `<div>${fld("ply." + k, lab, { u, ph: S.res.laminat && S.res.laminat.ply ? fmt(S.res.laminat.ply[k], 4) : "" })}</div>`;
+    return `${i.own ? "" : sel("material", L("Lagenwerkstoff (UD)", "Ply material (UD)"), pl)}
+      ${chk("own", L("Eigene Lagenwerte", "Own ply values"))}
+      ${fold("ply", L("Lagenkennwerte", "Ply properties"), `<div class="row3">${p("E1", "E₁", "GPa")}${p("E2", "E₂", "GPa")}${p("G12", "G₁₂", "GPa")}</div>
+        <div class="row3">${p("nu12", "ν₁₂", "")}${p("Xt", "X_t", "MPa")}${p("Xc", "X_c", "MPa")}</div>
+        <div class="row3">${p("Yt", "Y_t", "MPa")}${p("Yc", "Y_c", "MPa")}${p("S12", "S₁₂", "MPa")}</div>
+        <div class="small">${esc(L("Leere Felder: Werte des gewählten Werkstoffs.", "Empty fields: values of the chosen material."))}</div>`)}
+      <div class="row2"><div>${fld("layup", L("Lagenaufbau", "Layup"), { text: true, ph: "[0/±45/90]s" })}</div><div>${fld("t", L("Lagendicke", "Ply thickness"), { u: "mm" })}</div></div>
+      <h4 class="sub">${esc(L("Belastung", "Loading"))}</h4>
+      <div class="row3"><div>${fld("Nx", "N_x", { u: "N/mm" })}</div><div>${fld("Ny", "N_y", { u: "N/mm" })}</div><div>${fld("Nxy", "N_xy", { u: "N/mm" })}</div></div>
+      <div class="row3"><div>${fld("Mx", "M_x", { u: "N" })}</div><div>${fld("My", "M_y", { u: "N" })}</div><div>${fld("Mxy", "M_xy", { u: "N" })}</div></div>
+      ${fold("lcrit", L("Kriterien", "Criteria"), `<div class="row2"><div>${fld("F12", "F₁₂* (Tsai–Wu)")}</div><div>${fld("ST", L("S_T (Hashin)", "S_T (Hashin)"), { u: "MPa", ph: "Y_c/2" })}</div></div>`)}
+      <div id="res"></div>`;
+  },
+  ermuedung: (i) => `${grid("rows", [{ k: "sa", label: "σa", u: "MPa" }, { k: "sm", label: "σm", u: "MPa" }, { k: "N", label: "N" }, { k: "runout", label: L("Durchl.", "Run-out"), chk: true }], { file: true, extra: `<button type="button" class="link" data-ex="ermuedung">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button>` })}
+      <div class="row3"><div>${fld("mat.Rm", "R_m", { u: "MPa" })}</div><div>${fld("mat.Re", "R_e", { u: "MPa" })}</div><div>${fld("mat.sigma_f", "σ′_f", { u: "MPa", title: L("nur für Morrow", "only for Morrow") })}</div></div>
+      <div class="row2"><div>${sel("model", L("Mittelspannung", "Mean stress"), [["none", L("keine", "none")], ["goodman", "Goodman"], ["gerber", "Gerber"], ["soderberg", "Soderberg"], ["morrow", "Morrow"], ["swt", "Smith–Watson–Topper"]])}</div><div>${fld("N_target", L("σ bei N", "σ at N"), { ph: "1e6" })}</div></div>
+      ${fold("marin", L("Dauerfestigkeit (Marin)", "Endurance limit (Marin)"), `${chk("marin.on", L("aus R_m schätzen", "estimate from R_m"))}
+        <div class="row2"><div>${sel("marin.surface", L("Oberfläche", "Surface"), META.surfaces.map(s => [s, EN() ? ({ geschliffen: "ground", bearbeitet: "machined", warmgewalzt: "hot-rolled", geschmiedet: "as-forged" }[s] || s) : s]))}</div>
+        <div>${sel("marin.loading", L("Belastung", "Loading"), [["biegung", L("Biegung", "bending")], ["zug", L("Zug/Druck", "axial")], ["torsion", "Torsion"]])}</div></div>
+        <div class="row3"><div>${fld("marin.d", L("Durchmesser", "Diameter"), { u: "mm" })}</div><div>${sel("marin.rel", L("Zuverl.", "Reliab."), [50, 90, 95, 99, 99.9, 99.99, 99.999].map(v => [v, fmt(v, 3) + " %"]), { num: true })}</div><div>${fld("marin.kd", "k_d")}</div></div>
+        ${fld("Se", L("oder S_e direkt", "or S_e directly"), { u: "MPa" })}`)}
+      ${fold("rf", L("Lastfolge (Rainflow, Miner)", "Load history (rainflow, Miner)"), `${area("series", L("Umkehrpunkte oder Lastfolge", "Reversals or load history"), "0 300 -100 250 -200 …")}
+        <div class="row3"><div>${fld("hyst", L("Hysterese", "Hysteresis"), { u: "MPa" })}</div><div>${fld("repeats", L("Wiederholungen", "Repeats"))}</div><div>${sel("miner_model", L("Mittelsp.", "Mean st."), [["", L("wie oben", "as above")], ["none", L("keine", "none")], ["goodman", "Goodman"], ["gerber", "Gerber"], ["swt", "SWT"]])}</div></div>
+        ${chk("miner_cutoff", L("Zyklen unter S_e nicht zählen", "Do not count cycles below S_e"))}`)}
+      <div id="res"></div>`,
+  weibull: (i) => `${area("values", L("Festigkeiten", "Strengths") + " [MPa]", "312 341 355 …")}
+      <div class="row"><button type="button" class="link" data-ex="weibull">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button><button type="button" data-act="wbfile">${esc(L("Aus Datei …", "From file …"))}</button></div>
+      <label>${esc(L("Schätzung", "Estimate"))}</label>${segH("method", [["mle", "Maximum-Likelihood"], ["lsq", L("Regression (Median-Ränge)", "Regression (median ranks)")]])}
+      ${fold("boot", L("Vertrauensbereich (Bootstrap)", "Confidence (bootstrap)"), `${chk("boot", L("berechnen", "calculate"))}<div class="row3"><div>${fld("B", L("Stichproben", "Resamples"))}</div><div>${fld("level", L("Niveau", "Level"))}</div><div>${fld("seed", "Seed")}</div></div>`)}
+      ${fold("size", L("Grösseneffekt", "Size effect"), `${chk("size.on", L("berechnen", "calculate"))}
+        <div class="row2"><div>${fld("size.V1", L("Volumen Prüfkörper", "Volume of test pieces"), { u: "mm³" })}</div><div>${sel("size.kind1", L("Belastung", "Loading"), [["zug", L("Zug", "tension")], ["3pb", L("3-Punkt-Biegung", "3-point bending")], ["4pb", L("4-Punkt-Biegung", "4-point bending")]])}</div></div>
+        ${i.size.kind1 === "4pb" ? `<div class="row2"><div>${fld("size.Li1", L("innere Stützweite", "inner span"), { u: "mm" })}</div><div>${fld("size.L1", L("äussere Stützweite", "outer span"), { u: "mm" })}</div></div>` : ""}
+        <div class="row2"><div>${fld("size.V2", L("Volumen Bauteil", "Volume of component"), { u: "mm³" })}</div><div>${sel("size.kind2", L("Belastung", "Loading"), [["zug", L("Zug", "tension")], ["3pb", L("3-Punkt-Biegung", "3-point bending")], ["4pb", L("4-Punkt-Biegung", "4-point bending")]])}</div></div>
+        ${i.size.kind2 === "4pb" ? `<div class="row2"><div>${fld("size.Li2", L("innere Stützweite", "inner span"), { u: "mm" })}</div><div>${fld("size.L2", L("äussere Stützweite", "outer span"), { u: "mm" })}</div></div>` : ""}`)}
+      <div id="res"></div>`,
+  bruch: (i) => `<h4 class="sub">K_Q (ASTM E399)</h4>
+      <div class="row2"><div>${sel("kq.geom", L("Probe", "Specimen"), [["senb", L("Biegeprobe SE(B)", "Bend SE(B)")], ["ct", L("Kompaktzugprobe C(T)", "Compact tension C(T)")]])}</div><div>${i.kq.geom === "senb" ? fld("kq.S", L("Stützweite S", "Span S"), { u: "mm", ph: "4 W" }) : ""}</div></div>
+      <div class="row2"><div>${fld("kq.P", "P_Q", { u: "kN" })}</div><div>${fld("kq.Pmax", "P_max", { u: "kN" })}</div></div>
+      <div class="row3"><div>${fld("kq.B", "B", { u: "mm" })}</div><div>${fld("kq.W", "W", { u: "mm" })}</div><div>${fld("kq.a", "a", { u: "mm" })}</div></div>
+      ${fld("kq.Rp", "R_p0,2", { u: "MPa" })}
+      <h4 class="sub">${esc(L("Kritische Risslänge", "Critical crack length"))}</h4>
+      <div class="row3"><div>${fld("crack.KIc", "K_Ic", { u: "MPa√m" })}</div><div>${fld("crack.sigma", "σ", { u: "MPa" })}</div><div>${fld("crack.Y", L("Geometriefaktor Y", "Geometry factor Y"))}</div></div>
+      <div id="res"></div>`,
+  haerte: (i) => {
+    const tabs = [["", L("keine (nur Faustregel)", "none (rule of thumb only)")], ...S.items.filter(x => x.kind === "hardtable").map(x => [x.id, x.name])];
+    const hs = i.method === "HBW";
+    const sc = (S.res.haerte && S.res.haerte.table && S.res.haerte.table.scales) || [];
+    return `${segH("method", [["HV", "Vickers HV"], ["HBW", "Brinell HBW"], ["HK", "Knoop HK"]])}
+      ${grid("rows", [{ k: "F", label: "F", u: "N" }, { k: "d1", label: hs ? "d₁" : (i.method === "HK" ? L("Diagonale", "Diagonal") : "d₁"), u: "mm" }, ...(i.method === "HK" ? [] : [{ k: "d2", label: "d₂", u: "mm" }]), ...(hs ? [{ k: "D", label: "D", u: "mm" }] : [])], { file: true, extra: `<button type="button" class="link" data-ex="haerte">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button>` })}
+      ${hs ? fld("D", L("Kugeldurchmesser (Vorgabe)", "Ball diameter (default)"), { u: "mm" }) : ""}
+      ${fold("conv", L("Umwertung", "Conversion"), `${sel("table", L("Umwertungstabelle (eigene Kopie der Norm)", "Conversion table (own copy of the standard)"), tabs)}
+        <div class="row"><button type="button" data-act="hardtable">${esc(L("Tabelle laden …", "Load table …"))}</button></div>
+        ${i.table && sc.length ? `<div class="row2"><div>${sel("from", L("von", "from"), sc.map(s => [s, s]))}</div><div>${sel("to", L("nach", "to"), [["", "–"], ...sc.map(s => [s, s])])}</div></div>` : ""}
+        <div class="small">${esc(L("Normtabellen (ISO 18265, ASTM E140) werden nicht mitgeliefert. Eine CSV mit Kopfzeile der Skalen (z. B. HV;HRC;Rm) und optional „# Quelle: …“ laden; ohne Tabelle nur die gekennzeichnete Faustregel Rm ≈ 3,3·HV.", "Standard tables (ISO 18265, ASTM E140) are not included. Load a CSV with a header of scales (e.g. HV;HRC;Rm) and optionally “# Source: …”; without a table only the labelled rule of thumb Rm ≈ 3.3·HV."))}</div>`)}
+      ${fold("grain", L("Korngrösse (ASTM E112)", "Grain size (ASTM E112)"), `${segH("grain.mode", [["L", L("Linienschnitt", "Intercept")], ["NA", L("Planimetrisch", "Planimetric")]])}
+        ${i.grain.mode === "NA" ? fld("grain.NA", "N_A", { u: L("Körner/mm²", "grains/mm²") }) : `<div class="row3"><div>${fld("grain.L", L("Linienlänge", "Line length"), { u: "mm" })}</div><div>${fld("grain.N", L("Schnittpunkte", "Intercepts"))}</div><div>${fld("grain.M", L("Vergrösserung", "Magnification"))}</div></div>`}`)}
+      ${fold("hp", "Hall–Petch", grid("hp", [{ k: "d", label: L("Korngrösse d", "Grain size d"), u: "µm" }, { k: "s", label: "σ_y", u: "MPa" }], { h: 160, extra: `<button type="button" class="link" data-ex="hp">${esc(L("Beispiel", "Example"))}</button>` }), (i.hp || []).length ? `(${i.hp.length})` : "")}
+      <div id="res"></div>`;
+  },
+  korrosion: (i) => {
+    const tabs = S.items.filter(x => x.kind === "table").map(x => [x.id, x.name]);
+    const cols = (S.kcols || []).map((c, k) => [k, `${c.name}${c.unit ? " [" + c.unit + "]" : ""}`]);
+    return `${i.data ? note(esc(L("Daten aus Datensatz", "Data from dataset")) + ` „${esc(i.data.title || "")}“ (${i.data.E.length}) <button type="button" class="link" data-act="kdrop">${esc(L("entfernen", "remove"))}</button>`) :
+        (tabs.length ? sel("item", L("Tabelle", "Table"), tabs) : note(esc(L("Noch keine Tabelle geladen.", "No table loaded yet."))))}
+      <div class="row"><button type="button" data-act="table">${esc(L("Tabelle öffnen …", "Open table …"))}</button></div>
+      ${!i.data && cols.length ? `<div class="row2"><div>${sel("colE", L("Spalte Potential", "Potential column"), cols, { num: true })}</div><div>${sel("colI", L("Spalte Strom", "Current column"), cols, { num: true })}</div></div>` : ""}
+      <div class="row3"><div>${sel("Eunit", "E", [["V", "V"], ["mV", "mV"]])}</div><div>${sel("iunit", "i", [["A", "A"], ["mA", "mA"], ["uA", "µA"], ["nA", "nA"], ["A/cm2", "A/cm²"], ["mA/cm2", "mA/cm²"], ["uA/cm2", "µA/cm²"], ["A/m2", "A/m²"]])}</div><div>${fld("area", L("Fläche", "Area"), { u: "cm²" })}</div></div>
+      <div class="row2"><div>${sel("metal", L("Metall", "Metal"), [["", L("eigene Werte", "own values")], ...META.metals.map(m => [m, m])])}</div><div>${i.metal ? "" : `<div class="row2"><div>${fld("EW", "EW", { u: "g" })}</div><div>${fld("rho", "ρ", { u: "g/cm³" })}</div></div>`}</div></div>
+      ${fold("kopt", L("Auswertung", "Evaluation"), `<div class="row3"><div>${fld("eta_min", "η min", { u: "V" })}</div><div>${fld("eta_max", "η max", { u: "V" })}</div><div>${fld("Ecorr", "E_corr", { u: "V", ph: L("auto", "auto") })}</div></div>
+        ${chk("bv", L("Butler–Volmer-Anpassung zusätzlich", "Also fit Butler–Volmer"))}${fld("eta_fit", L("Bereich Butler–Volmer ±", "Butler–Volmer range ±"), { u: "V" })}`)}
+      <div id="res"></div>`;
+  },
+  kriechen: (i) => `${grid("rows", [{ k: "s", label: "σ", u: "MPa" }, { k: "T", label: "T", u: "°C" }, { k: "t", label: "t_r", u: "h" }, { k: "rate", label: "ε̇", u: "1/h" }], { file: true, extra: `<button type="button" class="link" data-ex="kriechen">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button>` })}
+      <div class="row3"><div>${fld("C", L("Konstante C", "Constant C"))}</div><div>${sel("deg", L("Polynomgrad", "Polynomial degree"), [[1, "1"], [2, "2"], [3, "3"]], { num: true })}</div><div style="align-self:end">${chk("fitC", L("C anpassen", "fit C"))}</div></div>
+      <h4 class="sub">${esc(L("Vorhersage", "Prediction"))}</h4>
+      <div class="row2"><div>${fld("ps", "σ", { u: "MPa" })}</div><div>${fld("pT", "T", { u: "°C" })}</div></div>
+      <div id="res"></div>`,
+};
+
+// ---- Ergebnisse (rechts) und Diagramme (Mitte)
+const dag = (u) => u ? " †" : "";
+const RES = {
+  auswahl: (r, i) => {
+    let h = `<div class="small" style="margin-top:8px">${esc(L(`${r.points.length} Werkstoffe im Diagramm.`, `${r.points.length} materials in the chart.`))} ${esc(L("Klick auf einen Punkt: zum Vergleich.", "Click a point: add to the comparison."))}</div>`;
+    if (r.rank) {
+      h += `<h4 class="sub">${esc(L("Rangliste", "Ranking"))} · ${r.rank.n_ok}</h4>` +
+        tbl(["#", L("Werkstoff", "Material"), "M"], r.rank.ranked.slice(0, 40).map(x => [x.rank, esc(x.name) + dag(x.unchecked) + (x.mp ? ` <span class="badge model">DFT</span>` : "") + (x.own ? ` <span class="badge">${esc(L("eigen", "own"))}</span>` : ""), sig(x.M, 4)]), { click: true, left: [1], h: 280 });
+      if (r.rank.excluded.length) h += fold("excl", L("Ausgeschlossen", "Excluded"), tbl([L("Werkstoff", "Material"), L("Grund", "Reason")], r.rank.excluded.slice(0, 200).map(x => [esc(x.name), esc(x.why.join(", "))]), { h: 220 }), `(${r.rank.excluded.length})`);
+    }
+    return h + refsHtml(r.refs);
+  },
+  karten: (r) => {
+    const h = (r.cards || []).filter(c => c.hinweis || c.nicht_geprueft).map(c => `<div class="small" style="margin-top:6px"><b>${esc(c.name)}:</b> ${esc(c.hinweis || "")}${c.nicht_geprueft ? " † " + esc(c.nicht_geprueft) : ""}</div>`).join("");
+    return h;
+  },
+  kristall: (r) => {
+    const c = r.cell;
+    let h = kv([[L("Phase", "Phase"), esc(r.name) + (r.formula ? ` · ${esc(r.formula)}` : "")], [L("Raumgruppe", "Space group"), esc(r.spacegroup || "–") + " · " + esc(sysName(r.system))],
+      ["a, b, c", `${fmt(c.a, 4)}, ${fmt(c.b, 4)}, ${fmt(c.c, 4)} Å`], ["α, β, γ", `${fmt(c.alpha, 2)}, ${fmt(c.beta, 2)}, ${fmt(c.gamma, 2)}°`],
+      ["V", `${fmt(c.V, 2)} Å³`], [L("Dichte (Röntgen)", "Density (X-ray)"), `${fmt(r.rho, 3)} g/cm³`], [L("Atome je Zelle", "Atoms per cell"), fmt(r.Z_atoms, 2)],
+      ["λ", `${fmt(r.lam[0], 6)} Å`],
+      r.plane && [`d(${r.plane.hkl.join(" ")})`, `${fmt(r.plane.d, 4)} Å · 2θ = ${fmt(r.plane.tth, 3)}°`],
+      r.direction && [`|[${r.direction.uvw.join(" ")}]|`, `${fmt(r.direction.length, 4)} Å`],
+      r.angle_planes != null && [L("Winkel der Ebenen", "Angle between planes"), `${fmt(r.angle_planes, 3)}°`]]);
+    if (r.note) h += `<div class="small">${esc(r.note)}</div>`;
+    h += `<h4 class="sub">${esc(L("Reflexe (berechnet)", "Reflections (computed)"))} · ${r.lines.length}</h4>` +
+      tbl(["hkl", "2θ [°]", "d [Å]", "m", "I_rel"], r.lines.map(x => [x.hkl, fmt(x.tth, 3), fmt(x.d, 4), x.m, fmt(x.Irel, 1)]), { h: 260 });
+    return h + refsHtml(r.refs);
+  },
+  gitter: (r, i) => {
+    const sup = (x) => { if (!x) return "0"; const e = Math.floor(Math.log10(Math.abs(x))); return Math.abs(e) < 3 ? sig(x, 3) : `${fmt(x / 10 ** e, 2)}·10${supNum(e)}`; };
+    const Tm = r.Tm, TK = r.T + 273.15;
+    let h = kv([[L("Phase", "Phase"), esc(r.phase.name) + (r.liquid ? "" : ` · ${esc(r.phase.gitter)}`) + (r.phase.region ? ` <span class="small">(${esc(r.phase.region)})</span>` : "")],
+      !r.liquid && ["a" + (r.lattice.c ? ", c" : ""), `${fmt(r.lattice.a, 4)}${r.lattice.c ? ", " + fmt(r.lattice.c, 4) : ""} Å <span class="small">(${esc(r.lattice.how === "interp" ? L("Messpunkte", "measured points") : L("α·ΔT", "α·ΔT"))})</span>`],
+      !r.liquid && [L("Nächster Nachbar d₁", "Nearest neighbour d₁"), `${fmt(r.lattice.dnn, 3)} Å`],
+      [L("T / Tₘ (homolog)", "T / Tₘ (homologous)"), fmt(TK / (Tm + 273.15), 3)],
+      [L("Atome im Ausschnitt", "Atoms in the cell"), `${r.count} · ${r.box.map(x => fmt(x / 10, 2)).join(" × ")} nm`],
+      r.vac && r.vac.Hv && ["c_v", `${sup(r.vac.c)} <span class="small">(H_v = ${fmt(r.vac.Hv, 2)} eV, S_v = ${fmt(r.vac.Sv, 1)} k)</span>`],
+      r.vac && r.vac.Hv && [L("Leerstellen erwartet", "Vacancies expected"), `${sup(r.vac.expected)}${r.boost > 1 ? ` · ${L("gezeigt", "shown")} ${r.vac.placed} (×${sup(r.boost)} ${L("überhöht", "exaggerated")})` : ` · ${L("gezeigt", "shown")} ${r.vac.placed}`}`],
+      r.sigma && ["√⟨u_x²⟩", `${fmt(r.sigma, 3)} Å · ${fmt(100 * r.sigma / r.lattice.dnn, 1)} % ${L("von", "of")} d₁${r.vib_boost > 1 ? ` (${L("gezeichnet", "drawn")} ×${fmt(r.vib_boost, 1)})` : ""} <span class="small">(θ_D = ${fmt(r.theta_D, 0)} K)</span>`],
+      r.disl && [L("Versetzung", "Dislocation"), `b = ${esc(r.disl.burgers)} = ${fmt(r.disl.b, 3)} Å · ${esc(r.disl.plane)} · ν = ${fmt(r.disl.nu, 2)}`],
+      r.sf && [L("Stapelfehler", "Stacking fault"), `${esc(r.sf.kind === "shockley" ? L("Shockley-Verschiebung a/6⟨112⟩", "Shockley shift a/6⟨112⟩") : L("Basisebene", "basal plane"))} · ${fmt(r.sf.shift, 3)} Å`]]);
+    const how = { diagramm: L("Zustandsdiagramm", "phase diagram"), vollstaendig: L("lückenlos mischbar", "completely miscible"), eigen: L("eigene Grenze", "own limit"), unbekannt: L("nicht hinterlegt", "not available") };
+    if ((r.solutes || []).length) h += `<h4 class="sub">${esc(L("Fremdatome", "Solutes"))}</h4>` + tbl([L("El.", "El."), L("Platz", "Site"), L("im Bild", "shown"), L("erwartet", "expected"), "Δr/r", L("Löslichkeit", "Solubility")],
+      r.solutes.map(s => [esc(s.el), esc(s.site === "sub" ? L("Gitterplatz", "lattice site") : s.site === "okt" ? L("Oktaederlücke", "octahedral") : L("Tetraederlücke", "tetrahedral")), s.placed ?? 0, fmt(s.expected ?? 0, 1), (s.misfit >= 0 ? "+" : "") + fmt(100 * s.misfit, 0) + " %", esc(how[s.how] || s.how)]));
+    if ((r.second || []).length) h += `<h4 class="sub">${esc(L("Zweite Phase (Hebelgesetz)", "Second phase (lever rule)"))}</h4>` + tbl([L("Phase", "Phase"), L("Massenanteil", "Mass fraction"), L("Atome", "Atoms"), L("Form", "Shape")],
+      r.second.map(s => [esc(s.name), fmt(100 * s.frac, 1) + " %", s.atoms ?? 0, esc(s.geom ? (s.geom === "kugel" ? L("Kugel", "sphere") : L("Lamelle", "lamella")) : "–")]));
+    for (const n of r.notes || []) h += note(esc(n), "warn");
+    h += `<div class="small" style="margin-top:6px">${esc(L("Modell, kein Messbild: Lage und Form von Ausscheidungen, Versetzung, Stapelfehler und Korngrenze sind schematisch; Zahl der Fremdatome und Leerstellen, Gitterparameter und Schwingungsamplitude sind berechnet.", "Model, not a micrograph: position and shape of precipitates, dislocation, stacking fault and grain boundary are schematic; the number of solutes and vacancies, the lattice parameter and the vibration amplitude are computed."))}</div>`;
+    return h + refsHtml(r.refs);
+  },
+  xrd: (r, i) => {
+    let h = kv([["λ₁", `${fmt(r.lam1, 6)} Å · ${esc(lamSrc(r.lam_src))}`], r.lam2 && ["λ₂", `${fmt(r.lam2, 6)} Å (${fmt(r.ratio, 2)})`],
+      ["2θ", `${fmt(r.tth_range[0], 2)}–${fmt(r.tth_range[1], 2)}° · ${L("Schritt", "step")} ${fmt(r.step, 4)}°`]]);
+    for (const n of r.notes || []) h += note(esc(n), "warn");
+    h += `<h4 class="sub">${esc(L("Reflexe", "Peaks"))} · ${r.peaks.length}</h4>` +
+      tbl(["2θ [°]", "d [Å]", "FWHM [°]", "I_rel", "D [nm]"], r.peaks.map(p => [fmt(p.tth, 3), fmt(p.d, 4), fmt(p.fwhm, 3), fmt(p.Irel, 1), p.D_nm ? fmt(p.D_nm, 1) : "–"]), { h: 200 });
+    if (r.cubic && r.cubic.length) {
+      const c = r.cubic[0];
+      h += `<h4 class="sub">${esc(L("Kubische Indizierung", "Cubic indexing"))}</h4>` + kv([[L("bester Vorschlag", "best match"), `${esc(EN() ? c.label_en : c.label)} · a = ${fmt(c.a, 5)} Å`],
+        r.cubic_refined && [L("verfeinert", "refined"), `a = ${fmt(r.cubic_refined.a, 5)} ± ${sig(r.cubic_refined.s_a, 2)} Å`],
+        r.cubic_refined && r.cubic_refined.nr && ["Nelson–Riley", `a₀ = ${fmt(r.cubic_refined.nr.a0, 5)} Å`]]);
+    }
+    if (r.ref_match) {
+      const m = r.ref_match;
+      h += `<h4 class="sub">${esc(L("Bezugsphase", "Reference phase"))}</h4>` + kv([[L("Übereinstimmung", "Match"), `${fmt(m.score, 1)} · ${fmt(m.coverage * 100, 0)} % ${L("der Linien", "of lines")}`], [L("Verschiebung", "Shift"), `${fmt(m.shift, 3)}°`],
+        r.ref_refined && [L("Gitterkonstante", "Lattice parameter"), `a = ${fmt(r.ref_refined.a, 5)} ± ${sig(r.ref_refined.s_a, 2)} Å`]]);
+    }
+    if (r.wh) h += `<h4 class="sub">Williamson–Hall</h4>` + kv([[L("Kristallitgrösse", "Crystallite size"), `${fmt(r.wh.D_nm, 1)} ± ${fmt(r.wh.s_D, 1)} nm`], [L("Mikrodehnung", "Microstrain"), `${sig(r.wh.strain, 3)} ± ${sig(r.wh.s_strain, 2)}`], ["R²", fmt(r.wh.r2, 4)]]);
+    if (r.search && r.search.length) {
+      h += `<h4 class="sub">${esc(L("Phasensuche", "Phase search"))}</h4>` + tbl([L("Phase", "Phase"), L("Wert", "Score"), L("Linien", "Lines"), L("erklärt", "explained")],
+        r.search.slice(0, 12).map(s => [esc(s.name), fmt(s.score, 1), fmt(s.coverage * 100, 0) + " %", fmt(s.explained * 100, 0) + " %"]), { click: true, h: 200, hl: (k) => i.opt.overlay.includes(r.search[k].id) }) +
+        `<div class="small">${esc(L("Klick blendet das Strichmuster ein. Vergleich mit berechneten Mustern aus Strukturen, keine ICDD-Daten.", "Click to overlay the stick pattern. Compared with patterns computed from structures, no ICDD data."))}</div>`;
+    }
+    if (r.quant && r.quant.rows && r.quant.rows.length) h += `<h4 class="sub">${esc(L("Mengenanteile (berechnete RIR)", "Phase fractions (computed RIR)"))}</h4>` +
+      tbl([L("Phase", "Phase"), L("Masse", "Mass"), L("Volumen", "Volume")], r.quant.rows.map(q => [esc(q.name), fmt(q.mass * 100, 1) + " %", fmt(q.vol * 100, 1) + " %"]));
+    return h + refsHtml(r.refs);
+  },
+  phasen: (r, i) => {
+    let h = "";
+    if (r.computed) h += note(esc(L("Berechnet: Lösungsmodell (ideal oder regulär) mit den Werten links; kein gemessenes Diagramm.", "Computed: solution model (ideal or regular) with the values on the left; not a measured diagram.")), "warn");
+    else h += note(esc(L("Schematisch: aus den zitierten Eckpunkten gezeichnet; Linien zwischen den Punkten sind gerade bzw. geglättet.", "Schematic: drawn from the cited key points; lines between the points are straight or smoothed.")), "warn");
+    const lv = r.lever;
+    if (lv) {
+      h += `<h4 class="sub">${esc(L("Hebelgesetz", "Lever rule"))}</h4>` + kv([[L("Gebiet", "Region"), esc(lv.region || "–")], ["x, T", `${fmt(lv.x, 3)} · ${fmt(lv.T, 1)} °C`]]);
+      if (lv.phases && lv.phases.length) h += tbl([L("Phase", "Phase"), L("Zusammensetzung", "Composition"), L("Anteil", "Fraction")], lv.phases.map(p => [esc(p.name), fmt(p.x, 3), fmt(p.frac * 100, 1) + " %"]));
+    }
+    for (const c of r.constituents || []) h += `<h4 class="sub">${esc(L("Gefüge unter", "Microstructure below"))} ${fmt(c.T, 0)} °C</h4><div class="small">${esc(c.reaction)}</div>` +
+      tbl([L("Bestandteil", "Constituent"), L("Anteil", "Fraction")], c.parts.map(p => [esc(p.name), fmt(p.frac * 100, 1) + " %"]));
+    if (r.cooling && r.cooling.events) h += fold("cool", L("Abkühlung (Gleichgewicht)", "Cooling (equilibrium)"), tbl(["T [°C]", L("von", "from"), L("nach", "to")], r.cooling.events.map(e => [fmt(e.T, 1), esc(e.from), esc(e.to)])), `(${r.cooling.events.length})`);
+    return h + refsHtml(r.refs);
+  },
+  stahl: (r) => {
+    let h = `<h4 class="sub">${esc(L("Kennwerte", "Values"))}</h4>` + kv([["CE (IIW)", fmt(r.CE, 3)], ["CET", fmt(r.CET, 3)], ["P_cm", fmt(r.Pcm, 3)], ["M_s", `${fmt(r.Ms, 0)} °C`], ["A_c1", `${fmt(r.Ac1, 0)} °C`], ["A_c3", `${fmt(r.Ac3, 0)} °C`]]);
+    for (const n of r.notes || []) h += note(esc(n), "warn");
+    if (r.preheat) { h += `<h4 class="sub">${esc(L("Vorwärmen", "Preheat"))}</h4>` + kv([["T_p", `${fmt(r.preheat.Tp, 0)} °C`], [L("nötig", "needed"), r.preheat.needed ? L("ja", "yes") : L("nein", "no")]]); for (const w of r.preheat.warn || []) h += note(esc(w), "warn"); }
+    if (r.hj) h += `<h4 class="sub">Hollomon–Jaffe</h4>` + kv([["P", fmt(r.hj.P, 0)], r.hj.equiv && [`t₂ (${fmt(r.hj.equiv.T2_C, 0)} °C)`, `${sig(r.hj.equiv.t2_h, 3)} h`]]);
+    if (r.carb) h += `<h4 class="sub">${esc(L("Aufkohlen", "Carburising"))}</h4>` + kv([["D", `${sig(r.carb.D, 3)} m²/s`], [L("Einsatzhärtungstiefe", "Case depth") + ` (${fmt(r.carb.c_limit, 2)} %)`, `${fmt(r.carb.depth_mm, 3)} mm`]]);
+    return h + refsHtml(r.refs);
+  },
+  laminat: (r) => {
+    let h = `<h4 class="sub">${esc(L("Ingenieurkonstanten", "Engineering constants"))}</h4>` + kv([["E_x", `${fmt(r.eng.Ex, 2)} GPa`], ["E_y", `${fmt(r.eng.Ey, 2)} GPa`], ["G_xy", `${fmt(r.eng.Gxy, 2)} GPa`], ["ν_xy", fmt(r.eng.nuxy, 3)], [L("Dicke", "Thickness"), `${fmt(r.h, 3)} mm`], [L("symmetrisch", "symmetric"), r.symmetric ? L("ja", "yes") : L("nein (B ≠ 0)", "no (B ≠ 0)")]]);
+    const crit = { maxstress: L("Max. Spannung", "Max. stress"), tsaihill: "Tsai–Hill", tsaiwu: "Tsai–Wu", hashin: "Hashin" };
+    h += `<h4 class="sub">${esc(L("Erstversagen (Reservefaktor R)", "First-ply failure (reserve factor R)"))}</h4>` +
+      tbl([L("Kriterium", "Criterion"), "R", L("Lage", "Ply"), "θ", L("Ort", "Pos."), L("Art", "Mode")], Object.entries(r.fpf).map(([k, f]) => [crit[k] || k, fmt(f.R, 3), f.ply, fmt(f.angle, 0) + "°", esc(EN() ? ({ unten: "bottom", oben: "top" }[f.pos] || f.pos) : f.pos), esc(f.mode || "–")]));
+    const M3 = (m, u) => `<table class="res">${m.map(row => `<tr>${row.map(v => `<td>${sig(v, 4)}</td>`).join("")}</tr>`).join("")}</table><div class="small">${u}</div>`;
+    h += fold("abd", L("A-, B-, D-Matrix", "A, B, D matrices"), `<div class="small">A [N/mm]</div>${M3(r.A, "")}<div class="small">B [N]</div>${M3(r.B, "")}<div class="small">D [N·mm]</div>${M3(r.D, "")}`);
+    if (r.material) h += `<div class="small" style="margin-top:6px">${esc(L("Lagenwerte", "Ply values"))}: ${esc(r.material.name)}${Object.values(r.material.src || {}).some(s => s.unchecked) ? " †" : ""}</div>`;
+    return h + refsHtml(r.refs);
+  },
+  ermuedung: (r, i) => {
+    let h = "";
+    if (r.fit) {
+      const b = r.fit.mle || r.fit.lsq, f = r.fit.lsq_fit;
+      h += `<h4 class="sub">Basquin ${r.fit.mle ? L("(Maximum-Likelihood, Durchläufer zensiert)", "(maximum likelihood, run-outs censored)") : L("(Regression)", "(regression)")}</h4>` +
+        kv([["σ′_f", `${fmt(b.sigma_f, 1)} MPa`], ["b", fmt(b.b, 4)], [L("Brüche / Durchläufer", "Failures / run-outs"), `${r.fit.n_fail} / ${r.fit.n_runout}`], f && f.r2 != null && ["R² (lg N)", fmt(f.r2, 4)],
+            r.S_at_N != null && [`σ_a (N = ${sig(pnum(i.N_target), 3)})`, `${fmt(r.S_at_N, 1)} MPa`]]);
+      for (const n of r.notes || []) h += note(esc(n), "warn");
+    }
+    if (r.marin) { const m = r.marin; h += `<h4 class="sub">Marin</h4>` + kv([["S′_e", `${fmt(m.Se_prime, 1)} MPa`], ["k_a · k_b · k_c", `${fmt(m.ka, 3)} · ${fmt(m.kb, 3)} · ${fmt(m.kc, 3)}`], ["k_d · k_e", `${fmt(m.kd, 3)} · ${fmt(m.ke, 3)}`], ["S_e", `${fmt(m.Se, 1)} MPa`]]); for (const n of m.notes || []) h += `<div class="small">${esc(n)}</div>`; }
+    if (r.rainflow) h += `<h4 class="sub">Rainflow (ASTM E1049)</h4>` + kv([[L("Umkehrpunkte", "Reversals"), r.rainflow.n_rev], [L("Zyklen", "Cycles"), fmt(r.rainflow.n_cycles, 1)]]);
+    if (r.miner) h += `<h4 class="sub">Palmgren–Miner</h4>` + kv([["D", sig(r.miner.D, 3)], [L("Blöcke bis Bruch", "Blocks to failure"), sig(r.miner.blocks_to_failure, 3)], [L("unter S_e", "below S_e"), r.miner.below_Se]]);
+    return h + refsHtml(r.refs);
+  },
+  weibull: (r, i) => {
+    const b = r[r.method];
+    let h = `<h4 class="sub">${esc(r.method === "mle" ? "Maximum-Likelihood" : L("Regression (Median-Ränge)", "Regression (median ranks)"))}</h4>` +
+      `<div class="row" style="gap:18px"><div><div class="small">m</div><div class="big">${fmt(b.m, 2)}</div></div><div><div class="small">σ₀ [MPa]</div><div class="big">${fmt(b.sigma0, 1)}</div></div><div><div class="small">n</div><div class="big">${b.n}</div></div></div>`;
+    if (r.boot) h += kv([[`m (${fmt(r.boot.level * 100, 0)} %)`, `${fmt(r.boot.m_ci[0], 2)} … ${fmt(r.boot.m_ci[1], 2)}`], [`σ₀ (${fmt(r.boot.level * 100, 0)} %)`, `${fmt(r.boot.sigma0_ci[0], 1)} … ${fmt(r.boot.sigma0_ci[1], 1)} MPa`], ["Bootstrap", `B = ${r.boot.B}, seed ${r.boot.seed}`]]);
+    const o = r.method === "mle" ? r.lsq : r.mle;
+    h += kv([[r.method === "mle" ? L("zum Vergleich Regression", "for comparison regression") : L("zum Vergleich ML", "for comparison ML"), `m = ${fmt(o.m, 2)}, σ₀ = ${fmt(o.sigma0, 1)}`], r.lsq.r2 != null && ["R² (Regression)", fmt(r.lsq.r2, 4)]]);
+    h += `<h4 class="sub">${esc(L("Festigkeit bei Ausfallwahrscheinlichkeit", "Strength at failure probability"))}</h4>` + kv(Object.entries(r.q).map(([P, v]) => [`F = ${fmt(+P * 100, 0)} %`, `${fmt(v, 1)} MPa`]));
+    if (r.size) h += `<h4 class="sub">${esc(L("Grösseneffekt", "Size effect"))}</h4>` + kv([["V_eff,1", `${sig(r.size.Veff1, 3)} mm³`], ["V_eff,2", `${sig(r.size.Veff2, 3)} mm³`], ["σ₀,2", `${fmt(r.size.sigma2, 1)} MPa`]]);
+    return h + refsHtml(r.refs);
+  },
+  bruch: (r) => {
+    let h = "";
+    if (r.kq) {
+      h += `<h4 class="sub">K_Q</h4><div class="big">${fmt(r.kq.K, 2)} MPa√m</div>` + kv([["f(a/W)", fmt(r.kq.f, 4)], ["a/W", fmt(r.kq.a_W, 3)]]) +
+        `<ul class="refs" style="list-style:none;padding-left:0">${r.kq.checks.map(c => `<li class="${c.ok ? "ok-y" : "ok-n"}">${c.ok ? "✓" : "✗"} ${esc(c.name)}${c.value != null ? " (" + sig(c.value, 3) + ")" : ""}</li>`).join("")}</ul>` +
+        note(esc(r.kq.valid_KIc ? L("Alle prüfbaren Bedingungen erfüllt: K_Q = K_Ic (soweit aus den Eingaben prüfbar).", "All checkable conditions met: K_Q = K_Ic (as far as checkable from the inputs).") : L("Nicht alle Bedingungen erfüllt: K_Q ist kein gültiger K_Ic-Wert.", "Not all conditions met: K_Q is not a valid K_Ic.")), r.kq.valid_KIc ? "ok" : "warn");
+    }
+    if (r.crack) h += `<h4 class="sub">${esc(L("Kritische Risslänge", "Critical crack length"))}</h4>` + kv([["a_c", `${fmt(r.crack.a_c_mm, 3)} mm`], ["K_Ic, σ, Y", `${fmt(r.crack.KIc, 1)} MPa√m, ${fmt(r.crack.sigma, 0)} MPa, ${fmt(r.crack.Y, 3)}`]]);
+    return h + refsHtml(r.refs);
+  },
+  haerte: (r, i) => {
+    let h = "";
+    if (r.rows && r.rows.length) {
+      h += `<h4 class="sub">${esc(L("Einzelwerte", "Single values"))}</h4>` + tbl(["#", L("Wert", "Value"), "d [mm]", L("Hinweis", "Note")], r.rows.map((x, k) => [k + 1, x.error ? "–" : `${fmt(x.value, 1)} ${esc(x.scale)}`, x.d != null ? fmt(x.d, 4) : "–", esc(x.error || (x.notes || []).join("; "))]), { left: [3], h: 180 });
+      if (r.stats) h += kv([[L("Mittelwert", "Mean"), `${fmt(r.stats.mean, 1)}`], ["s", fmt(r.stats.sd, 1)], [L("95-%-Vertrauensbereich ±", "95 % confidence ±"), fmt(r.stats.ci95, 1)], ["min … max", `${fmt(r.stats.min, 1)} … ${fmt(r.stats.max, 1)}`]]);
+    }
+    if (r.converted) h += `<h4 class="sub">${esc(L("Umwertung", "Conversion"))}</h4>` + kv([[`${esc(i.from || i.method)} → ${esc(i.to)}`, fmt(r.converted.value, 1)], [L("Tabelle", "Table"), esc(r.table.name) + (r.table.source ? ` (${esc(r.table.source)})` : "")]]) + `<div class="small">${esc(r.converted.note || "")}</div>`;
+    else if (r.rule) h += `<h4 class="sub">${esc(L("Faustregel", "Rule of thumb"))}</h4>` + kv([[L("R_m ≈ 3,3·HV", "R_m ≈ 3.3·HV"), `${fmt(r.rule.value, 0)} MPa`]]) + note(esc(L("Grobe Schätzung für Stahl (Faustregel nach Callister), keine Umwertung nach Norm.", "Rough estimate for steel (rule of thumb after Callister), not a standard conversion.")), "warn");
+    if (r.grain) h += `<h4 class="sub">${esc(L("Korngrösse", "Grain size"))}</h4>` + kv([r.grain.l_um != null && [L("mittlere Sehnenlänge", "mean intercept"), `${fmt(r.grain.l_um, 2)} µm`], ["G (ASTM E112)", fmt(r.grain.G, 2)]]);
+    if (r.hp) h += `<h4 class="sub">Hall–Petch</h4>` + kv([["σ₀", `${fmt(r.hp.sigma0, 1)} ± ${fmt(r.hp.s_sigma0, 1)} MPa`], ["k", `${fmt(r.hp.k, 3)} ± ${fmt(r.hp.s_k, 3)} MPa·√m`], ["R²", fmt(r.hp.r2, 4)]]);
+    return h + refsHtml(r.refs);
+  },
+  korrosion: (r) => {
+    let h = `<h4 class="sub">Tafel</h4>` + kv([["E_corr", `${fmt(r.Ecorr * 1000, 1)} mV`], ["i_corr", `${sig(r.icorr, 4)} µA/cm²`], ["β_a", `${fmt(r.ba, 1)} mV/dec`], ["β_c", `${fmt(r.bc, 1)} mV/dec`],
+      ["R² (a / c)", `${fmt(r.r2_a, 4)} / ${fmt(r.r2_c, 4)}`], [L("Punkte (a / c)", "Points (a / c)"), `${r.n_a} / ${r.n_c}`]]);
+    if (r.Rp) h += `<h4 class="sub">${esc(L("Polarisationswiderstand", "Polarisation resistance"))}</h4>` + kv([["R_p", `${sig(r.Rp, 4)} Ω·cm²`], ["B", `${fmt(r.B * 1000, 1)} mV`], ["i_corr = B/R_p", `${sig(r.icorr_sg, 4)} µA/cm²`]]);
+    if (r.bv) h += `<h4 class="sub">Butler–Volmer</h4>` + kv([["i_corr", `${sig(r.bv.icorr, 4)} µA/cm²`], ["β_a / β_c", `${fmt(r.bv.ba, 1)} / ${fmt(r.bv.bc, 1)} mV/dec`], ["E_corr", `${fmt(r.bv.Ecorr * 1000, 1)} mV`]]);
+    if (r.rate) h += `<h4 class="sub">${esc(L("Korrosionsrate (ASTM G102)", "Corrosion rate (ASTM G102)"))}</h4><div class="big">${fmt(r.rate.mm_a, 4)} mm/a</div>` + kv([["mpy", fmt(r.rate.mpy, 3)], ["EW, ρ", `${fmt(r.EW, 3)} g, ${fmt(r.rho, 3)} g/cm³`]]);
+    return h + refsHtml(r.refs);
+  },
+  kriechen: (r) => {
+    let h = "";
+    if (r.lmp) h += `<h4 class="sub">Larson–Miller</h4>` + kv([["C", fmt(r.lmp.C, 2) + (r.lmp.C_fitted ? ` (${L("angepasst", "fitted")})` : "")], ["R² (lg σ)", fmt(r.lmp.r2, 4)], ["n", r.lmp.n]]);
+    if (r.predict) h += kv([["P", fmt(r.predict.P, 0)], [L("Bruchzeit", "Rupture time"), `${sig(r.predict.t_h, 3)} h`]]);
+    if (r.norton) h += `<h4 class="sub">Norton</h4>` + kv([["n", `${fmt(r.norton.n, 2)}${r.norton.s_n != null ? " ± " + fmt(r.norton.s_n, 2) : ""}`], r.norton.Q_kJ != null && ["Q", `${fmt(r.norton.Q_kJ, 0)}${r.norton.s_Q != null ? " ± " + fmt(r.norton.s_Q, 0) : ""} kJ/mol`], ["R²", fmt(r.norton.r2, 4)]]);
+    if (!r.lmp && !r.norton) h += note(esc(L("Für Larson–Miller mindestens drei Zeilen mit Bruchzeit, für Norton zwei mit Kriechrate.", "Larson–Miller needs at least three rows with rupture time, Norton two with creep rate.")));
+    return h + refsHtml(r.refs);
+  },
+};
+const lamSrc = (s) => EN() ? ({ "Datei": "file", "Einstellung": "setting" }[s] || String(s).replace("angenommen", "assumed")) : s;
+
+const PLOT = {
+  auswahl: (r, i) => {
+    const px = (EN() ? META.props_en : META.props).find(p => p.key === r.x.key) || r.x, py = (EN() ? META.props_en : META.props).find(p => p.key === r.y.key) || r.y;
+    const rk = {}; if (r.rank) r.rank.ranked.forEach(x => { rk[x.id] = x.rank; });
+    const pts = r.points.filter(p => !p.mp), mp = r.points.filter(p => p.mp);
+    const layers = [{ t: "err", x: pts.map(p => p.x), y: pts.map(p => p.y), xlo: pts.map(p => p.xmin), xhi: pts.map(p => p.xmax), lo: pts.map(p => p.ymin), hi: pts.map(p => p.ymax), c: css("--muted"), nofit: true }];
+    const byC = {}; pts.forEach(p => { (byC[p.klasse] = byC[p.klasse] || []).push(p); });
+    for (const [k, list] of Object.entries(byC)) layers.push({ t: "pts", name: (META.classes[k] || {})[EN() ? "en" : "de"] || k, c: CLS_COL[k] || "#888", x: list.map(p => p.x), y: list.map(p => p.y),
+      tips: list.map(p => `${p.name}${p.unchecked ? " †" : ""}\n${px.label}: ${sig(p.x, 4)} ${supU(px.unit)}\n${py.label}: ${sig(p.y, 4)} ${supU(py.unit)}${rk[p.id] ? `\n${L("Rang", "Rank")} ${rk[p.id]}` : ""}`),
+      labels: list.map(p => (rk[p.id] && rk[p.id] <= 10 ? String(rk[p.id]) : "")), pick: (k2) => addCmp(list[k2].name) });
+    if (mp.length) layers.push({ t: "pts", name: L("berechnet (DFT)", "computed (DFT)"), shape: "tri", hollow: true, c: css("--accent2"), x: mp.map(p => p.x), y: mp.map(p => p.y),
+      tips: mp.map(p => `${p.name}\n${L("berechnet (DFT), Materials Project", "computed (DFT), Materials Project")}\n${px.label}: ${sig(p.x, 4)}\n${py.label}: ${sig(p.y, 4)}`), pick: (k2) => addCmp(mp[k2].name) });
+    const own = r.own || [];
+    if (own.length) layers.push({ t: "pts", name: L("eigene Werte", "own values"), shape: "dia", hollow: true, r: 4.5, c: css("--ink"), x: own.map(p => p.x), y: own.map(p => p.y),
+      tips: own.map(p => `${p.name} · ${L("eigener Wert", "own value")}\n${px.label}: ${sig(p.x, 4)} ${supU(px.unit)}\n${py.label}: ${sig(p.y, 4)} ${supU(py.unit)}\n${L("Quelle", "Source")}: ${p.src || L("nicht angegeben", "not given")}${rk[p.id] ? `\n${L("Rang", "Rank")} ${rk[p.id]}` : ""}`),
+      labels: own.map(p => p.name + (rk[p.id] ? ` (${rk[p.id]})` : "")) });
+    if (r.slope != null && isFinite(r.slope)) {
+      const xs = r.points.map(p => p.x).filter(v => v > 0), ys = r.points.map(p => p.y).filter(v => v > 0);
+      const gm = (a) => 10 ** (a.reduce((s, v) => s + Math.log10(v), 0) / a.length);
+      const an = i.anchor || [gm(xs), gm(ys)];
+      const x0 = Math.min(...xs) / 10, x1 = Math.max(...xs) * 10;
+      const yAt = (x) => an[1] * (x / an[0]) ** r.slope;
+      layers.push({ t: "line", x: [x0, an[0], x1], y: [yAt(x0), an[1], yAt(x1)], c: css("--accent2"), dash: "6 4", w: 1.5, nofit: true, name: L(`Kennzahl konstant (Steigung ${fmt(r.slope, 3)})`, `Index constant (slope ${fmt(r.slope, 3)})`) });
+      layers.push({ t: "handle", x: an[0], y: an[1], c: css("--accent2"), title: L("Linie verschieben", "Move the line"), onDrag: (x, y) => { i.anchor = [x, y]; plot(PLOT.auswahl(r, i)); }, onDrop: () => saveSoon() });
+    }
+    return { key: "ash" + r.x.key + r.y.key + i.mp, xlog: true, ylog: true, xlab: `${px.label} [${supU(px.unit) || "–"}]`, ylab: `${py.label} [${supU(py.unit) || "–"}]`, layers, legendPos: "br",
+      tag: mp.length ? L("Dreiecke: berechnet (DFT), nicht gemessen", "Triangles: computed (DFT), not measured") : "" };
+  },
+  kristall: (r, i, v) => {
+    if (v === "cell") return { key: "cell", custom: drawCell, down: () => {}, move: (dx, dy) => { CELL.ry += dx * 0.01; CELL.rx += dy * 0.01; drawPlot(); }, wheel: (d) => { CELL.zoom *= d < 0 ? 1.1 : 1 / 1.1; drawPlot(); }, reset: () => { CELL.rx = -0.45; CELL.ry = 0.6; CELL.zoom = 1; } };
+    const ymax = Math.max(...(r.profile ? r.profile.y : [1]));
+    const sc = ymax > 0 ? 100 / ymax : 1;
+    const layers = [];
+    if (r.profile) layers.push({ t: "line", x: r.profile.x, y: r.profile.y.map(v2 => v2 * sc), c: PAL[0], name: L("berechnetes Profil", "computed profile") });
+    layers.push({ t: "sticks", x: r.lines.map(l => l.tth), h: r.lines.map(l => l.Irel), c: css("--accent2"), name: L("Reflexe", "Reflections"), labels: r.lines.map(l => l.Irel > 8 ? l.hkl : ""), tips: r.lines.map(l => `(${l.hkl})  2θ = ${fmt(l.tth, 3)}°\nd = ${fmt(l.d, 4)} Å · m = ${l.m} · I = ${fmt(l.Irel, 1)}`) });
+    if (r.plane) layers.push({ t: "vline", v: r.plane.tth, c: css("--muted"), label: `(${r.plane.hkl.join(" ")})` });
+    return { key: "kr" + r.name + i.tube, zoom: "x", xlab: "2θ [°]", ylab: L("Intensität (relativ)", "Intensity (relative)"), layers, yr: [0, 112], tag: L("berechnet aus der Struktur", "computed from the structure") };
+  },
+  gitter: (r, i, v) => {
+    const ctl = { down: () => {}, move: (dx, dy) => { LAT.ry += dx * 0.01; LAT.rx += dy * 0.01; latRedraw(); }, wheel: (d) => { LAT.zoom *= d < 0 ? 1.1 : 1 / 1.1; latRedraw(); }, reset: () => { LAT.rx = -0.32; LAT.ry = 0.62; LAT.zoom = 1; } };
+    const tag = [L("Modell", "Model"), r.boost > 1 ? L(`Leerstellen ×${sig(r.boost, 2)} überhöht`, `vacancies ×${sig(r.boost, 2)} exaggerated`) : "", r.vib_boost > 1 ? L(`Schwingung ×${fmt(r.vib_boost, 1)}`, `vibration ×${fmt(r.vib_boost, 1)}`) : "",
+      (r.disl || r.sf || r.gb || (r.second || []).some(s => s.atoms)) ? L("Fehler und Ausscheidungen schematisch", "defects and precipitates schematic") : ""].filter(Boolean).join(" · ");
+    if (v === "slice") {
+      if (!i.slice || r.liquid) return { key: "lslice", custom: (svg, W, H) => { const t = el("text", { x: 20, y: 30, fill: css("--muted") }, svg); t.textContent = r.liquid ? L("Schmelze: keine Netzebenen.", "Melt: no lattice planes.") : L("Rechts unter „Darstellung“ eine Ebene für den Schnitt wählen.", "Choose a plane for the slice under “Display” on the right."); }, tag };
+      return { key: "lslice" + i.slice, custom: drawSlice, ...ctl, move: () => {}, tag };
+    }
+    return { key: "lat" + v, custom: drawLattice, ...ctl, tag };
+  },
+  xrd: (r, i, v) => {
+    if (v === "wh" && r.wh) {
+      const w = r.wh, xs = [0, Math.max(...w.x) * 1.08];
+      return { key: "wh", xlab: "4 sin θ", ylab: "β cos θ [rad]", layers: [{ t: "pts", x: w.x, y: w.y, name: L("Reflexe", "Peaks"), tips: w.x.map((x, k) => `4 sin θ = ${fmt(x, 4)}\nβ cos θ = ${sig(w.y[k], 4)}`) },
+        { t: "line", x: xs, y: xs.map(x => w.intercept + w.strain * x), c: css("--accent2"), name: `D = ${fmt(w.D_nm, 1)} nm, ε = ${sig(w.strain, 3)}` }] };
+    }
+    if (v === "nr") {
+      const ref = r.cubic_refined || r.ref_refined;
+      if (ref && ref.nr) { const n = ref.nr, xs = [0, Math.max(...n.x) * 1.08];
+        return { key: "nr", xlab: "½ (cos²θ/sin θ + cos²θ/θ)", ylab: "a [Å]", layers: [{ t: "pts", x: n.x, y: n.y, name: L("je Reflex", "per peak") }, { t: "line", x: xs, y: xs.map(x => n.a0 + n.slope * x), c: css("--accent2"), name: `a₀ = ${fmt(n.a0, 5)} Å` }] };
+      }
+      return null;
+    }
+    const c = r.curve, layers = [];
+    const ymax = Math.max(...c.y.filter(isFinite));
+    if (r.raw && r.raw.length === c.x.length && i.opt.smooth) layers.push({ t: "line", x: c.x, y: r.raw, c: css("--muted"), w: 0.8, op: 0.5, name: L("Messung", "Measured") });
+    layers.push({ t: "line", x: c.x, y: c.y, c: PAL[0], w: 1.2, name: i.opt.smooth ? L("geglättet", "smoothed") : L("Messung", "Measured") });
+    if (i.opt.bg && c.bg) layers.push({ t: "line", x: c.x, y: c.bg, c: css("--muted"), dash: "4 3", w: 1, name: L("Untergrund", "Background") });
+    layers.push({ t: "pts", x: r.peaks.map(p => p.tth), y: r.peaks.map(p => p.height + (i.opt.bg && c.bg ? interp(c.x, c.bg, p.tth) : 0)), r: 3, c: css("--accent2"), shape: "tri", nolegend: true,
+      tips: r.peaks.map(p => `2θ = ${fmt(p.tth, 3)}° · d = ${fmt(p.d, 4)} Å\nFWHM = ${fmt(p.fwhm, 3)}° · I = ${fmt(p.Irel, 1)} %${p.D_nm ? `\nD (Scherrer) = ${fmt(p.D_nm, 1)} nm` : ""}`) });
+    const base = -0.04 * ymax, band = 0.16 * ymax;
+    (r.sticks || []).forEach((s, k) => {
+      const off = base - k * band * 1.15;
+      layers.push({ t: "sticks", x: s.lines.map(l => l.tth), h: s.lines.map(l => off - l.I / 100 * band), base: off, c: PAL[(k + 2) % PAL.length], name: s.name + L(" (berechnet)", " (computed)"), w: 1.4,
+        tips: s.lines.map(l => `${s.name} (${l.hkl})\n2θ = ${fmt(l.tth, 3)}° · I = ${fmt(l.I, 1)}`) });
+    });
+    return { key: "xrd" + i.item + (r.sticks || []).length, zoom: "x", xlab: "2θ [°]", ylab: L("Intensität [Zählimpulse]", "Intensity [counts]"), layers, ypad: 0.04, ylabMin: (r.sticks || []).length ? 0 : undefined,
+      tag: (r.sticks || []).length ? L("Strichmuster berechnet aus Strukturen", "Stick patterns computed from structures") : "" };
+  },
+  phasen: (r, i, v) => {
+    if (r.computed) {
+      const c = r.computed, layers = [];
+      for (const [k, nm] of [["liquidus", "Liquidus"], ["solidus", "Solidus"], ["solvus", "Solvus"]]) { const p = c.points[k] || []; if (p.length) layers.push({ t: "line", x: p.map(q => q[0]), y: p.map(q => q[1]), name: nm, c: k === "liquidus" ? PAL[0] : k === "solidus" ? PAL[1] : PAL[2] }); }
+      if (r.lever) { const lv = r.lever; if (lv.tie) layers.push({ t: "seg", x1: lv.tie[0], x2: lv.tie[1], y1: lv.T, y2: lv.T, c: css("--ink"), w: 2 }); layers.push({ t: "pts", x: [lv.x], y: [lv.T], c: css("--ink"), r: 4, nolegend: true }); }
+      const m = r.model;
+      return { key: "pdc" + m.A + m.B, xr: [0, 100], yr: c.Tlim, xlab: `${m.B} [${c.unit === "at" ? L("At.-%", "at%") : L("Gew.-%", "wt%")}]`, ylab: L("Temperatur [°C]", "Temperature [°C]"), layers,
+        onClick: (x, y) => { i.mx = +x.toFixed(2); i.mT = +y.toFixed(0); renderPane(); runSoon(0); }, tag: L("berechnet (Lösungsmodell), nicht gemessen", "computed (solution model), not measured") };
+    }
+    if (v === "cooling" && r.cooling) {
+      return { key: "cool" + i.system, xlab: L("Temperatur [°C]", "Temperature [°C]"), ylab: L("Anteil", "Fraction"), yr: [0, 1.05],
+        layers: r.cooling.series.map((s, k) => ({ t: "line", x: s.T, y: s.frac, name: s.name, c: PAL[k % PAL.length] })), tag: L("schematisch, Gleichgewicht", "schematic, equilibrium") };
+    }
+    const d = r.diagram, layers = [];
+    const fills = ["#93c5fd", "#fcd34d", "#86efac", "#f9a8d4", "#c4b5fd", "#fdba74", "#99f6e4", "#d9f99d", "#fca5a5", "#a5b4fc", "#fde68a", "#bbf7d0"];
+    d.regions.forEach((g, k) => layers.push({ t: "poly", pts: g.poly, label: g.label, c: css("--muted"), fill: fills[k % fills.length], fop: 0.28, w: 1 }));
+    for (const inv of d.invariants || []) layers.push({ t: "hline", v: inv.T, from: inv.x[0], to: inv.x[2], c: css("--ink"), dash: "", w: 1.4 });
+    layers.push({ t: "pts", x: (d.points || []).map(p => p.x), y: (d.points || []).map(p => p.T), r: 2.5, c: css("--ink"), nolegend: true,
+      tips: (d.points || []).map(p => `${EN() && p.label_en ? p.label_en : p.label}\nx = ${fmt(p.x, 3)} · T = ${fmt(p.T, 0)} °C`) });
+    if (r.lever) { const lv = r.lever; if (lv.tie) layers.push({ t: "seg", x1: lv.tie[0], x2: lv.tie[1], y1: lv.T, y2: lv.T, c: css("--accent2"), w: 2.5 }); layers.push({ t: "pts", x: [lv.x], y: [lv.T], c: css("--accent2"), r: 4.5, nolegend: true, tips: [`x = ${fmt(lv.x, 3)}, T = ${fmt(lv.T, 0)} °C\n${lv.region || ""}`] }); }
+    else if (i.x !== null && i.x !== "") layers.push({ t: "vline", v: +i.x, c: css("--accent2") });
+    return { key: "pd" + d.id, xr: d.xlim, yr: d.Tlim, xpad: 0, ypad: 0, xlab: d.x_label, ylab: L("Temperatur [°C]", "Temperature [°C]"), layers, nolegend: true,
+      onClick: (x, y) => { i.x = +x.toFixed(d.xlim[1] <= 10 ? 3 : 1); i.T = +y.toFixed(0); renderPane(); runSoon(0); },
+      tag: L("schematisch nach zitierten Eckpunkten", "schematic after cited key points") };
+  },
+  stahl: (r) => {
+    if (!r.carb) return null;
+    const c = r.carb;
+    return { key: "carb", xlab: L("Abstand von der Oberfläche [mm]", "Distance from surface [mm]"), ylab: L("Kohlenstoff [Gew.-%]", "Carbon [wt%]"),
+      layers: [{ t: "line", x: c.x_mm, y: c.c, c: PAL[0], name: `${fmt(c.T_C, 0)} °C, ${fmt(c.t_h, 2)} h` }, { t: "hline", v: c.c_limit, c: css("--muted"), label: `${fmt(c.c_limit, 2)} %` }, { t: "vline", v: c.depth_mm, c: css("--accent2"), label: `${fmt(c.depth_mm, 3)} mm` }],
+      tag: L("berechnet (erf-Lösung, D nach Arrhenius)", "computed (erf solution, D after Arrhenius)") };
+  },
+  laminat: (r, i, v) => {
+    const k = { s1: 0, s2: 1, t12: 2 }[v] ?? 0, lab = ["σ₁", "σ₂", "τ₁₂"][k];
+    const xs = [], zs = [], layers = [];
+    r.plies.forEach(p => { for (const q of p.points) { xs.push(q.sig_12[k]); zs.push(q.z); } xs.push(null); zs.push(null); });
+    layers.push({ t: "line", x: xs, y: zs, c: PAL[0], w: 2, name: lab });
+    layers.push({ t: "vline", v: 0, c: css("--muted"), dash: "" });
+    r.z.forEach(z => layers.push({ t: "hline", v: z, c: css("--line"), dash: "3 3" }));
+    r.plies.forEach(p => layers.push({ t: "text", x: 0, y: (p.z0 + p.z1) / 2, s: `${fmt(p.angle, 0)}°`, dx: 6, dy: 4, c: css("--muted") }));
+    return { key: "lam" + v, xlab: `${lab} [MPa]`, ylab: "z [mm]", layers, nolegend: true };
+  },
+  ermuedung: (r, i, v) => {
+    if (v === "haigh") {
+      if (!r.haigh) return null;
+      const layers = [];
+      const nm = { goodman: "Goodman", gerber: "Gerber", soderberg: "Soderberg", swt: "SWT", yield: L("Fliessgrenze", "Yield") };
+      Object.entries(r.haigh).forEach(([k, c], n) => layers.push({ t: "line", x: c.sm, y: c.sa, name: nm[k] || k, c: k === "yield" ? css("--muted") : PAL[n % PAL.length], dash: k === "yield" ? "5 4" : undefined }));
+      if (r.points) layers.push({ t: "pts", x: r.points.map(p => p.sm || 0), y: r.points.map(p => p.sa), name: L("Versuche", "Tests"), c: css("--ink") });
+      return { key: "haigh", xlab: "σ_m [MPa]", ylab: "σ_a [MPa]", layers };
+    }
+    if (v === "rf") {
+      if (!r.rainflow) return null;
+      const agg = {}; r.rainflow.cycles.forEach(c => { const k = +c.range.toPrecision(4); agg[k] = (agg[k] || 0) + c.count; });
+      const ks = Object.keys(agg).map(Number).sort((a, b) => a - b);
+      return { key: "rf", xlab: L("Schwingbreite", "Range"), ylab: L("Zyklen", "Cycles"), layers: [{ t: "sticks", x: ks, h: ks.map(k => agg[k]), w: 6, c: PAL[0], tips: ks.map(k => `${L("Schwingbreite", "Range")} ${sig(k, 4)}: ${fmt(agg[k], 1)}`) }], nolegend: true, ypad: 0.08 };
+    }
+    if (!r.points) return null;
+    const f = r.points.filter(p => !p.runout), ro = r.points.filter(p => p.runout);
+    const layers = [];
+    if (r.band) layers.push({ t: "line", x: r.band.N_lo, y: r.band.sa, c: css("--muted"), dash: "4 3", w: 1, name: L("90-%-Streuband (Regression)", "90 % scatter band (regression)") }, { t: "line", x: r.band.N_hi, y: r.band.sa, c: css("--muted"), dash: "4 3", w: 1, nolegend: true });
+    layers.push({ t: "line", x: r.line.N, y: r.line.sa, c: css("--accent2"), w: 2, name: "Basquin" });
+    layers.push({ t: "pts", x: f.map(p => p.N), y: f.map(p => p.sar), c: PAL[0], name: L("Bruch", "Failure"), tips: f.map(p => `σ_a = ${fmt(p.sa, 1)} MPa${p.sm ? ", σ_m = " + fmt(p.sm, 1) : ""}\nN = ${sig(p.N, 4)}`) });
+    if (ro.length) layers.push({ t: "pts", x: ro.map(p => p.N), y: ro.map(p => p.sar), c: PAL[0], hollow: true, shape: "arrow", name: L("Durchläufer", "Run-out"), tips: ro.map(p => `${L("Durchläufer", "Run-out")}: σ_a = ${fmt(p.sa, 1)} MPa, N = ${sig(p.N, 4)}`) });
+    if (r.haigh_Se) layers.push({ t: "hline", v: r.haigh_Se, c: css("--muted"), label: `S_e = ${fmt(r.haigh_Se, 0)} MPa` });
+    return { key: "sn", xlog: true, ylog: true, xlab: L("Schwingspielzahl N", "Cycles N"), ylab: i.model !== "none" ? L("σ_a, äquivalent (σ_m = 0) [MPa]", "σ_a, equivalent (σ_m = 0) [MPa]") : "σ_a [MPa]", layers };
+  },
+  weibull: (r) => {
+    const l = r.lsq, b = r[r.method];
+    const xs = [Math.min(...l.x) * 0.9, Math.max(...l.x) * 1.1];
+    const F = [0.01, 0.05, 0.1, 0.2, 0.5, 0.632, 0.9, 0.99];
+    return { key: "wb", xlog: true, xlab: L("Festigkeit σ [MPa]", "Strength σ [MPa]"), ylab: "ln ln (1/(1−F))", right: true, y2lab: L("Ausfallwahrscheinlichkeit F", "Failure probability F"),
+      y2ticks: F.map(p => [Math.log(Math.log(1 / (1 - p))), fmt(p * 100, 1) + " %"]),
+      layers: [{ t: "pts", x: l.x, y: l.Y, c: PAL[0], name: L("Messwerte (Median-Ränge)", "Data (median ranks)"), tips: l.x.map((x, k) => `σ = ${fmt(x, 1)} MPa\nF = ${fmt(l.F[k] * 100, 1)} %`) },
+        { t: "line", x: xs, y: xs.map(x => b.m * (Math.log(x) - Math.log(b.sigma0))), c: css("--accent2"), w: 2, name: `m = ${fmt(b.m, 2)}, σ₀ = ${fmt(b.sigma0, 1)} MPa` }], legendLeft: true };
+  },
+  bruch: (r) => {
+    if (!r.crack) return null;
+    const c = r.crack;
+    return { key: "crack", xlab: L("Spannung σ [MPa]", "Stress σ [MPa]"), ylab: L("kritische Risslänge a_c [mm]", "critical crack length a_c [mm]"),
+      layers: [{ t: "line", x: c.curve.sigma, y: c.curve.a_mm, c: PAL[0], w: 2, name: `K_Ic = ${fmt(c.KIc, 1)} MPa√m, Y = ${fmt(c.Y, 2)}` }, { t: "pts", x: [c.sigma], y: [c.a_c_mm], c: css("--accent2"), r: 5, nolegend: true, tips: [`a_c = ${fmt(c.a_c_mm, 3)} mm`] }],
+      xr: [0, Math.max(...c.curve.sigma)], yr: [0, Math.min(Math.max(...c.curve.a_mm), c.a_c_mm * 6)] };
+  },
+  haerte: (r, i, v) => {
+    if (v === "hp" && r.hp) {
+      const h = r.hp, xs = [Math.min(...h.x) * 0.8, Math.max(...h.x) * 1.15];
+      return { key: "hp", xlab: "d^(−1/2) [mm^(−1/2)]", ylab: "σ_y [MPa]", layers: [{ t: "pts", x: h.x, y: h.y, c: PAL[0], name: L("Messwerte", "Data") }, { t: "line", x: xs, y: xs.map(x => h.sigma0 + h.k * x), c: css("--accent2"), name: `σ₀ = ${fmt(h.sigma0, 1)} MPa, k = ${fmt(h.k, 3)} MPa√m` }], legendLeft: true };
+    }
+    const rows = (r.rows || []).filter(x => !x.error);
+    if (!rows.length) return null;
+    const n = rows.map((_, k) => k + 1);
+    const layers = [{ t: "pts", x: n, y: rows.map(x => x.value), c: PAL[0], name: rows[0].scale, tips: rows.map((x, k) => `#${k + 1}: ${fmt(x.value, 1)} ${x.scale}`) }];
+    if (r.stats) { layers.push({ t: "hline", v: r.stats.mean, c: css("--accent2"), dash: "", label: `${L("Mittel", "Mean")} ${fmt(r.stats.mean, 1)}` }); if (r.stats.n > 1) layers.push({ t: "band", x: [0.5, n.length + 0.5], lo: [r.stats.mean - r.stats.sd, r.stats.mean - r.stats.sd], hi: [r.stats.mean + r.stats.sd, r.stats.mean + r.stats.sd], c: css("--accent2"), name: "± s", nofit: true }); }
+    return { key: "ind" + i.method, xlab: L("Eindruck", "Indent"), ylab: rows[0].scale, layers, xr: [0.5, n.length + 0.5], ypad: 0.3 };
+  },
+  korrosion: (r) => {
+    const c = r.curve, aj = c.j.map(Math.abs);
+    const layers = [{ t: "line", x: aj, y: c.E, c: PAL[0], name: L("Messung |i|", "Measured |i|") }];
+    const lim = (f, sgn) => { const js = [r.icorr / 3, Math.max(...aj) * 2]; return { t: "line", x: js, y: js.map(j => f.a + f.b * Math.log10(j)), c: css("--accent2"), dash: "6 4", nofit: true, nolegend: sgn < 0 }; };
+    layers.push({ ...lim(r.fit_a, 1), name: L("Tafel-Geraden", "Tafel lines") }, lim(r.fit_c, -1));
+    layers.push({ t: "pts", x: [r.icorr], y: [r.Ecorr], c: css("--accent2"), r: 5, nolegend: true, tips: [`E_corr = ${fmt(r.Ecorr * 1000, 1)} mV\ni_corr = ${sig(r.icorr, 4)} µA/cm²`] });
+    return { key: "tafel", xlog: true, xlab: "|i| [µA/cm²]", ylab: "E [V]", layers, legendLeft: true };
+  },
+  kriechen: (r, i, v) => {
+    if (v === "norton") {
+      if (!r.norton) return null;
+      const p = r.norton.points, Ts = [...new Set(p.map(q => q.T))];
+      return { key: "nort", xlog: true, ylog: true, xlab: "σ [MPa]", ylab: "ε̇ [1/h]", layers: Ts.map((T, k) => ({ t: "pts", x: p.filter(q => q.T === T).map(q => q.s), y: p.filter(q => q.T === T).map(q => q.rate), c: PAL[k % PAL.length], name: `${fmt(T, 0)} °C` })),
+        tag: `n = ${fmt(r.norton.n, 2)}${r.norton.Q_kJ != null ? `, Q = ${fmt(r.norton.Q_kJ, 0)} kJ/mol` : ""}` };
+    }
+    if (!r.lmp) return null;
+    const m = r.lmp, layers = [{ t: "pts", x: m.P, y: m.lg_sigma.map(v2 => 10 ** v2), c: PAL[0], name: L("Versuche", "Tests") }, { t: "line", x: m.curve.P, y: m.curve.sigma, c: css("--accent2"), w: 2, name: L(`Polynom Grad ${m.deg}`, `Polynomial degree ${m.deg}`) }];
+    if (r.predict) layers.push({ t: "pts", x: [r.predict.P], y: [pnum(i.ps)], c: css("--accent2"), r: 5, shape: "sq", name: L("Vorhersage", "Prediction"), tips: [`t_r ≈ ${sig(r.predict.t_h, 3)} h`] });
+    return { key: "lmp", ylog: true, xlab: `P = T (C + lg t_r)   [C = ${fmt(m.C, 1)}]`, ylab: "σ [MPa]", layers };
+  },
+};
+const SYS_DE = { cubic: "kubisch", tetragonal: "tetragonal", orthorhombic: "orthorhombisch", hexagonal: "hexagonal", trigonal: "trigonal", rhombohedral: "rhomboedrisch", monoclinic: "monoklin", triclinic: "triklin" };
+const sysName = (s) => !s ? "" : EN() ? s : (SYS_DE[String(s).toLowerCase()] || s);
+const interp = (xs, ys, x) => { let lo = 0, hi = xs.length - 1; if (x <= xs[0]) return ys[0]; if (x >= xs[hi]) return ys[hi]; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (xs[m] > x) hi = m; else lo = m; } return ys[lo] + (ys[hi] - ys[lo]) * (x - xs[lo]) / (xs[hi] - xs[lo]); };
+
+// ---------------------------------------------------------------- Rechnen, Darstellen
+let runT = null;
+function runSoon(ms = 350) { clearTimeout(runT); runT = setTimeout(() => runTool(S.tool), ms); }
+let saveT = null;
+function saveSoon() { clearTimeout(saveT); saveT = setTimeout(() => { if (window.ENVS) ENVS.save(); if (OV && OV.changed) OV.changed(); }, 600); }
+async function runTool(t) {
+  const i = S.inp[t];
+  if (READY[t] && !READY[t](i)) { S.res[t] = null; S.err[t] = null; if (t === S.tool) showTool(); return; }
+  const seq = (S.seq[t] = (S.seq[t] || 0) + 1);
+  const j = await withBusy(() => api("api/tool/" + t, { ...REQ[t](i), lang: lang() }));
+  if (seq !== S.seq[t]) return;
+  if (j.error) { S.err[t] = j.error; S.res[t] = null; }
+  else { S.err[t] = null; delete j._status; S.res[t] = j; }
+  if (t === S.tool && t === "haerte" && j.table && !$('[data-k="to"]', $("#pane"))) renderPane();     // Skalen der Tabelle erst jetzt bekannt
+  if (t === S.tool) showTool();
+  saveSoon();
+}
+function showTool() {
+  const t = S.tool, r = S.res[t], i = S.inp[t], resEl = $("#res");
+  // Ansichten
+  const vs = VIEWS[t] || [];
+  $("#viewSeg").innerHTML = vs.map(([id, de, en]) => `<button type="button" data-view="${id}"${view() === id ? ' class="sel"' : ""}>${esc(EN() ? en : de)}</button>`).join("");
+  $("#viewSeg").hidden = vs.length < 2 || (t === "phasen" && r && !r.cooling);
+  $("#optHint").textContent = NAMES[t][EN() ? 3 : 2];
+  if (resEl) resEl.innerHTML = S.err[t] ? note(esc(S.err[t]), "err") : (r ? RES[t] ? RES[t](r, i) : "" : "");
+  if (resEl && window.LabUI) LabUI.folds("werkstoffe", resEl);
+  wireRes(resEl);
+  if (t === "laminat" && r && r.ply) $$('[data-k^="ply."]', $("#pane")).forEach(e => { e.placeholder = fmt(r.ply[e.dataset.k.slice(4)], 4); });
+  if (t === "karten") return showCards();
+  if (!r) {
+    const e = EMPTY[t] && EMPTY[t]();
+    if (e) {
+      const btn = e[2] === "file" ? `<div><button class="primary" data-eact="open">${esc(L("Diffraktogramm öffnen …", "Open diffractogram …"))}</button></div>` :
+        e[2] === "table" ? `<div><button class="primary" data-eact="table">${esc(L("Tabelle öffnen …", "Open table …"))}</button></div>` :
+        e[2] === "ex" ? `<div><button data-eact="ex">${esc(L("Beispieldaten (synthetisch)", "Example data (synthetic)"))}</button></div>` : "";
+      stageMode("empty", `<b>${esc(e[0])}</b>${esc(e[1])}${btn}`);
+    } else stageMode("empty", `<b>${esc(tname(t))}</b>${esc(S.err[t] || L("Eingaben rechts ergänzen.", "Complete the inputs on the right."))}`);
+    plot(null);
+    return;
+  }
+  if (t === "stahl" && !r.carb) {
+    stageMode("html", `<h3 style="margin-top:0">${esc(L("Stahl", "Steel"))}</h3>` + RES.stahl({ ...r, refs: [] }).replace(/<details[\s\S]*<\/details>/, "") + `<p class="small">${esc(L("„Aufkohlen“ rechts einschalten, um das Kohlenstoffprofil zu sehen.", "Switch on “Carburising” on the right to see the carbon profile."))}</p>`);
+    plot(null); return;
+  }
+  const sp = PLOT[t] ? PLOT[t](r, i, view()) : null;
+  if (!sp) { stageMode("empty", `<b>${esc(tname(t))}</b>${esc(L("Für diese Ansicht fehlen Daten.", "This view has no data yet."))}`); plot(null); return; }
+  stageMode("plot"); plot(sp);
+}
+function wireRes(el) {
+  if (!el) return;
+  const t = S.tool, r = S.res[t];
+  $$("tr[data-row]", el).forEach(tr => tr.addEventListener("click", () => {
+    const k = +tr.dataset.row;
+    if (t === "auswahl" && !r.rank.ranked[k].own) addCmp(r.rank.ranked[k].name);
+    if (t === "xrd") { const id = r.search[k].id, o = S.inp.xrd.opt.overlay; const p = o.indexOf(id); if (p >= 0) o.splice(p, 1); else o.push(id); renderPane(); runSoon(0); }
+  }));
+}
+function addCmp(name) {
+  const n = S.inp.karten.names;
+  if (!n.includes(name)) { n.push(name); toast(L(`„${name}“ zum Vergleich hinzugefügt (Karten).`, `“${name}” added to the comparison (Cards).`)); delete S.res.karten; saveSoon(); }
+  else toast(L(`„${name}“ ist schon im Vergleich.`, `“${name}” is already in the comparison.`));
+}
+async function showCards() {
+  const i = S.inp.karten;
+  if (!i.names.length) { const e = EMPTY.karten(); stageMode("empty", `<b>${esc(e[0])}</b>${esc(e[1])}`); plot(null); return; }
+  let r = S.res.karten;
+  if (!r || r._names !== i.names.join("\n") || r._lang !== lang()) {
+    const j = await withBusy(() => api("api/tool/karten", { names: i.names, lang: lang() }));
+    if (j.error) { stageMode("empty", `<b>${esc(L("Fehler", "Error"))}</b>${esc(j.error)}`); return; }
+    j._names = i.names.join("\n"); j._lang = lang(); S.res.karten = r = j;
+    if (S.tool === "karten" && $("#res")) $("#res").innerHTML = RES.karten(r);
+  }
+  const cards = r.cards || [];
+  const head = `<tr><th></th>${cards.map((c, k) => `<th>${esc(c.name)}<small>${esc(c.familie || "")}${c.aliase && c.aliase.length ? " · " + esc(c.aliase.slice(0, 2).join(", ")) : ""}</small><button type="button" class="link" data-kdel2="${k}">${esc(L("entfernen", "remove"))}</button></th>`).join("")}</tr>`;
+  const rows = (r.rows || []).map(row => `<tr><td><b>${esc(row.label)}</b><small>${esc(supU(row.unit))}</small></td>${cards.map((c, k) => { const x = row.cells[k]; return `<td>${x ? esc(x.text) + (x.nicht_geprueft ? " †" : "") + `<small>${esc(x.art || "")}${x.art && x.source ? " · " : ""}${esc(x.source || "")}</small>` : "–"}</td>`; }).join("")}</tr>`).join("");
+  const anyU = (r.rows || []).some(row => row.cells.some(x => x && x.nicht_geprueft));
+  stageMode("html", `<table class="cmp"><thead>${head}</thead><tbody>${rows}</tbody></table>` + (anyU ? `<p class="small">† ${esc(L("nicht gegen das Original geprüft", "not checked against the original"))}</p>` : ""));
+  $$("[data-kdel2]", $("#html")).forEach(b => b.addEventListener("click", () => { i.names.splice(+b.dataset.kdel2, 1); renderPane(); showTool(); saveSoon(); }));
+}
+
+// ---------------------------------------------------------------- Bereich und Tabs
+function renderTools() {
+  $("#tools").innerHTML = GROUPS.map(g => `<button type="button" data-grp="${g.id}" title="${esc(EN() ? g.en : g.de)}"${S.grp === g.id ? ' class="sel"' : ""}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g.icon}</svg>${esc(EN() ? g.en : g.de)}</button>`).join("");
+  $$("#tools [data-grp]").forEach(b => b.addEventListener("click", () => { const g = GROUPS.find(x => x.id === b.dataset.grp); S.grp = g.id; switchTool(S.last && S.last[g.id] && g.tools.includes(S.last[g.id]) ? S.last[g.id] : g.tools[0]); }));
+}
+function renderTabs() {
+  const g = GROUPS.find(x => x.id === S.grp);
+  const main = g.main || g.tools, shown = g.tools.filter(t => main.includes(t) || t === S.tool), rest = g.tools.filter(t => !shown.includes(t));
+  $("#tabs").innerHTML = shown.map(t => `<button type="button" data-tab="${t}"${t === S.tool ? ' class="sel"' : ""} title="${esc(NAMES[t][EN() ? 3 : 2])}">${esc(tname(t))}</button>`).join("") +
+    (rest.length ? `<button type="button" class="more" id="tabMore">${esc(L("Mehr ▾", "More ▾"))}</button>` : "");
+  $$("#tabs [data-tab]").forEach(b => b.addEventListener("click", () => switchTool(b.dataset.tab)));
+  if (rest.length) $("#tabMore").addEventListener("click", () => {
+    if (!window.LabUI) return switchTool(rest[0]);
+    const p = LabUI.popover($("#tabMore"), `<div class="tabmenu" role="menu">${rest.map(t => `<button type="button" data-go="${t}"><b>${esc(tname(t))}</b><small>${esc(NAMES[t][EN() ? 3 : 2])}</small></button>`).join("")}</div>`);
+    p.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) { LabUI.closePop(); switchTool(b.dataset.go); } });
+  });
+}
+function switchTool(t) {
+  S.tool = t; S.grp = GROUPS.find(g => g.tools.includes(t)).id;
+  S.last = S.last || {}; S.last[S.grp] = t;
+  renderTools(); renderTabs(); renderPane();
+  $("#tip").hidden = true;
+  S.seen = S.seen || {}; S.seen[t] = 1;
+  if (S.res[t] === undefined && t !== "karten") {
+    // altes Diagramm nicht stehen lassen, bis die Antwort da ist
+    if (!READY[t] || READY[t](S.inp[t])) { stageMode("empty", `<b>${esc(tname(t))}</b>${esc(L("rechnet …", "computing …"))}`); plot(null); $("#viewSeg").hidden = true; }
+    runTool(t);
+  } else showTool();
+  saveSoon();
+}
+function renderPane() {
+  const t = S.tool, pane = $("#pane"), top = pane.scrollTop;
+  pane.innerHTML = PANE[t](S.inp[t]);
+  if (window.LabUI) LabUI.folds("werkstoffe", pane);
+  wirePane(pane);
+  pane.scrollTop = top;
+  const resEl = $("#res");
+  if (resEl) { resEl.innerHTML = S.err[t] ? note(esc(S.err[t]), "err") : (S.res[t] && RES[t] ? RES[t](S.res[t], S.inp[t]) : ""); if (window.LabUI) LabUI.folds("werkstoffe", resEl); wireRes(resEl); }
+}
+// Felder, deren Änderung den Eingabebereich neu aufbaut (andere Felder erscheinen)
+const REBUILD = new Set(["custom", "cust.on", "cust.system", "own", "material", "system", "unit", "metal", "item", "tube", "marin.on", "size.kind1", "size.kind2", "kq.geom", "table", "method", "grain.mode", "phase"]);
+function wirePane(pane) {
+  const i = I(), t = S.tool;
+  $$("[data-k]", pane).forEach(e => {
+    const k = e.dataset.k;
+    const ev = e.tagName === "SELECT" || e.type === "checkbox" ? "change" : "input";
+    e.addEventListener(ev, () => {
+      let v;
+      if (e.type === "checkbox") v = e.checked;
+      else if (e.dataset.numsel !== undefined) v = pnum(e.value);
+      else if (e.dataset.text !== undefined) v = e.value;
+      else { v = pnum(e.value); if (v === null && e.value.trim() !== "") return; }
+      setp(i, k, v);
+      if (t === "karten" && k === "q") return kSearch();
+      if (t === "auswahl" && (k === "x" || k === "y" || k === "index" || k === "custom")) i.anchor = null;
+      if (t === "korrosion" && k === "item") { i.data = null; loadKcols(); }
+      if (t === "haerte" && k === "table") { i.from = ""; i.to = ""; }
+      if (t === "phasen" && k === "system") { i.x = ""; i.T = ""; }
+      if (REBUILD.has(k) || (t === "auswahl" && (k === "x" || k === "y"))) renderPane();
+      runSoon(e.type === "checkbox" || e.tagName === "SELECT" ? 0 : 450);
+    });
+  });
+  $$("[data-segk]", pane).forEach(sg => $$("button", sg).forEach(b => b.addEventListener("click", () => { setp(i, sg.dataset.segk, b.dataset.v); renderPane(); runSoon(0); })));
+  $$("[data-cls]", pane).forEach(c => c.addEventListener("change", () => { const k = c.dataset.cls; i.classes = i.classes.filter(x => x !== k); if (c.checked) i.classes.push(k); runSoon(0); }));
+  $$("[data-multi]", pane).forEach(c => c.addEventListener("change", () => { const a = getp(i, "opt." + c.dataset.multi); const p = a.indexOf(c.value); if (c.checked && p < 0) a.push(c.value); if (!c.checked && p >= 0) a.splice(p, 1); runSoon(0); }));
+  // Tabellen
+  $$("[data-g]", pane).forEach(e => e.addEventListener(e.type === "checkbox" ? "change" : "input", () => {
+    const rows = getp(i, e.dataset.g), row = rows[+e.dataset.r];
+    if (e.type === "checkbox") row[e.dataset.c] = e.checked;
+    else if (e.dataset.txt) row[e.dataset.c] = e.value;
+    else { const tx = e.value.trim(); const n = pnum(tx); row[e.dataset.c] = n === null ? tx : n; }
+    runSoon(450);
+  }));
+  $$("[data-g]", pane).forEach(e => e.addEventListener("paste", (ev) => {
+    const tx = (ev.clipboardData || window.clipboardData).getData("text");
+    if (!/[\t;\n]/.test(tx)) return;
+    ev.preventDefault();
+    pasteInto(e.dataset.g, tx, +e.dataset.r, e.dataset.c);
+  }));
+  $$("[data-gadd]", pane).forEach(b => b.addEventListener("click", () => { const a = getp(i, b.dataset.gadd) || []; a.push({}); setp(i, b.dataset.gadd, a); renderPane(); const ins = $$(`[data-g="${b.dataset.gadd}"][data-r="${a.length - 1}"]`, $("#pane")); if (ins[0]) ins[0].focus(); }));
+  $$("[data-gdel]", pane).forEach(b => b.addEventListener("click", () => { getp(i, b.dataset.gdel).splice(+b.dataset.r, 1); renderPane(); runSoon(0); }));
+  $$("[data-gclr]", pane).forEach(b => b.addEventListener("click", () => { if (!(getp(i, b.dataset.gclr) || []).length || confirm(L("Tabelle leeren?", "Clear the table?"))) { setp(i, b.dataset.gclr, []); renderPane(); runSoon(0); } }));
+  $$("[data-gpaste]", pane).forEach(b => b.addEventListener("click", async () => {
+    try { const tx = await navigator.clipboard.readText(); pasteInto(b.dataset.gpaste, tx, (getp(i, b.dataset.gpaste) || []).length, null); }
+    catch (e) { toast(L("Zwischenablage nicht lesbar; in eine Zelle klicken und Strg+V drücken.", "Clipboard not readable; click a cell and press Ctrl+V."), true); }
+  }));
+  $$("[data-gfile]", pane).forEach(b => b.addEventListener("click", () => pickFile(".csv,.txt,.tsv,.dat", async (f) => { const d = await loadFile(f, "table"); if (d) gridFromTable(b.dataset.gfile, d.id); })));
+  $$("[data-ex]", pane).forEach(b => b.addEventListener("click", () => loadExample(b.dataset.ex)));
+  $$("[data-gex]", pane).forEach(s => s.addEventListener("change", () => {
+    const x = ((EN() ? META.gitter.examples_en : META.gitter.examples) || [])[+s.value]; if (!x) return;
+    Object.assign(i, { host: x.wirt, T: x.T, unit: (x.geloest[0] || {}).einheit === "at" ? "at" : "wt", sols: x.geloest.map(g => ({ el: g.el, c: g.c })) });
+    renderPane(); runSoon(0);
+  }));
+  $$("[data-act]", pane).forEach(b => b.addEventListener("click", () => act(b.dataset.act)));
+  // Karten
+  $$("[data-kdel]", pane).forEach(b => b.addEventListener("click", () => { i.names.splice(+b.dataset.kdel, 1); renderPane(); showTool(); saveSoon(); }));
+  $$("[data-kup]", pane).forEach(b => b.addEventListener("click", () => { const k = +b.dataset.kup; if (k > 0) { [i.names[k - 1], i.names[k]] = [i.names[k], i.names[k - 1]]; renderPane(); showTool(); saveSoon(); } }));
+  if (t === "karten" && (i.q || "").length >= 2) kSearch();
+}
+function pasteInto(k, text, r0, c0) {
+  const i = I();
+  const cols = gridCols(k);
+  const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim() !== "");
+  const rows = getp(i, k) || [];
+  let c = Math.max(0, cols.findIndex(x => x.k === c0));
+  lines.forEach((ln, n) => {
+    const parts = ln.split(/\t|;/);
+    if (n === 0 && parts.every(p => pnum(p) === null && p.trim() !== "")) return;          // Kopfzeile
+    const row = rows[r0 + n] || (rows[r0 + n] = {});
+    parts.forEach((p, q) => { const col = cols[c + q]; if (!col) return; if (col.chk) row[col.k] = /^(1|x|ja|yes|true|durchl|run)/i.test(p.trim()); else { const v = pnum(p); row[col.k] = v === null ? p.trim() : v; } });
+  });
+  setp(i, k, rows);
+  renderPane(); runSoon(0);
+}
+function gridCols(k) {
+  const t = S.tool;
+  if (t === "ermuedung") return [{ k: "sa" }, { k: "sm" }, { k: "N" }, { k: "runout", chk: true }];
+  if (t === "haerte" && k === "rows") return S.inp.haerte.method === "HK" ? [{ k: "F" }, { k: "d1" }] : S.inp.haerte.method === "HBW" ? [{ k: "F" }, { k: "d1" }, { k: "d2" }, { k: "D" }] : [{ k: "F" }, { k: "d1" }, { k: "d2" }];
+  if (t === "haerte" && k === "hp") return [{ k: "d" }, { k: "s" }];
+  if (t === "kriechen") return [{ k: "s" }, { k: "T" }, { k: "t" }, { k: "rate" }];
+  if (t === "auswahl" && k === "limits") return [{ k: "prop" }, { k: "min" }, { k: "max" }];
+  if (t === "auswahl" && k === "expo") return [{ k: "p" }, { k: "e" }];
+  if (t === "gitter") return [{ k: "el" }, { k: "c" }, { k: "lim" }, { k: "src" }];
+  return [];
+}
+const ROLES = {
+  ermuedung: () => [["sa", "σa [MPa]", true], ["sm", "σm [MPa]", false], ["N", "N", true], ["runout", L("Durchläufer (0/1)", "Run-out (0/1)"), false]],
+  haerte: () => [["F", "F [N]", true], ["d1", "d₁ [mm]", true], ["d2", "d₂ [mm]", false], ["D", "D [mm]", false]],
+  hp: () => [["d", "d [µm]", true], ["s", "σ_y [MPa]", true]],
+  kriechen: () => [["s", "σ [MPa]", true], ["T", "T [°C]", true], ["t", "t_r [h]", false], ["rate", "ε̇ [1/h]", false]],
+  weibull: () => [["v", L("Festigkeit [MPa]", "Strength [MPa]"), true]],
+  korrosion: () => [["E", "E", true], ["i", "i", true]],
+};
+async function mapDialog(title, roles, cols) {
+  const guess = (role) => { const re = { sa: /σ\s*a|sig.*a|ampl|sa\b/i, sm: /σ\s*m|mittel|mean|sm\b/i, N: /^n\b|zyk|cycl|lebens|life/i, runout: /durchl|run/i, F: /^f\b|kraft|force|load/i, d1: /d1|diag/i, d2: /d2/i, D: /^d$|kugel|ball/i,
+    d: /korn|grain|^d\b/i, s: /σ|sig|stress|spann|festig|^s\b/i, T: /^t\b|temp/i, t: /zeit|time|^t_?r|bruch/i, rate: /rate|ε|eps|kriech/i, v: /.*/, E: /pot|^e\b|volt/i, i: /strom|curr|^i\b|amp/i }[role];
+    const k = cols.findIndex(c => re && re.test(c.name)); return k; };
+  const html = roles.map(([k, lab, req], n) => { const g = guess(k); return `<label>${esc(lab)}${req ? "" : ` <span class="u">(${esc(L("optional", "optional"))})</span>`}</label><select data-role="${k}"><option value="-1">–</option>${cols.map((c, q) => `<option value="${q}"${(g >= 0 ? g : (req ? Math.min(n, cols.length - 1) : -2)) === q ? " selected" : ""}>${esc(c.name)}${c.unit ? " [" + esc(c.unit) + "]" : ""}</option>`).join("")}</select>`; }).join("");
+  const r = await dialog(title, html, [{ value: "cancel", label: L("Abbrechen", "Cancel") }, { value: "ok", label: L("Übernehmen", "Apply"), primary: true }]);
+  if (r !== "ok") return null;
+  const m = {}; $$("[data-role]", $("#dlgBody")).forEach(s => { m[s.dataset.role] = +s.value; });
+  for (const [k, lab, req] of roles) if (req && m[k] < 0) { toast(L(`Spalte für ${lab} fehlt.`, `Column for ${lab} missing.`), true); return null; }
+  return m;
+}
+function fillFromColumns(target, m, colVals) {
+  const n = Math.max(...Object.values(colVals).map(a => a.length));
+  if (target === "weibull") { S.inp.weibull.values = colVals.v.filter(v => v !== null && isFinite(v)).map(v => String(v)).join(" "); return; }
+  if (target === "korrosion") return;
+  const roles = ROLES[target]().map(r => r[0]);
+  const rows = [];
+  for (let q = 0; q < n; q++) {
+    const row = {};
+    for (const k of roles) if (m[k] >= 0 && colVals[k]) { const v = colVals[k][q]; row[k] = k === "runout" ? !!(v && +v) : (v === null || v === undefined ? "" : v); }
+    if (Object.values(row).some(v => v !== "" && v !== false)) rows.push(row);
+  }
+  if (target === "hp") S.inp.haerte.hp = rows; else S.inp[target].rows = rows;
+}
+async function gridFromTable(k, iid) {
+  const tb = await api("api/tool/table", { item: iid });
+  if (tb.error) return toast(tb.error, true);
+  const target = S.tool === "haerte" && k === "hp" ? "hp" : S.tool;
+  const m = await mapDialog(L("Spalten zuordnen", "Assign columns"), ROLES[target](), tb.columns);
+  if (!m) return;
+  const vals = {}; for (const [r, c] of Object.entries(m)) if (c >= 0) vals[r] = tb.columns[c].values;
+  fillFromColumns(target, m, vals);
+  renderPane(); runSoon(0);
+}
+function loadExample(k) {
+  if (k === "ermuedung") { S.inp.ermuedung.rows = clone(EX.ermuedung); if (!S.inp.ermuedung.mat.Rm) S.inp.ermuedung.mat.Rm = 800; if (!S.inp.ermuedung.mat.Re) S.inp.ermuedung.mat.Re = 600; }
+  if (k === "weibull") S.inp.weibull.values = EX.weibull;
+  if (k === "haerte") S.inp.haerte.rows = clone(EX.haerte);
+  if (k === "hp") S.inp.haerte.hp = clone(EX.hp);
+  if (k === "kriechen") S.inp.kriechen.rows = clone(EX.kriechen).concat(clone(EX.norton));
+  toast(L("Beispieldaten geladen (synthetisch, keine Messung).", "Example data loaded (synthetic, not a measurement)."));
+  renderPane(); runSoon(0);
+}
+
+// ---------------------------------------------------------------- Dateien
+let pickCb = null;
+function pickFile(accept, cb, multiple = false) { const f = $("#file"); f.accept = accept; f.multiple = multiple; pickCb = cb; f.click(); }
+async function loadFile(f, kind = "") {
+  const buf = await f.arrayBuffer();
+  const j = await withBusy(() => api("api/load?name=" + encodeURIComponent(f.name) + (kind ? "&kind=" + kind : ""), buf, true));
+  if (j.error) { toast(`${f.name}: ${j.error}`, true); return null; }
+  delete j._status;
+  S.items = S.items.filter(x => x.id !== j.id); S.items.push(j);
+  if (j.kind === "cif") await loadPhases();
+  renderChips(); saveSoon();
+  return j;
+}
+async function openFiles(files, kind = "") {
+  let last = null;
+  for (const f of files) { const d = await loadFile(f, kind); if (d) last = d; }
+  if (!last) return;
+  if (last.kind === "xrd") { S.inp.xrd.item = last.id; switchTool("xrd"); runSoon(0); }
+  else if (last.kind === "cif") { toast(L(`CIF „${last.phase}“ geladen: unter Kristall und XRD wählbar.`, `CIF “${last.phase}” loaded: available under Crystal and XRD.`)); if (S.tool === "kristall") { S.inp.kristall.phase = last.phase_id; S.inp.kristall.cust.on = false; } renderPane(); runSoon(0); }
+  else if (last.kind === "hardtable") { S.inp.haerte.table = last.id; switchTool("haerte"); renderPane(); runSoon(0); }
+  else if (last.kind === "table") {
+    if (["ermuedung", "weibull", "haerte", "kriechen"].includes(S.tool)) gridFromTable(S.tool === "weibull" ? "values" : "rows", last.id);
+    else { S.inp.korrosion.item = last.id; S.inp.korrosion.data = null; switchTool("korrosion"); await loadKcols(); }
+  }
+}
+async function loadKcols() {
+  const i = S.inp.korrosion;
+  if (!i.item) { S.kcols = []; return; }
+  const tb = await api("api/tool/table", { item: i.item });
+  S.kcols = tb.error ? [] : tb.columns.map(c => ({ name: c.name, unit: c.unit }));
+  if (S.kcols.length >= 2 && (i.colE >= S.kcols.length || i.colI >= S.kcols.length)) { i.colE = 0; i.colI = 1; }
+  if (S.tool === "korrosion") renderPane();
+  runSoon(0);
+}
+function act(a) {
+  const xrdAcc = (META.accepts || []).filter(e => e !== ".cif").join(",");
+  if (a === "open") pickFile(xrdAcc, (fs) => openFiles(fs, "xrd"), true);
+  if (a === "cif") pickFile(".cif", (fs) => openFiles(fs, "cif"), true);
+  if (a === "hardtable") pickFile(".csv,.txt,.tsv", (fs) => openFiles(fs, "hardtable"));
+  if (a === "table") pickFile(".csv,.txt,.tsv,.dat", (fs) => openFiles(fs, "table"));
+  if (a === "kdrop") { S.inp.korrosion.data = null; renderPane(); runSoon(0); }
+  if (a === "ownax") { const i = S.inp.auswahl; [i.x, i.y] = i.eigen_ax; i.anchor = null; renderPane(); runSoon(0); }
+  if (a === "wbfile") pickFile(".csv,.txt,.tsv,.dat", async (fs) => { const d = await loadFile(fs[0], "table"); if (d) gridFromTable("values", d.id); });
+}
+async function removeItem(id) {
+  await api("api/remove", { id });
+  S.items = S.items.filter(x => x.id !== id);
+  for (const [t, k] of [["xrd", "item"], ["korrosion", "item"], ["haerte", "table"]]) if (S.inp[t][k] === id) { S.inp[t][k] = ""; delete S.res[t]; }
+  await loadPhases();
+  renderChips(); renderPane(); showTool(); saveSoon();
+}
+function renderChips() {
+  const kn = { xrd: "XRD", cif: "CIF", table: L("Tabelle", "Table"), hardtable: L("Umwertung", "Conversion") };
+  $("#chips").innerHTML = S.items.map(x => `<span class="chip" title="${esc(x.name)}"><span class="k">${esc(kn[x.kind] || x.kind)}</span><span>${esc(x.name)}</span><button type="button" class="x" data-rm="${esc(x.id)}" title="${esc(L("schliessen", "close"))}">✕</button></span>`).join("");
+  $$("#chips [data-rm]").forEach(b => b.addEventListener("click", () => removeItem(b.dataset.rm)));
+}
+async function loadPhases() {
+  const j = await api("api/tool/phasen_liste", { lang: lang() });
+  if (!j.error) S.phases = j.phases;
+}
+let kT = null;
+function kSearch() {
+  clearTimeout(kT);
+  kT = setTimeout(async () => {
+    const q = S.inp.karten.q || "", box = $("#kHits");
+    if (!box) return;
+    if (q.trim().length < 2) { box.innerHTML = `<div class="empty">${esc(L("Mindestens zwei Zeichen eingeben", "Type at least two characters"))}</div>`; return; }
+    const j = await api("api/tool/suche", { q, lang: lang() });
+    if (j.error) { box.innerHTML = `<div class="empty">${esc(j.error)}</div>`; return; }
+    box.innerHTML = j.rows.length ? j.rows.map((x, k) => `<div class="it"><span class="nm">${esc(x.name)} <span class="cv">${esc(x.familie || "")}${x.teil === "materials_mp" ? " · DFT" : ""}</span></span><button type="button" data-kadd="${k}" title="${esc(L("hinzufügen", "add"))}">+</button></div>`).join("") : `<div class="empty">${esc(L("nichts gefunden", "nothing found"))}</div>`;
+    $$("[data-kadd]", box).forEach(b => b.addEventListener("click", () => { addCmp(j.rows[+b.dataset.kadd].name); renderPane(); showTool(); }));
+  }, 250);
+}
+
+// ---------------------------------------------------------------- Datensätze (Übersicht ▸ Importieren)
+const WS_IMP = {
+  actions: [
+    { id: "ermuedung", label: () => L("Als Wöhlerversuche", "As S–N tests"), hint: () => L("σa, σm, N, Durchläufer", "σa, σm, N, run-out") },
+    { id: "weibull", label: () => L("Als Festigkeitsreihe (Weibull)", "As strength series (Weibull)"), hint: () => L("eine Spalte Festigkeiten", "one column of strengths") },
+    { id: "haerte", label: () => L("Als Härteeindrücke", "As hardness indents"), hint: () => "F, d₁, d₂" },
+    { id: "kriechen", label: () => L("Als Zeitstandversuche", "As creep tests"), hint: () => "σ, T, t_r, ε̇" },
+    { id: "korrosion", label: () => L("Als Polarisationskurve", "As polarisation curve"), hint: () => L("Potential und Strom", "Potential and current") },
+  ],
+  check: (d) => ((d.columns || []).filter(c => c.dtype !== "text").length >= 1 ? "" : L("braucht Zahlenspalten", "needs number columns")),
+  run: async (p) => {
+    const target = p.action || "ermuedung";
+    const cols = (p.columns || []).map(c => ({ key: c.key, name: c.name, unit: c.unit }));
+    const m = await mapDialog(L("Spalten zuordnen", "Assign columns"), ROLES[target](), cols);
+    if (!m) return;
+    const keys = [...new Set(Object.values(m).filter(c => c >= 0).map(c => cols[c].key))];
+    const j = await withBusy(() => api("api/dataset/table", { id: p.id, mode: p.mode, version: p.version, keys }));
+    if (j.error) return toast(j.error, true);
+    const vals = {}; for (const [r, c] of Object.entries(m)) if (c >= 0) vals[r] = j.values[cols[c].key];
+    if (target === "korrosion") { S.inp.korrosion.data = { E: vals.E, i: vals.i, title: j.title, id: p.id, version: j.version }; }
+    else fillFromColumns(target, m, vals);
+    if (OV && OV.showDetail) OV.showDetail();
+    switchTool(target); renderPane(); runSoon(0);
+    toast(L(`Übernommen aus Datensatz „${j.title || p.id}“ v${j.version}.`, `Taken from dataset “${j.title || p.id}” v${j.version}.`));
+  },
+};
+
+// ---------------------------------------------------------------- Bericht, Projektindex, Übersicht
+// Karten brauchen kein Ergebnis im Speicher: der Bericht baut sie aus den Namen
+const reportable = () => Object.keys(REQ).filter(t => t === "karten" ? S.inp.karten.names.length > 0 : S.res[t] && !S.err[t]);
+function sendToReport() {
+  if (!window.Lab) return;
+  const done = reportable();
+  if (!done.length) return toast(L("Noch nichts berechnet.", "Nothing computed yet."), true);
+  const scopes = [];
+  if (done.includes(S.tool)) scopes.push({ id: "cur", label: L(`Aktuelles Werkzeug (${tname(S.tool)})`, `Current tool (${tname(S.tool)})`) });
+  if (done.length > 1 || !done.includes(S.tool)) scopes.push({ id: "all", label: L(`Alle berechneten (${done.map(tname).join(", ")})`, `All computed (${done.map(tname).join(", ")})`) });
+  window.Lab.sendToReport({
+    module: "werkstoffe",
+    title: L("Werkstoffe: ", "Materials: ") + (done.includes(S.tool) ? tname(S.tool) : done.map(tname).join(", ")),
+    scopes,
+    include: [
+      { id: "figures", label: L("Abbildungen (Ashby, Muster, Diagramme, Wöhler, Weibull …)", "Figures (Ashby, patterns, diagrams, S–N, Weibull …)") },
+      { id: "tables", label: L("Tabellen (Rangliste, Reflexe, Hebelgesetz, Kennwerte …)", "Tables (ranking, peaks, lever rule, values …)") },
+      { id: "values", label: L("Kennwerte als \\labval", "Values as \\labval") },
+      { id: "data", label: L("Daten als CSV (für pgfplots)", "Data as CSV (for pgfplots)") },
+      { id: "citations", label: L("Quellen (Werte, Gleichungen, Normen, Dateien)", "Sources (values, equations, standards, files)") },
+      { id: "text", label: L("Textbausteine (Methodik, Ergebnisse)", "Text blocks (methods, results)") },
+    ],
+    build: ({ scope, lang: lg, include, title }) => {
+      const list = scope === "cur" ? [S.tool] : done;
+      return api("api/bundle", { sections: list.map(t => ({ tool: t, req: REQ[t](S.inp[t]) })), lang: lg, include, title });
+    },
+  });
+}
+function indexEntries() {
+  const e = [], prov = (t) => ({ item: t, item_name: tname(t) });
+  const R = S.res;
+  if (R.xrd && R.xrd.cubic_refined) e.push({ key: `XRD: a (${(S.items.find(x => x.id === S.inp.xrd.item) || {}).name || ""})`, label: L("Gitterkonstante", "Lattice parameter"), type: "measured", quantity: { value: +R.xrd.cubic_refined.a.toFixed(5), unit: "Å" }, provenance: prov("xrd") });
+  if (R.xrd && R.xrd.wh) e.push({ key: "XRD: D (Williamson–Hall)", label: L("Kristallitgrösse", "Crystallite size"), type: "measured", quantity: { value: +R.xrd.wh.D_nm.toFixed(2), unit: "nm" }, provenance: prov("xrd") });
+  if (R.weibull) { const b = R.weibull[R.weibull.method]; e.push({ key: "Weibull: m", label: L("Weibull-Modul", "Weibull modulus"), type: "measured", quantity: { value: +b.m.toFixed(3), unit: "" }, provenance: prov("weibull") }, { key: "Weibull: σ0", label: L("Charakteristische Festigkeit", "Characteristic strength"), type: "measured", quantity: { value: +b.sigma0.toFixed(2), unit: "MPa" }, provenance: prov("weibull") }); }
+  if (R.haerte && R.haerte.stats) e.push({ key: `${L("Härte", "Hardness")}: ${R.haerte.rows.find(x => x.scale) ? R.haerte.rows.find(x => x.scale).scale : R.haerte.method}`, label: L("Mittelwert", "Mean"), type: "measured", quantity: { value: +R.haerte.stats.mean.toFixed(1), unit: "" }, provenance: prov("haerte") });
+  if (R.bruch && R.bruch.kq) e.push({ key: R.bruch.kq.valid_KIc ? "K_Ic" : "K_Q", label: L("Bruchzähigkeit", "Fracture toughness"), type: "measured", quantity: { value: +R.bruch.kq.K.toFixed(2), unit: "MPa·m^0.5" }, provenance: prov("bruch") });
+  if (R.korrosion) e.push({ key: "i_corr (Tafel)", label: L("Korrosionsstromdichte", "Corrosion current density"), type: "measured", quantity: { value: +R.korrosion.icorr.toPrecision(4), unit: "µA/cm²" }, provenance: prov("korrosion") });
+  if (R.korrosion && R.korrosion.rate) e.push({ key: L("Korrosionsrate", "Corrosion rate"), label: "ASTM G102", type: "calculated", quantity: { value: +R.korrosion.rate.mm_a.toPrecision(4), unit: "mm/a" }, provenance: prov("korrosion") });
+  if (R.ermuedung && R.ermuedung.fit) { const b = R.ermuedung.fit.mle || R.ermuedung.fit.lsq; e.push({ key: "Basquin: σ′f", label: L("Schwingfestigkeitskoeffizient", "Fatigue strength coefficient"), type: "measured", quantity: { value: +b.sigma_f.toFixed(1), unit: "MPa" }, provenance: prov("ermuedung") }, { key: "Basquin: b", label: L("Basquin-Exponent", "Basquin exponent"), type: "measured", quantity: { value: +b.b.toFixed(4), unit: "" }, provenance: prov("ermuedung") }); }
+  if (R.stahl) e.push({ key: "CE (IIW)", label: L("Kohlenstoffäquivalent", "Carbon equivalent"), type: "calculated", quantity: { value: +R.stahl.CE.toFixed(3), unit: "" }, provenance: prov("stahl") });
+  if (R.laminat) e.push({ key: `${L("Laminat", "Laminate")} ${S.inp.laminat.layup}: E_x`, label: "E_x", type: "calculated", quantity: { value: +R.laminat.eng.Ex.toFixed(2), unit: "GPa" }, provenance: prov("laminat") });
+  if (R.kriechen && R.kriechen.predict) e.push({ key: `t_r (σ = ${S.inp.kriechen.ps} MPa, T = ${S.inp.kriechen.pT} °C)`, label: "Larson–Miller", type: "estimated", quantity: { value: +R.kriechen.predict.t_h.toPrecision(3), unit: "h" }, provenance: prov("kriechen") });
+  return e;
+}
+function indexAll() {
+  const e = indexEntries();
+  if (!e.length) return toast(L("Keine Ergebnisse für den Projektindex.", "No results for the project index."), true);
+  return LabIndex.addMany(api, toast, e, L("Ergebnisse in den Projektindex", "Results to the project index"));
+}
+function valCatalogue() {
+  return indexEntries().map(x => ({ sym: x.key.replace(/[^A-Za-z0-9_]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 24) || "wert", label: x.key, value: x.quantity.value, unit: x.quantity.unit, kind: x.type }));
+}
+function envSummary() {
+  const done = reportable();
+  const tags = done.map(tname);
+  if (S.items.length) tags.push(L(`${S.items.length} Dateien`, `${S.items.length} files`));
+  let values = []; try { values = LabOverview.summaryValues(valCatalogue()); } catch (e) { values = []; }
+  const plots = [];
+  const thinXY = (x, y, n = 400) => { const s = Math.max(1, Math.ceil(x.length / n)); return { x: x.filter((_, k) => k % s === 0), y: y.filter((_, k) => k % s === 0) }; };
+  if (S.res.xrd && S.res.xrd.curve) { const d = thinXY(S.res.xrd.curve.x, S.res.xrd.curve.y); plots.push({ title: "XRD", xlab: "2θ [°]", ylab: L("Intensität", "Intensity"), series: [{ name: (S.items.find(x => x.id === S.inp.xrd.item) || {}).name || "XRD", ...d }] }); }
+  if (S.res.ermuedung && S.res.ermuedung.points) { const p = S.res.ermuedung.points; plots.push({ title: L("Wöhler", "S–N"), xlab: "lg N", ylab: "σa [MPa]", series: [{ name: L("Versuche", "Tests"), x: p.map(q => Math.log10(q.N)), y: p.map(q => q.sar) }] }); }
+  if (S.res.weibull) { const l = S.res.weibull.lsq; plots.push({ title: "Weibull", xlab: "ln σ", ylab: "ln ln 1/(1−F)", series: [{ name: "n = " + l.n, x: l.X, y: l.Y }] }); }
+  return { title: tags.length ? (L("Werkstoffe: ", "Materials: ") + tags.slice(0, 4).join(" · ")) : L("Werkstoffe", "Materials"), tags: tags.slice(0, 8), values, plots: plots.slice(0, 2) };
+}
+
+// ---------------------------------------------------------------- Menüs
+const MENUS = [
+  { label: () => L("Datei", "File"), items: [
+    { label: () => L("Diffraktogramm öffnen …", "Open diffractogram …"), key: "Strg+O", act: () => act("open") },
+    { label: () => L("CIF öffnen (z. B. aus der COD) …", "Open CIF (e.g. from the COD) …"), act: () => act("cif") },
+    { label: () => L("Tabelle öffnen (CSV/TXT) …", "Open table (CSV/TXT) …"), act: () => act("table") },
+    { label: () => L("Härte-Umwertungstabelle laden …", "Load hardness conversion table …"), act: () => act("hardtable") },
+    "-",
+    { label: () => L("Umgebungen …", "Environments …"), act: () => ENVS.dialog() },
+    "-",
+    { label: () => L("Zum Bericht …", "To report …"), enabled: () => !!window.Lab && reportable().length > 0, act: sendToReport },
+    { label: () => L("Ergebnisse in den Projektindex …", "Results to the project index …"), enabled: () => indexEntries().length > 0, act: indexAll },
+    { label: () => L("Projektindex …", "Project index …"), act: () => LabIndex.browse(api, toast) },
+    { label: () => L("Ansicht als SVG speichern", "Save view as SVG"), enabled: () => !!PL.spec && $("#plot").style.display !== "none", act: saveSvg },
+    "-",
+    { label: () => L("Alle Dateien schliessen", "Close all files"), enabled: () => S.items.length > 0, act: async () => { if (confirm(L("Alle geladenen Dateien schliessen?", "Close all loaded files?"))) { for (const x of [...S.items]) await removeItem(x.id); } } },
+  ] },
+  { label: () => L("Werkzeuge", "Tools"), items: () => GROUPS.flatMap((g, n) => [...(n ? ["-"] : []), ...g.tools.map(t => ({ label: () => tname(t) + " · " + NAMES[t][EN() ? 3 : 2], check: () => S.tool === t, act: () => switchTool(t) }))]) },
+  { label: () => L("Ansicht", "View"), items: [
+    { label: () => L("Ganzer Bereich", "Full range"), key: "0", act: resetView },
+    { label: () => L("Fenstergrössen zurücksetzen", "Reset window sizes"), enabled: () => !!(window.LabUI && LabUI.resetSizes), act: () => LabUI.resetSizes("werkstoffe") },
+  ] },
+  { label: () => L("Hilfe", "Help"), items: [
+    { label: () => L("Kennzeichnungen …", "Labels …"), act: () => dialog(L("Kennzeichnungen", "Labels"), `<p>${esc(L("† nicht gegen das Original geprüft (aus dem Gedächtnis nach der genannten Quelle).", "† not checked against the original (from memory after the cited source)."))}</p>
+      <p>${esc(L("„schematisch“: Zustandsdiagramm aus zitierten Eckpunkten gezeichnet. „berechnet“: aus einem Modell (Lösungsmodell, Struktur, Formel), nicht gemessen. „berechnet (DFT)“: Materials Project, Dichtefunktionaltheorie.", "“schematic”: phase diagram drawn from cited key points. “computed”: from a model (solution model, structure, formula), not measured. “computed (DFT)”: Materials Project, density functional theory."))}</p>
+      <p>${esc(L("Härte-Umwertung nur mit einer eigenen Tabelle (eigene Kopie der Norm); sonst nur die gekennzeichnete Faustregel. Keine ICDD-Daten: Vergleichsmuster werden aus Strukturen berechnet.", "Hardness conversion only with an own table (own copy of the standard); otherwise only the labelled rule of thumb. No ICDD data: reference patterns are computed from structures."))}</p>`, [{ value: "ok", label: "OK", primary: true }]) },
+  ] },
+];
+function saveSvg() {
+  const s = $("#plot").cloneNode(true);
+  s.setAttribute("xmlns", SVGNS); s.setAttribute("width", $("#stage").clientWidth); s.setAttribute("height", $("#stage").clientHeight);
+  s.insertBefore(Object.assign(document.createElementNS(SVGNS, "style"), { textContent: `text{font:11px sans-serif;fill:${css("--ink")}}` }), s.firstChild);
+  download(`werkstoffe_${S.tool}.svg`, new XMLSerializer().serializeToString(s), "image/svg+xml");
+}
+let menusBound = false;
+function buildMenus() {
+  const bar = $("#menubar");
+  closeMenus(); bar.innerHTML = "";
+  MENUS.forEach((m, mi) => {
+    const w = document.createElement("div"); w.className = "m";
+    const b = document.createElement("button"); b.type = "button"; b.textContent = m.label();
+    b.addEventListener("click", (e) => { e.stopPropagation(); const open = b.classList.contains("open"); closeMenus(); if (!open) openMenu(mi, w, b); });
+    b.addEventListener("mouseenter", () => { if ($(".dd") && !b.classList.contains("open")) { closeMenus(); openMenu(mi, w, b); } });
+    w.appendChild(b); bar.appendChild(w);
+  });
+  if (!menusBound) { document.addEventListener("click", closeMenus); menusBound = true; }
+}
+function closeMenus() { $$(".dd").forEach(d => d.remove()); $$("#menubar button.open").forEach(b => b.classList.remove("open")); }
+function openMenu(mi, w, b) {
+  b.classList.add("open");
+  const dd = document.createElement("div"); dd.className = "dd"; dd.setAttribute("role", "menu");
+  const items = typeof MENUS[mi].items === "function" ? MENUS[mi].items() : MENUS[mi].items;
+  for (const it of items) {
+    if (it === "-") { dd.appendChild(document.createElement("hr")); continue; }
+    const x = document.createElement("button");
+    x.type = "button"; x.disabled = it.enabled ? !it.enabled() : false; x.setAttribute("role", "menuitem");
+    if (it.check && it.check()) x.classList.add("on");
+    x.innerHTML = `<span>${esc(it.label())}</span>${it.key ? `<span class="k">${esc(it.key)}</span>` : ""}`;
+    x.addEventListener("click", (e) => { e.stopPropagation(); closeMenus(); it.act(); });
+    dd.appendChild(x);
+  }
+  w.appendChild(dd);
+}
+
+// ---------------------------------------------------------------- Start
+function bind() {
+  bindPlot();
+  $("#viewSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-view]"); if (!b) return; S.view[S.tool] = b.dataset.view; showTool(); saveSoon(); });
+  $("#viewAll").addEventListener("click", resetView);
+  $("#file").addEventListener("change", (e) => { const fs = [...e.target.files]; e.target.value = ""; const cb = pickCb; pickCb = null; if (fs.length && cb) cb(fs); });
+  $("#stage").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-eact]"); if (!b) return;
+    const a = b.dataset.eact;
+    if (a === "ex") loadExample(S.tool); else act(a);
+  });
+  const stage = $("#stage");
+  stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.classList.add("drop"); });
+  stage.addEventListener("dragleave", () => stage.classList.remove("drop"));
+  stage.addEventListener("drop", (e) => {
+    e.preventDefault(); stage.classList.remove("drop");
+    const fs = [...e.dataTransfer.files];
+    const kindOf = (n) => /\.cif$/i.test(n) ? "cif" : (META.accepts || []).some(x => x !== ".csv" && x !== ".txt" && n.toLowerCase().endsWith(x)) ? "xrd" : (S.tool === "xrd" ? "xrd" : "table");
+    (async () => { for (const f of fs) await openFiles([f], kindOf(f.name)); })();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input,textarea,select") || $("#dlg").open) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") { e.preventDefault(); act("open"); }
+    else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === "0") resetView();
+  });
+}
+async function init() {
+  META = await api("api/meta");
+  if (META.error) { toast(META.error, true); return; }
+  for (const [t, d] of Object.entries(DEF)) S.inp[t] = clone(d);
+  if (META.plies && META.plies.length) S.inp.laminat.material = META.plies.find(n => /AS4|CFK|carbon/i.test(n)) || META.plies[0];
+  S.items = META.items || [];
+  await loadPhases();
+  bind(); buildMenus(); renderTools(); renderTabs(); renderPane(); renderChips();
+  if (window.Lab) { $("#labBtn").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
+  window.ENVS = LabEnv.create({
+    api, toast, label: $("#envName"),
+    keep: ["name", "kind"],
+    list: () => S.items, sel: () => 0,
+    reset: () => { S.items = []; S.res = {}; S.err = {}; },
+    add: async (d) => { S.items.push(d); },
+    extra: () => ({ tool: S.tool, inp: S.inp, view: S.view, last: S.last || {}, seen: S.seen || {} }), summary: envSummary,
+    // Berichtsauftrag aller berechneten Werkzeuge, damit „Import“ im Bericht diese Umgebung lesen kann
+    report: () => { const done = reportable(); return done.length ? { sections: done.map(t => ({ tool: t, req: REQ[t](S.inp[t]) })), lang: lang(), include: {}, title: L("Werkstoffe: ", "Materials: ") + done.map(tname).join(", ") } : null; },
+    done: async (_sel, extra) => {
+      for (const [t, d] of Object.entries(DEF)) S.inp[t] = merge(d, extra && extra.inp ? extra.inp[t] : undefined);
+      if (!S.inp.laminat.material && META.plies && META.plies.length) S.inp.laminat.material = META.plies.find(n => /AS4|CFK|carbon/i.test(n)) || META.plies[0];
+      S.view = (extra && extra.view) || {}; S.last = (extra && extra.last) || {}; S.seen = (extra && extra.seen) || {};
+      S.res = {}; S.err = {};
+      await loadPhases();
+      renderChips();
+      if (S.inp.korrosion.item) await loadKcols();
+      const cur = extra && extra.tool && REQ[extra.tool] ? extra.tool : "auswahl";
+      switchTool(cur);
+      // übrige Werkzeuge mit eigenen Eingaben im Hintergrund nachrechnen (Bericht „alle“, Übersicht)
+      (async () => { for (const t of Object.keys(DEF)) if (t !== cur && t !== "karten" && (S.seen[t] || JSON.stringify(S.inp[t]) !== JSON.stringify(DEF[t])) && (!READY[t] || READY[t](S.inp[t]))) await runTool(t); })();
+      if (OV) setTimeout(() => OV.sync(), 0);
+    },
+  });
+  await withBusy(() => ENVS.open());
+  if (!ENVS.ready) switchTool(S.tool);
+  if (window.LabUI) {
+    LabUI.langSwitch($("#langSw")); LabUI.apply(); if (LabUI.sizes) LabUI.sizes("werkstoffe");
+    LabUI.onLang(async () => { buildMenus(); renderTools(); renderTabs(); await loadPhases(); for (const t of Object.keys(S.res)) delete S.res[t]; renderPane(); runTool(S.tool); });
+  }
+  if (window.LabOverview) {
+    OV = LabOverview.create({
+      api: (p, b) => api(p, b), toast, module: "werkstoffe", envs: () => window.ENVS,
+      detail: [$("#menubar"), $("main")], crumbs: $("#crumbs"),
+      values: { catalogue: valCatalogue, apply: (rows) => { S.ext = LabOverview.extValues(S.ext, rows).list; }, version: META.version || "" },
+      imports: WS_IMP,
+      onView: (v) => { if (v === "detail") setTimeout(drawPlot, 0); },
+    });
+    if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }
+  }
+}
+init();
+</script>
+</body>
+</html>

@@ -102,7 +102,33 @@ PARTS = {
         "out": ["modules/ftir/ftir/data/openspecy-restricted/meta.json",
                 "modules/ftir/ftir/data/openspecy-restricted/data.npz"],
     },
+    "mp": {
+        "title": "Materials Project: computed density, bulk and shear modulus (VRH) and band gap of the stable phase "
+                 "of common elements and compounds",
+        "terms": "CC BY 4.0 (open, with attribution). Queries need your own free API key from "
+                 "https://next-gen.materialsproject.org/api, set as environment variable MP_API_KEY; the key is sent "
+                 "only to api.materialsproject.org and never stored. Values are DFT results, not measurements.",
+        "cite": "Jain A. et al. (2013), APL Mater. 1, 011002, doi:10.1063/1.4812323; elastic data: de Jong M. et al. "
+                "(2015), Sci. Data 2, 150009, doi:10.1038/sdata.2015.9",
+        "files": [],                                   # filled below: one API query per formula
+        "out": ["sdk/python/labcalc/data/optional/materials_mp.json"],
+    },
 }
+MP_API = "https://api.materialsproject.org/materials/summary/"
+
+
+def _mp_files():
+    from urllib.parse import urlencode
+    sys.path.insert(0, str(SDK))
+    from labcalc import materials
+    out = []
+    for f in materials.MP_FORMULAS:
+        q = urlencode({"formula": f, "is_stable": "true", "_fields": ",".join(materials.MP_FIELDS), "_limit": 5})
+        out.append(("mp", f"{f}.json", f"{MP_API}?{q}"))
+    return out
+
+
+PARTS["mp"]["files"] = _mp_files()
 
 
 # ----------------------------------------------------------------------------- originals
@@ -115,9 +141,18 @@ def _sha256(p: Path) -> str:
 
 
 def _download(url: str, dst: Path):
+    headers = {"User-Agent": UA}
+    if url.startswith(MP_API):                         # Materials Project: personal key from the environment only
+        import os
+        key = os.environ.get("MP_API_KEY", "").strip()
+        if not key:
+            raise RuntimeError("MP_API_KEY is not set. Get a free key at https://next-gen.materialsproject.org/api "
+                               "and set it for this shell, e.g. PowerShell: $env:MP_API_KEY = '<key>'")
+        headers["X-API-KEY"] = key
+        headers["Accept"] = "application/json"
     dst.parent.mkdir(parents=True, exist_ok=True)
     tmp = dst.with_suffix(dst.suffix + ".part")
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    req = urllib.request.Request(url, headers=headers)
     print(f"  downloading {url}")
     with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as fh:  # noqa: S310 (fixed https URLs)
         n = 0
@@ -251,8 +286,24 @@ def build_openspecy(recs):
     print(f"  {dst.relative_to(ROOT)}: {len(entries)} spectra")
 
 
+def build_mp(recs):
+    from labcalc import materials
+    docs = {}
+    for f in materials.MP_FORMULAS:
+        p = CACHE / "mp" / f"{f}.json"
+        d = json.loads(p.read_text(encoding="utf-8"))
+        docs[f] = d.get("data") if isinstance(d, dict) else d
+    rows = materials.mp_rows(docs, date.today().isoformat())
+    dst = SDK_DATA / "optional" / "materials_mp.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    out = {"_format": "folio-materials/1", "_quelle": PARTS["mp"]["cite"], "werkstoffe": rows}
+    dst.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    _stamp(dst, recs, "mp")
+    print(f"  {dst.relative_to(ROOT)}: {len(rows)} materials")
+
+
 BUILD = {"pka": build_pka, "srd46": build_srd46, "asd": build_asd, "burcat": build_burcat,
-         "openspecy": build_openspecy}
+         "openspecy": build_openspecy, "mp": build_mp}
 
 
 # ----------------------------------------------------------------------------- command line
@@ -262,8 +313,10 @@ def show_list():
         print(f"{k:10s} [{state}]  {p['title']}")
         print(f"{'':12s}terms: {p['terms']}")
         print(f"{'':12s}cite:  {p['cite']}")
-        for sub, name, url in p["files"]:
+        for sub, name, url in p["files"][:3]:
             print(f"{'':12s}file:  {sub}/{name}  <- {url}")
+        if len(p["files"]) > 3:
+            print(f"{'':12s}       … and {len(p['files']) - 3} more of the same kind")
         print()
 
 

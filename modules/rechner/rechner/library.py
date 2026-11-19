@@ -48,10 +48,11 @@ SYMBOLS = {
 
 
 class Equation:
-    def __init__(self, id, cat, sub, text, de, en, vars=None, auto=True, note="", note_en="", src=None, ref=""):
+    def __init__(self, id, cat, sub, text, de, en, vars=None, auto=True, note="", note_en="", src=None, ref="", sample=None):
         self.id, self.cat, self.sub, self.text, self.de, self.en = id, cat, sub, text, de, en
         self.auto, self.note, self.note_en = auto, note, note_en
         self.src_key, self.ref = src, ref          # Quelle (labcalc.sources), sonst die des Abschnitts
+        self.sample = sample or {}                 # typische SI-Werte für die Selbstprüfung (Exponent mit kB·T)
         self.source = None
         lhs, rhs = text.split("=", 1)
         self.lhs, self.rhs = E.parse(lhs), E.parse(rhs)
@@ -746,6 +747,342 @@ EQ("lab_mix", C, S, "c_m*V_m = c_1*V_1 + c_2*V_2", "Mischungsrechnung (Stoffbila
     "c_2": "concentration|Konzentration 2|Concentration 2", "V_2": "volume|Volumen 2|Volume 2"}, auto=False,
    note="V_m ist das aufgefüllte Endvolumen, nicht V_1 + V_2")
 
+# =============================================================================================== Werkstoffkunde
+# Werkstoffkennwerte dazu liefert die Werkstoffdatenbank: mat("Cu", "E"), E_mat("1.4301"), D_diff("C", "γ-Fe", T) …
+C, S = "Werkstoffkunde", "Kristallographie"
+_LG = "length|Gitterkonstante|Lattice parameter"
+_RA = "length|Atomradius|Atomic radius"
+_TH = "angle|Beugungswinkel θ (halber Streuwinkel)|Bragg angle θ (half the scattering angle)"
+EQ("wk_a_fcc", C, S, "a_g = 2*sqrt(2)*r_at", "Gitterkonstante kfz aus dem Atomradius", "Lattice parameter FCC from atomic radius",
+   {"a_g": _LG, "r_at": _RA}, auto=False)
+EQ("wk_a_bcc", C, S, "a_g = 4*r_at/sqrt(3)", "Gitterkonstante krz aus dem Atomradius", "Lattice parameter BCC from atomic radius",
+   {"a_g": _LG, "r_at": _RA}, auto=False)
+EQ("wk_rho_th", C, S, "rho = n_at*M/(a_g**3*NA)", "Theoretische Dichte (kubische Zelle)", "Theoretical density (cubic cell)",
+   {"n_at": "number|Atome je Elementarzelle|Atoms per unit cell", "a_g": _LG, "M": "molar_mass|Molare Masse|Molar mass"},
+   auto=False, note="kfz: n = 4, krz: n = 2, kubisch primitiv: n = 1")
+EQ("wk_apf", C, S, "APF = n_at*4/3*pi*r_at**3/a_g**3", "Packungsdichte (kubische Zelle)", "Atomic packing factor (cubic cell)",
+   {"APF": "number|Packungsdichte|Atomic packing factor", "n_at": "number|Atome je Elementarzelle|Atoms per unit cell",
+    "r_at": _RA, "a_g": _LG}, auto=False, note="kfz 0,74; krz 0,68")
+EQ("wk_d_hkl", C, S, "d_hkl = a_g/sqrt(h_i**2 + k_i**2 + l_i**2)", "Netzebenenabstand (kubisch)", "Interplanar spacing (cubic)",
+   {"d_hkl": "length|Netzebenenabstand|Interplanar spacing", "a_g": _LG, "h_i": "number|Miller-Index h|Miller index h",
+    "k_i": "number|Miller-Index k|Miller index k", "l_i": "number|Miller-Index l|Miller index l"}, auto=False)
+EQ("wk_bragg", C, S, "d_hkl = n_o*lambda/(2*sin(theta))", "Bragg-Gleichung", "Bragg's law",
+   {"d_hkl": "length|Netzebenenabstand|Interplanar spacing", "n_o": "number|Beugungsordnung|Order of diffraction",
+    "lambda": "length|Wellenlänge der Strahlung|Wavelength of the radiation", "theta": _TH}, note="n·λ = 2·d·sin θ")
+EQ("wk_hex_V", C, S, "V_c = 3*sqrt(3)/2*a_g**2*c_g", "Volumen der hexagonalen Elementarzelle", "Volume of the hexagonal unit cell",
+   {"V_c": "volume|Zellvolumen|Cell volume", "a_g": "length|Gitterkonstante a|Lattice parameter a",
+    "c_g": "length|Gitterkonstante c|Lattice parameter c"}, auto=False)
+EQ("wk_scherrer", C, S, "D_s = K_s*lambda/(beta_s*cos(theta))", "Scherrer-Gleichung (Kristallitgrösse)", "Scherrer equation (crystallite size)",
+   {"D_s": "length|Kristallitgrösse|Crystallite size", "K_s": "number|Formfaktor (≈ 0,9)|Shape factor (≈ 0.9)",
+    "lambda": "length|Wellenlänge der Strahlung|Wavelength of the radiation",
+    "beta_s": "angle|Linienverbreiterung (Halbwertsbreite)|Line broadening (FWHM)", "theta": _TH}, auto=False, src="cullity",
+   note="β nach Abzug der Geräteverbreiterung, im Bogenmass")
+
+S = "Defekte und Diffusion"
+_DC = "diffusivity|Diffusionskoeffizient|Diffusion coefficient"
+EQ("wk_vacancy", C, S, "N_v = N_s*exp(-Q_v/(Rgas*T))", "Leerstellenkonzentration im Gleichgewicht", "Equilibrium vacancy concentration",
+   {"N_v": "number_conc|Leerstellen je Volumen|Vacancies per volume", "N_s": "number_conc|Gitterplätze je Volumen|Lattice sites per volume",
+    "Q_v": "molar_energy|Bildungsenergie der Leerstellen (je Mol)|Vacancy formation energy (per mole)"}, auto=False,
+   note="Bildungsenergie je Leerstelle in eV: Q_v = E·N_A (1 eV je Leerstelle ≈ 96,5 kJ/mol)")
+EQ("wk_sites", C, S, "N_s = NA*rho/M", "Gitterplätze (Atome) je Volumen", "Atomic sites per volume",
+   {"N_s": "number_conc|Atome je Volumen|Atoms per volume"}, auto=False)
+EQ("wk_fick1", C, S, "J_d = -D_c*(C_2 - C_1)/(x_2 - x_1)", "1. Ficksches Gesetz (stationär, lineares Profil)",
+   "Fick's first law (steady state, linear profile)",
+   {"J_d": "diff_flux|Diffusionsstromdichte|Diffusion flux", "D_c": _DC, "C_1": "mass_conc|Konzentration bei x₁|Concentration at x₁",
+    "C_2": "mass_conc|Konzentration bei x₂|Concentration at x₂", "x_1": "length|Ort 1|Position 1", "x_2": "length|Ort 2|Position 2"},
+   auto=False)
+EQ("wk_fick2", C, S, "(C_x - C_0)/(C_s - C_0) = 1 - erf(x/(2*sqrt(D_c*t)))", "2. Ficksches Gesetz (halbunendlicher Körper)",
+   "Fick's second law (semi-infinite solid)",
+   {"C_x": "number|Konzentration in der Tiefe x|Concentration at depth x", "C_0": "number|Anfangskonzentration|Initial concentration",
+    "C_s": "number|Oberflächenkonzentration|Surface concentration", "x": "length|Tiefe|Depth", "D_c": _DC},
+   auto=False, note="Oberflächenkonzentration und D konstant; Konzentrationen in derselben Einheit (z. B. Massen-%)")
+EQ("wk_Q_two_T", C, S, "Q_d = Rgas*ln(D_1/D_2)/(1/T_2 - 1/T_1)", "Aktivierungsenergie aus D bei zwei Temperaturen",
+   "Activation energy from D at two temperatures",
+   {"Q_d": "molar_energy|Aktivierungsenergie|Activation energy", "D_1": "diffusivity|D bei T₁|D at T₁",
+    "D_2": "diffusivity|D bei T₂|D at T₂", "T_1": "temperature|Temperatur 1|Temperature 1",
+    "T_2": "temperature|Temperatur 2|Temperature 2"}, auto=False)
+EQ("wk_Dt", C, S, "D_1*t_1 = D_2*t_2", "Gleiche Eindringtiefe: D·t konstant", "Equal penetration depth: D·t constant",
+   {"D_1": "diffusivity|D bei Bedingung 1|D at condition 1", "D_2": "diffusivity|D bei Bedingung 2|D at condition 2",
+    "t_1": "time|Zeit bei Bedingung 1|Time at condition 1", "t_2": "time|Zeit bei Bedingung 2|Time at condition 2"}, auto=False,
+   note="gleiche Konzentration in gleicher Tiefe (2. Ficksches Gesetz, gleiche Randbedingungen)")
+
+S = "Phasen und Umwandlungen"
+_W0 = "fraction|Legierungszusammensetzung|Alloy composition"
+EQ("wk_lever", C, S, "W_L = (w_a - w_0)/(w_a - w_L)", "Hebelgesetz: Anteil Schmelze", "Lever rule: liquid fraction",
+   {"W_L": "fraction|Massenanteil Schmelze|Mass fraction of liquid", "w_a": "fraction|Zusammensetzung der festen Phase α|Composition of solid α",
+    "w_0": _W0, "w_L": "fraction|Zusammensetzung der Schmelze|Composition of liquid"}, src="callister",
+   note="Zusammensetzungen aus der Konode bei der betrachteten Temperatur")
+EQ("wk_gibbs", C, S, "F_f = C_k - P_p + 2", "Gibbssche Phasenregel", "Gibbs phase rule",
+   {"F_f": "number|Freiheitsgrade|Degrees of freedom", "C_k": "number|Zahl der Komponenten|Number of components",
+    "P_p": "number|Zahl der Phasen|Number of phases"}, auto=False, note="bei festem Druck (kondensierte Systeme) F = C − P + 1")
+EQ("wk_avrami", C, S, "y_A = 1 - exp(-(t/tau_A)**n_A)", "Avrami-Gleichung (JMAK)", "Avrami equation (JMAK)",
+   {"y_A": "fraction|Umgewandelter Anteil|Transformed fraction", "tau_A": "time|Zeitkonstante|Time constant",
+    "n_A": "number|Avrami-Exponent|Avrami exponent"}, auto=False, src="avrami1939", note="mit k = τ⁻ⁿ: y = 1 − exp(−k·tⁿ)")
+EQ("wk_rate", C, S, "r_U = 1/t_05", "Umwandlungsrate", "Transformation rate",
+   {"r_U": "rate_const|Umwandlungsrate|Transformation rate", "t_05": "time|Zeit bis 50 % Umwandlung|Time to 50 % transformation"},
+   auto=False, src="callister")
+EQ("wk_dGv", C, S, "dG_v = L_v*(T_m - T)/T_m", "Treibende Kraft der Erstarrung bei Unterkühlung", "Driving force for solidification at undercooling",
+   {"dG_v": "energy_density|Treibende Kraft je Volumen (Betrag)|Driving force per volume (magnitude)",
+    "L_v": "energy_density|Schmelzwärme je Volumen|Latent heat of fusion per volume", "T_m": "temperature|Schmelztemperatur|Melting temperature"},
+   auto=False, note="T unterhalb T_m; ΔG_v als positiver Betrag")
+EQ("wk_r_crit", C, S, "r_c = 2*gamma_s/dG_v", "Kritischer Keimradius (homogene Keimbildung)", "Critical nucleus radius (homogeneous nucleation)",
+   {"r_c": "length|Kritischer Keimradius|Critical radius", "gamma_s": "surface_energy|Grenzflächenenergie|Interfacial energy",
+    "dG_v": "energy_density|Treibende Kraft je Volumen (Betrag)|Driving force per volume (magnitude)"}, auto=False)
+EQ("wk_dG_crit", C, S, "dG_c = 16*pi*gamma_s**3/(3*dG_v**2)", "Keimbildungsarbeit (homogen)", "Nucleation barrier (homogeneous)",
+   {"dG_c": "energy|Keimbildungsarbeit|Nucleation barrier", "gamma_s": "surface_energy|Grenzflächenenergie|Interfacial energy",
+    "dG_v": "energy_density|Treibende Kraft je Volumen (Betrag)|Driving force per volume (magnitude)"}, auto=False)
+EQ("wk_scheil", C, S, "w_s = k_0*w_0*(1 - f_s)**(k_0 - 1)", "Scheil-Gleichung", "Scheil equation",
+   {"w_s": "fraction|Konzentration im Festkörper an der Erstarrungsfront|Solid composition at the interface",
+    "k_0": "number|Verteilungskoeffizient|Partition coefficient", "w_0": _W0, "f_s": "fraction|Erstarrter Anteil|Solid fraction"},
+   auto=False, note="keine Diffusion im Festkörper, vollständige Durchmischung der Schmelze")
+
+S = "Verformung und Festigkeit"
+_SW = "stress|Wahre Spannung|True stress"
+_PHI = "strain|Wahre plastische Dehnung|True plastic strain"
+_NH = "number|Verfestigungsexponent|Strain-hardening exponent"
+EQ("wk_hollomon", C, S, "sigma_w = K_H*phi_w**n_H", "Fliesskurve nach Hollomon", "Flow curve (Hollomon)",
+   {"sigma_w": _SW, "K_H": "stress|Festigkeitskoeffizient|Strength coefficient", "phi_w": _PHI, "n_H": _NH},
+   auto=False, src="hollomon1945")
+EQ("wk_ludwik", C, S, "sigma_w = sigma_0 + K_H*phi_w**n_H", "Fliesskurve nach Ludwik", "Flow curve (Ludwik)",
+   {"sigma_w": _SW, "sigma_0": "stress|Anfangsfliessspannung|Initial yield stress", "K_H": "stress|Festigkeitskoeffizient|Strength coefficient",
+    "phi_w": _PHI, "n_H": _NH}, auto=False, src="dowling")
+EQ("wk_considere", C, S, "phi_u = n_H", "Gleichmassdehnung (Considère)", "Uniform strain (Considère)",
+   {"phi_u": "strain|Wahre Gleichmassdehnung|True uniform strain", "n_H": _NH}, auto=False, note="gilt für die Fliesskurve nach Hollomon")
+EQ("wk_resilience", C, S, "U_r = sigma_y**2/(2*E)", "Resilienz (elastische Energie je Volumen)", "Modulus of resilience",
+   {"U_r": "energy_density|Resilienz|Modulus of resilience", "sigma_y": "stress|Streckgrenze|Yield strength"})
+EQ("wk_mises", C, S, "sigma_v = sqrt(sigma_x**2 + sigma_y**2 - sigma_x*sigma_y + 3*tau_xy**2)",
+   "Vergleichsspannung nach von Mises (ebener Spannungszustand)", "Von Mises equivalent stress (plane stress)",
+   {"sigma_v": "stress|Vergleichsspannung|Equivalent stress", "sigma_x": "stress|Normalspannung x|Normal stress x",
+    "sigma_y": "stress|Normalspannung y|Normal stress y", "tau_xy": "stress|Schubspannung|Shear stress"}, src="gross2")
+EQ("wk_tresca", C, S, "sigma_v = sigma_1 - sigma_3", "Vergleichsspannung nach Tresca", "Tresca equivalent stress",
+   {"sigma_v": "stress|Vergleichsspannung|Equivalent stress", "sigma_1": "stress|Grösste Hauptspannung|Maximum principal stress",
+    "sigma_3": "stress|Kleinste Hauptspannung|Minimum principal stress"}, auto=False, src="gross2")
+EQ("wk_schmid", C, S, "tau_r = sigma*cos(phi_s)*cos(lambda_s)", "Schmidsches Schubspannungsgesetz", "Schmid's law",
+   {"tau_r": "stress|Aufgelöste Schubspannung|Resolved shear stress",
+    "phi_s": "angle|Winkel Gleitebenennormale – Last|Angle slip-plane normal – load",
+    "lambda_s": "angle|Winkel Gleitrichtung – Last|Angle slip direction – load"}, src="callister")
+
+S = "Kriechen"
+EQ("wk_norton", C, S, "eps_dot = A_N*(sigma/MPa1)**n_N*exp(-Q_c/(Rgas*T))", "Stationäres Kriechen (Norton, Potenzgesetz)",
+   "Steady-state creep (Norton power law)",
+   {"eps_dot": "rate_const|Kriechrate|Creep rate", "A_N": "rate_const|Werkstoffkonstante (σ in MPa)|Material constant (σ in MPa)",
+    "n_N": "number|Spannungsexponent|Stress exponent", "Q_c": "molar_energy|Aktivierungsenergie des Kriechens|Activation energy for creep"},
+   auto=False, note="σ wird in MPa eingesetzt; A_N gilt für diese Wahl")
+EQ("wk_lmp", C, S, "P_LM = T*(C_LM + log10(t_h))", "Larson-Miller-Parameter", "Larson–Miller parameter",
+   {"P_LM": "temperature|Larson-Miller-Parameter (in K)|Larson–Miller parameter (in K)", "C_LM": "number|Konstante (oft ≈ 20)|Constant (often ≈ 20)",
+    "t_h": "number|Bruchzeit in Stunden|Rupture time in hours"}, auto=False, src="larsonmiller1952")
+
+S = "Ermüdung"
+_SA = "stress|Spannungsamplitude|Stress amplitude"
+_SO = "stress|Oberspannung|Maximum stress"
+_SU = "stress|Unterspannung|Minimum stress"
+_SM = "stress|Mittelspannung|Mean stress"
+_SWF = "stress|Wechselfestigkeit (σ_m = 0)|Fully reversed fatigue strength"
+_NF = "number|Bruchlastspielzahl|Cycles to failure"
+EQ("wk_basquin", C, S, "sigma_a = sigma_ff*(2*N_f)**b_B", "Basquin-Gleichung (Zeitfestigkeit)", "Basquin equation (finite life)",
+   {"sigma_a": _SA, "sigma_ff": "stress|Schwingfestigkeitskoeffizient σ′f|Fatigue strength coefficient σ′f", "N_f": _NF,
+    "b_B": "number|Basquin-Exponent (negativ)|Basquin exponent (negative)"}, auto=False, src="basquin1910")
+EQ("wk_coffin", C, S, "eps_ap = eps_ff*(2*N_f)**c_CM", "Coffin-Manson-Gleichung", "Coffin–Manson equation",
+   {"eps_ap": "strain|Plastische Dehnungsamplitude|Plastic strain amplitude",
+    "eps_ff": "strain|Duktilitätskoeffizient ε′f|Fatigue ductility coefficient ε′f", "N_f": _NF,
+    "c_CM": "number|Duktilitätsexponent (negativ)|Fatigue ductility exponent (negative)"}, auto=False)
+EQ("wk_amp", C, S, "sigma_a = (sigma_o - sigma_u)/2", "Spannungsamplitude", "Stress amplitude", {"sigma_a": _SA, "sigma_o": _SO, "sigma_u": _SU})
+EQ("wk_mean", C, S, "sigma_m = (sigma_o + sigma_u)/2", "Mittelspannung", "Mean stress", {"sigma_m": _SM, "sigma_o": _SO, "sigma_u": _SU})
+EQ("wk_R", C, S, "R_s = sigma_u/sigma_o", "Spannungsverhältnis", "Stress ratio",
+   {"R_s": "number|Spannungsverhältnis R|Stress ratio R", "sigma_u": _SU, "sigma_o": _SO})
+EQ("wk_goodman", C, S, "sigma_a = sigma_W*(1 - sigma_m/R_m)", "Goodman-Gerade", "Goodman line",
+   {"sigma_a": "stress|Ertragbare Spannungsamplitude|Allowable stress amplitude", "sigma_W": _SWF, "sigma_m": _SM,
+    "R_m": "stress|Zugfestigkeit|Tensile strength"}, auto=False)
+EQ("wk_gerber", C, S, "sigma_a = sigma_W*(1 - (sigma_m/R_m)**2)", "Gerber-Parabel", "Gerber parabola",
+   {"sigma_a": "stress|Ertragbare Spannungsamplitude|Allowable stress amplitude", "sigma_W": _SWF, "sigma_m": _SM,
+    "R_m": "stress|Zugfestigkeit|Tensile strength"}, auto=False)
+EQ("wk_soderberg", C, S, "sigma_a = sigma_W*(1 - sigma_m/R_e)", "Soderberg-Gerade", "Soderberg line",
+   {"sigma_a": "stress|Ertragbare Spannungsamplitude|Allowable stress amplitude", "sigma_W": _SWF, "sigma_m": _SM,
+    "R_e": "stress|Streckgrenze|Yield strength"}, auto=False)
+EQ("wk_miner", C, S, "D_M = n_1/N_1 + n_2/N_2 + n_3/N_3", "Palmgren-Miner-Regel (drei Laststufen)", "Palmgren–Miner rule (three load levels)",
+   {"D_M": "number|Schadenssumme (Bruch bei 1)|Damage sum (failure at 1)", "n_1": "number|Lastspiele Stufe 1|Cycles at level 1",
+    "N_1": "number|Bruchlastspiele Stufe 1|Cycles to failure at level 1", "n_2": "number|Lastspiele Stufe 2|Cycles at level 2",
+    "N_2": "number|Bruchlastspiele Stufe 2|Cycles to failure at level 2", "n_3": "number|Lastspiele Stufe 3|Cycles at level 3",
+    "N_3": "number|Bruchlastspiele Stufe 3|Cycles to failure at level 3"}, auto=False, src="miner1945",
+   note="nicht benutzte Stufen mit n = 0 eintragen")
+EQ("wk_endurance", C, S, "sigma_W = 0.5*R_m", "Wechselfestigkeit von Stahl (Faustwert)", "Fatigue limit of steel (rule of thumb)",
+   {"sigma_W": _SWF, "R_m": "stress|Zugfestigkeit|Tensile strength"}, auto=False,
+   note="polierte Probe, Stahl bis R_m ≈ 1400 MPa; nur zur Abschätzung")
+
+S = "Bruch und Zuverlässigkeit"
+_PF = "fraction|Versagenswahrscheinlichkeit|Probability of failure"
+_S0W = "stress|Charakteristische Festigkeit σ₀|Characteristic strength σ₀"
+_MW = "number|Weibull-Modul|Weibull modulus"
+EQ("wk_weibull", C, S, "P_f = 1 - exp(-(sigma/sigma_0W)**m_W)", "Weibull-Verteilung", "Weibull distribution",
+   {"P_f": _PF, "sigma_0W": _S0W, "m_W": _MW}, src="weibull1951")
+EQ("wk_weibull_V", C, S, "P_f = 1 - exp(-(V/V_0)*(sigma/sigma_0W)**m_W)", "Weibull-Verteilung mit Volumeneinfluss",
+   "Weibull distribution with volume effect",
+   {"P_f": _PF, "V": "volume|Beanspruchtes Volumen|Stressed volume", "V_0": "volume|Bezugsvolumen|Reference volume",
+    "sigma_0W": _S0W, "m_W": _MW}, auto=False, src="weibull1951")
+EQ("wk_size", C, S, "sigma_2 = sigma_1*(V_1/V_2)**(1/m_W)", "Grösseneinfluss der Festigkeit (Weibull)", "Size effect on strength (Weibull)",
+   {"sigma_2": "stress|Festigkeit bei V₂|Strength at V₂", "sigma_1": "stress|Festigkeit bei V₁|Strength at V₁",
+    "V_1": "volume|Volumen 1|Volume 1", "V_2": "volume|Volumen 2|Volume 2", "m_W": _MW}, auto=False, src="weibull1951",
+   note="gleiche Versagenswahrscheinlichkeit")
+EQ("wk_B_min", C, S, "B_min = 2.5*(K_Ic/R_e)**2", "Mindestdicke für ein gültiges K_Ic", "Minimum thickness for a valid K_Ic",
+   {"B_min": "length|Mindestdicke (und Risslänge)|Minimum thickness (and crack length)", "K_Ic": "stress_int|Bruchzähigkeit|Fracture toughness",
+    "R_e": "stress|Dehngrenze Rp0,2|Yield strength"}, src="anderson", note="Gültigkeitskriterium nach ASTM E399 (ebener Dehnungszustand)")
+EQ("wk_shock", C, S, "dT_c = sigma_f*(1 - nu)/(E*alpha_T)", "Thermoschock: kritischer Temperatursprung", "Thermal shock: critical temperature jump",
+   {"dT_c": "temp_diff|Kritischer Temperatursprung|Critical temperature jump", "sigma_f": "stress|Bruchfestigkeit|Fracture strength",
+    "alpha_T": "expansion|Ausdehnungskoeffizient|Expansion coefficient"}, auto=False, src="kingery1955",
+   note="erster Thermoschockparameter R; schroffe Abkühlung der Oberfläche")
+
+S = "Verbundwerkstoffe"
+_VF = "number|Faservolumenanteil|Fibre volume fraction"
+_E1 = "modulus|E-Modul längs E₁|Longitudinal modulus E₁"
+_E2 = "modulus|E-Modul quer E₂|Transverse modulus E₂"
+_G12 = "modulus|Schubmodul G₁₂|Shear modulus G₁₂"
+_NU12 = "number|Querkontraktionszahl ν₁₂|Poisson's ratio ν₁₂"
+EQ("wk_c_rho", C, S, "rho_c = V_f*rho_f + (1 - V_f)*rho_m", "Dichte des Verbunds", "Composite density",
+   {"rho_c": "density|Dichte Verbund|Composite density", "V_f": _VF, "rho_f": "density|Dichte Faser|Fibre density",
+    "rho_m": "density|Dichte Matrix|Matrix density"}, auto=False)
+EQ("wk_c_vf", C, S, "V_f = (w_f/rho_f)/(w_f/rho_f + (1 - w_f)/rho_m)", "Faservolumenanteil aus dem Massenanteil",
+   "Fibre volume fraction from mass fraction",
+   {"V_f": _VF, "w_f": "number|Fasermassenanteil|Fibre mass fraction", "rho_f": "density|Dichte Faser|Fibre density",
+    "rho_m": "density|Dichte Matrix|Matrix density"}, auto=False, note="porenfrei")
+EQ("wk_c_nu12", C, S, "nu_12 = V_f*nu_f + (1 - V_f)*nu_m", "Querkontraktionszahl ν₁₂ (Mischungsregel)", "Poisson's ratio ν₁₂ (rule of mixtures)",
+   {"nu_12": _NU12, "V_f": _VF, "nu_f": "number|Querkontraktionszahl Faser|Fibre Poisson's ratio",
+    "nu_m": "number|Querkontraktionszahl Matrix|Matrix Poisson's ratio"}, auto=False)
+EQ("wk_c_G12", C, S, "1/G_12 = V_f/G_f + (1 - V_f)/G_m", "Schubmodul G₁₂ (Mischungsregel, Reihe)", "Shear modulus G₁₂ (rule of mixtures, series)",
+   {"G_12": _G12, "V_f": _VF, "G_f": "modulus|Schubmodul Faser|Fibre shear modulus", "G_m": "modulus|Schubmodul Matrix|Matrix shear modulus"},
+   auto=False, note="untere Abschätzung")
+EQ("wk_c_halpin_eta", C, S, "eta_H = (E_f/E_m - 1)/(E_f/E_m + xi_H)", "Halpin-Tsai: Hilfsgrösse η", "Halpin–Tsai: parameter η",
+   {"eta_H": "number|Hilfsgrösse η|Parameter η", "E_f": "modulus|E-Modul Faser|Fibre modulus", "E_m": "modulus|E-Modul Matrix|Matrix modulus",
+    "xi_H": "number|Verstärkungsfaktor ξ|Reinforcement factor ξ"}, auto=False, src="halpin1976")
+EQ("wk_c_halpin", C, S, "E_2 = E_m*(1 + xi_H*eta_H*V_f)/(1 - eta_H*V_f)", "Halpin-Tsai: E-Modul quer", "Halpin–Tsai: transverse modulus",
+   {"E_2": _E2, "E_m": "modulus|E-Modul Matrix|Matrix modulus", "xi_H": "number|Verstärkungsfaktor ξ|Reinforcement factor ξ",
+    "eta_H": "number|Hilfsgrösse η|Parameter η", "V_f": _VF}, auto=False, src="halpin1976",
+   note="ξ ≈ 2 für E₂ bei runden Fasern")
+EQ("wk_c_strength", C, S, "sigma_cl = V_f*sigma_fu + (1 - V_f)*sigma_mf", "Längsfestigkeit (Mischungsregel)", "Longitudinal strength (rule of mixtures)",
+   {"sigma_cl": "stress|Festigkeit Verbund längs|Composite longitudinal strength", "V_f": _VF,
+    "sigma_fu": "stress|Faserfestigkeit|Fibre strength", "sigma_mf": "stress|Matrixspannung beim Faserbruch|Matrix stress at fibre failure"},
+   auto=False, src="callister")
+EQ("wk_c_lcrit", C, S, "l_c = sigma_fu*d_f/(2*tau_c)", "Kritische Faserlänge", "Critical fibre length",
+   {"l_c": "length|Kritische Faserlänge|Critical fibre length", "sigma_fu": "stress|Faserfestigkeit|Fibre strength",
+    "d_f": "length|Faserdurchmesser|Fibre diameter", "tau_c": "stress|Grenzflächenscherfestigkeit|Interfacial shear strength"},
+   auto=False, src="callister")
+EQ("wk_c_offaxis", C, S, "1/E_x = cos(theta)**4/E_1 + (1/G_12 - 2*nu_12/E_1)*sin(theta)**2*cos(theta)**2 + sin(theta)**4/E_2",
+   "E-Modul einer UD-Schicht unter dem Winkel θ", "Off-axis modulus of a UD ply",
+   {"E_x": "modulus|E-Modul in Lastrichtung|Modulus in load direction", "theta": "angle|Winkel Faser – Last|Fibre–load angle",
+    "E_1": _E1, "G_12": _G12, "nu_12": _NU12, "E_2": _E2}, auto=False)
+EQ("wk_c_tsaihill", C, S, "F_TH = (sigma_1/X_t)**2 - sigma_1*sigma_2/X_t**2 + (sigma_2/Y_t)**2 + (tau_12/S_12)**2",
+   "Tsai-Hill-Kriterium (Versagen bei 1)", "Tsai–Hill criterion (failure at 1)",
+   {"F_TH": "number|Versagensindex|Failure index", "sigma_1": "stress|Spannung längs|Longitudinal stress",
+    "X_t": "stress|Festigkeit längs (Zug bzw. Druck)|Longitudinal strength (tension or compression)",
+    "sigma_2": "stress|Spannung quer|Transverse stress", "Y_t": "stress|Festigkeit quer (Zug bzw. Druck)|Transverse strength (tension or compression)",
+    "tau_12": "stress|Schubspannung|Shear stress", "S_12": "stress|Schubfestigkeit|Shear strength"}, auto=False,
+   note="bei Druckspannung die Druckfestigkeit einsetzen; Werte der Schicht z. B. mat(\"AS4/3501-6\", \"Xt\")")
+
+S = "Polymere"
+EQ("wk_wlf", C, S, "log10(a_T) = -C_1*(T - T_r)/(C_2 + T - T_r)", "WLF-Gleichung (Zeit-Temperatur-Verschiebung)", "WLF equation (time–temperature shift)",
+   {"a_T": "number|Verschiebungsfaktor|Shift factor", "C_1": "number|Konstante C₁ (17,44 bei T_r = T_g)|Constant C₁ (17.44 for T_r = T_g)",
+    "T_r": "temperature|Bezugstemperatur|Reference temperature", "C_2": "temp_diff|Konstante C₂ (51,6 K bei T_r = T_g)|Constant C₂ (51.6 K for T_r = T_g)"},
+   auto=False, src="wlf1955", note="etwa T_g bis T_g + 100 K")
+EQ("wk_fox", C, S, "1/T_g = w_1/T_g1 + w_2/T_g2", "Fox-Gleichung (T_g von Mischungen und Copolymeren)", "Fox equation (T_g of blends and copolymers)",
+   {"T_g": "temperature|Glasübergangstemperatur der Mischung|Glass transition of the blend", "w_1": "fraction|Massenanteil 1|Mass fraction 1",
+    "T_g1": "temperature|T_g Komponente 1|T_g component 1", "w_2": "fraction|Massenanteil 2|Mass fraction 2",
+    "T_g2": "temperature|T_g Komponente 2|T_g component 2"}, auto=False, src="fox1956")
+EQ("wk_Mn", C, S, "M_n = DP*M_0", "Zahlenmittel der Molmasse", "Number-average molar mass",
+   {"M_n": "molar_mass|Zahlenmittel M_n|Number average M_n", "DP": "number|Polymerisationsgrad|Degree of polymerisation",
+    "M_0": "molar_mass|Molmasse der Wiederholeinheit|Repeat-unit molar mass"}, src="callister")
+EQ("wk_PDI", C, S, "D_M = M_w/M_n", "Dispersität", "Dispersity",
+   {"D_M": "number|Dispersität Đ|Dispersity Đ", "M_w": "molar_mass|Gewichtsmittel M_w|Weight average M_w",
+    "M_n": "molar_mass|Zahlenmittel M_n|Number average M_n"}, src="callister")
+EQ("wk_xc_rho", C, S, "x_c = rho_c*(rho_s - rho_a)/(rho_s*(rho_c - rho_a))", "Kristallinität aus der Dichte", "Crystallinity from density",
+   {"x_c": "fraction|Kristallinität (Massenanteil)|Crystallinity (mass fraction)", "rho_c": "density|Dichte kristallin|Crystalline density",
+    "rho_s": "density|Dichte der Probe|Sample density", "rho_a": "density|Dichte amorph|Amorphous density"}, src="callister")
+EQ("wk_xc_dsc", C, S, "x_c = dH_m/dH_m0", "Kristallinität aus der Schmelzenthalpie (DSC)", "Crystallinity from enthalpy of fusion (DSC)",
+   {"x_c": "fraction|Kristallinität (Massenanteil)|Crystallinity (mass fraction)", "dH_m": "spec_energy|Gemessene Schmelzenthalpie|Measured enthalpy of fusion",
+    "dH_m0": "spec_energy|Schmelzenthalpie bei 100 % Kristallinität|Enthalpy of fusion at 100 % crystallinity"}, src="mark2007",
+   note="bei gefüllten Proben ΔH_m auf den Polymeranteil beziehen")
+EQ("wk_rubber", C, S, "E_r = 3*rho*Rgas*T/M_c", "Gummielastizität: E-Modul aus der Netzbogenmolmasse", "Rubber elasticity: modulus from molar mass between crosslinks",
+   {"E_r": "modulus|E-Modul (kleine Dehnung)|Young's modulus (small strain)", "M_c": "molar_mass|Molmasse zwischen Vernetzungsstellen|Molar mass between crosslinks"},
+   auto=False, src="treloar1975", note="ideales affines Netzwerk; G = E/3")
+EQ("wk_relax", C, S, "sigma_t = sigma_i*exp(-t/tau_r)", "Spannungsrelaxation (Maxwell-Modell)", "Stress relaxation (Maxwell model)",
+   {"sigma_t": "stress|Spannung zur Zeit t|Stress at time t", "sigma_i": "stress|Anfangsspannung|Initial stress",
+    "tau_r": "time|Relaxationszeit|Relaxation time"}, auto=False, src="callister")
+
+S = "Elektrische und thermische Eigenschaften"
+_KAP = "el_conductivity|Elektrische Leitfähigkeit|Electrical conductivity"
+EQ("wk_wf", C, S, "lambda_w = L_WF*kappa*T", "Wiedemann-Franz-Gesetz", "Wiedemann–Franz law",
+   {"lambda_w": "conductivity_th|Wärmeleitfähigkeit|Thermal conductivity",
+    "L_WF": "lorenz|Lorenz-Zahl (≈ 2,44·10⁻⁸ W·Ω/K²)|Lorenz number (≈ 2.44·10⁻⁸ W·Ω/K²)", "kappa": _KAP}, auto=False,
+   note="Metalle: Elektronenanteil der Wärmeleitung")
+EQ("wk_matthiessen", C, S, "rho_el = rho_t + rho_i + rho_d", "Matthiessen-Regel", "Matthiessen's rule",
+   {"rho_el": "resistivity|Spez. Widerstand|Resistivity", "rho_t": "resistivity|Thermischer Anteil|Thermal contribution",
+    "rho_i": "resistivity|Anteil der Fremdatome|Impurity contribution", "rho_d": "resistivity|Anteil der Verformung|Deformation contribution"},
+   auto=False)
+EQ("wk_carrier", C, S, "kappa = n_q*q_e*mu_q", "Leitfähigkeit aus Ladungsträgerdichte und Beweglichkeit", "Conductivity from carrier density and mobility",
+   {"kappa": _KAP, "n_q": "number_conc|Ladungsträgerdichte|Carrier density", "mu_q": "mobility|Beweglichkeit|Mobility"})
+EQ("wk_semi", C, S, "kappa = q_e*(n_q*mu_n + p_q*mu_p)", "Leitfähigkeit eines Halbleiters", "Conductivity of a semiconductor",
+   {"kappa": _KAP, "n_q": "number_conc|Elektronendichte|Electron density", "mu_n": "mobility|Elektronenbeweglichkeit|Electron mobility",
+    "p_q": "number_conc|Löcherdichte|Hole density", "mu_p": "mobility|Löcherbeweglichkeit|Hole mobility"}, auto=False)
+EQ("wk_intrinsic", C, S, "n_i = sqrt(N_C*N_V)*exp(-E_g/(2*kB*T))", "Eigenleitungsdichte", "Intrinsic carrier density",
+   {"n_i": "number_conc|Eigenleitungsdichte|Intrinsic carrier density",
+    "N_C": "number_conc|Effektive Zustandsdichte Leitungsband|Effective density of states, conduction band",
+    "N_V": "number_conc|Effektive Zustandsdichte Valenzband|Effective density of states, valence band", "E_g": "energy|Bandlücke|Band gap"},
+   auto=False, src="sze2007", sample={"E_g": 1.8e-19, "T": 300.0})
+
+S = "Korrosion"
+_IC = "current_density|Korrosionsstromdichte|Corrosion current density"
+EQ("wk_corr_rate", C, S, "v_corr = i_corr*M/(z_e*F_c*rho)", "Abtragsrate aus der Korrosionsstromdichte", "Penetration rate from corrosion current density",
+   {"v_corr": "penetration_rate|Abtragsrate|Penetration rate", "i_corr": _IC, "M": "molar_mass|Molare Masse des Metalls|Molar mass of the metal",
+    "z_e": "number|Ladungszahl|Charge number", "rho": "density|Dichte des Metalls|Density of the metal"},
+   note="gleichmässiger Abtrag; bei Legierungen M/z durch das Äquivalentgewicht ersetzen")
+EQ("wk_corr_mass", C, S, "m = i_corr*A*t*M/(z_e*F_c)", "Massenverlust durch Korrosion", "Mass loss by corrosion",
+   {"m": "mass|Massenverlust|Mass loss", "i_corr": _IC, "A": "area|Angegriffene Fläche|Exposed area",
+    "M": "molar_mass|Molare Masse des Metalls|Molar mass of the metal", "z_e": "number|Ladungszahl|Charge number"}, auto=False)
+EQ("wk_pbr", C, S, "PBR = M_ox*rho_me/(n_me*M_me*rho_ox)", "Pilling-Bedworth-Verhältnis", "Pilling–Bedworth ratio",
+   {"PBR": "number|Pilling-Bedworth-Verhältnis|Pilling–Bedworth ratio", "M_ox": "molar_mass|Molare Masse des Oxids|Oxide molar mass",
+    "rho_me": "density|Dichte des Metalls|Metal density", "n_me": "number|Metallatome je Formeleinheit Oxid|Metal atoms per oxide formula unit",
+    "M_me": "molar_mass|Molare Masse des Metalls|Metal molar mass", "rho_ox": "density|Dichte des Oxids|Oxide density"},
+   src="pilling1923", note="Faustregel: < 1 porös, 1 bis 2 schützend, > 2 neigt zum Abplatzen")
+EQ("wk_parabolic", C, S, "x_ox**2 = k_p*t", "Parabolisches Wachstum der Oxidschicht", "Parabolic oxide growth",
+   {"x_ox": "length|Schichtdicke|Scale thickness", "k_p": "diffusivity|Parabolische Konstante|Parabolic rate constant"},
+   auto=False, src="callister")
+EQ("wk_tafel", C, S, "eta_T = b_T*log10(i_A/i_0)", "Tafel-Gleichung", "Tafel equation",
+   {"eta_T": "voltage|Überspannung|Overpotential", "b_T": "voltage|Tafel-Steigung je Dekade|Tafel slope per decade",
+    "i_A": "current_density|Stromdichte|Current density", "i_0": "current_density|Austauschstromdichte|Exchange current density"},
+   auto=False, src="bard")
+
+S = "Stahl und Wärmebehandlung"
+_W = lambda el: f"number|{el} in Massen-%|{el} in mass-%"
+EQ("wk_ce_iiw", C, S, "CE = w_C + w_Mn/6 + (w_Cr + w_Mo + w_V)/5 + (w_Ni + w_Cu)/15", "Kohlenstoffäquivalent (IIW)", "Carbon equivalent (IIW)",
+   {"CE": "number|Kohlenstoffäquivalent in %|Carbon equivalent in %", **{f"w_{x}": _W(x) for x in ("C", "Mn", "Cr", "Mo", "V", "Ni", "Cu")}},
+   note="Massenanteile in % als Zahl eingeben")
+EQ("wk_ms", C, S, "theta_Ms = 539 - 423*w_C - 30.4*w_Mn - 17.7*w_Ni - 12.1*w_Cr - 7.5*w_Mo", "Martensitstarttemperatur (Andrews, linear)",
+   "Martensite start temperature (Andrews, linear)",
+   {"theta_Ms": "number|Ms in °C (als Zahl)|Ms in °C (as a number)", **{f"w_{x}": _W(x) for x in ("C", "Mn", "Ni", "Cr", "Mo")}},
+   auto=False, src="andrews1965", note="Massenanteile in %; Ergebnis in °C als Zahl")
+EQ("wk_ac3", C, S, "theta_Ac3 = 910 - 203*sqrt(w_C) - 15.2*w_Ni + 44.7*w_Si + 104*w_V + 31.5*w_Mo + 13.1*w_W",
+   "Ac3-Temperatur (Andrews)", "Ac3 temperature (Andrews)",
+   {"theta_Ac3": "number|Ac3 in °C (als Zahl)|Ac3 in °C (as a number)", **{f"w_{x}": _W(x) for x in ("C", "Ni", "Si", "V", "Mo", "W")}},
+   auto=False, src="andrews1965", note="Massenanteile in %; Ergebnis in °C als Zahl")
+EQ("wk_hj", C, S, "P_HJ = T*(C_HJ + log10(t_h))", "Anlassparameter (Hollomon-Jaffe)", "Tempering parameter (Hollomon–Jaffe)",
+   {"P_HJ": "temperature|Anlassparameter (in K)|Tempering parameter (in K)", "C_HJ": "number|Konstante (werkstoffabhängig, oft ≈ 20)|Constant (material-dependent, often ≈ 20)",
+    "t_h": "number|Anlassdauer in Stunden|Tempering time in hours"}, auto=False, src="hollomonjaffe1945")
+
+S = "Werkstoffauswahl"
+EQ("wk_spec_E", C, S, "E_sp = E/rho", "Spezifische Steifigkeit", "Specific stiffness",
+   {"E_sp": "spec_energy|Spezifischer E-Modul|Specific modulus"})
+EQ("wk_spec_R", C, S, "R_sp = sigma_f/rho", "Spezifische Festigkeit", "Specific strength",
+   {"R_sp": "spec_energy|Spezifische Festigkeit|Specific strength", "sigma_f": "stress|Festigkeit|Strength"})
+EQ("wk_tie_stiff", C, S, "m = S_t*l**2*rho/E", "Masse eines Zugstabs gegebener Steifigkeit", "Mass of a tie of given stiffness",
+   {"S_t": "spring|Geforderte Steifigkeit|Required stiffness", "l": "length|Länge|Length"}, auto=False,
+   note="Leistungsindex E/ρ: der leichteste Stab hat das grösste E/ρ")
+EQ("wk_tie_strong", C, S, "m = F*l*rho/sigma_f", "Masse eines Zugstabs gegebener Tragkraft", "Mass of a tie of given strength",
+   {"F": "force|Zu tragende Kraft|Load to carry", "l": "length|Länge|Length", "sigma_f": "stress|Festigkeit|Strength"}, auto=False,
+   note="Leistungsindex σ_f/ρ")
+EQ("wk_beam_stiff", C, S, "m = sqrt(12*S_t*l**3/(C_B*E))*l*rho", "Masse eines Balkens (quadratischer Querschnitt) gegebener Steifigkeit",
+   "Mass of a beam (square section) of given stiffness",
+   {"S_t": "spring|Geforderte Steifigkeit|Required stiffness", "l": "length|Länge|Length",
+    "C_B": "number|Lagerungsfaktor (z. B. 48: zwei Stützen, Last in der Mitte)|Support factor (e.g. 48: simply supported, central load)"},
+   auto=False, note="Leistungsindex E^(1/2)/ρ")
+
 # =============================================================================================== Mathematik
 C, S = "Mathematik", "Algebra und Trigonometrie"
 EQ("m_quad", C, S, "x_1 = (-b_q + sqrt(b_q**2 - 4*a_q*c_q))/(2*a_q)", "Quadratische Gleichung (Lösung 1)", "Quadratic formula (root 1)",
@@ -784,6 +1121,13 @@ SECTION_SRC = {
     ("Chemie", "Elektrochemie"): "bard", ("Chemie", "Kolligative Eigenschaften"): "atkins",
     ("Chemie", "Radioaktivität"): "krane", ("Chemie", "Kinetik und Spektroskopie"): "atkins",
     ("Chemie", "Laborpraxis und grüne Kennzahlen"): "harris",
+    ("Werkstoffkunde", "Kristallographie"): "callister", ("Werkstoffkunde", "Defekte und Diffusion"): "callister",
+    ("Werkstoffkunde", "Phasen und Umwandlungen"): "porter", ("Werkstoffkunde", "Verformung und Festigkeit"): "callister",
+    ("Werkstoffkunde", "Kriechen"): "dowling", ("Werkstoffkunde", "Ermüdung"): "dowling",
+    ("Werkstoffkunde", "Bruch und Zuverlässigkeit"): "callister", ("Werkstoffkunde", "Verbundwerkstoffe"): "daniel2006",
+    ("Werkstoffkunde", "Polymere"): "callister", ("Werkstoffkunde", "Elektrische und thermische Eigenschaften"): "callister",
+    ("Werkstoffkunde", "Korrosion"): "astmg102", ("Werkstoffkunde", "Stahl und Wärmebehandlung"): "en1011_2",
+    ("Werkstoffkunde", "Werkstoffauswahl"): "ashby",
     ("Mathematik", "Algebra und Trigonometrie"): "bronstein",
 }
 SRC_OVERRIDE = {
@@ -810,7 +1154,8 @@ for _e in EQUATIONS:
 BY_ID = {e.id: e for e in EQUATIONS}
 CATEGORY_EN = {"Mechanik": "Mechanics", "Festigkeitslehre": "Strength of materials", "Geometrie": "Geometry",
                "Wärmelehre": "Heat", "Fluidmechanik": "Fluid mechanics", "Elektrotechnik": "Electrical engineering",
-               "Optik und Mikroskopie": "Optics and microscopy", "Chemie": "Chemistry", "Mathematik": "Mathematics"}
+               "Optik und Mikroskopie": "Optics and microscopy", "Chemie": "Chemistry", "Werkstoffkunde": "Materials science",
+               "Mathematik": "Mathematics"}
 
 
 def symbols_list():

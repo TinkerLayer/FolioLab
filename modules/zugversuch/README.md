@@ -62,14 +62,16 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
     diameter D, wall thickness t).
   - Catalogue: `data/specimens.json`. A specimen sketch with dimensions appears in the input panel and in the report.
 - **Material**:
-  - *Reference material*: 88 materials in 15 categories in `data/alloys.json`, namely aluminium, steel, stainless
+  - *Reference material*: 88 materials in 15 categories from the materials database shared with the Rechner
+    (`sdk/python/labcalc/data/materials.json`, rows with `"zugversuch": true`), namely aluminium, steel, stainless
     steel, cast iron, copper, titanium, magnesium, nickel, plastics, reinforced plastics, films, elastomers, paper,
     wood and fibre composites. The measurement is set against the target values (Rm, Rp, A, E).
   - *Comparison group*: sets the group against which the ranking and the material field are computed. Without a
     choice the category of the reference applies, otherwise aluminium. There are also the groups "alle Metalle" (all
     metals) and "alle Werkstoffe" (all materials).
   - **The values are standard minimum values or typical values and must be checked against your own source before
-    binding use.** New materials can be added to the JSON file without changing the program.
+    binding use.** New materials can be added to the database file without changing the program (or use
+    "Eigener Werkstoff"; `--legierungen <file>` reads a separate file in the former `alloys.json` format).
   - **Eigener Werkstoff …** (own material; button next to the material choice): enter property values (Rp, Rm, A, E,
     category) from a paper or data sheet, together with the source in the shared source form (authors, title,
     journal, year, DOI/URL or pasted BibTeX; nothing is saved without a title, DOI or URL). Optionally an **own curve**
@@ -90,7 +92,7 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
   one, otherwise over the crosshead path. Results appear in the input panel,
   on the key-value page of the PDF report and in the Folio Lab report (`\labval` `eq-<symbol>`, table, formula in the
   methods text with its source). Stored in `outputs/zugversuch/eigene_gleichungen.json`.
-  - Each row of `data/alloys.json` names a specific source (standard, data sheet of a named grade, or institute
+  - Each comparison row of the materials database names a specific source (standard, data sheet of a named grade, or institute
     publication), optionally with `url`, `jahr` (year) and `abgerufen` (accessed). These appear in the bibliography
     entry of the Folio Lab report and on the source pages. Property values that the source does not give (for example
     E for elastomers, A for wood) are marked in `basis` as estimates. `wertart` gives the value type of Rm and Rp
@@ -105,7 +107,7 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
   3. Material comparison with field, Rm classification and candidates (only with A₀)
   4. Key values and all mandatory notes
   5. *Quellen der Vergleichswerte* (sources of the comparison values): every curve of the field (same number) and the
-     reference material with Rp, Rm, A, E, source and basis from `data/alloys.json`
+     reference material with Rp, Rm, A, E, source and basis from the materials database
 - **Sources in the Folio Lab report:** every material that appears in a figure is passed as a bibliography entry
   (title "Werkstoffkennwerte …", basis, source). The field and candidate figures cite their materials in the caption,
   and the table *Werkstoffe des Spannungs-Dehnungs-Felds* (materials of the stress–strain field; numbers as in the
@@ -203,7 +205,7 @@ test checks and which tests need the recording.
 | `flps/export/` | CSV, workbook with formulas and check, PNG, data-sheet and figure-appendix PDF, graphical report and comparison report (`report.py`) |
 | `flps/ui/` | local web interface |
 | `flps/cli.py` | command line |
-| `data/alloys.json` | material values with category, basis and source per row, extendable without a new version |
+| `sdk/python/labcalc/data/materials.json` | material values with category, basis and source per row (shared with the Rechner), extendable without a new version |
 | `data/specimens.json` | standard specimens with dimensions, standard and intended material groups |
 | `tests/` | reference case |
 

@@ -273,6 +273,21 @@ table.vars tr.miss td.src { color: var(--err-ink); }
 .eqi .f { font-size: 14px; display: block; overflow-x: hidden; text-overflow: ellipsis; margin-top: 1px; }
 .eqi .nm .tag { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 0 5px; margin-left: 4px; }
 #libFn { overflow-y: auto; padding: 8px 10px 16px; flex: 1; }
+#libMat { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+#libMat .top { padding: 0 10px 8px; }
+#libMat .top input { width: 100%; }
+#wkList { overflow-y: auto; padding: 0 10px 16px; flex: 1; }
+#wkList details.wk > summary { cursor: pointer; padding: 4px 2px; font-size: 12.5px; border-radius: 6px; }
+#wkList details.wk > summary:hover { background: var(--accent-soft); }
+#wkList .fam { color: var(--muted); font-size: 11px; margin-left: 4px; }
+#wkList .wkv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; padding: 3px 6px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+#wkList .wkv:hover { background: var(--accent-soft); }
+#wkList .wkv .val { font-variant-numeric: tabular-nums; text-align: right; }
+#wkList .wkv .src { grid-column: 1 / -1; color: var(--muted); font-size: 11px; }
+#wkList .wkv.txt { cursor: default; }
+#wkList .ng { color: #b26a00; margin-left: 3px; }
+#wkList .wkcard { margin: 2px 0 8px 10px; border-left: 2px solid var(--line); padding-left: 6px; }
+#wkList h5 { margin: 10px 0 2px; font-size: 11.5px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
 details.ref summary { cursor: pointer; font-weight: 600; font-size: 12.5px; padding: 3px 0; }
 details.ref .chips { margin: 4px 0 8px; }
 
@@ -478,7 +493,7 @@ footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; backg
 
     <aside id="lib" data-size-col="lib" data-size-edge="left">
       <div class="libhead">
-        <nav class="minitabs"><button data-lt="eq" class="sel">Formeln</button><button data-lt="fn">Funktionen</button></nav>
+        <nav class="minitabs"><button data-lt="eq" class="sel">Formeln</button><button data-lt="fn">Funktionen</button><button data-lt="mat" data-i18n="rc.lt_mat" data-i18n-title="rc.lt_mat_t" title="Werkstoffdatenbank: Kennwerte mit Quelle">Werkstoffe</button></nav>
         <span class="grow"></span><button class="ghost" id="libClose" title="Schliessen">✕</button>
       </div>
       <div class="libtarget small" id="libTarget"></div>
@@ -491,6 +506,12 @@ footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; backg
         <div class="small">Klick fügt in die zuletzt benutzte Eingabezeile ein.</div>
         <h4 style="margin-top:10px">Konstanten</h4><div class="chips" id="constChips"></div>
         <h4>Funktionen</h4><div id="funcRef"></div>
+      </div>
+      <div id="libMat" hidden>
+        <div class="top"><input id="wkSearch" data-i18n-placeholder="rc.wk_ph" placeholder="Werkstoff suchen: 1.4301, PE-HD, Al2O3, Kupfer …" autocomplete="off" spellcheck="false">
+          <div class="chips" id="wkClasses" style="margin-top:6px"></div>
+          <div class="small" style="margin-top:5px" data-i18n="rc.wk_hint">Werkstoff aufklappen, Klick auf einen Wert fügt mat("…", "…") in die zuletzt benutzte Eingabezeile ein. Werte in SI, Quelle im Bericht zitiert.</div></div>
+        <div id="wkList"></div>
       </div>
     </aside>
   </section>
@@ -593,6 +614,9 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 // UI-04: Kopf und neue Teile DE/EN über labui.js (der übrige Seitentext bleibt vorerst deutsch)
 const RC_T = {
   de: { "rc.tab_work": "Rechnen", "rc.tab_plot": "Grafik", "rc.tab_mat": "Matrizen", "rc.angle": "Winkel", "rc.cplx": "komplex",
+        "rc.lt_mat": "Werkstoffe", "rc.lt_mat_t": "Werkstoffdatenbank: Kennwerte mit Quelle",
+        "rc.wk_ph": "Werkstoff suchen: 1.4301, PE-HD, Al2O3, Kupfer …",
+        "rc.wk_hint": "Werkstoff aufklappen, Klick auf einen Wert fügt mat(\"…\", \"…\") in die zuletzt benutzte Eingabezeile ein. Werte in SI, Quelle im Bericht zitiert.",
         "rc.cplx_t": "Wurzeln und Logarithmen negativer Zahlen komplex rechnen",
         "rc.index": "Projektindex …", "rc.index_t": "Kuratierte Werte des Projekts; Übernehmen legt eine Variable mit Herkunft an",
         "rc.more_t": "Umgebungen verwalten, Arbeitsstand als Datei speichern oder laden",
@@ -661,6 +685,9 @@ const RC_T = {
         "rc.symt_conv": "Ergebnis in eine Einheit umrechnen", "rc.symt_vec": "Vektor", "rc.symt_mat": "Matrix (Zeilen in eckigen Klammern)",
         "rc.symt_tr": "transponiert (nach der Matrix)", "rc.symt_eqq": "Vergleich: ist gleich?", "rc.symt_semi": "trennt Gleichungen eines Systems" },
   en: { "rc.tab_work": "Calculate", "rc.tab_plot": "Graph", "rc.tab_mat": "Matrices", "rc.angle": "Angle", "rc.cplx": "complex",
+        "rc.lt_mat": "Materials", "rc.lt_mat_t": "Materials database: properties with sources",
+        "rc.wk_ph": "Search material: 1.4301, HDPE, Al2O3, copper …",
+        "rc.wk_hint": "Expand a material; clicking a value inserts mat(\"…\", \"…\") into the last used input line. Values in SI, source cited in the report.",
         "rc.cplx_t": "Evaluate roots and logarithms of negative numbers as complex numbers",
         "rc.index": "Project index …", "rc.index_t": "Curated project values; taking one creates a variable with its origin",
         "rc.more_t": "Manage environments, save or load the work as a file",
@@ -1474,8 +1501,41 @@ function acCandidates(input) {
   for (const [, list] of META.functions || []) for (const f of list) { const m = /^([A-Za-z_][A-Za-z0-9_]*)\(/.exec(f); if (m) add(m[1], f, "fn", m[1] + "()"); }
   return out;
 }
+// Werkstoffnamen in mat("…") / E_mat("…") usw. und Eigenschaften in mat("X", "…") vorschlagen
+function acStringHits(input, pos) {
+  const before = input.value.slice(0, pos);
+  const mp = /\bmat\(\s*"([^"]*)"\s*,\s*"([^"]*)$/.exec(before);
+  const mn = mp ? null : /\b(mat|[A-Za-z]+_mat|a_lat|c_lat)\(\s*"([^"]*)$/.exec(before);
+  if (!mp && !mn) return null;
+  const r = acStringHitsRaw(input, pos, mp, mn);
+  if (input.value[pos] === '"') for (const h of r.hits) h.ins = h.ins.replace(/"$/, "");   // schliessendes Anführungszeichen steht schon
+  return r;
+}
+function acStringHitsRaw(input, pos, mp, mn) {
+  if (!WK.data) { wkLoad().then(() => { if (document.activeElement === input) acUpdate(input); }); return { hits: [], start: pos }; }
+  const d = WK.data;
+  if (mp) {
+    let it = null;
+    try { const k = wkKey(mp[1]); it = d.items.find(i => [i.id, i.name, ...(i.aliase || [])].some(h => wkKey(h) === k)); } catch (e) { it = null; }
+    const w = mp[2].toLowerCase();
+    const av = d.props.filter(p => p.kind !== "text" && (!it || it.props.includes(p.key)));
+    const byKey = av.filter(p => p.key.toLowerCase().startsWith(w));
+    const byLabel = w.length < 2 ? [] : av.filter(p => !byKey.includes(p) && p.label.toLowerCase().includes(w));
+    const hits = [...byKey, ...byLabel].slice(0, 10).map(p => ({ name: p.key, info: `${p.label}${p.unit && p.unit !== "1" ? " · " + p.unit : ""}`, kind: "const", ins: p.key + '"' }));
+    return { hits, start: pos - mp[2].length };
+  }
+  const need = d.shortcuts[mn[1]] || null, q = wkKey(mn[2]);
+  const cls = Object.fromEntries(d.classes.map(c => [c.key, c.label]));
+  const ok = d.items.filter(i => (!need || i.props.includes(need)));
+  const score = (i) => { const hs = [i.id, i.name, ...(i.aliase || [])].map(wkKey); return hs.some(h => h.startsWith(q)) ? 0 : hs.some(h => h.includes(q)) || wkKey(i.familie).includes(q) ? 1 : 9; };
+  const hits = ok.map(i => [score(i), i]).filter(([s]) => !q || s < 9).sort((a, b) => a[0] - b[0]).slice(0, 10)
+    .map(([, i]) => ({ name: i.name, info: [cls[i.klasse], i.familie].filter(Boolean).join(" · "), kind: "var", ins: i.name + '"' }));
+  return { hits, start: pos - mn[2].length };
+}
 function acUpdate(input) {
   const pos = input.selectionStart ?? input.value.length;
+  const sh = acStringHits(input, pos);
+  if (sh) return sh.hits.length ? acShow(input, sh.hits, sh.start) : acClose();
   const m = /[A-Za-z_][A-Za-z0-9_]*$/.exec(input.value.slice(0, pos));
   if (!m || (pos < input.value.length && /[A-Za-z0-9_]/.test(input.value[pos]))) return acClose();
   const w = m[0], lw = w.toLowerCase();
@@ -1483,7 +1543,10 @@ function acUpdate(input) {
   const hits = [...all.filter(c => c.name.startsWith(w)), ...all.filter(c => !c.name.startsWith(w) && c.name.toLowerCase().startsWith(lw))]
     .filter(c => c.name !== w).slice(0, 8);
   if (!hits.length) return acClose();
-  AC.input = input; AC.items = hits; AC.sel = -1; AC.start = pos - w.length;
+  acShow(input, hits, pos - w.length);
+}
+function acShow(input, hits, start) {
+  AC.input = input; AC.items = hits; AC.sel = -1; AC.start = start;
   if (!AC.el) { AC.el = document.createElement("div"); AC.el.className = "acpop"; AC.el.setAttribute("role", "listbox"); document.body.appendChild(AC.el);
     AC.el.addEventListener("mousedown", (ev) => { const d = ev.target.closest("[data-ac]"); if (d) { ev.preventDefault(); acAccept(+d.dataset.ac); } }); }
   AC.el.innerHTML = hits.map((c, i) => `<div class="aci ${c.kind}" data-ac="${i}" role="option"><b>${esc(c.name)}</b><span>${esc(c.info)}</span></div>`).join("") +
@@ -1791,7 +1854,8 @@ async function runGoal(e, quiet = false) {
 function renderLib() {
   $("#p-work").classList.toggle("libclosed", !S.libOpen);
   $$(".minitabs button").forEach(b => b.classList.toggle("sel", b.dataset.lt === S.libTab));
-  $("#libEq").hidden = S.libTab !== "eq"; $("#libFn").hidden = S.libTab !== "fn";
+  $("#libEq").hidden = S.libTab !== "eq"; $("#libFn").hidden = S.libTab !== "fn"; $("#libMat").hidden = S.libTab !== "mat";
+  if (S.libTab === "mat") wkEnsure();
   renderLibTarget();
 }
 function renderLibTarget() {
@@ -1823,6 +1887,70 @@ function renderRefs() {
     `<div class="small" style="margin-top:4px">Werte: CODATA 2022 (NIST) und SI-Broschüre 2019; Quelle im Tooltip, im Bericht zitiert.</div>`;
   $("#funcRef").innerHTML = META.functions.map(([cat, list], i) =>
     `<details class="ref"${i === 0 ? " open" : ""}><summary>${esc(cat)}</summary><div class="chips">${list.map(f => `<span class="chip" data-ins="${esc(f)}">${esc(f)}</span>`).join("")}</div></details>`).join("");
+}
+
+// ---------------------------------------------------------------- Werkstoffe (Datenbank mit Quellen)
+const WK = { data: null, loading: null, cls: "", cards: {} };
+function wkKey(s) {      // wie materials._key auf dem Server
+  return String(s || "").toLowerCase().replace(/ß/g, "ss").replace(/gamma/g, "γ").replace(/alpha/g, "α").replace(/[\s\-_.,/()]+/g, "");
+}
+function wkLang() { return window.LabUI && LabUI.lang && LabUI.lang() === "en" ? "en" : "de"; }
+function wkLoad() {
+  if (WK.data) return Promise.resolve(WK.data);
+  if (!WK.loading) WK.loading = api("api/materials", { lang: wkLang() }).then(r => { WK.loading = null; if (r && !r.error) WK.data = r; return WK.data; });
+  return WK.loading;
+}
+function wkEnsure() { if (WK.data) { if (!WK.shown) { WK.shown = true; wkRender(); } } else { $("#wkList").innerHTML = `<div class="small" style="padding:10px">…</div>`; wkLoad().then(() => { WK.shown = true; wkRender(); }); } }
+const WK_ART = { de: { min: "Mindestwert", max: "Höchstwert", mitte: "Bereichsmitte", unklar: "Art unklar", typ: "typisch" },
+                 en: { min: "minimum", max: "maximum", mitte: "range midpoint", unklar: "kind unclear", typ: "typical" } };
+function wkCardHtml(c) {
+  const L = wkLang(), art = WK_ART[L];
+  const ngT = L === "en" ? "not checked against the original source" : "nicht gegen die Originalquelle geprüft";
+  const rows = c.werte.map(w => {
+    const ng = w.nicht_geprueft ? `<span class="ng" title="${esc(ngT)}">⚠</span>` : "";
+    const src = `${esc(w.source || "")}${w.art && w.art !== "typ" ? " · " + esc(art[w.art] || w.art) : ""}`;
+    if (w.si === null || w.si === undefined)
+      return `<div class="wkv txt"><span>${esc(w.label)}</span><span class="val">${esc(w.text)}</span><span class="src">${src}</span></div>`;
+    const ins = `mat("${c.name}", "${w.prop}")`;
+    return `<div class="wkv" data-wkins="${esc(ins)}" title="${esc(ins)}"><span>${esc(w.label)}${ng}</span><span class="val">${esc(w.text)}</span><span class="src">${src}</span></div>`;
+  }).join("");
+  const note = c.nicht_geprueft ? `<div class="small" style="margin:2px 6px 4px"><span class="ng">⚠</span> ${esc(c.nicht_geprueft === true ? ngT : c.nicht_geprueft)}</div>` : "";
+  const hint = c.hinweis ? `<div class="small" style="margin:4px 6px 2px">${esc(c.hinweis)}</div>` : "";
+  return note + (rows || `<div class="small">–</div>`) + hint;
+}
+function wkRender() {
+  const d = WK.data, list = $("#wkList"); if (!d) { list.innerHTML = ""; return; }
+  const L = wkLang();
+  $("#wkClasses").innerHTML = [{ key: "", label: L === "en" ? "all" : "alle" }, ...d.classes.filter(c => d.items.some(i => i.klasse === c.key))]
+    .map(c => `<span class="chip${c.key === WK.cls ? " sel" : ""}" data-wkc="${esc(c.key)}">${esc(c.label)}</span>`).join("");
+  const q = wkKey($("#wkSearch").value.trim());
+  const hit = (i) => (!WK.cls || i.klasse === WK.cls) && (!q || [i.id, i.name, i.familie, ...(i.aliase || [])].some(h => h && wkKey(h).includes(q)));
+  let html = "", n = 0;
+  for (const c of d.classes) {
+    const items = d.items.filter(i => i.klasse === c.key && hit(i));
+    if (!items.length) continue;
+    n += items.length;
+    html += `<h5>${esc(c.label)} <span>(${items.length})</span></h5>` + items.slice(0, q ? 200 : 400).map(i =>
+      `<details class="wk" data-wk="${esc(i.id)}"${WK.cards[i.id] && WK.cards[i.id].open ? " open" : ""}><summary>${esc(i.name)}${i.familie ? `<span class="fam">${esc(i.familie)}</span>` : ""}</summary><div class="wkcard">${WK.cards[i.id] && WK.cards[i.id].html || ""}</div></details>`).join("");
+  }
+  if (!WK.cls || WK.cls === "metall") {
+    const dq = d.diffusion.filter(p => !q || wkKey(p.species + p.host).includes(q) || "diffusion".includes(q));
+    if (dq.length) html += `<h5>Diffusion (D₀, Q)</h5><div class="chips">` + dq.map(p => {
+      const ins = `D_diff("${p.species}", "${p.host}", T)`;
+      return `<span class="chip" data-wkins="${esc(ins)}" title="${esc(ins)}">${esc(p.species)} in ${esc(p.host)}</span>`; }).join("") + `</div>`;
+  }
+  list.innerHTML = html || `<div class="small" style="padding:10px">${L === "en" ? "No material found." : "Kein Werkstoff gefunden."}</div>`;
+}
+async function wkOpen(det) {
+  const id = det.dataset.wk, box = $(".wkcard", det);
+  WK.cards[id] = WK.cards[id] || {};
+  WK.cards[id].open = det.open;
+  if (!det.open || WK.cards[id].html) return;
+  box.innerHTML = `<div class="small">…</div>`;
+  const c = await api("api/material", { id, lang: wkLang() });
+  if (!c || c.error) { box.innerHTML = `<div class="small err-t">${esc((c && c.error) || "Fehler")}</div>`; return; }
+  WK.cards[id].html = wkCardHtml(c);
+  box.innerHTML = WK.cards[id].html;
 }
 
 // ================================================================ Rechnen (Server)
@@ -2812,11 +2940,18 @@ function sendToReport() {
       { id: "plots", label: `Diagramme (${plots.length}) mit Kurvendaten` },
       { id: "matrices", label: `Matrizen (${Object.keys(mats).length})` },
     ],
-    build: ({ lang, include, title }) => api("api/bundle", {
-      values: S.values, envs: S.envs.map(e => ({ id: e.id, name: e.name, items: e.items, derive: e.derive !== false })),
-      vars: S.vars, dsvars: S.dsvars, plots, matrices: mats, angle: S.angle, complex: S.complex, digits: S.digits, lang, include, title,
-    }),
+    build: ({ lang, include, title }) => api("api/bundle", { ...reportBody(), lang, include, title }),
   });
+}
+// Körper von /api/bundle; auch im gespeicherten Seitenzustand, damit „Import“ im Bericht diese Umgebung liest
+function reportBody() {
+  const mats = {};
+  for (const n of matNames()) mats[n] = S.vars[n];
+  const plots = S.snaps.length ? S.snaps.map(plotForReport) : (S.plot.rows.length ? [plotForReport(S.plot)] : []);
+  return {
+    values: S.values, envs: S.envs.map(e => ({ id: e.id, name: e.name, items: e.items, derive: e.derive !== false })),
+    vars: S.vars, dsvars: S.dsvars, plots, matrices: mats, angle: S.angle, complex: S.complex, digits: S.digits,
+  };
 }
 
 // ================================================================ Ereignisse
@@ -2929,6 +3064,16 @@ function bind() {
     if (m && !t.includes("==") && !/^\[/.test(t)) t = m[1] + "()";
     const inp = S.lastInput && document.body.contains(S.lastInput) ? S.lastInput : $(`.env[data-env="${S.active}"] .newline`);
     if (inp) insertAtCaret(inp, t);
+  });
+  $("#wkSearch").addEventListener("input", debounce(wkRender, 120));
+  $("#wkList").addEventListener("toggle", (e) => { if (e.target.matches && e.target.matches("details[data-wk]")) wkOpen(e.target); }, true);
+  $("#libMat").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-wkc]");
+    if (c) { WK.cls = c.dataset.wkc; wkRender(); return; }
+    const v = e.target.closest("[data-wkins]"); if (!v) return;
+    const envEl = $(`.env[data-env="${S.active}"]`);
+    const inp = S.lastInput && document.body.contains(S.lastInput) ? S.lastInput : envEl && $(".newline", envEl);
+    if (inp) { inp.closest(".line")?.classList.add("editing"); insertAtCaret(inp, v.dataset.wkins); }
   });
 
   // Matrizen
@@ -3326,6 +3471,7 @@ async function init() {
     api, toast, label: $("#envName"), keep: [],
     list: () => [], sel: () => 0, reset: () => {}, add: async () => {},
     extra: () => snapshot(), summary: envSummary,
+    report: () => ({ ...reportBody(), lang: "de", include: {}, title: "Berechnung" }),   // Für „Import“ im Bericht
     done: (_sel, extra) => {
       if (extra) { blankState(); restore(extra); }
       else if (first && st && !done0) migrated = true;         // erste Öffnung: Browser-Stand bleibt und wird gespeichert
@@ -3335,7 +3481,7 @@ async function init() {
       if (OV) setTimeout(() => OV.sync(), 0);                  // Name in der Brotkrume nach Wechsel über den Dialog
     },
   });
-  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.onLang(() => { renderVarFold(); renderDsVars(); }); }
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.onLang(() => { renderVarFold(); renderDsVars(); WK.data = null; WK.cards = {}; WK.shown = false; if (S.libTab === "mat") wkEnsure(); }); }
   // UR: Spalten (Variablen, Bibliothek, Ausdrucksliste, Matrixliste) durch Ziehen an der Kante; Dialoge automatisch.
   // Die Grafik zeichnet über den vorhandenen ResizeObserver auf #stage neu.
   if (window.LabUI && LabUI.sizes) LabUI.sizes("rechner");

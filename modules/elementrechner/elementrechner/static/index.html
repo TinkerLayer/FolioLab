@@ -2260,6 +2260,22 @@ function sendToReport() {
     scopes: [{ id: "all", label: "Gleichung, Stoffe, Stöchiometrie, Redox, pH, gezeichnetes Molekül und offene Ansetz-Rechnungen" }],
     include: [{ id: "steps", label: "Rechenweg" }, { id: "tables", label: "Tabellen" }],
     build: ({ lang, include, title }) => {
+      const state = reportState();
+      // A5: gebundene geteilte Eingabe als gepinnte Version in den Bericht (Umschlag im Request → Aktualisieren bleibt gleich)
+      const shareP = S.share ? api("api/share/resolve", { binding: S.share }).then(r => {
+        if (r.envelope) state.shared = { envelope: r.envelope, rows: Object.entries(S.share.rows || {}).map(([key, v]) => ({ key, ...v })) };
+      }).catch(() => {}) : Promise.resolve();
+      const smi = (typeof DES !== "undefined" && DES.res && DES.res.smiles) || "";
+      const irP = S.irShare && smi ? api("api/share/resolve", { binding: S.irShare }).then(r => {      // A6
+        if (r.envelope) state.ir_shared = { envelope: r.envelope, smiles: smi };
+      }).catch(() => {}) : Promise.resolve();
+      return Promise.all([shareP, irP]).then(() => fetch("api/bundle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state, lang, include, title }) }).then(r => r.json()));
+    },
+  });
+}
+// Synchroner Teil des Berichtszustands; auch im gespeicherten Seitenzustand (für „Import“ im Bericht)
+function reportState() {
+  {
       const state = { equation: S.equation, amounts: cleanAmounts(S.amounts), actual: cleanAmounts(S.actual), species: S.species ? [S.species] : [], detail: S.detail, thermo: thermoState(), redox: rxState() };
       if ((S.phMix || "").trim()) state.ph = { mixture: S.phMix, T: phTempC(), activity: S.phAct || "" };
       if (S.lastTit && S.lastTit.analyte === (S.phMix || "").trim() && $('details[data-fold="tit"]').open) { const t = S.lastTit; state.titration = { analyte: t.analyte, V0: t.V0, titrant: t.titrant, c: t.c, Vmax: t.Vmax, T: t.T }; }
@@ -2277,17 +2293,8 @@ function sendToReport() {
           feeds: S.chain.mode === "target" ? {} : S.chain.feeds, target: S.chain.mode === "target" && S.chain.target && S.chain.target.step ? S.chain.target : null };
       }
       if ((S.vals || []).length) state.values = S.vals.map(v => ({ sym: v.sym, label: v.label, value: v.value, unit: v.unit, source: v.source, dataset: v.dataset, copied: v.copied, used: v.used || [] }));   // UI-13
-      // A5: gebundene geteilte Eingabe als gepinnte Version in den Bericht (Umschlag im Request → Aktualisieren bleibt gleich)
-      const shareP = S.share ? api("api/share/resolve", { binding: S.share }).then(r => {
-        if (r.envelope) state.shared = { envelope: r.envelope, rows: Object.entries(S.share.rows || {}).map(([key, v]) => ({ key, ...v })) };
-      }).catch(() => {}) : Promise.resolve();
-      const smi = (typeof DES !== "undefined" && DES.res && DES.res.smiles) || "";
-      const irP = S.irShare && smi ? api("api/share/resolve", { binding: S.irShare }).then(r => {      // A6
-        if (r.envelope) state.ir_shared = { envelope: r.envelope, smiles: smi };
-      }).catch(() => {}) : Promise.resolve();
-      return Promise.all([shareP, irP]).then(() => fetch("api/bundle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state, lang, include, title }) }).then(r => r.json()));
-    },
-  });
+      return state;
+  }
 }
 
 // ------------------------------------------------------------------ pH, Titration, Puffer (Phase 5)
@@ -4479,6 +4486,7 @@ async function init() {
     list: () => [], sel: () => 0, reset: () => {}, add: async () => {},
     extra: () => snapS(),
     summary: () => envSummary(),                                  // UI-11: für die Kästen der Übersicht
+    report: () => ({ state: reportState(), lang: "de", include: {}, title: "Elementrechner" }),   // für „Import“ im Bericht
     done: (_sel, extra) => {
       if (!first) { location.reload(); return "reload"; }          // labenv speichert dann nicht mehr (sonst Überschreiben)
       first = false;

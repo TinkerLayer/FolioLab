@@ -12,7 +12,7 @@ For how to use the page, see the [module README](../../modules/rechner/README.md
 
 State the software and the module version:
 
-> Calculated with Folio Lab 0.3.0, module Rechner 1.4.0.
+> Calculated with Folio Lab 0.4.0, module Rechner 1.5.0.
 
 - The Folio Lab version is `version` in the top-level `package.json`.
 - The module version is `version` in `modules/rechner/module.json` (`"1.4.0"`). It is identical to `__version__` in
@@ -45,6 +45,7 @@ State the software and the module version:
 12. [Complex numbers](#12-complex-numbers)
 13. [Matrices](#13-matrices)
 14. [Chemistry lookup functions](#14-chemistry-lookup-functions)
+15. [Materials database and lookup functions](#15-materials-database-and-lookup-functions)
 15. [Known limitations](#known-limitations)
 
 Test paths are relative to the project root. SDK tests run with `python -m unittest discover -s tests` from
@@ -251,11 +252,12 @@ they serve the Elemental Calculator and were not changed here.
 
 ## 4. Equation library
 
-**What is computed.** The library (`modules/rechner/rechner/library.py`) holds 282 equations (the count in `module.json` is checked by a test). Each has an ID, a field,
+**What is computed.** The library (`modules/rechner/rechner/library.py`) holds 365 equations (the count in `module.json` is checked by a test). Each has an ID, a field,
 a topic, the equation `lhs = rhs`, its variables with a kind of quantity, and a source.
 
 | Field | Equations |
 |---|---|
+| Materials science (Werkstoffkunde) | 83 |
 | Chemistry | 77 |
 | Strength of materials | 56 |
 | Mechanics | 49 |
@@ -266,7 +268,7 @@ a topic, the equation `lhs = rhs`, its variables with a kind of quantity, and a 
 | Geometry | 14 |
 | Mathematics | 6 |
 
-109 equations are marked *auto*: they are general laws used by *derive* (see [section 5](#5-formula-cards-derive-and-search)).
+129 equations are marked *auto*: they are general laws used by *derive* (see [section 5](#5-formula-cards-derive-and-search)).
 
 **How the source is assigned.** In order of priority: the `src` argument of the equation, then `SRC_OVERRIDE` (per
 equation), then `SECTION_SRC` (per field and topic). Book sources get the note "Stichwort: <English name of the
@@ -276,28 +278,29 @@ page numbers are only given where they were checked.
 | Source key | Equations | Used for |
 |---|---|---|
 | halliday | 86 | mechanics, heat, gases, electrical engineering |
-| gross2 | 32 | stress and strain, bending, torsion and buckling, vessels |
-| atkins | 25 | chemical thermodynamics, colligative properties, kinetics |
+| callister | 35 | true stress and strain, notch, rule of mixtures, Hall–Petch; most of materials science (crystallography, defects, phases, polymers, electrical properties, corrosion) |
+| gross2 | 34 | stress and strain, bending, torsion and buckling, vessels; thermal stress |
 | harris | 26 | concentration, acids and bases, solubility, lab practice |
+| atkins | 25 | chemical thermodynamics, colligative properties, kinetics |
 | bronstein | 20 | geometry, mathematics |
 | white | 16 | fluid mechanics |
 | hecht | 11 | light, lenses |
+| dowling | 10 | fatigue, creep, deformation laws |
 | krane | 9 | radioactivity |
 | greenbook | 8 | amount of substance and concentration |
+| bard | 8 | electrochemistry; Faraday corrosion |
 | iso6892 | 7 | tensile test |
+| anderson | 7 | fracture mechanics |
 | murphy | 7 | imaging and microscopy |
-| bard | 7 | electrochemistry |
-| callister | 6 | true stress and strain, notch, rule of mixtures, Hall–Petch |
-| anderson | 6 | fracture mechanics |
+| porter | 7 | diffusion, nucleation, phase transformations |
 | bergman | 6 | heat transfer |
-| iso178 | 2 | three-point bending |
-| porter | 2 | diffusion |
-| iso6507 | 1 | Vickers hardness |
-| iso6506 | 1 | Brinell hardness |
-| iso18265 | 1 | tensile strength from hardness |
-| sheldon2007 | 1 | E factor |
-| jimenez2011 | 1 | process mass intensity |
-| constable2002 | 1 | reaction mass efficiency |
+| daniel2006 | 6 | composites: laminate stiffness, Tsai–Hill |
+| ashby | 5 | performance indices (materials selection) |
+| weibull1951 | 3 | Weibull distribution and size effect |
+| iso178, halpin1976, astmg102, andrews1965 | 2 each | three-point bending; Halpin–Tsai; corrosion rate; Ms and Ac3 |
+| iso6507, iso6506, iso18265 | 1 each | Vickers, Brinell, tensile strength from hardness |
+| sheldon2007, jimenez2011, constable2002 | 1 each | E factor, process mass intensity, reaction mass efficiency |
+| cullity, avrami1939, hollomon1945, larsonmiller1952, basquin1910, miner1945, kingery1955, wlf1955, fox1956, mark2007, treloar1975, sze2007, pilling1923, en1011_2, hollomonjaffe1945 | 1 each | Scherrer, Avrami, Hollomon flow curve, Larson–Miller, Basquin, Miner, thermal shock, WLF, Fox, polymer data, rubber elasticity, semiconductors, Pilling–Bedworth, carbon equivalent, tempering parameter |
 
 **References, as cited in the code** (`sdk/python/labcalc/sources.py`; codata2022, si2019, greenbook and bronstein are
 in [section 3](#3-constants)):
@@ -328,6 +331,46 @@ in [section 3](#3-constants)):
 - iso18265: ISO. ISO 18265:2013 Metallic materials – Conversion of hardness values. 2013. Code note: the factor 3.3
   in the Rechner is a rule of thumb, not checked against the tables of the standard; a reliable conversion needs the
   tables.
+
+References of the materials-science area and the materials database (DOIs checked against Crossref on 18 Nov 2026;
+page ranges only where Crossref states them):
+- dowling: Dowling, N. E. Mechanical Behavior of Materials. Pearson, 2013, 4th edition.
+- daniel2006: Daniel, I. M.; Ishai, O. Engineering Mechanics of Composite Materials. Oxford University Press, 2006,
+  2nd edition.
+- ashby: Ashby, M. F. Materials Selection in Mechanical Design. Butterworth-Heinemann, 2017, 5th edition.
+- cullity: Cullity, B. D.; Stock, S. R. Elements of X-Ray Diffraction. Pearson, 2014, 3rd edition.
+- weibull1951: Weibull, W. A statistical distribution function of wide applicability. J. Appl. Mech. 18 (1951)
+  293–297, doi:10.1115/1.4010337.
+- halpin1976: Halpin, J. C.; Kardos, J. L. The Halpin-Tsai equations: a review. Polym. Eng. Sci. 16 (1976) 344–352,
+  doi:10.1002/pen.760160512.
+- astmg102: ASTM G102-89 (reapproved 2015), Calculation of Corrosion Rates from Electrochemical Measurements.
+- andrews1965: Andrews, K. W. Empirical formulae for the calculation of some transformation temperatures. J. Iron
+  Steel Inst. 203 (1965).
+- avrami1939: Avrami, M. Kinetics of phase change I. J. Chem. Phys. 7 (1939) 1103–1112, doi:10.1063/1.1750380.
+- hollomon1945: Hollomon, J. H. Tensile deformation. Trans. AIME 162 (1945).
+- larsonmiller1952: Larson, F. R.; Miller, J. A time-temperature relationship for rupture and creep stresses. Trans.
+  ASME 74 (1952).
+- basquin1910: Basquin, O. H. The exponential law of endurance tests. Proc. ASTM 10 (1910).
+- miner1945: Miner, M. A. Cumulative damage in fatigue. J. Appl. Mech. 12 (1945) A159–A164, doi:10.1115/1.4009458.
+- kingery1955: Kingery, W. D. Factors affecting thermal stress resistance of ceramic materials. J. Am. Ceram. Soc. 38
+  (1955) 3–15, doi:10.1111/j.1151-2916.1955.tb14545.x.
+- wlf1955: Williams, M. L.; Landel, R. F.; Ferry, J. D. J. Am. Chem. Soc. 77 (1955) 3701–3707,
+  doi:10.1021/ja01619a008.
+- fox1956: Fox, T. G. Bull. Am. Phys. Soc. 1 (1956).
+- mark2007: Mark, J. E. (ed.) Physical Properties of Polymers Handbook. Springer, 2007, doi:10.1007/978-0-387-69002-5.
+- treloar1975: Treloar, L. R. G. The Physics of Rubber Elasticity. Oxford University Press, 1975.
+- sze2007: Sze, S. M.; Ng, K. K. Physics of Semiconductor Devices. Wiley, 2007, doi:10.1002/0470068329.
+- pilling1923: Pilling, N. B.; Bedworth, R. E. J. Inst. Metals 29 (1923).
+- en1011_2: EN 1011-2:2001, welding of ferritic steels (carbon equivalent CE, IIW).
+- hollomonjaffe1945: Hollomon, J. H.; Jaffe, L. D. Time-temperature relations in tempering steel. Trans. AIME 162
+  (1945).
+- crc97: Haynes, W. M. (ed.) CRC Handbook of Chemistry and Physics. CRC Press, 2016, 97th edition (properties of the
+  elements).
+- kittel: Kittel, C. Introduction to Solid State Physics. Wiley, 2005, 8th edition (structures, lattice parameters).
+- hopcroft2010: Hopcroft, M. A.; Nix, W. D.; Kenny, T. W. What is the Young's modulus of silicon? J. Microelectromech.
+  Syst. 19 (2010) 229–238, doi:10.1109/JMEMS.2009.2039697.
+- jain2013 and dejong2015 (optional Materials Project part only): APL Mater. 1 (2013) 011002,
+  doi:10.1063/1.4812323; Sci. Data 2 (2015) 150009, doi:10.1038/sdata.2015.9.
 
 Since 1.4.0 the ISO titles are the English titles; the German title is kept in each `note`.
 
@@ -931,6 +974,48 @@ The values of these functions are not validated by the Rechner tests; the tests 
 registered (and, for `IE`, its dimension and the eV/J factor: `sdk/python/tests/test_numerics.py::Ionization`). Their
 methods belong to the Elemental Calculator module.
 
+## 15. Materials database and lookup functions
+
+**Data.** `sdk/python/labcalc/data/materials.json` (format `folio-materials/1`), read by `labcalc/materials.py`; the
+Zugversuch reads the same file (its 88 comparison materials are the rows with `"zugversuch": true`, fields unchanged).
+136 materials: metals and alloys 70, polymers 32, composites 8, ceramics 7, fibres 6, natural materials 6, glasses 4,
+semiconductors 3. Each value is stored as `{"v", "u", "art", "min", "max", "q"}`: value in a readable unit, value kind
+(`typ`, `min`, `max`, `mitte` = middle of a stated range, `unklar`), optional range, source (a key of
+`labcalc.sources.REFS` or a source text such as a standard and product form). `value()` converts to SI with
+`labcalc.units`. Pure elements fall back to the shared element data for ρ and Tm (PubChem). Entries and values not
+compared against their source in this round carry `nicht_geprueft`; the picker shows ⚠ and the report keeps the note.
+Nothing is derived inside the curated data (no K from E and ν); a missing property is an error that lists the
+properties present.
+
+**Names.** `find()` compares a normalised key (case, ß/ss, spaces, hyphens, dots, brackets ignored; "gamma"/"alpha" =
+γ/α) against id, German and English name and aliases (designations such as 1.4301, AISI 304, X5CrNi18-10); a unique
+partial match is accepted, several are refused with the candidates.
+
+**Functions in calculation lines** (group "Werkstoffe", `labcalc/materials.py:register_calc_functions`):
+`mat("name", "prop")` returns the SI quantity with its kind (`mat("S235JR", "Rp")` = 2.35·10⁸ Pa; `-> MPa` converts);
+shortcuts `rho_mat`, `E_mat`, `G_mat`, `nu_mat`, `Rp_mat`, `Rm_mat`, `A_mat`, `KIc_mat`, `Tm_mat`, `Tg_mat`,
+`alpha_mat`, `lambda_mat`, `cp_mat`, `rhoel_mat`, `Eg_mat`, `a_lat`, `c_lat`. Diffusion: `D_diff("C", "γ-Fe", T)` =
+D₀·exp(−Q/(R·T)) with D₀ and Q from Callister (Table 5.2), `D0_diff`, `Q_diff`. The kind of quantity of each call is
+known before evaluation, so units and dimension checks work as for numbers with units.
+
+**Report.** `rechner/bundle.py` scans each calculation line for these calls (`materials.cite_records`) and cites the
+source of every value used: a reference key as a proper bibliography entry, a source text as `@misc` with title,
+basis, URL and access date.
+
+**Optional computed data.** `tools/fetch_optional_data.py mp` queries the Materials Project summary endpoint
+(`formula`, `is_stable=true`) with the user's own key (`MP_API_KEY`) for 38 elements and compounds and writes
+`labcalc/data/optional/materials_mp.json` (`materials.mp_rows`): for each formula, the stable phase with the lowest
+energy above the hull; density; K and G as Voigt–Reuss–Hill averages; isotropic E = 9KG/(3K+G) and
+ν = (3K−2G)/(2(3K+G)); band gap (not for metals); space group and crystal system. The entries are separate
+(`mp-…`, "… (berechnet, mp-…)"), never mixed into measured values, and every value carries the DFT note. Tested with a
+fixed sample (`sdk/python/tests/test_materials.py::OptionalMaterialsProject`); no download in the tests.
+
+**Validated by** `sdk/python/tests/test_materials.py` (file validation, every value sourced, unit conversion, names
+and aliases, ambiguity, SI values, function dimensions, citations) and `modules/rechner/tests/test_rechner.py`
+(`MaterialsScience`: Bragg angle of α-Fe (110) with Cu Kα 44.67°, density of Cu from the lattice parameter 8935 kg/m³,
+carbon equivalent and Ms, Avrami and WLF, Pilling–Bedworth ratio of Al 1.29, corrosion rate of Fe 11.6 µm/a, report
+citations, workspace values; `Server.test_materials_routes`).
+
 ---
 
 ## Known limitations
@@ -963,3 +1048,9 @@ methods belong to the Elemental Calculator module.
 14. **`rand` is unseeded**; results using it are not reproducible.
 15. **Report bundles** record the Folio Lab and module versions and the calculation request, but no source-file
     hashes (the Rechner has no source files).
+16. **Material values are nominal.** They are typical or minimum values from handbooks, standards and data sheets, not
+    the properties of a particular batch; several values are marked "not checked against the source" (⚠). Results of
+    `mat()` inherit both.
+17. **Materials Project values are computed** (DFT, GGA): band gaps are usually much too small, densities and moduli
+    differ by a few per cent from experiment, and the stable phase at 0 K may not be the phase used in practice (e.g.
+    graphite rather than diamond for C, monoclinic ZrO₂).

@@ -33,12 +33,13 @@ $env:PYTHONPATH = "..\..\sdk\python;."
 python -m unittest discover -s tests
 ```
 
-Three end-to-end checks run outside the unit tests:
+Four end-to-end checks run outside the unit tests:
 
 ```bash
 python tools/e2e_datasets.py
 node tools/test_lab_revisions.js
 node tools/test_report_import.js
+node tools/test_folio_import.js
 ```
 
 - `tools/e2e_datasets.py`: an Excel file goes through the data preparation, is shared as a dataset, used by Rechner,
@@ -50,8 +51,14 @@ node tools/test_report_import.js
   re-import. The last check compiles with LaTeX (pdfLaTeX, Biber, BibTeX): the report with imports, the portable ZIP
   alone, inside a foreign natbib/BibTeX document and inside a biblatex document with cleveref. It is skipped when no
   LaTeX is found.
+- `tools/test_folio_import.js` (4 checks): *Import from Folio* on the hub side: which items and files of an
+  environment's report stay for a choice of pieces (with and without the methods text), and that the "source changed"
+  hash follows the environment's files and report request but not its view state. The SDK side (`bundle_of` for a
+  stored, not active environment) is in `sdk/python/tests/test_labproject.py`. Importing a figure and values from a
+  Zugversuch environment, compiling, link state, Refresh and Update were checked end to end on a scratch hub during
+  development (not part of the automated tests).
 
-All three use temporary folders and never touch your projects.
+All four use temporary folders and never touch your projects.
 
 GitHub Actions runs all suites on Windows with Python 3.10 and 3.12 on every push
 ([.github/workflows/tests.yml](../.github/workflows/tests.yml)). Once a week, and on demand, a second job downloads
@@ -62,17 +69,18 @@ Elementrechner and FTIR suites with it.
 
 | Suite | Tests | Skipped in the public repository | Methods page |
 |---|---|---|---|
-| SDK (`sdk/python/tests`) | 116 | 1: the ionisation-energy unit test needs the optional NIST ASD data | [provenance](methods/provenance.md), [rechner](methods/rechner.md) |
+| SDK (`sdk/python/tests`) | 138 | 1: the ionisation-energy unit test needs the optional NIST ASD data | [provenance](methods/provenance.md), [rechner](methods/rechner.md) |
 | Datenaufbereitung (data preparation) | 83 | 1: writing `.xls` needs a writer that is not installed; reading `.xls` is tested via xlrd. Without pyarrow the Parquet tests are skipped too | [datenaufbereitung](methods/datenaufbereitung.md) |
 | Elementrechner | 261 | 34: need optional data (stability constants 20, Burcat 12, NIST ASD 6, IUPAC pKa 2; the golden report test needs four parts and is counted under each) | [elementrechner](methods/elementrechner.md) |
 | FTIR | 73 | 3: need the optional Open Specy spectra | [ftir](methods/ftir.md) |
 | Mikroskopie (microscopy) | 58 | 0 | [mikroskopie](methods/mikroskopie.md) |
-| Rechner (calculator) | 83 | 0 | [rechner](methods/rechner.md) |
+| Rechner (calculator) | 93 | 0 | [rechner](methods/rechner.md) |
 | TGA | 84 | 1 or 2: one checks the hint shown when `pyngb` is missing (skipped when it is installed), one reads a table with the real `pyngb` (skipped when it is missing) | [tga](methods/tga.md) |
-| Zugversuch (tensile test) | 80 | 0 | [zugversuch](methods/zugversuch.md) |
-| **Total** | **838** | **40** | |
+| Werkstoffe (materials) | 88 | 0 | [werkstoffe](methods/werkstoffe.md) |
+| Zugversuch (tensile test) | 81 | 0 | [zugversuch](methods/zugversuch.md) |
+| **Total** | **959** | **40** | |
 
-Counts: version 0.3.0, Windows 11, Python 3.12, public repository with pyngb installed. With the optional data installed
+Counts: version 0.4.0, Windows 11, Python 3.12, public repository with pyngb installed. With the optional data installed
 (`python tools/fetch_optional_data.py all`), all Elementrechner and FTIR tests run.
 
 A skipped test always names its reason and, for optional data, the command that adds it.
@@ -103,7 +111,13 @@ A skipped test always names its reason and, for optional data, the command that 
      window from the first loading; the elastic/plastic division off for curves with 2 load peaks, and no yield
      onset after the maximum or the first load peak);
    - Datenaufbereitung: Dixon r10 critical values against the null distribution (within 0.003, except n = 4,
-     α = 0.01: table 0.926, computed 0.921, flagged), UTC and DST handling.
+     α = 0.01: table 0.926, computed 0.921, flagged), UTC and DST handling;
+   - Werkstoffe: Cu, Si, NaCl, corundum and rutile line positions and extinctions, Williamson–Hall recovering a set
+     size and strain, the ASTM E1049 rainflow example, the E399 SE(B) factors, E112 grain sizes, Tafel and Norton
+     parameters recovered from generated data, the ideal Cu–Ni solution against its closed form; in the lattice
+     model the Arrhenius vacancy fraction, the classical high-temperature limit of the Debye ⟨u²⟩, the lever-rule
+     cementite fraction, carbon on octahedral sites of austenite, and the in-plane coordination of (111), (100), (110)
+     and (0001) layers.
 2. **Independent reference values.** Results compared with numbers that do not come from Folio Lab's own code, such
    as values computed with scipy, tabulated values from NIST-JANAF, NIST ASD or textbooks, and worked examples from
    standards or papers. The expected value and its source are written next to each assertion.
@@ -128,7 +142,14 @@ Each methods page lists, per computed quantity, the tests that check it and thei
   - acid–base indicators (Harris 2016, `labcalc/data/indicators.json`);
   - mean bond enthalpies and cryoscopic constants (Atkins, `labcalc/bonds.py`, `labcalc/vapor.py`);
   - Antoine coefficients (`labcalc/vapor.py`);
-  - Joback group values (checked only on the worked acetone example, `labcalc/joback.py`).
+  - Joback group values (checked only on the worked acetone example, `labcalc/joback.py`);
+  - the property values added to the shared materials database in 0.3.x (`labcalc/data/materials.json`, marked
+    `nicht_geprueft` per entry; shown as ⚠ in the Rechner picker). The Rechner tests check units, lookups and
+    citations, and a few values against textbook worked examples (Cu density from its lattice parameter, Bragg angle
+    of α-Fe), not every tabulated number;
+  - the Cromer–Mann form-factor coefficients (`modules/werkstoffe/werk/formfactors.py`, transcribed without the
+    original at hand; checked by f(0) = Z and computed line orders) and the phase-diagram key points
+    (`werk/data/diagrams.json`).
 
   The data file or code records this. For ionic radii, Antoine coefficients and colligative constants, the result in
   the Elementrechner also shows it. See [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).

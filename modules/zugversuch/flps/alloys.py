@@ -1,8 +1,12 @@
-"""Vergleichswerkstoffe (Spezifikation Abschnitt 5). Laedt data/alloys.json.
+"""Vergleichswerkstoffe (Spezifikation Abschnitt 5).
 
-Die Datei enthaelt neben den Aluminiumlegierungen der Spezifikation weitere Werkstoffklassen
-(Stahl, Kunststoffe, Elastomere, ...). Verglichen wird immer innerhalb einer gewaehlten
-Vergleichsgruppe; Voreinstellung ist Aluminium wie in der Spezifikation.
+Die Werte stehen in der gemeinsamen Werkstoffdatenbank des SDK (sdk/python/labcalc/data/materials.json, Zeilen mit
+"zugversuch": true, Felder wie im früheren data/alloys.json); der Rechner liest dieselbe Datei. Mit --legierungen
+kann weiterhin eine eigene Datei im alten Format (Liste oder {"werkstoffe": [...]}) angegeben werden.
+
+Neben den Aluminiumlegierungen der Spezifikation gibt es weitere Werkstoffklassen (Stahl, Kunststoffe,
+Elastomere, ...). Verglichen wird immer innerhalb einer gewaehlten Vergleichsgruppe; Voreinstellung ist Aluminium
+wie in der Spezifikation.
 """
 from __future__ import annotations
 
@@ -13,7 +17,6 @@ from pathlib import Path
 
 import numpy as np
 
-DEFAULT_PATH = Path(__file__).resolve().parent.parent / "data" / "alloys.json"
 
 # Grenzen der Einordnung (relative Abweichungen)
 RM_CANDIDATE_TOL = 0.15     # Rm innerhalb +-15 %  -> Kandidat
@@ -45,8 +48,8 @@ class Alloy:
     cite: dict | None = None    # strukturierte Quelle (labcite), sonst gilt der Freitext source
     curve: list | None = None   # eigene Kurve [[Dehnung %, Spannung MPa], ...] statt der idealisierten
     oid: str = ""        # id im Speicher der eigenen Werkstoffe
-    value_type: str = ""  # Wertart von Rm und Rp (data/alloys.json "wertart"), z. B. "Rm Mindestwert, Rp Mindestwert"
-    check_note: str = ""  # nicht leer: Wert oder Quelle nicht geprüft (data/alloys.json "nicht_geprueft")
+    value_type: str = ""  # Wertart von Rm und Rp (Datenbankfeld "wertart"), z. B. "Rm Mindestwert, Rp Mindestwert"
+    check_note: str = ""  # nicht leer: Wert oder Quelle nicht geprüft (Datenbankfeld "nicht_geprueft")
 
     @property
     def ratio(self) -> float | None:
@@ -191,12 +194,18 @@ def merge_own(builtin: list[Alloy], own_rows: list[dict], strict: bool = False) 
 
 
 def load_alloys(path: str | Path | None = None) -> list[Alloy]:
-    p = Path(path) if path else DEFAULT_PATH
-    raw = json.loads(p.read_text(encoding="utf-8"))
-    if isinstance(raw, dict):
-        rows = raw.get("werkstoffe") or raw.get("alloys") or []
+    """Vergleichswerkstoffe aus der gemeinsamen Werkstoffdatenbank, oder aus ``path`` (eigene Datei im alten Format)."""
+    if path:
+        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        rows = (raw.get("werkstoffe") or raw.get("alloys") or []) if isinstance(raw, dict) else raw
     else:
-        rows = raw
+        try:
+            from labcalc import materials
+        except ImportError:  # ausserhalb des Hubs gestartet: SDK aus dem Suite-Ordner holen (wie flps/bundle.py)
+            import sys
+            sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "sdk" / "python"))
+            from labcalc import materials
+        rows = materials.zugversuch_rows()
     out = []
     for r in rows:
         rp = r.get("Rp02_MPa")

@@ -174,9 +174,40 @@ def add_item(run: Run, raw: bytes, fname: str, mapping=None, idx: int = 0, iid: 
     iid = iid or uuid.uuid4().hex[:10]
     with STATE.lock:
         STATE.items[iid] = Item(run, raw, fname, mapping)
+        STATE.items[iid].idx = int(idx)
     if keep:
         STATE.envs.remember(iid, raw, fname, idx, run.name, mapping=mapping)
     return describe(iid)
+
+
+def env_bundle(stored, report: dict, lang: str) -> dict:
+    """Bündel einer gespeicherten Umgebung (nicht der aktiven) aus ihren Läufen und dem Berichtsauftrag der
+    Seite (Körper von /api/bundle: items[{id, state}], kinetics)."""
+    from . import bundle as B
+    by_id = {iid: (raw, fname, idx, name, extra) for iid, raw, fname, idx, name, extra in stored}
+    labelled, req_items = [], []
+    for x in report.get("items") or []:
+        got = by_id.get(x.get("id"))
+        if got is None:
+            continue
+        raw, fname, idx, name, extra = got
+        mapping = (extra or {}).get("mapping")
+        if not name:
+            try:
+                name = load_bytes(raw, fname, mapping)[idx].name
+            except (ReadError, IndexError, ValueError):
+                continue
+        state = x.get("state") or {}
+        rx = {"name": fname, "mapping": mapping, "label": name, "state": state}
+        if idx:
+            rx["idx"] = int(idx)
+        labelled.append((raw, fname, mapping, dict(state, _label=name, _idx=int(idx or 0))))
+        req_items.append(rx)
+    if not labelled:
+        raise EnvError("Kein Lauf dieser Umgebung im Berichtsstand")
+    request = {"items": req_items, "lang": lang, "include": report.get("include") or {},
+               "title": report.get("title") or None, "slug": None, "kinetics": report.get("kinetics")}
+    return B.build(labelled, request, lang=lang, include=request["include"], title=request["title"])
 
 
 def load_file(data: bytes, name: str, mapping=None) -> list[dict]:
@@ -728,6 +759,8 @@ class Handler(BaseHTTPRequestHandler):
                 state = x.get("state") or {}
                 items.append((it.raw, it.fname, it.mapping, state))
                 rx = {"name": it.fname, "mapping": it.mapping, "label": it.run.name, "state": state}
+                if getattr(it, "idx", 0):
+                    rx["idx"] = int(it.idx)
                 src = (it.run.meta or {}).get("dataset") or {}
                 if src.get("share"):                   # DP-13: Datensatz-Version für Herkunft und Aufbewahrung (labprov)
                     rx["dataset"] = {"share": src["share"], "version": src.get("version"), "title": src.get("title")}
@@ -750,6 +783,8 @@ class Handler(BaseHTTPRequestHandler):
             st = dict(state)
             if x.get("label"):
                 st["_label"] = x["label"]
+            if x.get("idx"):
+                st["_idx"] = int(x["idx"])
             labelled.append((raw, fname, mp, st))
         request = {"items": req_items, "lang": req.get("lang", "de"), "include": req.get("include") or {},
                    "title": req.get("title") or None, "slug": req.get("slug") or None, "kinetics": req.get("kinetics")}
@@ -764,6 +799,7 @@ def main(argv=None):
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
     STATE = State(Path(a.out).resolve())
+    STATE.envs.env_bundle = env_bundle
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}/"
     print(f"TGA läuft auf {url}  (Beenden mit Strg+C)")

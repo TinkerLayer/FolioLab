@@ -399,6 +399,12 @@ def lookup(r: dict) -> dict:
     raise ValueError("unbekannte Art der Abfrage")
 
 
+def env_bundle(_stored, report: dict, lang: str) -> dict:
+    """Bündel einer gespeicherten Umgebung aus dem Berichtsauftrag ihrer Seite (keine Dateien)."""
+    from . import bundle as B
+    return B.build({**report, "lang": lang}, lang=lang)
+
+
 def main(argv=None):
     global STATE
     ap = argparse.ArgumentParser(description="Elementrechner, lokale Oberfläche")
@@ -407,6 +413,7 @@ def main(argv=None):
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
     STATE = State(Path(a.out).resolve())
+    STATE.envs.env_bundle = env_bundle
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}/"
     print(f"Elementrechner läuft auf {url}  (Beenden mit Strg+C)")

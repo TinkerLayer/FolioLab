@@ -1,9 +1,9 @@
 """Optional reference data: which parts are present on this computer.
 
 The public repository contains only data whose licence allows redistribution (see THIRD_PARTY_NOTICES.md). Five
-further parts are free to use but may not be redistributed, or their terms are unclear. They are not in the
-repository; `python tools/fetch_optional_data.py` downloads them from the original source and builds them on the
-user's computer:
+further parts are free to use but may not be redistributed, or their terms are unclear; a sixth (Materials Project)
+is openly licensed but can only be queried with a personal API key. They are not in the repository;
+`python tools/fetch_optional_data.py` downloads them from the original source and builds them on the user's computer:
 
   pka        IUPAC Digitized pKa Dataset (CC BY-NC 4.0)               -> labcalc/data/pka.json
   srd46      NIST SRD 46, critically selected stability constants     -> labcalc/data/stability.json
@@ -11,6 +11,8 @@ user's computer:
   burcat     Burcat/Goos/Ruscic thermochemical database (NASA-7)      -> labcalc/data/optional/thermo_burcat.json
   openspecy  Open Specy spectra whose source licence is non-commercial or unstated
                                                                        -> modules/ftir/ftir/data/openspecy-restricted/
+  mp         Materials Project, computed density, moduli and band gaps (CC BY 4.0; needs the user's own free API key)
+                                                                       -> labcalc/data/optional/materials_mp.json
 
 Every module works without them; functions that need a missing part say so. Tests that need a part are skipped with
 `skip_unless(...)` and name the command that adds it.
@@ -26,7 +28,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SDK_DATA = Path(__file__).resolve().parent / "labcalc" / "data"
 FTIR_DATA = ROOT / "modules" / "ftir" / "ftir" / "data"
 
-PARTS = ("pka", "srd46", "asd", "burcat", "openspecy")
+PARTS = ("pka", "srd46", "asd", "burcat", "openspecy", "mp")
 OPENSPECY_OPEN = ("Microplastix", "Davidson 2023", "Primpke 2018")
 
 
@@ -51,6 +53,8 @@ def available(part: str) -> bool:
             return False
         meta = json.loads(p.read_text(encoding="utf-8"))
         return any(e.get("origin") not in OPENSPECY_OPEN for e in meta.get("entries", []))
+    if part == "mp":
+        return (SDK_DATA / "optional" / "materials_mp.json").exists()
     raise ValueError(f"unknown optional part {part!r}; known: {', '.join(PARTS)}")
 
 
