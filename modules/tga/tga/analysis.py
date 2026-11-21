@@ -46,6 +46,7 @@ class Analysis:
     dsc: dict | None = None
     equations: list = field(default_factory=list)
     variables: dict = field(default_factory=dict)
+    unc: dict | None = None                         # Messunsicherheit (uncert.evaluate), nur mit Angaben im Arbeitsstand
 
     @property
     def steps(self):
@@ -150,14 +151,18 @@ def run(orig: Run, state: dict | None, lang: str = "de") -> Analysis:
     if state.get("dsc"):                                   # TGA-03
         from . import dsc as DS
         a.dsc = DS.evaluate(r, state["dsc"])
+    from . import uncert as UC
+    a.unc = UC.evaluate(a, state, lang)                     # Messunsicherheit, nur mit Angaben (state["unc"])
     eqs = state.get("equations") or []
     v, funcs = variables(a)
+    UC.variables_u(v, a.unc, state)                         # u reist mit in eigene Gleichungen und geteilte Werte
     a.variables = v
     if eqs or state.get("ext_values"):
         from labcalc import formulas as F
         F.merge_ext(v, state.get("ext_values"), funcs)       # Werte anderer Umgebungen (Verbindung)
         if eqs:
-            a.equations = F.evaluate(eqs, v, funcs, lang)
+            from .taken import guard                         # Indexwerte: unpassende Einheiten ablehnen
+            a.equations = guard(F.evaluate(eqs, v, funcs, lang, unc=UC.method(state)), v, funcs, lang)
     return a
 
 

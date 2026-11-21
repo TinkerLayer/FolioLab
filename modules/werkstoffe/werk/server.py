@@ -185,6 +185,9 @@ def meta_payload(lang: str = "de") -> dict:
     from . import phasediag as PD
     from . import fatigue as FT
     from . import gitter as GT
+    from . import struktur as SK
+    from . import gefuege as GF
+    from . import kompendium as KP
     from labcalc import materials as M
 
     from . import corrcreep as CC
@@ -201,15 +204,23 @@ def meta_payload(lang: str = "de") -> dict:
         "plies": plies,
         "metals": sorted(CC.VALENCE),
         "version": __version__,
+        "infoboard": True,
         "out_root": str(STATE.out_root),
         "tools": list(T.DISPATCH),
+        "groups": KP.data()["groups"],
+        "names": KP.data()["tools"],
         "tubes": {k: list(v) for k, v in C.TUBES.items()},
         "props": SL.props(lang),
         "props_en": SL.props("en"),
         "indices": {k: {"de": v[0], "en": v[1], "expo": v[2]} for k, v in SL.INDICES.items()},
         "classes": {k: {"de": v[0], "en": v[1]} for k, v in M.CLASSES.items()},
+        "families": {k: {"de": v[0], "en": v[1]} for k, v in SL.FAMILY_NAMES.items()},
         "gitter": {"hosts": GT.hosts(lang), "solutes": GT.solute_list(), "examples": GT.examples("de"),
                    "examples_en": GT.examples("en")},
+        "struktur": {"de": SK.materials("de"), "en": SK.materials("en")},
+        "gefuege": {lg: {"atlas": [{"id": c["id"], "name": c["name"], "family": c["family"]} for c in GF.catalog(lg == "de")],
+                         "mech": [{"id": k, "name": m["name"][0 if lg == "de" else 1], "kind": m["kind"]} for k, m in GF.MECHANISMS.items()]}
+                    for lg in ("de", "en")},
         "systems": PD.systems("de"),
         "systems_en": PD.systems("en"),
         "mean_models": list(FT.MEAN_MODELS),
@@ -304,8 +315,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
         if url.path == "/api/meta":
             return self._json(meta_payload())
-        if url.path in ("/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js"):
+        if url.path in ("/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js", "/labunc.js"):
             return self._send(200, labcite.web_asset(url.path[1:]), "text/javascript; charset=utf-8")
+        if url.path == "/infoboard.js":
+            return self._send(200, (STATIC / "infoboard.js").read_bytes(), "text/javascript; charset=utf-8")
         self._send(404, b"nicht gefunden", "text/plain")
 
     def do_POST(self):
@@ -313,7 +326,7 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         origin = self.headers.get("Origin")
         if origin and not ORIGIN_OK.match(origin):
-            return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)
+            return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)   # _send reads the unread body first
         try:
             return self._route(url)
         except T.ERRORS + (EnvError,) as e:
@@ -348,7 +361,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"items": [describe(k, v) for k, v in STATE.ctx().items.items()]})
         if p.startswith("/api/tool/"):
             name = p.rsplit("/", 1)[1]
-            return self._json(T.run(name, self._req(), STATE.ctx()))
+            req = self._req()
+            if req.get("unc"):                              # eigene Messmittel der Suite für die Unsicherheit
+                import labunc
+                labunc.load_own(STATE.envs)
+            return self._json(T.run(name, req, STATE.ctx()))
         if p.startswith("/api/env/"):
             return self._json(STATE.envs.route(p.rsplit("/", 1)[1], self._req(), reload_env))
         if p.startswith("/api/index/"):
@@ -357,8 +374,14 @@ class Handler(BaseHTTPRequestHandler):
         if p.startswith("/api/prov/"):
             import labprov
             return self._json(labprov.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
+        if p.startswith("/api/unc/"):                       # Messunsicherheit (Runde U)
+            import labunc
+            return self._json(labunc.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
         if p.startswith("/api/dataset/"):
             return self._json(dataset_route(p.rsplit("/", 1)[1], self._req()))
+        if p.startswith("/api/infoboard/"):                 # Infotafel: je Projekt gespeichert
+            from . import infoboard as IB
+            return self._json(IB.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
         if p in ("/api/bundle", "/api/bundle/rebuild"):
             return self._bundle(p)
         return self._send(404, b"nicht gefunden", "text/plain")

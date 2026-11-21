@@ -1,0 +1,363 @@
+{
+ "quellen": {
+  "sn-zn_moser1985": {
+   "type": "article",
+   "authors": "Moser, Z.; Dutkiewicz, J.; Gasior, W.; Salawa, J.",
+   "title": "The Sn–Zn (Tin-Zinc) System",
+   "container": "Bulletin of Alloy Phase Diagrams",
+   "year": "1985",
+   "volume": "6",
+   "pages": "330–334",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "asm3_2016": {
+   "type": "book",
+   "authors": "Okamoto, H.; Schlesinger, M. E.; Mueller, E. M. (Hrsg.)",
+   "title": "ASM Handbook, Vol. 3: Alloy Phase Diagrams",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2016",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "sn-zn",
+  "name": "Sn–Zn",
+  "name_en": "Sn–Zn",
+  "A": "Sn",
+  "B": "Zn",
+  "gruppe": "lot",
+  "x_label": "Zink [Gew.-%]",
+  "x_label_en": "Zinc [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   100,
+   450
+  ],
+  "q": [
+   "sn-zn_moser1985",
+   "massalski1990",
+   "asm3_2016"
+  ],
+  "hinweis": "x = Gew.-% Zn (A = Sn, B = Zn). Zitiert: Schmelzpunkte Sn 231,9 °C und Zn 419,5 °C, einfaches Eutektikum 198,5 °C bei 8,8 Gew.-% Zn (≈ 14,9 At.-% Zn; Lot Sn91Zn9). Die Randlöslichkeiten sind sehr klein (Zn in (Sn) ≈ 0,3 Gew.-%, Sn in (Zn) ≈ 0,1 Gew.-%, Werte unsicher) und nur angedeutet. Die Liquiduspunkte zwischen den Stützstellen sind aus dem bewerteten Diagramm abgelesen und geglättet (schematisch).",
+  "hinweis_en": "x = wt% Zn (A = Sn, B = Zn). Cited: melting points Sn 231.9 °C and Zn 419.5 °C, simple eutectic 198.5 °C at 8.8 wt% Zn (≈ 14.9 at% Zn; solder Sn91Zn9). The terminal solubilities are very small (Zn in (Sn) ≈ 0.3 wt%, Sn in (Zn) ≈ 0.1 wt%, values uncertain) and only indicated. Liquidus points between these values are read from the assessed diagram and smoothed (schematic).",
+  "points": [
+   {
+    "x": 0,
+    "T": 231.9,
+    "label": "Sn schmilzt",
+    "label_en": "Sn melts"
+   },
+   {
+    "x": 100,
+    "T": 419.5,
+    "label": "Zn schmilzt",
+    "label_en": "Zn melts"
+   },
+   {
+    "x": 8.8,
+    "T": 198.5,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 0.3,
+    "T": 198.5
+   },
+   {
+    "x": 99.9,
+    "T": 198.5
+   }
+  ],
+  "curves": {
+   "liqA": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      231.9
+     ],
+     [
+      1,
+      228.6
+     ],
+     [
+      2,
+      225.2
+     ],
+     [
+      3,
+      221.7
+     ],
+     [
+      4,
+      218.1
+     ],
+     [
+      5,
+      214.4
+     ],
+     [
+      6,
+      210.6
+     ],
+     [
+      7,
+      206.6
+     ],
+     [
+      8,
+      202.2
+     ],
+     [
+      8.8,
+      198.5
+     ]
+    ]
+   },
+   "liqB": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      8.8,
+      198.5
+     ],
+     [
+      10,
+      206
+     ],
+     [
+      12,
+      218
+     ],
+     [
+      15,
+      233
+     ],
+     [
+      20,
+      254
+     ],
+     [
+      25,
+      271
+     ],
+     [
+      30,
+      286
+     ],
+     [
+      40,
+      311
+     ],
+     [
+      50,
+      332
+     ],
+     [
+      60,
+      350
+     ],
+     [
+      70,
+      367
+     ],
+     [
+      80,
+      384
+     ],
+     [
+      90,
+      401
+     ],
+     [
+      100,
+      419.5
+     ]
+    ]
+   },
+   "solA": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      231.9
+     ],
+     [
+      0.3,
+      198.5
+     ]
+    ],
+    "smooth": false
+   },
+   "solvA": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0.3,
+      198.5
+     ],
+     [
+      0.08,
+      100
+     ]
+    ],
+    "smooth": false
+   },
+   "solB": {
+    "kind": "solidus",
+    "pts": [
+     [
+      99.9,
+      198.5
+     ],
+     [
+      100,
+      419.5
+     ]
+    ],
+    "smooth": false
+   },
+   "solvB": {
+    "kind": "solvus",
+    "pts": [
+     [
+      99.9,
+      198.5
+     ],
+     [
+      99.97,
+      100
+     ]
+    ],
+    "smooth": false
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      450
+     ],
+     [
+      100,
+      450
+     ],
+     "-liqB",
+     "-liqA"
+    ]
+   },
+   {
+    "label": "(Sn)",
+    "phases": [
+     "(Sn)"
+    ],
+    "poly": [
+     "solA",
+     "solvA",
+     [
+      0,
+      100
+     ]
+    ]
+   },
+   {
+    "label": "(Sn) + L",
+    "phases": [
+     "(Sn)",
+     "L"
+    ],
+    "poly": [
+     "liqA",
+     [
+      0.3,
+      198.5
+     ],
+     "-solA"
+    ]
+   },
+   {
+    "label": "L + (Zn)",
+    "phases": [
+     "L",
+     "(Zn)"
+    ],
+    "poly": [
+     "liqB",
+     "-solB"
+    ]
+   },
+   {
+    "label": "(Zn)",
+    "phases": [
+     "(Zn)"
+    ],
+    "poly": [
+     "solB",
+     [
+      100,
+      100
+     ],
+     [
+      99.97,
+      100
+     ],
+     "-solvB"
+    ]
+   },
+   {
+    "label": "(Sn) + (Zn)",
+    "phases": [
+     "(Sn)",
+     "(Zn)"
+    ],
+    "poly": [
+     [
+      0.3,
+      198.5
+     ],
+     [
+      99.9,
+      198.5
+     ],
+     "solvB",
+     [
+      0.08,
+      100
+     ],
+     "-solvA"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 198.5,
+    "type": "eutectic",
+    "x": [
+     0.3,
+     8.8,
+     99.9
+    ],
+    "reaction": "L ⇌ (Sn) + (Zn)",
+    "constituents": [
+     "primäres (Sn)",
+     "Eutektikum",
+     "primäres (Zn)"
+    ],
+    "constituents_en": [
+     "primary (Sn)",
+     "eutectic",
+     "primary (Zn)"
+    ],
+    "morph": "acicular"
+   }
+  ]
+ }
+}

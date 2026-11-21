@@ -9,7 +9,7 @@
   "color": "#d93025",
   "status": "ready",
   "order": 10,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "accepts": [".flps"],
   "produces": ["figure", "table", "values", "data", "citation", "text"],
   "runtime": {

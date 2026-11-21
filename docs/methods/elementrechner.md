@@ -1090,6 +1090,44 @@ The structure matching in the browser and the PubChem query have no automated te
 * **Own data tables** (`tables.py`): CSV or JSON with a required source per table or per row. Rows without a source
   are rejected, and own values take precedence. Tests: `modules/elementrechner/tests/test_tables.py::Tables::*`.
 
+## 19 Measurement uncertainty (`uncert.py`)
+
+Every measured or entered input on the page can carry an uncertainty (the small ± button next to the field; no entry
+means exact). One method applies to the whole page: GUM linear (JCGM 100), Monte Carlo (JCGM 101, fixed seed),
+Gaussian propagation or worst case, all from `labcalc.uncertainty`. Results show "value ± U" with the budget, notes and
+a method comparison in folds; the report gets `\labval{unc-<name>-pm}`, `-u`, `-U`, budget tables and a methods
+sentence, and the specs are kept in `source.request`.
+
+* **Molar mass.** Each element is one input A_r. Interval atomic weights count as rectangular distributions over the
+  interval, with the midpoint as value (Possolo et al. 2018, Pure Appl. Chem. 90, 395–424); single values with a
+  stated U are treated as ±U rectangles as well (a module assumption, not checked against the original). Elements are
+  independent; an element occurring n times enters as n·A_r. Isotopes use the AME2020 uncertainty. The midpoints can
+  differ slightly from the abridged values used elsewhere; the result says so.
+* **Solution from a solid.** c = m·P·k·M_basis/(M_form·V) (or the mass, w/v, w/w and mol/kg forms) with the weighed
+  mass m (field "weighed g"; empty = computed mass), purity P, final volume V, density for w/w and mol/kg, and the
+  atomic weights.
+* **From stock.** c₂ = c_stock·V₁/V₂ in the stock's basis, with the stock content, its density (w/w), the measured
+  volume V₁ (field "measured"; empty = computed) and V₂. Targets in w/w or mol/kg get no uncertainty (noted).
+* **Dilution series.** c_i = c₀·Π_{j≤i} t_j/f_j; every transfer t_j shares the pipette entry and every flask f_j the
+  flask entry, each step an independent draw. Steps are correlated through c₀ and the earlier transfers; the
+  correlation matrix r_ik = Σ_q c_i,q c_k,q u_q² / (u_i u_k) is shown and reported.
+* **Gas law.** The computed unknown of pV = nRT gets u from the other three inputs (R exact).
+* **Yield.** Equation: Y = 100·n_product/(ν_product·ξ) with ξ = min over the reactants of n/ν (the minimum is
+  evaluated per trial in Monte Carlo); masses convert with the uncertain molar masses. Reaction set-up: Y from the
+  reference amount and the observed product mass.
+* **pH.** pH from the proton balance (same equations as `acidbase.py`, solved by bisection, vectorised) as a function
+  of the concentrations and pKa values; u(pH) is a propagated uncertainty, labelled as such. Activities and the
+  temperature count as exact.
+* **Shared values.** The value catalogue and the project index carry `u` (standard uncertainty) and the method; molar
+  masses always carry the atomic-weight u.
+
+| Test | Checks | Reference as stated |
+|---|---|---|
+| `test_uncert.py::QuamA1::test_quam_a1` | c(Cd) 1002.7 mg/L, u ≈ 0.83 (QUAM rounds to 0.9, accepted within 0.1), U(k = 2) within 0.2 of 1.8 | EURACHEM/CITAC QUAM (2012) Example A1 (inputs not checked against the original) |
+| `test_uncert.py::MolarMass::test_h2o_by_hand` | M(H₂O) and u against a hand calculation from the CIAAW intervals | Possolo et al. 2018 |
+| `test_uncert.py::Series::test_correlation_by_hand` | relative u per step and the correlation matrix against the closed form | hand calculation |
+| `test_uncert.py::GasYieldPH::*` | gas-law u by hand, yields, pH model equal to `acidbase.ph`, u(pH) near the weak-acid approximation | hand calculation |
+
 ## Running the tests
 
 From `modules/elementrechner`, with `sdk/python` on `PYTHONPATH`:

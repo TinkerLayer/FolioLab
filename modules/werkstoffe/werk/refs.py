@@ -241,20 +241,97 @@ REFS: dict[str, dict] = {
     "norton1929": {
         "type": "book", "authors": "Norton, F. H.", "title": "The Creep of Steel at High Temperatures",
         "container": "McGraw-Hill, New York", "year": "1929"},
+    # ------------------------------------------------------------------ Struktur bei T (werk/struktur.py)
+    "roberts1953": {
+        "type": "article", "authors": "Roberts, C. S.", "title": "Effect of carbon on the lattice parameters of martensite",
+        "container": "Transactions of the AIME (Journal of Metals)", "year": "1953", "volume": "197", "pages": "203-204",
+        "note": NG},
+    "speich1972": {
+        "type": "article", "authors": "Speich, G. R.; Leslie, W. C.", "title": "Tempering of steel",
+        "container": "Metallurgical Transactions", "year": "1972", "volume": "3", "pages": "1043-1054",
+        "doi": "10.1007/BF02642436", "note": NG},
+    "krauss2015": {
+        "type": "book", "authors": "Krauss, G.", "title": "Steels: Processing, Structure, and Performance",
+        "container": "ASM International, Materials Park, 2nd ed.", "year": "2015", "note": NG},
+    "polmear2017": {
+        "type": "book", "authors": "Polmear, I.; StJohn, D.; Nie, J.-F.; Qian, M.",
+        "title": "Light Alloys: Metallurgy of the Light Metals", "container": "Butterworth-Heinemann, Oxford, 5th ed.",
+        "year": "2017", "note": NG},
+    "asm1990v1": {
+        "type": "book",
+        "title": "ASM Handbook, Vol. 1: Properties and Selection: Irons, Steels, and High-Performance Alloys",
+        "container": "ASM International", "year": "1990", "note": NG},
+    "asm1990v2": {
+        "type": "book",
+        "title": "ASM Handbook, Vol. 2: Properties and Selection: Nonferrous Alloys and Special-Purpose Materials",
+        "container": "ASM International", "year": "1990", "note": NG},
+    "lutjering2007": {
+        "type": "book", "authors": "Lütjering, G.; Williams, J. C.", "title": "Titanium",
+        "container": "Springer, Berlin, 2nd ed.", "year": "2007", "doi": "10.1007/978-3-540-73036-1", "note": NG},
+    "nayebhashemi1988": {
+        "type": "book", "authors": "Nayeb-Hashemi, A. A.; Clark, J. B. (Hrsg.)", "title": "Phase Diagrams of Binary Magnesium Alloys",
+        "container": "ASM International, Metals Park", "year": "1988", "note": NG},
+    "reed2006": {
+        "type": "book", "authors": "Reed, R. C.", "title": "The Superalloys: Fundamentals and Applications",
+        "container": "Cambridge University Press", "year": "2006", "doi": "10.1017/CBO9780511541285", "note": NG},
+    "strobl2007": {
+        "type": "book", "authors": "Strobl, G.", "title": "The Physics of Polymers",
+        "container": "Springer, Berlin, 3rd ed.", "year": "2007", "doi": "10.1007/978-3-540-68411-4", "note": NG},
+    "zachariasen1932": {
+        "type": "article", "authors": "Zachariasen, W. H.", "title": "The atomic arrangement in glass",
+        "container": "Journal of the American Chemical Society", "year": "1932", "volume": "54", "pages": "3841-3851",
+        "doi": "10.1021/ja01349a006", "note": NG},
+    "oberlin1984": {
+        "type": "article", "authors": "Oberlin, A.", "title": "Carbonization and graphitization", "container": "Carbon",
+        "year": "1984", "volume": "22", "pages": "521-541", "doi": "10.1016/0008-6223(84)90086-1", "note": NG},
+    "yang2007": {
+        "type": "article", "authors": "Yang, H.; Yan, R.; Chen, H.; Lee, D. H.; Zheng, C.",
+        "title": "Characteristics of hemicellulose, cellulose and lignin pyrolysis", "container": "Fuel", "year": "2007",
+        "volume": "86", "pages": "1781-1788", "doi": "10.1016/j.fuel.2006.12.013",
+        "note": "Bereiche 220–315 °C (Hemicellulose) und 315–400 °C (Cellulose) an der Kurzfassung geprüft; übrige " + NG},
+    # ------------------------------------------------------------------ Cellulose beim Erwärmen (Runde V)
+    "lin2009": {
+        "type": "article", "authors": "Lin, Y.-C.; Cho, J.; Tompsett, G. A.; Westmoreland, P. R.; Huber, G. W.",
+        "title": "Kinetics and mechanism of cellulose pyrolysis", "container": "The Journal of Physical Chemistry C",
+        "year": "2009", "volume": "113", "pages": "20097-20107", "doi": "10.1021/jp906702p",
+        "note": "An Textauszügen des Artikels geprüft: Depolymerisation zu Levoglucosan als erster Schritt, Kohle aus der Polymerisation der Produkte"},
+    "shafizadeh1982": {
+        "type": "article", "authors": "Shafizadeh, F.", "title": "Introduction to pyrolysis of biomass",
+        "container": "Journal of Analytical and Applied Pyrolysis", "year": "1982", "volume": "3", "pages": "283-305",
+        "doi": "10.1016/0165-2370(82)80017-X", "note": NG},
+    "fpl2010": {
+        "type": "report", "authors": "Forest Products Laboratory",
+        "title": "Wood Handbook: Wood as an Engineering Material (General Technical Report FPL-GTR-190)",
+        "container": "U.S. Department of Agriculture, Forest Service, Madison", "year": "2010",
+        "note": "Kap. 4 (Holzfeuchte, Ausgleichsfeuchte) und Kap. 3 (Asche); " + NG},
+    "iso1762": {
+        "type": "standard", "authors": "ISO",
+        "title": "ISO 1762:2019 Paper, board, pulps and cellulose nanomaterials – Determination of residue (ash content) on "
+                 "ignition at 525 °C", "container": "International Organization for Standardization, Genf", "year": "2019",
+        "url": "https://www.iso.org/standard/73414.html",
+        "note": "Titel und Glühtemperatur aus der Normangabe, Verhalten der Füllstoffe aus einer Zusammenfassung; Normtext nicht eingesehen; " + NG},
 }
 
 
+def _extra() -> dict:
+    """Quellen der Strukturdaten (COD-Veröffentlichungen, Literaturzellen, Normen der Werkstoffzustände)."""
+    from . import gefuege, phasediag, struktur
+    return {**gefuege.sources(), **phasediag.sources(), **struktur.sources_registry()}
+
+
 def rec(key: str) -> dict:
-    """Quellendatensatz aus diesem Modul oder aus labcalc.sources."""
+    """Quellendatensatz aus diesem Modul, aus labcalc.sources oder aus den Strukturdaten."""
     if key in REFS:
         return dict(REFS[key])
     if key in S.REFS:
         return S.ref(key)
+    if key in _extra():
+        return dict(_extra()[key])
     raise KeyError(f"Quelle {key} unbekannt")
 
 
 def known(key: str) -> bool:
-    return key in REFS or key in S.REFS
+    return key in REFS or key in S.REFS or key in _extra()
 
 
 def cite(b, keys) -> list[str]:

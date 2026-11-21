@@ -1,0 +1,499 @@
+{
+ "quellen": {
+  "ag-pt_karakaya1987": {
+   "type": "article",
+   "authors": "Karakaya, I.; Thompson, W. T.",
+   "title": "The Ag–Pt (Silver-Platinum) System",
+   "container": "Bulletin of Alloy Phase Diagrams",
+   "year": "1987",
+   "volume": "8",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "asm3_2016": {
+   "type": "book",
+   "authors": "Okamoto, H.; Schlesinger, M. E.; Mueller, E. M. (Hrsg.)",
+   "title": "ASM Handbook, Vol. 3: Alloy Phase Diagrams",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2016",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "ag-pt",
+  "name": "Ag–Pt",
+  "name_en": "Ag–Pt",
+  "A": "Ag",
+  "B": "Pt",
+  "gruppe": "lehre",
+  "x_label": "Platin [Gew.-%]",
+  "x_label_en": "Platinum [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   400,
+   1800
+  ],
+  "q": [
+   "ag-pt_karakaya1987",
+   "massalski1990",
+   "asm3_2016"
+  ],
+  "hinweis": "x = Gew.-% Pt (A = Ag, B = Pt). Zitiert: Schmelzpunkte Ag 961,8 °C und Pt 1768,2 °C, peritektische Reaktion L + (Pt) ⇌ (Ag) bei 1186 °C mit L ≈ 33,7, (Ag) ≈ 57,6 und (Pt) ≈ 89,5 Gew.-% Pt (klassisches Lehrbuchbeispiel; Zusammensetzungen gerundet, je nach Bewertung um einige Prozent verschieden). Liquidus, Solidus und Solvus zwischen diesen Punkten sind schematisch nachgezeichnet. Stark vereinfacht: unterhalb ≈ 800 °C treten geordnete Phasen auf (u. a. AgPt mit L1₁-Ordnung); sie sind weggelassen, das Gebiet (Ag) + (Pt) ist als einfache Mischungslücke gezeichnet und unter ≈ 900 °C nur qualitativ.",
+  "hinweis_en": "x = wt% Pt (A = Ag, B = Pt). Cited: melting points Ag 961.8 °C and Pt 1768.2 °C, peritectic L + (Pt) ⇌ (Ag) at 1186 °C with L ≈ 33.7, (Ag) ≈ 57.6 and (Pt) ≈ 89.5 wt% Pt (classic textbook example; compositions rounded, assessments differ by a few percent). Liquidus, solidus and solvus between these points are drawn schematically. Strongly simplified: below ≈ 800 °C ordered phases occur (e.g. AgPt with L1₁ order); they are omitted, (Ag) + (Pt) is drawn as a plain miscibility gap and is only qualitative below ≈ 900 °C.",
+  "points": [
+   {
+    "x": 0,
+    "T": 961.8,
+    "label": "Ag schmilzt",
+    "label_en": "Ag melts"
+   },
+   {
+    "x": 100,
+    "T": 1768.2,
+    "label": "Pt schmilzt",
+    "label_en": "Pt melts"
+   },
+   {
+    "x": 57.6,
+    "T": 1186,
+    "label": "Peritektikum",
+    "label_en": "Peritectic"
+   },
+   {
+    "x": 33.7,
+    "T": 1186
+   },
+   {
+    "x": 89.5,
+    "T": 1186
+   }
+  ],
+  "curves": {
+   "liqAg": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      961.8
+     ],
+     [
+      3,
+      984
+     ],
+     [
+      6,
+      1006
+     ],
+     [
+      10,
+      1034
+     ],
+     [
+      14,
+      1061
+     ],
+     [
+      18,
+      1087
+     ],
+     [
+      22,
+      1112
+     ],
+     [
+      26,
+      1137
+     ],
+     [
+      30,
+      1162
+     ],
+     [
+      33.7,
+      1186
+     ]
+    ]
+   },
+   "liqPt": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      33.7,
+      1186
+     ],
+     [
+      37,
+      1228
+     ],
+     [
+      40,
+      1265
+     ],
+     [
+      45,
+      1322
+     ],
+     [
+      50,
+      1375
+     ],
+     [
+      55,
+      1424
+     ],
+     [
+      60,
+      1470
+     ],
+     [
+      65,
+      1514
+     ],
+     [
+      70,
+      1556
+     ],
+     [
+      75,
+      1597
+     ],
+     [
+      80,
+      1636
+     ],
+     [
+      85,
+      1672
+     ],
+     [
+      90,
+      1706
+     ],
+     [
+      95,
+      1738
+     ],
+     [
+      100,
+      1768.2
+     ]
+    ]
+   },
+   "solAg": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      961.8
+     ],
+     [
+      5,
+      977
+     ],
+     [
+      10,
+      992
+     ],
+     [
+      15,
+      1007
+     ],
+     [
+      20,
+      1022
+     ],
+     [
+      25,
+      1037
+     ],
+     [
+      30,
+      1052
+     ],
+     [
+      35,
+      1068
+     ],
+     [
+      40,
+      1085
+     ],
+     [
+      45,
+      1104
+     ],
+     [
+      50,
+      1126
+     ],
+     [
+      54,
+      1151
+     ],
+     [
+      57.6,
+      1186
+     ]
+    ]
+   },
+   "solPt": {
+    "kind": "solidus",
+    "pts": [
+     [
+      89.5,
+      1186
+     ],
+     [
+      90.5,
+      1270
+     ],
+     [
+      91.5,
+      1350
+     ],
+     [
+      92.5,
+      1425
+     ],
+     [
+      93.5,
+      1495
+     ],
+     [
+      94.5,
+      1555
+     ],
+     [
+      95.5,
+      1610
+     ],
+     [
+      96.5,
+      1658
+     ],
+     [
+      97.5,
+      1700
+     ],
+     [
+      98.5,
+      1734
+     ],
+     [
+      100,
+      1768.2
+     ]
+    ]
+   },
+   "solvAg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      57.6,
+      1186
+     ],
+     [
+      55.5,
+      1120
+     ],
+     [
+      52.5,
+      1050
+     ],
+     [
+      48.5,
+      970
+     ],
+     [
+      44,
+      890
+     ],
+     [
+      39,
+      810
+     ],
+     [
+      33.5,
+      730
+     ],
+     [
+      27.5,
+      650
+     ],
+     [
+      21.5,
+      570
+     ],
+     [
+      16,
+      490
+     ],
+     [
+      11,
+      400
+     ]
+    ]
+   },
+   "solvPt": {
+    "kind": "solvus",
+    "pts": [
+     [
+      89.5,
+      1186
+     ],
+     [
+      90.2,
+      1100
+     ],
+     [
+      91,
+      1000
+     ],
+     [
+      92,
+      900
+     ],
+     [
+      93,
+      800
+     ],
+     [
+      94,
+      700
+     ],
+     [
+      95,
+      600
+     ],
+     [
+      96,
+      500
+     ],
+     [
+      96.8,
+      400
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1800
+     ],
+     [
+      100,
+      1800
+     ],
+     "-liqPt",
+     "-liqAg"
+    ]
+   },
+   {
+    "label": "L + (Ag)",
+    "phases": [
+     "L",
+     "(Ag)"
+    ],
+    "poly": [
+     "liqAg",
+     [
+      57.6,
+      1186
+     ],
+     "-solAg"
+    ]
+   },
+   {
+    "label": "L + (Pt)",
+    "phases": [
+     "L",
+     "(Pt)"
+    ],
+    "poly": [
+     "liqPt",
+     "-solPt"
+    ]
+   },
+   {
+    "label": "(Ag)",
+    "phases": [
+     "(Ag)"
+    ],
+    "poly": [
+     [
+      0,
+      961.8
+     ],
+     "solAg",
+     "solvAg",
+     [
+      0,
+      400
+     ]
+    ]
+   },
+   {
+    "label": "(Ag) + (Pt)",
+    "phases": [
+     "(Ag)",
+     "(Pt)"
+    ],
+    "poly": [
+     [
+      57.6,
+      1186
+     ],
+     [
+      89.5,
+      1186
+     ],
+     "solvPt",
+     [
+      11,
+      400
+     ],
+     "-solvAg"
+    ]
+   },
+   {
+    "label": "(Pt)",
+    "phases": [
+     "(Pt)"
+    ],
+    "poly": [
+     "solPt",
+     [
+      100,
+      400
+     ],
+     [
+      96.8,
+      400
+     ],
+     "-solvPt"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 1186,
+    "type": "peritectic",
+    "x": [
+     33.7,
+     57.6,
+     89.5
+    ],
+    "reaction": "L + (Pt) ⇌ (Ag)"
+   }
+  ]
+ }
+}

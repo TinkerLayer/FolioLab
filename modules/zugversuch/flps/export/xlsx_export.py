@@ -363,6 +363,8 @@ def write_xlsx(r: Result, folder: Path) -> Path:
     ws_c.column_dimensions["P"].width = 40
 
     pk_expect = _peaks_sheet(wb, r, cells, last) if (r.kv.get("peaks") or {}).get("progressive") else {}
+    if r.unc and r.unc.get("results"):
+        _unc_sheet(wb, r)
 
     wb.calculation.fullCalcOnLoad = True
     tmp = path.with_suffix(".tmp.xlsx")
@@ -403,6 +405,48 @@ def write_xlsx(r: Result, folder: Path) -> Path:
         path.unlink()
     tmp.rename(path)
     return path
+
+
+def _unc_sheet(wb, r: Result):
+    """Blatt Messunsicherheit: Ergebnis je Kennwert und sein Budget als Werte (keine Formeln; Rechnung in
+    labcalc.uncertainty, Modelle nach ISO 6892-1 Anhang J und UNCERT CoP 07, siehe flps/uncertainty.py)."""
+    from .. import uncertainty as UNC
+    st = r.unc["settings"]
+    ws = wb.create_sheet("Messunsicherheit")
+    ws.cell(1, 1, f"Messunsicherheit {r.name}").font = Font(bold=True, size=14)
+    dev = ", ".join(x for x in (st.get("force_class"), st.get("ext_class")) if x) or "keine Messmittelklasse gewählt"
+    ws.cell(2, 1, f"Verfahren {st['method']}, p = {st['p']:g}; Messmittel: {dev}. Werte aus der App (keine Formeln). "
+                  "Quellen: " + "; ".join(rec["title"] for rec in UNC.SOURCES.values())
+                  + " (Angaben nicht am Original geprüft); JCGM 100:2008.").font = NOTE
+    rr = 4
+    for name, res in r.unc["results"].items():
+        ws.cell(rr, 1, res.get("label") or name).font = BOLD
+        ws.cell(rr, 1).fill = HEAD
+        for c in range(2, 8):
+            ws.cell(rr, c).fill = HEAD
+        if res.get("error"):
+            ws.cell(rr, 2, "Fehler: " + str(res["error"]))
+            rr += 2
+            continue
+        ws.cell(rr, 2, res.get("text") or "")
+        ws.cell(rr + 1, 1, "Modell").font = NOTE
+        ws.cell(rr + 1, 2, res.get("model") or "")
+        rr += 2
+        for i, h in enumerate(["Grösse", "Wert", "Einheit", "u(xᵢ)", "cᵢ", "|cᵢ|·u(xᵢ)", "Anteil [%]"], 1):
+            ws.cell(rr, i, h).font = BOLD
+        rr += 1
+        for row in res.get("budget") or []:
+            vals = [f"{row['name']} {row.get('label') or ''}".strip(), row.get("value"), row.get("unit") or "",
+                    row.get("u") if not row.get("exact") else "exakt", row.get("c"), row.get("cu"), row.get("share")]
+            for i, v in enumerate(vals, 1):
+                ws.cell(rr, i, v)
+            rr += 1
+        for n in res.get("note_texts") or []:
+            ws.cell(rr, 1, n).font = NOTE
+            rr += 1
+        rr += 1
+    ws.column_dimensions["A"].width = 46
+    ws.column_dimensions["B"].width = 40
 
 
 def _peaks_sheet(wb, r: Result, cells: dict, last: int) -> dict:

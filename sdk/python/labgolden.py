@@ -46,6 +46,10 @@ _VOLATILE = [
     (re.compile(r"(?<![A-Za-z0-9\\])[A-Za-z]:[\\/](?:[^\\/\s\"'{}]+[\\/])+[^\s\"'{}]*"), "<path>"),   # C:\x\y, D:/x/y
     (re.compile(r"(?<![\w.])/(?:Users|home|tmp|var|private)/[^\s\"'{}]*"), "<path>"),
     (re.compile(r"\b[0-9a-f]{32}\b|\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"), "<id>"),
+    # module version in the Folio Lab software sentence and the version field of its citation (a release must not
+    # break the goldens); other versions (a database "Version 8.0" in a title) stay
+    (re.compile(r"(Folio[\s~]*Lab\b[^.\n]{0,80}?\b[Vv]ersion[\s~]+)\d+\.\d+(?:\.\d+)?"), r"\1<version>"),
+    (re.compile(r"(\bversion\s*=\s*\{)\d+\.\d+(?:\.\d+)?(?=\})"), r"\1<version>"),
 ]
 
 

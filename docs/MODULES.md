@@ -145,7 +145,9 @@ Conventions:
 
 - `caption`, `label` (`fig:`/`tab:` + slug + id), value `latex`, table and text files are **LaTeX source**. Escape
   plain text with `tex_escape()`; `num()` writes numbers with the decimal mark of the language and a thin space before the unit.
-- Figures: vector PDF for LaTeX plus a PNG preview for the editor (`add_figure` does both).
+- Figures: vector PDF for LaTeX plus a PNG preview for the editor (`add_figure` does both, when `to_dict()` runs).
+  `add_figure` also takes a function without arguments that returns the figure; it is called only when the figure
+  is written, so the editing window's preview of one figure does not draw the others (Zugversuch does this).
 - CSV: point decimals, comma separator, header row (what pgfplots expects). Text columns last, without a label.
   `plot` may carry `"style": "marks"` for scatter data (e.g. one row per particle); the editor's **Plot** then
   draws points instead of a line.
@@ -158,6 +160,65 @@ Conventions:
   with a key), so the picture can be read without the caption.
 - `source.request` must be enough to rebuild the same bundle; the hub adds the stored `slug` to it.
   Rebuild endpoint body: `{"source": {"request": {...}, "files": {name: base64}}, "lang"?: "de"|"en"}`.
+  Pass the request on to `set_source` as received (extra keys included): the hub adds `styles`,
+  `describe_figures` and `preview` to it for styled figures (below).
+- **Methods text in steps.** Write the methods text with
+  `b.add_methods(paragraphs, title, id="methodik", sep="\n\n", eq=equations_tex)` instead of `add_text`. The full text
+  is still `text-<id>.tex`; in addition every sentence becomes a step (`methods/<step>.tex`, listed on the item as
+  `steps: [{id, title, short, own_short, par, file, eq?}]`). *Short* is three sentences at most: the first sentence
+  (what was measured), the first later sentence that names a standard (ISO, DIN, EN, ASTM, VDI or a cited standard) and
+  the software sentence. A module can choose its own short steps by passing steps as dicts `{id, title, text,
+  short: True}` (`own_short`); those are cut to three. The software sentence ("The analysis used Folio Lab, <module> module, version
+  <x>", cited as `folio-lab-<module>`, name and version from `module.json`) is added as the last step unless the text
+  already names Folio Lab; pass `software=False` to leave it out. The equations block is one step with `eq: true`. Sentences are not split inside `$…$`, inside braces,
+  after common abbreviations or after single letters. The import dialog and the Lab dialog offer Short / Full / own
+  ticks; the hub sets the chosen steps as running text in `text-<id>-auswahl.tex` and records it on the item
+  (`shown_file`, `shown_steps`). Same paragraph: joined with a space; otherwise a blank line.
+- **Pieces cite and describe only what they show.** Declare per figure what it is made of, so that a reduced piece
+  brings neither sources nor methods sentences for anything it does not show:
+  - `add_figure(fig, id, "Curve{parts}.", cites=[always], steps=[always], parts=[...], parts_lead="with")`. A part is
+    `{id, label, cites, steps, caption, note, list, match}`: `caption` is an inline fragment set at `{parts}`, `note` a
+    sentence after the caption, parts with the same `list` share one sentence ("<list> A, B and C."). Mark its artists
+    with `labstyle.mark(artists, part_id)` or give `match` globs over element keys.
+  - A part is off when the style spec says `"parts": {id: {"hidden": true}}` or when all its artists are hidden in
+    Customise. The SDK then rebuilds caption and `cites` from the visible parts; `caption_full` keeps the whole caption.
+  - `add_table(..., steps=[...])`, `add_values(values, needs={key: [steps]})`, `add_text(..., steps=[...])` name the
+    steps those pieces need. For tables and values added by a helper use `mark = b.added_mark()` and
+    `b.needs_since(mark, steps)`.
+  - Sentence ids stay running (`s1`, `s2`, ...), so saved picks and edits survive. Name the evaluation step with a dict
+    step `{"of": name, "text": sentence}` or with `step_tag("name")` inside a plain string (runs until the next mark;
+    `step_tag("")` = no step). Add new steps at the end.
+  - `add_methods(..., brief=b.brief_from(text))` gives the one-sentence text (measurement, standard, software) used
+    under *Short* when no shown piece needs an evaluation step. It is stored as step `kurz` and is not in the full text.
+  - The hub (`stepScope` in `server/lab.js`) keeps a step when a shown piece, part or value names it, or when no piece
+    names it. An undeclared figure, table or text counts as needing everything, so old bundles behave as before. A
+    live variant stands in for its piece, and the text follows when a variant is saved or removed. Edited sentences
+    stay stored, also while their step is not shown.
+- **Figure styles.** `add_figure` keeps the matplotlib figure until `to_dict()`. When `source.request.styles` is
+  `{figure id: spec}` (or `b.styles` is set), the SDK applies the spec with `sdk/python/labstyle.py` and redraws that
+  figure's PDF and PNG; the item gets `style` (the spec used, preset values filled in). With
+  `source.request.describe_figures` every figure gets `describe` (size, axes with labels, limits and scales, the named
+  series with colours, title) as the module drew it, plus `describe.now` (size after the style). Spec keys: `preset`
+  (journal column widths and fonts, see `labstyle.PRESETS`), `width_mm`, `aspect`, `font`, `font_size`, `line_width`,
+  `palette` (name or colour list), `series {legend label: {color, lw, ls, hidden, label}}`, `legend {show, loc,
+  frame}`, `title`, `axes [{xlabel, ylabel, xlim, ylim, xscale, yscale, grid, xticks, yticks}]`,
+  `elements {key: {hidden, color, lw, ls, alpha, size, bold, text, label}}` for any drawn line, marker, area, bar or
+  text, `groups {kind: {...}}` for every element of a kind at once (`axis_labels`, `tick_labels`, `series_names`,
+  `annotations`, `lines`, `markers`, `areas`; the props each takes are in `labstyle.GROUPS`; an element's own entry
+  wins, `hidden: false` shows it although its kind is hidden), `colors {background, plot, axes, ticks, grid, text}` and
+  `crop [left, top, right, bottom]` (share of the figure cut off). `font` is serif, sans, cm (Computer Modern) or any
+  font installed where the module runs (missing ones fall back with a note). Element keys come from
+  `describe.elements` (each with its `group` and, for texts and named elements, the full `raw` text):
+  `<axes>.<kind><n>` in drawing order, or `<axes>.<kind>:<legend label>` for named elements (numbers in the label
+  become `#`, so they survive new data); `f.text<n>` for figure texts. `describe.groups` counts the elements per kind.
+  `describe.now` adds the axes boxes in the saved image, so the editor can turn a box dragged on the preview into axis
+  limits. Values are checked and clipped; unknown keys are ignored. A module needs nothing beyond `add_figure` and
+  passing the request on.
+- **Preview of the editing window.** With `source.request.preview = {item, svg}` the SDK draws only figure `item`, no
+  PDF: an SVG with texts kept as text and element ids (`describe.now.gids`, element key → SVG ids, `@xlabel<i>` and
+  `@ylabel<i>` for axis labels), or a PNG when `svg` is false. The window changes colours, visibility, widths, line
+  styles, sizes and plain texts in that SVG at once and asks the module for the exact drawing after a short pause; the
+  hub keeps the last 40 previews in memory, so going back to an earlier state costs nothing.
 
 ## 4. What the hub does with it
 
@@ -170,7 +231,7 @@ Conventions:
 | `lab/labdata.tex` | `\labset`/`\labval` and an `\input` of every bundle's `values.tex` (regenerated) |
 
 Other endpoints: `GET /api/projects/<id>/lab` (list; each entry has `refs` = shares and index values it uses),
-`POST .../lab/<slug>/refresh` (body `{lang?}`), `DELETE .../lab/<slug>`, `GET /api/modules`,
+`POST .../lab/<slug>/refresh` (body `{lang?}`), `DELETE .../lab/<slug>[?section=1]`, `GET /api/modules`,
 `POST /api/modules/<id>/start|stop`. All non-GET `/api` calls need the header `X-Folio: 1`.
 
 Revisions and provenance: every replace or Refresh moves the previous revision to
@@ -193,6 +254,42 @@ inserted, `\input{lab/labdata}`, the needed packages (`graphicx`, `booktabs`, `p
 language). Figures, tables, `\labval` values and *linked* text (`\input{lab/<slug>/text-...}`) update; captions and
 *editable* text that were pasted into the user's files stay as the user left them. **Insert results section** writes
 `sections/<slug>.tex` once; that file belongs to the user afterwards.
+
+**Choosing what is shown, and variants.** An import keeps the whole bundle in `lab/<slug>/`; the manifest field
+`pick {items, values, methods}` says what was chosen, and pieces not chosen carry `hidden: true` (the Lab dialog lists
+them under "Also in this result"). `POST .../lab/<slug>/pick` `{items?, values?, methods?}` changes the choice without
+recomputing (`methods`: `{mode: full|short|custom|none, steps, eq, edits {step: {text, orig}}}`). An edited sentence
+replaces the module's wording in every mode where that step is shown (the item gets `edited_steps`); when a later
+Refresh changes the module's sentence (`orig` no longer matches), the item gets `edited_changed` and a warning, and the
+user's wording is kept. A **variant** (fork) is a styled or edited copy of
+one figure, table or text, stored as its own result:
+
+- `POST .../lab/<slug>/preview` `{item, style}` returns `{png, describe, style, caption}`: the module redraws the
+  figure; nothing is saved.
+- `POST .../lab/<slug>/fork` `{item, style?, caption?, text?, table? {hide: [column index], digits}, mode:
+  live|snapshot, title?, target?}` saves the variant (manifest field `fork {of, item, kind, mode, style, caption, text,
+  table, created}`, own label `fig:`/`tab:` + its slug). With `target` (or when `<slug>` is itself a variant) it
+  updates that variant in place as a new revision. Table variants hide columns and round numbers with decimals
+  (integers stay); tables with `\multicolumn` or rules in the column layout cannot lose columns.
+- `GET .../lab/<slug>/forks` lists the variants of a result. A **live** variant is rebuilt from its original's
+  current source on every Refresh of the original; a **snapshot** keeps its own stored source and is refreshed only on
+  its own. A figure can be restyled only if its result has a stored source (not for copies from other reports).
+- A figure variant can carry `place {width: 0.1..1|"full", pos: htbp|h|t|b|p|H, align: center|left|right}` (where it
+  sits in the document). The editor applies it to every float in the user's `.tex` files that shows that figure
+  (`figure*` for full width); `lab/labdata.tex` loads `float` when a variant uses `H`.
+
+**Removing a result as a unit.** `GET .../lab/<slug>/uses-info` returns what the editor needs to find the result in
+the user's text: `labels`, `keys` (citation keys no other result and no own `.bib` file provides), `shared_keys`,
+`values`, `numbers {label: {num, page}}` from the `.aux` files of the last compile, `section` and `variants`. The
+editor (`public/js/editor/labuses.mjs`, `findUses`) lists every place: floats and `\input` lines of the result and its
+results-section `\input` are removed, `\labval` values and references to its labels are frozen as
+`\labstale[<slug>]{<printed text>}` (prints the text with a dagger; `??` if never compiled), and its citation keys are
+dropped from `\cite` lists. After the user confirms, the editor saves the changed files and calls
+`DELETE .../lab/<slug>?section=1`, which moves the result (and `sections/<slug>.tex`) into the project's bin
+`lab-bin/<slug>-<time>/` and returns `{kept, undo}`. An issued result is also kept in `lab/_removed/` as before.
+`POST .../lab-undo {undo}` brings the result back; the editor restores the text. Bin entries older than 14 days are
+deleted on the next removal. The same flow runs from the Lab dialog, from deleting `lab/<slug>` in the file tree and
+from the citation picker, where a result's references are grouped under it.
 
 **Import into a report** (no module involved): `GET /api/import/sources?target=<id>`,
 `GET /api/import/pieces?type=report|zip|suite&project=|stage=`, `POST /api/import/stage?name=` (raw ZIP),
@@ -283,6 +380,58 @@ database (`materials.validate()` must stay empty, `sdk/python/tests/test_materia
   the reference or equation.
 - Modelled reference data (FTIR and TGA model libraries) is labelled "modelled, not measured" in the UI, in the figure
   label, in its citation and in the methods text.
+
+### Measurement uncertainty
+
+Every module lets the user attach an uncertainty to a measured or entered value and carries it into results, shared
+values, the project index and the report. The calculations live in `sdk/python/labcalc/uncertainty.py`; the server
+routes and the suite's own instruments in `sdk/python/labunc.py`; the page parts in `sdk/web/labunc.js`.
+
+**Inputs.** An uncertain input is `{"name", "value", "unit", "label", "parts": [...]}`. Each part is one contribution,
+and the parts add in quadrature:
+
+| `kind` | Fields | Standard uncertainty |
+|---|---|---|
+| `u` | `u`, optional `dof` | as given |
+| `U` | `U`, `k` (default 2) | U/k |
+| `limits` | `a`, `dist` (`rect`, `tri`, `arcsine`, `normal` = 3σ) | a/√3, a/√6, a/√2, a/3 |
+| `resolution` | `d` | d/(2√3) |
+| `rel` | `pct`, `dist` | pct % of the value, then as `limits` |
+| `spec` | `pct`, `digits`, `d` | (pct % · \|x\| + digits · d)/√3 |
+| `repeats` | `values` | s/√n, n − 1 degrees of freedom (type A) |
+| `sd` | `sd`, `n` | s/√n (type A) |
+| `ci` | `half`, `level`, `n` | half / t |
+| `instrument` | `id`, optional `params` | from `labcalc/data/instruments.json` or the suite's `messmittel.json` |
+
+A value without parts is exact. Every built-in instrument names its source (a standard in `labcalc/sources.py`).
+
+**Methods.** `UN.evaluate(model, inputs, method, corr=None, p=0.95, k=None, unit=, label=, name=)` with `method` one
+of `gum`, `mc`, `gauss`, `worst`. `UN.compare(...)` runs all four. The model is a Python function of a dict of values
+that should accept numpy arrays (Monte Carlo is then vectorised), or `{"expr": "F/(pi*d^2/4)"}`. A scalar-only model
+still works, but Monte Carlo then stops at 4000 trials and says so. Correlations are optional:
+`[{"a": "x1", "b": "x2", "r": 0.5}]`. The result is JSON with `value`, `u`, `U`, `k`, `lo`, `hi`, `budget`,
+`notes`, `note_texts`, `text`, `refs`, `refs_full`.
+
+**In a module.**
+
+1. Server: add `"/labunc.js"` to the served SDK files, and route
+   `if p.startswith("/api/unc/"): return self._json(labunc.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))`.
+   Call `labunc.load_own(envs)` before evaluating if an input may name an own instrument.
+2. Page: `<script src="labunc.js">`. Use `LabUnc.attach(input, {key, label, unit})` next to every numeric input that
+   holds a measured or entered value. Keep `LabUnc.all()` in the saved state and the request, and restore it with
+   `LabUnc.load(state.unc)`. Offer `LabUnc.methodPicker` once per module (the method is part of the state), and show
+   results with `LabUnc.result(el, res, {compare})`.
+3. Results: every result that depends on an uncertain input gets an uncertainty from the chosen method. Show it as
+   "value ± U" with the budget in a fold. A result whose model is a whole curve evaluation (a fit, a peak search)
+   gets a model the module writes down explicitly (e.g. `Rm = Fmax/S0`). Otherwise it gets the fit's own parameter
+   uncertainty, labelled as such.
+4. Carrying: the value catalogue sends `u` (standard uncertainty) and `unc` (method name) with each value.
+   `labcalc.formulas.evaluate` propagates `u`/`unc` of variables into own equations. `merge_ext` keeps `u` of incoming
+   values. Project-index entries take `quantity.u`.
+5. Report: `UN.to_report(b, results, lang, prefix)` writes `\labval{slug}{<name>-pm}` (value ± U), `-u`, `-U`, a
+   budget table `<name>-budget` and a methods sentence. It cites the method (JCGM 100/101, DIN 1319-4, Taylor) and
+   every instrument's source. Keep the inputs' specs in `source.request`, so Refresh reproduces the same numbers. Monte
+   Carlo uses a fixed seed.
 
 ## 6. Checklist for a new module (e.g. FTIR)
 

@@ -150,6 +150,23 @@ from . import graph as _G  # noqa: E402
 _G.DATASETS = ds_resolve
 
 
+class _NoEnvs:
+    """Ohne Projektumgebung (Einzelstart ohne --aus, Tests): eingebaute Messmittel ja, eigene nicht."""
+
+    def ensure(self):
+        raise EnvError("Keine Projektumgebung – eigene Messmittel sind hier nicht verfügbar")
+
+
+def unc_envs():
+    return ENVS if ENVS is not None else _NoEnvs()
+
+
+def load_own_instruments():
+    """Eigene Messmittel der Suite für die Auswertung bekannt machen (Eingaben dürfen sie nennen)."""
+    import labunc
+    labunc.load_own(unc_envs())
+
+
 def dataset_route(req: dict) -> dict:
     """DP-M6: datasets (`data.table`) addressed to the Rechner – list them, or read chosen columns of one version.
     mode live = newest version, pin = the version given (an update is offered when a newer one exists)."""
@@ -232,13 +249,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
         if p == "/api/meta":
             return self._json(meta_payload())
-        if p in ("/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js"):   # UI-04, I-02
+        if p in ("/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js",
+                 "/labunc.js"):                         # gemeinsame Seitenskripte
             return self._send(200, labcite.web_asset(p[1:]), "text/javascript; charset=utf-8")
         self._send(404, b"nicht gefunden", "text/plain")
 
     def do_POST(self):
         origin = self.headers.get("Origin")
         if origin and not ORIGIN_OK.match(origin):
+            n = int(self.headers.get("Content-Length") or 0)
+            if 0 < n <= 1 << 20:
+                self.rfile.read(n)                       # read the small body so the answer arrives cleanly
             return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)
         try:
             return self._route(urlparse(self.path).path)
@@ -259,6 +280,9 @@ class Handler(BaseHTTPRequestHandler):
         if p.startswith("/api/prov/"):                 # A8: Herkunftskette, Abhängigkeiten
             import labprov
             return self._json(labprov.route(ENVS, p.rsplit("/", 1)[1], req))
+        if p.startswith("/api/unc/"):                  # Messunsicherheit: Messmittel, Vorschau im ±-Fenster, Verfahren
+            import labunc
+            return self._json(labunc.route(unc_envs(), p.rsplit("/", 1)[1], req))
         if p == "/api/materials":                      # Werkstoffdatenbank für die Auswahl in der Bibliothek
             return self._json(materials_payload(req.get("lang") or "de"))
         if p == "/api/material":
@@ -268,13 +292,20 @@ class Handler(BaseHTTPRequestHandler):
             except MAT.MatError as e:
                 return self._json({"error": str(e)}, 400)
         if p == "/api/eval":
-            return self._json(CON.evaluate_line(req))
+            out = CON.evaluate_safe(req)
+            return self._json(out, 400 if out.get("error") else 200)
         if p == "/api/sheet":
             return self._json(S.eval_sheet(req))
         if p == "/api/workspace":
             from . import dsvars as DV
             from . import workspace as W
+            load_own_instruments()
             return self._json(W.evaluate(DV.attach(req, ENVS)))    # DP-11: Datensatz-Spalten als Listenvariablen
+        if p == "/api/workspace/compare":              # Messunsicherheit einer Zeile nach allen vier Verfahren
+            from . import dsvars as DV
+            from . import workspace as W
+            load_own_instruments()
+            return self._json(W.compare_line(DV.attach(req, ENVS)))
         if p == "/api/dataset":                        # DP-M6: Tabelle aus einem Datensatz der Datenaufbereitung
             return self._json(dataset_route(req))
         if p == "/api/graph":
@@ -315,6 +346,7 @@ class Handler(BaseHTTPRequestHandler):
             old = src.get("request") or {}
             req = {**old, **{k: v for k, v in req.items() if k != "source"}}
         req = DV.attach(req, ENVS)                     # DP-11: live = neueste Version, gepinnt bleibt
+        load_own_instruments()
         lang = req.get("lang", "de")
         try:
             return self._json(B.build(req, lang=lang, include=req.get("include"), title=req.get("title")))
@@ -327,6 +359,7 @@ def env_bundle(_stored, report: dict, lang: str) -> dict:
     from . import bundle as B
     from . import dsvars as DV
     req = DV.attach({**report, "lang": lang}, ENVS)
+    load_own_instruments()
     return B.build(req, lang=lang, include=req.get("include"), title=req.get("title"))
 
 
@@ -339,7 +372,8 @@ def env_default_report(_stored, client: dict, _eid: str = "") -> dict | None:
     vars_ = ex.get("vars") or {}
     mats: dict = {}                                     # Matrizen erst mit dem Berichtsauftrag der Seite
     return {"values": ex.get("values") or [], "vars": vars_, "dsvars": ex.get("dsvars") or [], "plots": [],
-            "envs": [{"id": e.get("id"), "name": e.get("name"), "items": e.get("items") or [], "derive": e.get("derive") is not False}
+            "envs": [{"id": e.get("id"), "name": e.get("name"), "items": e.get("items") or [], "derive": e.get("derive") is not False,
+                      **({"unc": e["unc"]} if isinstance(e.get("unc"), dict) else {})}
                      for e in ex["envs"] if isinstance(e, dict)],
             "matrices": mats, "angle": ex.get("angle"), "complex": ex.get("complex"), "digits": ex.get("digits"),
             "include": {}, "title": "Berechnung"}

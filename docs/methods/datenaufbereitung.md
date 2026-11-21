@@ -12,7 +12,7 @@ How the resulting numbers are traced back to the raw file in a report is describ
 
 State the software and the module version:
 
-> Data were prepared with Folio Lab 0.4.0, module Datenaufbereitung 0.3.0.
+> Data were prepared with Folio Lab 0.5.0, module Datenaufbereitung 0.4.0.
 
 The Folio Lab version is in `package.json`; a report result records it as `provenance.suite_version`. The module version is in `modules/datenaufbereitung/module.json`
 (`"version": "0.3.0"`, identical to `daten/__init__.py`). Every dataset records the version of the module process
@@ -41,7 +41,8 @@ Version 0.3.0 changed results in several places; they are listed at the end of e
 12. [Exports](#12-exports)
 13. [Dataset versioning and derived datasets](#13-dataset-versioning-and-derived-datasets)
 14. [Changes in 0.3.0](#changes-in-030)
-15. [Known limitations](#known-limitations)
+15. [Measurement uncertainty](#measurement-uncertainty)
+16. [Known limitations](#known-limitations)
 
 Test paths below are relative to the project root. Module tests run with
 `python -m unittest discover -s tests` from `modules/datenaufbereitung` with `PYTHONPATH=../../sdk/python;.`.
@@ -707,6 +708,58 @@ Results that can differ from 0.2.0 when the same data are processed again:
 | NIST citation | no DOI | doi:10.18434/M32189 |
 | Bundle Refresh | always the same version | pinned (default) or newest version, with a note |
 
+## Measurement uncertainty
+
+Code: `daten/uncert.py`.
+
+**± columns → standard uncertainty.** The numbers of an uncertainty column stay as read, with their stated type. Where
+an uncertainty is used, it is converted per row into a standard uncertainty u in the unit of its value column
+(`uncert.std_u`; the factor comes from `labcalc.uncertainty.standard_u`):
+
+| `u_type` | u | Source |
+|---|---|---|
+| `u` | as given | JCGM 100:2008, 2.3.1 |
+| `se` | as given (standard uncertainty of the mean) | JCGM 100:2008, 4.2.3 |
+| `U` (with k) | U/k | JCGM 100:2008, 4.3.3 |
+| `sd` | s (standard uncertainty of a single value; for a mean of n values choose `se`) | JCGM 100:2008, 4.2.2 |
+| `ci` (with level p) | half-width / z₍₁₊ₚ₎/₂ (normal distribution assumed, ν unknown; 1.96 at 95 %) | JCGM 100:2008, 4.3.4 |
+| not stated | not used | – |
+
+An uncertainty column in another unit of the same dimension is scaled without offset (µm against mm, K against °C).
+The check chip of the column and the methods text name the conversion ("→ u = U/k mit k = 2 (JCGM 100:2008, 4.3.3)").
+
+**Repeated measurement (`uncert.repeats`, route `/api/repeat`).** The numbers of the selected cells (at most
+10 000): mean x̄, s with n − 1, u = s/√n, ν = n − 1 (type A, JCGM 100:2008, 4.2.2–4.2.3). The page keeps it with the
+file and offers it as a value with `u` in the value catalogue of the environment.
+
+**Formula columns (`uncert.formula_u`).** If the columns named in a formula have a standard uncertainty, the new
+column gets an uncertainty column `u(name)` (`u_type` `u`, linked with `u`). Per row,
+u²(y) = Σ (∂f/∂xᵢ)² u²(xᵢ) with central differences (step uᵢ/100) in SI (`labcalc.uncertainty.gum_rows`, first order,
+inputs independent, JCGM 100:2008, 5.1.2). Constants are exact. A row whose input has a value but no u, or whose result
+is missing, gets no u. The step `{"unc": false}` switches this off.
+
+**Type-B column (step `{"op": "unc", "col", "parts"}`).** The parts are the shared input format of
+`labcalc.uncertainty` (instrument classes of the shared library with their sources, limits ±a with a distribution,
+resolution, % of value, manufacturer spec). u_B is evaluated per distinct value (at most 100 000) and written to
+`u_B(name)`; if the column already had a usable uncertainty, `u(name) gesamt` = √(u² + u_B²) is added and becomes the
+linked column (rows without a stated ± use u_B alone).
+
+**Report.** Table `unsicherheiten` (column, uncertainty column, conversion, n, median u, median u/|x|); a methods
+sentence that uncertainties are standard uncertainties, how formula and type-B columns got theirs, citing JCGM 100
+and the sources of the instruments; error bars in the figure show ±u (as given while the type is not stated).
+
+**Validation.**
+
+| Test | Checks |
+|---|---|
+| `modules/datenaufbereitung/tests/test_uncertainty.py::Conversion::test_factors` | U/k = 0.5 for k = 2; 1/1.959964 at 95 %; s, SE as is; not stated → none |
+| `…::test_pm_column_converts` | `1,5 ± 0,2` with U, k = 2 → u = 0.1; µm against mm; chip text |
+| `…::test_repeats` | mean, s, s/√5, ν = 4 |
+| `…::Derived::test_formula_column_u_matches_hand` | u(F·L) = √((L u_F)² + (F u_L)²) per row; missing u → no u; constant exact |
+| `…::test_type_b_column` | a/√3; calliper class (MPE and reading) from the library; combined with a stated ± |
+| `…::Report::test_bundle_shows_u_columns_and_method` | table, methods text with conversion, GUM and `unc-jcgm100` |
+| `…::Routes::test_labunc_and_repeat` | `/labunc.js`, `/api/unc/instruments`, `/api/repeat` |
+
 ## Known limitations
 
 * **Dixon table not checked against the publication.** The values agree with an independent computation of the
@@ -723,7 +776,10 @@ Results that can differ from 0.2.0 when the same data are processed again:
   difference-name rule is a heuristic on names and symbols.
 * **Times without a zone** are taken as local wall-clock time. Daylight-saving changes are only *detected* (EU and
   USA/Canada rules since 1996/2007, three heuristics), never corrected. Other regions are not checked.
-* **`±` type** is only recorded, not used: no conversion between u, U, s, SE or confidence intervals.
+* **Uncertainty propagation** is first order with independent inputs (no correlation between columns or rows).
+  A confidence interval is converted with the normal distribution (the number of values behind it is not known).
+  Cleaning steps other than formulas (smoothing, joining, averaging) do not propagate a stated ±; averaging gives the
+  standard error instead.
 * **Caps** (all reported): 200 000 reading flags per column and kind; 20 000 `interpolated` flags per joined
   column; ODS filled-row repeats read 100 000 times; 100 000 flags listed in the XLSX "Protokoll"; 50 000 flags per
   cleaning step (refused).

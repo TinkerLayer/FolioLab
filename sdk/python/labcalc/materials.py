@@ -108,8 +108,20 @@ def _db() -> dict:
     return {"rows": rows, "index": index, "diffusion": db.get("diffusion") or [], "hinweis": db.get("_hinweis", "")}
 
 
+@lru_cache(maxsize=None)
+def _ranges() -> dict:
+    """Spannen je Werkstoff und Eigenschaft (``data/ranges.json``); fehlende oder kaputte Datei -> leer."""
+    p = DATA / "ranges.json"
+    try:
+        d = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+    except (OSError, ValueError):
+        d = {}
+    return d if isinstance(d, dict) else {}
+
+
 def reload() -> None:
     _db.cache_clear()
+    _ranges.cache_clear()
 
 
 def materials(klasse: str | None = None) -> list[dict]:
@@ -183,9 +195,63 @@ def props_of(name) -> list[str]:
     return [p for p in PROPS if p in have] + sorted(have - set(PROPS))
 
 
+def ranges_meta() -> dict:
+    """Erläuterung der Spannen in ``data/ranges.json``: {"format", "de", "en"}."""
+    d = _ranges()
+    return {"format": d.get("_format", ""), "de": d.get("_hinweis", ""), "en": d.get("_hinweis_en", "")}
+
+
+def _range_source(q) -> tuple[str | None, dict | None]:
+    """(Schlüssel, Quellendatensatz) einer Spanne: Eintrag in ranges.json "quellen" oder labcalc-Quellenschlüssel."""
+    from . import sources as S
+    if not q:
+        return None, None
+    rec = (_ranges().get("quellen") or {}).get(q)
+    if isinstance(rec, dict):
+        return q, dict(rec)
+    if q in S.REFS:
+        return q, S.ref(q)
+    return q, {"type": "misc", "title": str(q)}
+
+
+def range_of(name, prop: str) -> dict | None:
+    """Spanne aus ``data/ranges.json`` (auch ohne gespeicherten Einzelwert) oder None:
+    {"material", "prop", "min_si", "max_si", "min", "max", "u", "range_key", "range_source", "range_art", "note"}."""
+    r = find(name)
+    b = ((_ranges().get("bereiche") or {}).get(r["id"]) or {}).get(prop)
+    if not isinstance(b, dict) or b.get("min") is None or b.get("max") is None or prop not in PROPS:
+        return None
+    u = b.get("u") or PROPS[prop][1]
+    key, rec = _range_source(b.get("q"))
+    return {"material": r, "prop": prop, "min_si": float(U.to_si(float(b["min"]), u)),
+            "max_si": float(U.to_si(float(b["max"]), u)), "min": b["min"], "max": b["max"], "u": u,
+            "range_key": key, "range_source": rec, "range_art": b.get("art", ""), "note": b.get("note", "")}
+
+
 def value(name, prop: str) -> dict:
     """Kennwert mit Herkunft: {"material", "prop", "si", "min_si", "max_si", "v", "u", "art", "key", "source",
-    "nicht_geprueft", "kind"}. Bei Text (Kristallstruktur) steht der Text in "text" und "si" ist None."""
+    "nicht_geprueft", "kind", "range_key", "range_source", "range_art", "range_note", "range_own"}. Bei Text
+    (Kristallstruktur) steht der Text in "text" und "si" ist None.
+
+    Trägt der Wert selbst keine vollständige Spanne (min und max), kommt sie aus ``data/ranges.json`` mit deren
+    eigener Quelle ("range_own" False); sonst bleibt die eigene Spanne mit der Quelle des Werts ("range_own" True)."""
+    v = _value(name, prop)
+    if v.get("si") is None:
+        return v
+    if v.get("min_si") is not None and v.get("max_si") is not None:
+        v.update(range_key=v.get("key"), range_source=v.get("source"), range_art=v.get("art", ""), range_note="",
+                 range_own=True)
+        return v
+    rg = range_of(v["material"], v["prop"])
+    if rg is None:
+        v.update(range_key=None, range_source=None, range_art="", range_note="", range_own=False)
+    else:
+        v.update(min_si=rg["min_si"], max_si=rg["max_si"], range_key=rg["range_key"], range_source=rg["range_source"],
+                 range_art=rg["range_art"], range_note=rg["note"], range_own=False)
+    return v
+
+
+def _value(name, prop: str) -> dict:
     r = find(name)
     if prop not in PROPS:
         alias = {"density": "rho", "E_mod": "E", "poisson": "nu", "Re": "Rp", "Rp02": "Rp", "Tg_": "Tg", "k": "lambda",
@@ -292,7 +358,7 @@ def _fmt(v: dict, unit: str) -> str:
         return f"{y:.4g}".replace("e+0", "e").replace("e-0", "e-")
     shown_u = {"g/cm^3": "g/cm³", "µm/(m*K)": "10⁻⁶/K", "W/(m*K)": "W/(m·K)", "J/(kg*K)": "J/(kg·K)",
                "µOhm*cm": "µΩ·cm", "MPa*m^0.5": "MPa·√m", "1": ""}.get(unit, unit)
-    if v.get("min_si") is not None and v.get("max_si") is not None:
+    if v.get("min_si") is not None and v.get("max_si") is not None and v.get("range_own", True):
         s = f"{f(v['min_si'])} … {f(v['max_si'])}"
     else:
         s = f(v["si"])

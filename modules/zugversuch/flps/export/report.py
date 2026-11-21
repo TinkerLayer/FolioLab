@@ -146,6 +146,31 @@ def _wrap_lines(text: str, width: int) -> list[str]:
     return textwrap.wrap(text, width=width) or [""]
 
 
+UNC_SHOW = ("Rm", "Fmax", "sy", "E", "Agt", "A")
+
+
+def _short(x: dict) -> str:
+    """Ergebnistext ohne den Zusatz „(k = …; p ≈ …)“ bei GUM/Gauss; Intervalle (Monte Carlo, Grösstfehler) ganz."""
+    t = x.get("text") or ""
+    return t.split(" (")[0] if x.get("method") in ("gum", "gauss") else t
+
+
+def _unc_line(r: Result):
+    """Eine Zeile „Messunsicherheit“ für Seite 4: die wichtigsten Kennwerte mit ± (Budgets im Bericht für Folio)."""
+    res = ((r.unc or {}).get("results") or {})
+    if not res:
+        return None
+    meth = r.unc["settings"]["method"]
+    parts = [f"{n} {_short(res[n])}" for n in UNC_SHOW
+             if n in res and not res[n].get("error") and res[n].get("text")]
+    if r.mode != "Spannung":
+        parts = [p for p in parts if not p.startswith("Rm")]
+    if not parts:
+        return None
+    name = {"gum": "GUM", "mc": "Monte Carlo", "gauss": "Gauss", "worst": "Grösstfehler"}.get(meth, meth)
+    return (f"Messunsicherheit ({name})", "; ".join(parts) + ". Budgets nach ISO 6892-1 Anh. J im Bericht für Folio")
+
+
 def _page_values(r: Result, nr, total):
     fig = _page("Kennwerte und Gültigkeit", _subline(r), nr, total, r.name)
     kv, st, u = r.kv, r.mode == "Spannung", r.unit
@@ -180,6 +205,9 @@ def _page_values(r: Result, nr, total):
                      (f"{e['label']}: " if e.get("label") else "") + f"{e['sym']} = {e['expr']} = {val}{src}"))
     if len(eqs) > 5:
         rows.append(("Eigene Gleichungen", f"{len(eqs) - 5} weitere, vollständig im Bericht für Folio"))
+    ur = _unc_line(r)
+    if ur:
+        rows.append(ur)
     ax = fig.add_axes([0.06, 0.52, 0.88, 0.39])
     ax.axis("off")
     y = 1.0
@@ -489,6 +517,22 @@ def write_comparison_report(results: list[Result], path: Path) -> Path:
     return path
 
 
+def _series_line(results: list[Result]) -> str:
+    """Serie mit Messunsicherheit: Mittelwert ± U je Kennwert (Typ A aus der Streuung, flps/uncertainty.series)."""
+    if not any(r.unc for r in results):
+        return ""
+    try:
+        from .. import uncertainty as UNC
+        ser = UNC.series(results, "de")
+    except ImportError:
+        return ""
+    parts = [f"{n} {_short(ser[n])}" for n in UNC_SHOW if n in ser and ser[n].get("text")]
+    if not parts:
+        return ""
+    n = next(iter(ser.values()))["n"]
+    return f"Serie (n = {n}, Mittelwert, Typ A aus der Streuung plus mittleres Einzelbudget): " + "; ".join(parts) + "."
+
+
 def build_comparison(results: list[Result]):
     names = ", ".join(r.name for r in results)
     modes = {r.mode for r in results}
@@ -544,5 +588,8 @@ def build_comparison(results: list[Result]):
     foot = ("Hinweise je Messung im jeweiligen Einzelbericht (" + ", ".join(codes) + "). "
             + ("Dehnung scheinbar (Traversenweg). " if has_eps else "")
             + "Gleiche Schwellen und Kriterien vorausgesetzt.")
+    ser = _series_line(results)
+    if ser:
+        foot += " " + ser
     fig.text(0.06, 0.04, "\n".join(textwrap.wrap(foot, 135)), fontsize=7.5, color=MUTED, va="bottom")
     return fig

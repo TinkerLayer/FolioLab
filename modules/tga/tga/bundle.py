@@ -8,14 +8,15 @@ import numpy as np
 
 try:
     import labcite
-    from labbundle import Bundle, booktabs, cite, cite_keys, num, tex_escape
+    from labbundle import Bundle, booktabs, cite, cite_keys, num, step_tag, tex_escape
 except ImportError:  # Modul ausserhalb von Folio Lab gestartet
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "sdk" / "python"))
     import labcite
-    from labbundle import Bundle, booktabs, cite, cite_keys, num, tex_escape
+    from labbundle import Bundle, booktabs, cite, cite_keys, num, step_tag, tex_escape
 
 from . import charts as C
 from . import kinetics as K
+from . import uncert as UC
 from .analysis import Analysis, arr, run
 from .library import GRID, MODEL_ID
 from .readers import load_bytes
@@ -23,7 +24,7 @@ from .refs import REFS
 
 T = {
     "de": {"module": "TGA", "title1": "TGA {n}", "titleN": "TGA-Vergleich", "methods": "Methodik", "results": "Ergebnisse",
-           "fig_tg": "Thermogravimetrie von {n}: Masse (TG) und Massenverlustrate (DTG){st}.", "fig_tg_st": " mit Stufen und extrapolierten Onsets",
+           "fig_tg": "Thermogravimetrie von {n}: Masse (TG){{parts}}.", "fig_tg_dtg": "Massenverlustrate (DTG)", "fig_tg_st": "Stufen mit extrapolierten Onsets",
            "fig_cmp": "TG- und DTG-Kurven im Vergleich: {n}.", "fig_search": "Bibliothekssuche für {n}: DTG der Probe (oben) und die besten Treffer{mod}.",
            "fig_search_mod": "; Modellreferenzen sind aus Literaturwerten berechnet, nicht gemessen",
            "fig_mix": "Mischungsanalyse für {n}: DTG der Probe, angepasste Mischung und Komponenten; unten der Rest.",
@@ -41,7 +42,7 @@ T = {
            "h_cmp": ["Probe", r"$T_{5\%}$ [°C]", r"Stufe 1 [\%]", r"$T_\mathrm{p,1}$ [°C]", r"Rückstand [\%]"],
            "res": "Rückstand", "mean": "Mittelwert ± s"},
     "en": {"module": "TGA", "title1": "TGA {n}", "titleN": "TGA comparison", "methods": "Methods", "results": "Results",
-           "fig_tg": "Thermogravimetry of {n}: mass (TG) and rate of mass loss (DTG){st}.", "fig_tg_st": " with steps and extrapolated onsets",
+           "fig_tg": "Thermogravimetry of {n}: mass (TG){{parts}}.", "fig_tg_dtg": "rate of mass loss (DTG)", "fig_tg_st": "steps with extrapolated onsets",
            "fig_cmp": "TG and DTG curves compared: {n}.", "fig_search": "Library search for {n}: DTG of the sample (top) and best hits{mod}.",
            "fig_search_mod": "; model references are calculated from literature values, not measured",
            "fig_mix": "Mixture analysis for {n}: sample DTG, fitted mixture and components; residual below.",
@@ -120,6 +121,14 @@ def _mix(a: Analysis):
                 components=[dict(c, y=arr(c.get("y"))) for c in m["components"]])
 
 
+def _eq_needs(b: Bundle, at: tuple, steps: list):
+    """Eigene Gleichungen: Tabelle, Budgets und Werte seit ``at`` brauchen den Gleichungsblock des Methodentexts."""
+    for it in b.items[at[0]:]:
+        if it.get("kind") == "table":
+            it["needs"] = {"steps": list(steps)}
+    b.needs_since(at, steps)
+
+
 def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: dict, prefix: str = ""):
     L = T[lang]
     n = tx(a.name)
@@ -163,39 +172,56 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
         rk["overlay"] = ref_keys(b, ovs, lang)
     st = a.steps
     if inc.get("figures", True):
-        cap = L["fig_tg"].format(n=n, st=L["fig_tg_st"] if st else "")
-        if ovs:
-            names = ", ".join(tx(o.get("name", "")) for o in ovs)
-            cap += (f" Gestrichelt zum Vergleich: {names}" if lang == "de" else f" Dashed for comparison: {names}") + \
-                   ((" (modelliert aus Literaturwerten)" if lang == "de" else " (modelled from literature values)")
-                    if any(o.get("modelled") for o in ovs) else "") + "."
-        b.add_figure(C.fig_tg_dtg(a, lang), f"tg{pid}", cap, width="0.9", dpi=150,
-                     cites=([cites["data"]] + list(rk.get("overlay") or [])) if cit else None)
+        de = lang == "de"
+        tparts = [{"id": "dtg", "label": "DTG", "steps": ["dtg"], "caption": L["fig_tg_dtg"]}]
+        if st:
+            tparts.append({"id": "stufen", "label": "Stufen" if de else "Steps", "steps": ["dtg", "stufen"], "caption": L["fig_tg_st"]})
+        if (a.st.get("residue") or {}).get("end") is not None:
+            tparts.append({"id": "rueckstand", "label": "Rückstand" if de else "Residue"})
+        for i, o in enumerate(ovs, 1):                 # jede eingeblendete Referenz mit ihrer eigenen Quelle
+            tparts.append({"id": f"referenz{i}", "label": o.get("name") or f"{i}", "list": "Gestrichelt zum Vergleich:" if de else "Dashed for comparison:",
+                           "note": tx(o.get("name", "")) + (((" (modelliert aus Literaturwerten)" if de else " (modelled from literature values)"))
+                                                            if o.get("modelled") else ""),
+                           "cites": ref_keys(b, [o], lang) if cit else []})
+        b.add_figure(C.fig_tg_dtg(a, lang), f"tg{pid}", L["fig_tg"].format(n=n), width="0.9", dpi=150,
+                     cites=[cites["data"]] if cit else None, steps=[], parts=tparts)
         if hits and q is not None and drawn:
             mod = any(h.get("modelled") for h in drawn)
+            hparts = [{"id": f"treffer{i}", "label": h.get("name") or f"{i}", "cites": ref_keys(b, [h], lang) if cit else []}
+                      for i, h in enumerate(drawn, 1)]
             b.add_figure(C.fig_search(GRID, q, hits, lang, a.name), f"suche{pid}",
-                         L["fig_search"].format(n=n, mod=L["fig_search_mod"] if mod else ""), width="0.9", dpi=150, cites=rk.get("drawn"))
+                         L["fig_search"].format(n=n, mod=L["fig_search_mod"] if mod else ""), width="0.9", dpi=150,
+                         steps=["suche", "dtg"], parts=hparts)
         if mix and mix["query"] is not None:
+            mparts = [{"id": f"komponente{i}", "label": x.get("name") or f"{i}", "cites": ref_keys(b, [x], lang) if cit else []}
+                      for i, x in enumerate(mix.get("components") or [], 1)]
             b.add_figure(C.fig_mixture(GRID, mix["query"], mix, lang, a.name), f"mischung{pid}", L["fig_mix"].format(n=n),
-                         width="0.9", dpi=150, cites=rk.get("mix"))
+                         width="0.9", dpi=150, steps=["mischung", "dtg"], parts=mparts)
         if a.comp and a.comp.get("rows"):
             b.add_figure(C.fig_composition(a.comp, lang), f"zusammensetzung{pid}", L["fig_comp"].format(n=n, p=tx(a.comp["label"])),
-                         width="0.9", dpi=150, cites=[cites["comp"]] if cites.get("comp") else None)
+                         width="0.9", dpi=150, cites=[cites["comp"]] if cites.get("comp") else None, steps=["zusammensetzung"])
         if a.deconv and not a.deconv.get("error"):
             b.add_figure(C.fig_deconv(a.deconv, lang, a.name), f"trennung{pid}", L["fig_dc"].format(n=n), width="0.9", dpi=150,
-                         cites=cites["fs"].split(",") if cites.get("fs") else None)
+                         cites=cites["fs"].split(",") if cites.get("fs") else None, steps=["dtg", "trennung"])
         if a.dsc and any("error" not in p for p in (a.dsc.get("peaks") or []) + (a.dsc.get("tg") or [])):
+            dk = cites["dsc"].split(",") if cites.get("dsc") else []
+            dparts = []
+            if any("error" not in p for p in a.dsc.get("peaks") or []):
+                dparts.append({"id": "peaks", "label": "Peaks", "cites": dk[:1],
+                               "caption": ("ausgewerteten Peaks (Basislinie gestrichelt, Fläche schattiert)" if lang == "de" else
+                                           "evaluated peaks (baseline dashed, area shaded)")})
+            if any("error" not in g for g in a.dsc.get("tg") or []):
+                dparts.append({"id": "glas", "label": "Glasübergänge" if lang == "de" else "Glass transitions", "cites": dk[-1:],
+                               "caption": "Glasübergängen" if lang == "de" else "glass transitions"})
             b.add_figure(C.fig_dsc(a.run, a.dsc, lang), f"dsc{pid}",
-                         (f"Wärmestrom von {n} mit ausgewerteten Peaks (Basislinie gestrichelt, Fläche schattiert) und Glasübergängen."
-                          if lang == "de" else
-                          f"Heat flow of {n} with evaluated peaks (baseline dashed, area shaded) and glass transitions."),
-                         width="0.9", dpi=150, cites=cites["dsc"].split(",") if cites.get("dsc") else None)
+                         f"Wärmestrom von {n}{{parts}}." if lang == "de" else f"Heat flow of {n}{{parts}}.",
+                         width="0.9", dpi=150, steps=["dsc"], parts=dparts)
     if inc.get("tables", True):
         if st:
             rows = [[str(x["no"]), _n(x.get("T_onset"), 1, lang), _n(x.get("T_peak"), 1, lang), _n(x.get("T_endset"), 1, lang),
                      _n(x["loss"], 2, lang), _n(x.get("loss_mg"), 3, lang)] for x in st]
             b.add_table(f"stufen{pid}", booktabs(L["h_steps"], rows, align="rrrrrr", small=True, escape_header=False),
-                        L["tab_steps"].format(n=n), cites=[cites["iso"]] if cit else None)
+                        L["tab_steps"].format(n=n), cites=[cites["iso"]] if cit else None, steps=["dtg", "stufen"])
         rows = []
         for lv, x in (a.st.get("loss_T") or {}).items():
             if x and x.get("T") is not None:
@@ -205,7 +231,7 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
             rows.append([L["res"] + (f" ({_n(res.get('T_end'), 0, lang)} °C)" if res.get("T_end") is not None else ""),
                          _n(res["end"], 2, lang) + r"~\%"])
         if rows:
-            b.add_table(f"kennwerte{pid}", booktabs(L["h_char"], rows, align="lr", small=True), L["tab_char"].format(n=n))
+            b.add_table(f"kennwerte{pid}", booktabs(L["h_char"], rows, align="lr", small=True), L["tab_char"].format(n=n), steps=[])
         if a.comp and a.comp.get("rows"):
             basis = a.comp.get("basis")
             rows = []
@@ -218,28 +244,31 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
             head = L["h_comp"] + ([r"trocken [\%]" if lang == "de" else r"dry [\%]"] if basis else [])
             b.add_table(f"zusammensetzung{pid}", booktabs(head, rows, align="llrr" if basis else "llr", small=True, escape_header=False),
                         L["tab_comp"].format(n=n, p=tx(a.comp["label"])), notes=notes,
-                        cites=[cites["comp"]] if cites.get("comp") else None)
+                        cites=[cites["comp"]] if cites.get("comp") else None, steps=["zusammensetzung"])
         if a.reactions:
             rows = [[tx(r["label"]), str(r["step"]), _n(r["theory"], 2, lang), _n(r["content"], 1, lang)] for r in a.reactions]
             b.add_table(f"stoechiometrie{pid}", booktabs(L["h_rx"], rows, align="lrrr", small=True, escape_header=False),
-                        L["tab_rx"].format(n=n), cites=cites["stoich"].split(",") if cites.get("stoich") else None)
+                        L["tab_rx"].format(n=n), cites=cites["stoich"].split(",") if cites.get("stoich") else None,
+                        steps=["dtg", "stufen", "stoechiometrie"])
         if a.calib and a.calib.get("rows"):
             rows = [[tx(r["gas"]), _n(r["theory"], 2, lang), _n(r["measured"], 2, lang), _n(r["delta"], 2, lang)] for r in a.calib["rows"]]
-            b.add_table(f"kalibrierung{pid}", booktabs(L["h_cal"], rows, align="lrrr", small=True, escape_header=False), L["tab_cal"].format(n=n))
+            b.add_table(f"kalibrierung{pid}", booktabs(L["h_cal"], rows, align="lrrr", small=True, escape_header=False), L["tab_cal"].format(n=n), steps=[])
         cell = (lambda h: tx(C.ref_tag(h, lang)) + (cite(ref_keys(b, [h], lang)) if rk else ""))  # noqa: E731
         if hits:
             rows = [[str(h.get("rank", i + 1)), tx(h["name"]), cell(h), num(h["hqi"], 1, lang), f"{h.get('shift', 0):+d}"]
                     for i, h in enumerate(hits[:10])]
-            b.add_table(f"treffer{pid}", booktabs(L["h_hits"], rows, align="rlllr", small=True), L["tab_hits"].format(n=n), cites=rk.get("hits"))
+            b.add_table(f"treffer{pid}", booktabs(L["h_hits"], rows, align="rlllr", small=True), L["tab_hits"].format(n=n), cites=rk.get("hits"),
+                        steps=["suche", "dtg"])
         if mix:
             rows = [[tx(c["name"]), cell(c), num(100 * c["frac"], 1, lang)] for c in mix["components"]]
             if mix.get("inert", 0) > 0.005:
                 rows.append([tx("ohne Massenverlust (inert)" if lang == "de" else "no mass loss (inert)"), "", num(100 * mix["inert"], 1, lang)])
             b.add_table(f"mischung{pid}", booktabs(L["h_mix"], rows, align="llr", small=True, escape_header=False),
-                        L["tab_mix"].format(n=n, h=num(mix["hqi"], 1, lang)), cites=rk.get("mix"))
+                        L["tab_mix"].format(n=n, h=num(mix["hqi"], 1, lang)), cites=rk.get("mix"), steps=["mischung", "dtg"])
         if a.deconv and not a.deconv.get("error"):
             rows = [[tx(p["name"]), _n(p["x0"], 1, lang), _n(p["area"], 2, lang)] for p in a.deconv["peaks"]]
-            b.add_table(f"trennung{pid}", booktabs(L["h_dc"], rows, align="lrr", small=True, escape_header=False), L["tab_dc"].format(n=n))
+            b.add_table(f"trennung{pid}", booktabs(L["h_dc"], rows, align="lrr", small=True, escape_header=False), L["tab_dc"].format(n=n),
+                        steps=["dtg", "trennung"])
         pk = [p for p in (a.dsc or {}).get("peaks") or [] if "error" not in p]
         if pk:
             de = lang == "de"
@@ -253,7 +282,7 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
             b.add_table(f"dsc-peaks{pid}", booktabs(hdr, rows, align="llrrrrr", small=True, escape_header=False),
                         (f"DSC-Peaks von {n} (lineare Basislinie, Enthalpie bezogen auf die Einwaage)." if de else
                          f"DSC peaks of {n} (linear baseline, enthalpy per initial mass)."),
-                        cites=cites["dsc"].split(",")[:1] if cites.get("dsc") else None)
+                        cites=cites["dsc"].split(",")[:1] if cites.get("dsc") else None, steps=["dsc"])
         gs = [g for g in (a.dsc or {}).get("tg") or [] if "error" not in g]
         if gs:
             de = lang == "de"
@@ -263,11 +292,23 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
             b.add_table(f"dsc-tg{pid}", booktabs(hdr, rows, align="lrrrr", small=True, escape_header=False),
                         (f"Glasübergänge von {n} (Mittelpunkt bei halber Stufenhöhe)." if de else
                          f"Glass transitions of {n} (midpoint at half step height)."),
-                        cites=cites["dsc"].split(",")[-1:] if cites.get("dsc") else None)
+                        cites=cites["dsc"].split(",")[-1:] if cites.get("dsc") else None, steps=["dsc"])
     eq = None
     if a.equations and any(r.get("value") is not None for r in a.equations):
         from labcalc import formulas as F
+        at = b.added_mark()
         eq = F.to_report(b, a.equations, lang, prefix=k)
+        # im Methodentext stehen nur die Gleichungen des ersten Laufs (build); weitere Läufe brauchen keinen Schritt
+        _eq_needs(b, at, ["gleichungen"] if prefix in ("", "p1") else [])
+    a.unc_report = None
+    if a.unc and a.unc.get("results") and (inc.get("values", True) or inc.get("tables", True)):
+        at = b.added_mark()
+        a.unc_report = UC.report(b, a.unc, lang, prefix=k)     # \labval <id>-pm/-u/-U, Budgets, Übersicht
+        b.needs_since(at, ["unsicherheit"])
+        ks = set(a.unc.get("keys") or [])
+        if a.unc_report and cit:                       # Grundlagen der Modelle: Kalibrierung von Temperatur und Waage
+            a.unc_report["cites"] = list(a.unc_report.get("cites") or []) + \
+                ([mcite(b, "astm-e1582")] if "T_cal" in ks else []) + ([mcite(b, "astm-e2040")] if ks & {"bal", "drift"} else [])
     if inc.get("values", True):
         vals = []
         for x in st:
@@ -297,7 +338,7 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
             vals.append((f"{k}hit1", "Bester Treffer" if lang == "de" else "Best hit", tx(hits[0]["name"]), hits[0]["name"]))
             vals.append((f"{k}hqi1", "Trefferwert" if lang == "de" else "Hit score", num(hits[0]["hqi"], 1, lang), f"{hits[0]['hqi']:.1f}"))
         if vals:
-            b.add_values(vals)
+            b.add_values(vals, needs={v[0]: _value_steps(v[0][len(k):]) for v in vals if _value_steps(v[0][len(k):])})
     if inc.get("data", True):
         r = a.run
         step = max(1, len(r.m) // 3000)
@@ -309,6 +350,18 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
                        f"TG/DTG {n}.", labels={"T_C": "T [°C]", "m_pct": r"m [\%]", "dtg_pct_C": r"DTG [\%/°C]"},
                        plot={"x": "T_C", "y": "m_pct"})
     return cites, hits, mix, eq
+
+
+def _value_steps(key: str) -> list[str]:
+    """Methodenschritte, die ein einzeln eingefügter Wert braucht (Schlüssel ohne Präfix der Messung)."""
+    for pre, steps in (("step", ["dtg", "stufen"]), ("comp", ["zusammensetzung"]), ("content", ["dtg", "stufen", "stoechiometrie"]),
+                       ("dsc", ["dsc"]), ("tg", ["dsc"]), ("hit", ["suche", "dtg"]), ("hqi", ["suche", "dtg"])):
+        if key.startswith(pre):
+            return steps
+    return []
+
+
+_RESULT_STEPS = ["dtg", "stufen", "zusammensetzung", "stoechiometrie", "trennung", "suche", "mischung", "dsc", "unsicherheit"]
 
 
 def _dsc_text(a: Analysis, c, lang: str) -> str:
@@ -404,20 +457,21 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
         if cites.get("tcal"):
             t += (f" Die Temperaturachse wurde linear korrigiert ($T' = a + bT$; zur Temperaturkalibrierung von Thermowaagen vgl. "
                   f"ASTM~E1582{c('tcal')}); $a$ und $b$ wurden vom Anwender vorgegeben.")
+        t += step_tag("dtg")
         t += (f" Die DTG wurde mit einem Savitzky-Golay-Filter{c('sg')} über etwa {num(width, 0, lang)}~K berechnet."
-              f" Stufen wurden aus den Spitzen der Massenverlustrate bestimmt" +
+              + step_tag("stufen") + " Stufen wurden aus den Spitzen der Massenverlustrate bestimmt" +
               (" (Grenzen von Hand gesetzt)" if a.st.get("manual") else "") +
               "; die extrapolierte Onset- und Endtemperatur ist der Schnittpunkt der Tangente im Wendepunkt der TG-Kurve über "
               "der Temperatur (örtliche Steigung dm/dT) mit der verlängerten Basislinie vor bzw. nach der Stufe.")
         if a.comp and a.comp.get("rows"):
-            t += f" Die Zusammensetzung folgt {tx(a.comp['label'])}{c('comp')}."
+            t += step_tag("zusammensetzung") + f" Die Zusammensetzung folgt {tx(a.comp['label'])}{c('comp')}."
         if a.reactions:
-            t += f" Gehalte aus Stufen wurden über die theoretischen Massenverluste der Zersetzung berechnet (Atomgewichte nach IUPAC{c('stoich')})."
+            t += step_tag("stoechiometrie") + f" Gehalte aus Stufen wurden über die theoretischen Massenverluste der Zersetzung berechnet (Atomgewichte nach IUPAC{c('stoich')})."
         if a.deconv and not a.deconv.get("error"):
-            t += f" Überlappende Stufen wurden durch Anpassung von Fraser-Suzuki-Spitzen an die DTG getrennt{c('fs')}."
+            t += step_tag("trennung") + f" Überlappende Stufen wurden durch Anpassung von Fraser-Suzuki-Spitzen an die DTG getrennt{c('fs')}."
         if hits:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
-            t += (f" Zur Identifizierung wurde die DTG mit Referenzen aus {libs} verglichen (Kurvenähnlichkeit und Stufenwerte, "
+            t += step_tag("suche") + (f" Zur Identifizierung wurde die DTG mit Referenzen aus {libs} verglichen (Kurvenähnlichkeit und Stufenwerte, "
                   f"vgl. Schindler u.~a.{c('schindler')}); Referenzen durften um bis zu ±{int((a.state.get('search') or {}).get('shift', 20))}~K verschoben werden.")
             t += _weights_text(a, lang)
             if any(h.get("lib") == MODEL_ID for h in hits):
@@ -425,10 +479,10 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
             if cites.get("refs"):
                 t += f" Quellen der Referenzen:{c('refs')}."
         if mix:
-            t += " Für die Mischungsanalyse wurde die DTG als nichtnegative Summe von Referenz-DTGs angepasst; die Gewichte sind Massenanteile."
-        t += _dsc_text(a, c, lang)
+            t += step_tag("mischung") + " Für die Mischungsanalyse wurde die DTG als nichtnegative Summe von Referenz-DTGs angepasst; die Gewichte sind Massenanteile."
+        t += step_tag("dsc") + _dsc_text(a, c, lang)
         if eq and eq.get("latex"):
-            t += "\n\n" + eq["latex"]
+            t += step_tag("gleichungen") + "\n\n" + eq["latex"]
     else:
         t = (f"Run {tx(a.name)}{c('data')} ({', '.join(bits) if bits else 'conditions not in the file'}) was evaluated according to "
              f"ISO~11358-1{c('iso')}.")
@@ -438,19 +492,20 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
         if cites.get("tcal"):
             t += (f" The temperature axis was corrected linearly ($T' = a + bT$; for the temperature calibration of thermogravimetric "
                   f"analyzers cf. ASTM~E1582{c('tcal')}); $a$ and $b$ were set by the user.")
+        t += step_tag("dtg")
         t += (f" The DTG was calculated with a Savitzky-Golay filter{c('sg')} over about {num(width, 0, lang)}~K."
-              " Steps were taken from the peaks of the mass loss rate" + (" (limits set by hand)" if a.st.get("manual") else "") +
+              + step_tag("stufen") + " Steps were taken from the peaks of the mass loss rate" + (" (limits set by hand)" if a.st.get("manual") else "") +
               "; the extrapolated onset and endset are the intersections of the tangent at the inflection point of the TG "
               "curve over temperature (local slope dm/dT) with the extended baseline before and after the step.")
         if a.comp and a.comp.get("rows"):
-            t += f" The composition follows {tx(a.comp['label'])}{c('comp')}."
+            t += step_tag("zusammensetzung") + f" The composition follows {tx(a.comp['label'])}{c('comp')}."
         if a.reactions:
-            t += f" Contents were calculated from theoretical decomposition losses (IUPAC atomic weights{c('stoich')})."
+            t += step_tag("stoechiometrie") + f" Contents were calculated from theoretical decomposition losses (IUPAC atomic weights{c('stoich')})."
         if a.deconv and not a.deconv.get("error"):
-            t += f" Overlapping steps were separated by fitting Fraser-Suzuki peaks to the DTG{c('fs')}."
+            t += step_tag("trennung") + f" Overlapping steps were separated by fitting Fraser-Suzuki peaks to the DTG{c('fs')}."
         if hits:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
-            t += (f" For identification the DTG was compared with references from {libs} (curve similarity and step values, cf. "
+            t += step_tag("suche") + (f" For identification the DTG was compared with references from {libs} (curve similarity and step values, cf. "
                   f"Schindler et al.{c('schindler')}).")
             t += _weights_text(a, lang)
             if any(h.get("lib") == MODEL_ID for h in hits):
@@ -458,10 +513,13 @@ def _methods(a: Analysis, cites: dict, hits, mix, eq, lang: str) -> str:
             if cites.get("refs"):
                 t += f" Sources of the references:{c('refs')}."
         if mix:
-            t += " For the mixture analysis the DTG was fitted as a non-negative sum of reference DTGs; weights are mass fractions."
-        t += _dsc_text(a, c, lang)
+            t += step_tag("mischung") + " For the mixture analysis the DTG was fitted as a non-negative sum of reference DTGs; weights are mass fractions."
+        t += step_tag("dsc") + _dsc_text(a, c, lang)
         if eq and eq.get("latex"):
-            t += "\n\n" + eq["latex"]
+            t += step_tag("gleichungen") + "\n\n" + eq["latex"]
+    ut = UC.methods_text(a.unc, getattr(a, "unc_report", None), lambda ks: cite(ks) if ks else "", lang)
+    if ut:                                             # Messunsicherheit: Verfahren, Eingangsgrössen, Modelle
+        t += step_tag("unsicherheit") + "\n\n" + ut
     return t + "\n"
 
 
@@ -509,7 +567,8 @@ def _kinetics(b: Bundle, analyses, req: dict, lang: str, inc: dict) -> str:
                 keys["toop"] = mcite(b, "toop1971")
     if inc.get("figures", True):
         b.add_figure(C.fig_kinetics(res, lang), "kinetik", T[lang]["fig_kin"].format(k=len(runs)).replace("ₐ", "$_a$").replace("α", r"$\alpha$"),
-                     width="0.95", dpi=150, cites=[keys[x] for x in ("friedman", "ozawa", "kas", "vyazovkin1997") if x in keys] or None)
+                     width="0.95", dpi=150, cites=[keys[x] for x in ("friedman", "ozawa", "kas", "vyazovkin1997") if x in keys] or None,
+                     steps=["kinetik"])
     meths = ["friedman", "ofw", "kas", "starink", "vyazovkin"]
     if inc.get("tables", True):
         al = [x for x in res["iso"]["alphas"] if abs(round(x * 10) - x * 10) < 1e-6]
@@ -521,7 +580,7 @@ def _kinetics(b: Bundle, analyses, req: dict, lang: str, inc: dict) -> str:
                 row.append("--" if r is None else num(r["E"], 1, lang) + (f" ± {num(r['ci'], 1, lang)}" if r.get("ci") else ""))
             rows.append(row)
         head = [r"$\alpha$", "Friedman", "OFW", "KAS", "Starink", "Vyazovkin"]
-        b.add_table("kinetik", booktabs(head, rows, align="rrrrrr", small=True, escape_header=False), T[lang]["tab_kin"].replace("ₐ", "$_a$"))
+        b.add_table("kinetik", booktabs(head, rows, align="rrrrrr", small=True, escape_header=False), T[lang]["tab_kin"].replace("ₐ", "$_a$"), steps=["kinetik"])
     vals = []
     for m in meths:
         s = res["iso"]["summary"].get(m)
@@ -531,7 +590,15 @@ def _kinetics(b: Bundle, analyses, req: dict, lang: str, inc: dict) -> str:
     if kis.get("E"):
         vals.append(("ea-kissinger", "Ea Kissinger", num(kis["E"], 1, lang) + r"\,kJ/mol", f"{kis['E']:.1f} kJ/mol"))
     if inc.get("values", True) and vals:
-        b.add_values(vals)
+        b.add_values(vals, needs={v[0]: ["kinetik"] for v in vals})
+    st0 = next((a.state for a, _, _ in analyses if UC.active(a.state)), None)
+    kin_unc = ""
+    if st0 is not None:                                # Vertrauensbereiche im Stil der Messunsicherheit (nicht doppelt)
+        ku = UC.kinetics(res, st0, lang)
+        uo = UC.report(b, None, lang, extra=ku, table="unsicherheit-kinetik") if ku else None
+        if uo:
+            kin_unc = " " + UC.methods_text({"method": UC.method(st0), "keys": []}, uo,
+                                            lambda ks: cite(ks) if ks else "", lang, kin=True)
     c = lambda *ks: r"~\cite{" + ",".join(keys[x] for x in ks if x in keys) + "}" if keys else ""  # noqa: E731
     s = res["iso"]["summary"]
     betas = ", ".join(num(x, 1, lang) for x in res["iso"]["betas"])
@@ -598,7 +665,7 @@ def _kinetics(b: Bundle, analyses, req: dict, lang: str, inc: dict) -> str:
                   f"model {tx(lt.get('model') or '')} and $A$ from the Friedman intercepts (following ASTM~E1877{c('e1877')}, not "
                   "checked against the text of the standard). It is an extrapolation far below the measured temperatures and only "
                   "an indication.")
-    return t + "\n"
+    return t + kin_unc + "\n"
 
 
 def build(items, request: dict, lang: str = "de", include: dict | None = None, title: str | None = None) -> dict:
@@ -629,8 +696,12 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
             for a, _, _ in analyses:
                 d = a.st.get("dtg") or {}
                 series.append({"name": a.name, "x": a.run.T, "m": a.run.pct(), "dtg": -d["dT"] if d.get("dT") is not None else np.zeros(len(a.run.m))})
-            b.add_figure(C.fig_overlay(series, lang), "vergleich", L["fig_cmp"].format(n=", ".join(tx(a.name) for a, _, _ in analyses)),
-                         width="0.9", dpi=150)
+            for i, se in enumerate(series, 1):
+                se["part"] = f"lauf{i}"
+            b.add_figure(C.fig_overlay(series, lang), "vergleich", L["fig_cmp"].format(n="").replace(": .", "{parts}."),
+                         width="0.9", dpi=150, steps=[], parts_lead=":",
+                         parts=[{"id": f"lauf{i}", "label": a.name, "caption": tx(a.name)}
+                                for i, (a, _, _) in enumerate(analyses, 1)])
         rows, raw_vals = [], []
         for i, (a, fname, rl) in enumerate(analyses, 1):
             cites, hits, mix, eq = _single(b, a, fname, rl, lang, inc, prefix=f"p{i}")
@@ -649,16 +720,28 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
                 v = [float(r[col]) for r in raw_vals if r[col] is not None and np.isfinite(r[col])]
                 return f"{num(np.mean(v), 2, lang)} ± {num(np.std(v, ddof=1), 2, lang)}" if len(v) > 1 else "--"
             rows.append([L["mean"]] + [ms(j) for j in range(4)])
-            b.add_table("vergleich", booktabs(L["h_cmp"], rows, align="lrrrr", small=True, escape_header=False), L["tab_cmp"])
+            b.add_table("vergleich", booktabs(L["h_cmp"], rows, align="lrrrr", small=True, escape_header=False), L["tab_cmp"],
+                        steps=["dtg", "stufen"])
+        if request.get("unc_replicates"):              # Wiederholungen derselben Probe: Mittelwert ± U (Typ A + B)
+            st0 = (items[0][3] if items else {}) or {}
+            rep = UC.replicates([a for a, _, _ in analyses], st0, lang)
+            at = b.added_mark()
+            uo = UC.report(b, None, lang, extra=rep["results"], table="unsicherheit-wiederholungen") if rep["results"] else None
+            b.needs_since(at, ["unsicherheit"])
+            if uo:
+                meth.append(step_tag("unsicherheit") + UC.methods_text({"method": rep["method"], "keys": sorted(UC.specs(st0))}, uo,
+                                                                       lambda ks: cite(ks) if ks else "", lang, rep=len(analyses)) + "\n")
         b.summary = ", ".join(a.name for a, _, _ in analyses)
     kin = request.get("kinetics")
     if kin and len(analyses) >= 3:
-        meth.append(_kinetics(b, analyses, kin, lang, inc))
+        kt = _kinetics(b, analyses, kin, lang, inc)
+        if kt:
+            meth.append(step_tag("kinetik") + kt)
     if inc.get("text", True):
-        b.add_text("methodik", "\n".join(meth), L["methods"])
+        b.add_methods(meth, L["methods"], sep="\n", brief=b.brief_from(meth[0], evaluated=True) if meth else "")
         r = "\n".join(x for x in res if x)
         if r:
-            b.add_text("ergebnisse", r, L["results"])
+            b.add_text("ergebnisse", r, L["results"], steps=_RESULT_STEPS + (["kinetik"] if kin else []))
     files = {fname: raw for (raw, fname, _, _) in items}
     b.set_source(request, files)
     return b.to_dict()

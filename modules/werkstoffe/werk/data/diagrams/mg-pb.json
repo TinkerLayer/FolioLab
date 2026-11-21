@@ -1,0 +1,613 @@
+{
+ "quellen": {
+  "mg-pb_nayebhashemi1988": {
+   "type": "book",
+   "authors": "Nayeb-Hashemi, A. A.; Clark, J. B. (Hrsg.)",
+   "title": "Phase Diagrams of Binary Magnesium Alloys",
+   "container": "ASM International, Metals Park (OH)",
+   "year": "1988",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "mg-pb",
+  "name": "Mg–Pb",
+  "name_en": "Mg–Pb",
+  "A": "Mg",
+  "B": "Pb",
+  "gruppe": "lehre",
+  "x_label": "Blei [Gew.-%]",
+  "x_label_en": "Lead [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   100,
+   700
+  ],
+  "q": [
+   "mg-pb_nayebhashemi1988",
+   "massalski1990",
+   "callister"
+  ],
+  "hinweis": "x = Gew.-% Pb (A = Mg, B = Pb). Zitiert: Schmelzpunkte Mg 650 °C und Pb 327,5 °C; intermetallische Phase Mg₂Pb (81,0 Gew.-% Pb, 33,3 At.-%) schmilzt kongruent bei 550 °C; Eutektikum L ⇌ (Mg) + Mg₂Pb bei 466 °C und ≈ 67 Gew.-% Pb, maximale Löslichkeit von Pb in (Mg) ≈ 41,7 Gew.-% (7,75 At.-%); Eutektikum L ⇌ Mg₂Pb + (Pb) bei ≈ 248 °C und ≈ 97 Gew.-% Pb. Die Löslichkeit von Mg in (Pb) ist klein (hier ≈ 0,4 Gew.-% angesetzt, Wert unsicher). Mg₂Pb ist als Strichphase (senkrechte Linie) gezeichnet. Kurvenpunkte zwischen den Stützstellen und der Solvus von (Mg) unter 466 °C sind aus dem bewerteten Diagramm abgelesen und geglättet (schematisch).",
+  "hinweis_en": "x = wt% Pb (A = Mg, B = Pb). Cited: melting points Mg 650 °C and Pb 327.5 °C; intermetallic Mg₂Pb (81.0 wt% Pb, 33.3 at%) melts congruently at 550 °C; eutectic L ⇌ (Mg) + Mg₂Pb at 466 °C and ≈ 67 wt% Pb, maximum solubility of Pb in (Mg) ≈ 41.7 wt% (7.75 at%); eutectic L ⇌ Mg₂Pb + (Pb) at ≈ 248 °C and ≈ 97 wt% Pb. The solubility of Mg in (Pb) is small (≈ 0.4 wt% assumed here, uncertain). Mg₂Pb is drawn as a line compound (vertical line). Curve points between these values and the (Mg) solvus below 466 °C are read from the assessed diagram and smoothed (schematic).",
+  "points": [
+   {
+    "x": 0,
+    "T": 650,
+    "label": "Mg schmilzt",
+    "label_en": "Mg melts"
+   },
+   {
+    "x": 100,
+    "T": 327.5,
+    "label": "Pb schmilzt",
+    "label_en": "Pb melts"
+   },
+   {
+    "x": 81.0,
+    "T": 550,
+    "label": "Mg₂Pb schmilzt kongruent",
+    "label_en": "Mg₂Pb melts congruently"
+   },
+   {
+    "x": 66.8,
+    "T": 466,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 97.0,
+    "T": 248,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 41.7,
+    "T": 466
+   },
+   {
+    "x": 99.6,
+    "T": 248
+   }
+  ],
+  "curves": {
+   "liqMg": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      650
+     ],
+     [
+      8,
+      642
+     ],
+     [
+      16,
+      632
+     ],
+     [
+      24,
+      620
+     ],
+     [
+      32,
+      605
+     ],
+     [
+      40,
+      586
+     ],
+     [
+      47,
+      565
+     ],
+     [
+      53,
+      543
+     ],
+     [
+      58,
+      522
+     ],
+     [
+      62,
+      502
+     ],
+     [
+      64.5,
+      487
+     ],
+     [
+      66.8,
+      466
+     ]
+    ]
+   },
+   "solMg": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      650
+     ],
+     [
+      5,
+      637
+     ],
+     [
+      10,
+      623
+     ],
+     [
+      15,
+      608
+     ],
+     [
+      20,
+      592
+     ],
+     [
+      25,
+      574
+     ],
+     [
+      30,
+      553
+     ],
+     [
+      35,
+      528
+     ],
+     [
+      38.5,
+      503
+     ],
+     [
+      41.7,
+      466
+     ]
+    ]
+   },
+   "solvMg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      41.7,
+      466
+     ],
+     [
+      39.5,
+      430
+     ],
+     [
+      36.5,
+      390
+     ],
+     [
+      33,
+      350
+     ],
+     [
+      29,
+      310
+     ],
+     [
+      25,
+      270
+     ],
+     [
+      20.5,
+      230
+     ],
+     [
+      16.5,
+      190
+     ],
+     [
+      13,
+      150
+     ],
+     [
+      10.5,
+      120
+     ],
+     [
+      9,
+      100
+     ]
+    ]
+   },
+   "liqM1": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      66.8,
+      466
+     ],
+     [
+      68.5,
+      483
+     ],
+     [
+      70.5,
+      500
+     ],
+     [
+      72.5,
+      514
+     ],
+     [
+      74.5,
+      527
+     ],
+     [
+      76.5,
+      538
+     ],
+     [
+      78.5,
+      545.5
+     ],
+     [
+      81.0,
+      550
+     ]
+    ]
+   },
+   "liqM2": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      81.0,
+      550
+     ],
+     [
+      83,
+      547.5
+     ],
+     [
+      85,
+      541
+     ],
+     [
+      87,
+      530
+     ],
+     [
+      89,
+      513
+     ],
+     [
+      90.5,
+      495
+     ],
+     [
+      92,
+      472
+     ],
+     [
+      93.3,
+      446
+     ],
+     [
+      94.4,
+      418
+     ],
+     [
+      95.3,
+      387
+     ],
+     [
+      96,
+      350
+     ],
+     [
+      96.5,
+      312
+     ],
+     [
+      96.8,
+      280
+     ],
+     [
+      97.0,
+      248
+     ]
+    ]
+   },
+   "liqPb": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      97.0,
+      248
+     ],
+     [
+      97.5,
+      263
+     ],
+     [
+      98,
+      277
+     ],
+     [
+      98.5,
+      291
+     ],
+     [
+      99,
+      304
+     ],
+     [
+      99.5,
+      316
+     ],
+     [
+      100,
+      327.5
+     ]
+    ]
+   },
+   "solPb": {
+    "kind": "solidus",
+    "pts": [
+     [
+      99.6,
+      248
+     ],
+     [
+      100,
+      327.5
+     ]
+    ],
+    "smooth": false
+   },
+   "solvPb": {
+    "kind": "solvus",
+    "pts": [
+     [
+      99.6,
+      248
+     ],
+     [
+      99.8,
+      100
+     ]
+    ],
+    "smooth": false
+   },
+   "mg2pb": {
+    "kind": "other",
+    "pts": [
+     [
+      81.0,
+      100
+     ],
+     [
+      81.0,
+      550
+     ]
+    ],
+    "smooth": false
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      700
+     ],
+     [
+      100,
+      700
+     ],
+     "-liqPb",
+     "-liqM2",
+     "-liqM1",
+     "-liqMg"
+    ]
+   },
+   {
+    "label": "(Mg)",
+    "phases": [
+     "(Mg)"
+    ],
+    "poly": [
+     [
+      0,
+      650
+     ],
+     "solMg",
+     "solvMg",
+     [
+      0,
+      100
+     ]
+    ]
+   },
+   {
+    "label": "(Mg) + L",
+    "phases": [
+     "(Mg)",
+     "L"
+    ],
+    "poly": [
+     "liqMg",
+     [
+      41.7,
+      466
+     ],
+     "-solMg"
+    ]
+   },
+   {
+    "label": "(Mg) + Mg₂Pb",
+    "phases": [
+     "(Mg)",
+     "Mg₂Pb"
+    ],
+    "poly": [
+     [
+      41.7,
+      466
+     ],
+     [
+      81.0,
+      466
+     ],
+     [
+      81.0,
+      100
+     ],
+     [
+      9,
+      100
+     ],
+     "-solvMg"
+    ]
+   },
+   {
+    "label": "L + Mg₂Pb",
+    "phases": [
+     "L",
+     "Mg₂Pb"
+    ],
+    "poly": [
+     "liqM1",
+     [
+      81.0,
+      466
+     ]
+    ]
+   },
+   {
+    "label": "Mg₂Pb + L",
+    "phases": [
+     "Mg₂Pb",
+     "L"
+    ],
+    "poly": [
+     "liqM2",
+     [
+      81.0,
+      248
+     ]
+    ]
+   },
+   {
+    "label": "Mg₂Pb + (Pb)",
+    "phases": [
+     "Mg₂Pb",
+     "(Pb)"
+    ],
+    "poly": [
+     [
+      81.0,
+      248
+     ],
+     [
+      99.6,
+      248
+     ],
+     "solvPb",
+     [
+      81.0,
+      100
+     ]
+    ]
+   },
+   {
+    "label": "L + (Pb)",
+    "phases": [
+     "L",
+     "(Pb)"
+    ],
+    "poly": [
+     "liqPb",
+     "-solPb"
+    ]
+   },
+   {
+    "label": "(Pb)",
+    "phases": [
+     "(Pb)"
+    ],
+    "poly": [
+     "solPb",
+     [
+      100,
+      100
+     ],
+     [
+      99.8,
+      100
+     ],
+     "-solvPb"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 550,
+    "type": "congruent",
+    "x": [
+     81.0,
+     81.0,
+     81.0
+    ],
+    "reaction": "L ⇌ Mg₂Pb"
+   },
+   {
+    "T": 466,
+    "type": "eutectic",
+    "x": [
+     41.7,
+     66.8,
+     81.0
+    ],
+    "reaction": "L ⇌ (Mg) + Mg₂Pb",
+    "constituents": [
+     "primäres (Mg)",
+     "Eutektikum",
+     "primäres Mg₂Pb"
+    ],
+    "constituents_en": [
+     "primary (Mg)",
+     "eutectic",
+     "primary Mg₂Pb"
+    ],
+    "morph": "lamellar"
+   },
+   {
+    "T": 248,
+    "type": "eutectic",
+    "x": [
+     81.0,
+     97.0,
+     99.6
+    ],
+    "reaction": "L ⇌ Mg₂Pb + (Pb)",
+    "constituents": [
+     "primäres Mg₂Pb",
+     "Eutektikum",
+     "primäres (Pb)"
+    ],
+    "constituents_en": [
+     "primary Mg₂Pb",
+     "eutectic",
+     "primary (Pb)"
+    ],
+    "morph": "rod"
+   }
+  ]
+ }
+}

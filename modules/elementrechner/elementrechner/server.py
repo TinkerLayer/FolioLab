@@ -137,6 +137,18 @@ def meta_payload() -> dict:
             "atomic_weights_source": aw.get("_source"), "data_missing": aw.get("_missing")}
 
 
+def unit_fit(a: str, b: str) -> dict:
+    """Passt ein Wert in Einheit a unverändert in ein Feld mit Einheit b? known=False: Einheit nicht lesbar."""
+    from labcalc import units as U
+    try:
+        fa, _, oa = U.parse_unit(a)
+        fb, _, ob = U.parse_unit(b)
+    except U.UnitError:
+        return {"known": False}
+    fits = U.compatible(a, b)
+    return {"known": True, "compatible": fits, "same": fits and math.isclose(fa, fb, rel_tol=1e-12) and oa == ob}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "FolioElementrechner/0.1"
 
@@ -166,7 +178,8 @@ class Handler(BaseHTTPRequestHandler):
         p = url.path
         if p in ("/", "/index.html"):
             return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
-        if p in ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/labimport.js"):   # I-02
+        if p in ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/labimport.js",   # I-02
+                 "/labunc.js"):                                                                         # Runde U
             return self._send(200, labcite.web_asset(p[1:]), "text/javascript; charset=utf-8")
         if p.startswith("/static/"):
             f = (STATIC / p[len("/static/"):]).resolve()
@@ -180,6 +193,9 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         origin = self.headers.get("Origin")
         if origin and not ORIGIN_OK.match(origin):
+            n = int(self.headers.get("Content-Length") or 0)
+            if 0 < n <= 1 << 20:
+                self.rfile.read(n)                       # read the small body so the answer arrives cleanly
             return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)
         try:
             return self._route(url.path)
@@ -194,6 +210,29 @@ class Handler(BaseHTTPRequestHandler):
     def _route(self, p):
         if p.startswith("/api/env/"):
             return self._json(STATE.envs.route(p.rsplit("/", 1)[1], self._req(), list))
+        if p.startswith("/api/unc/"):                  # Runde U: Messmittel, ±-Vorschau, Verfahren (labunc)
+            import labunc
+            return self._json(labunc.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
+        if p == "/api/uncer":                          # Runde U: „Verfahren vergleichen“ für ein Ergebnis des Moduls
+            import labunc
+            from labcalc import uncertainty as UNC
+            from . import uncert as UC
+            r = self._req()
+            labunc.load_own(STATE.envs)
+            try:
+                return self._json(UC.compare(str(r.get("where") or ""), r.get("req") or {}, str(r.get("name") or ""),
+                                             r.get("lang") if r.get("lang") in ("de", "en") else "de"))
+            except UNC.UncError as e:
+                return self._json({"error": str(e)}, 400)
+        if p == "/api/run" or p.startswith("/api/prep/") or p in ("/api/species", "/api/ph"):
+            try:                                        # eigene Messmittel der Suite für ±-Angaben mit Messmittel
+                import labunc
+                labunc.load_own(STATE.envs)
+            except Exception:  # noqa: BLE001 – ohne Projekt: nur eingebaute Messmittel
+                pass
+        if p == "/api/unit_fit":                       # Indexwert in ein Eingabefeld: gleiche Einheit? (nie still umrechnen)
+            r = self._req()
+            return self._json(unit_fit(str(r.get("a") or ""), str(r.get("b") or "")))
         if p.startswith("/api/index/"):                # A7: Projektindex
             import labindex
             return self._json(labindex.route(STATE.envs, "elementrechner", __version__, p.rsplit("/", 1)[1], self._req()))
@@ -234,7 +273,15 @@ class Handler(BaseHTTPRequestHandler):
             r = self._req()
             return self._json(CH.analyse(r.get("steps") or [], r.get("feeds") or {}, r.get("target") or None))
         if p == "/api/species":
-            return self._json(AN.species_card(self._req().get("formula") or ""))
+            r = self._req()
+            card = AN.species_card(r.get("formula") or "")
+            if isinstance(r.get("unc"), dict) and card.get("molar_mass"):   # Runde U: M ± U (Possolo et al. 2018)
+                from . import uncert as UC
+                try:
+                    card["M_unc"] = UC.molar_mass(r.get("formula") or "", r["unc"], r.get("lang") or "de")
+                except (C.ChemError, ValueError) as e:
+                    card["M_unc"] = {"error": str(e)}
+            return self._json(card)
         if p == "/api/element":
             info = C.element_info(self._req().get("symbol") or "")
             if info.get("Z"):                                             # ER-X02: alle Ionisierungsenergien (NIST ASD)
@@ -304,6 +351,12 @@ class Handler(BaseHTTPRequestHandler):
                 if act:
                     from labcalc import activity as ACT
                     out["activity"] = ACT.ph_corrected(str(r.get("mixture") or ""), T, act)
+                if isinstance(r.get("unc"), dict):     # Runde U: u(pH) aus c und pKa
+                    from . import uncert as UC
+                    try:
+                        out["unc"] = UC.ph(str(r.get("mixture") or ""), T, r["unc"], r.get("lang") or "de")
+                    except (C.ChemError, ValueError) as e:
+                        out["unc"] = {"error": str(e)}
                 return self._json(out)
             if p == "/api/titration":
                 return self._json(AB.titration(str(r.get("analyte") or ""), float(r.get("V0") or 25),

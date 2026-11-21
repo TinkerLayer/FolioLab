@@ -1,0 +1,118 @@
+{
+  "quellen": {
+    "al-fe_kattner1993": {
+      "type": "book",
+      "authors": "Kattner, U. R.; Burton, B. P.",
+      "title": "Al-Fe (Aluminum-Iron). In: Okamoto, H. (Hrsg.): Phase Diagrams of Binary Iron Alloys",
+      "container": "ASM International, Materials Park (OH)",
+      "year": "1993",
+      "note": "Angaben nicht am Original geprüft"
+    },
+    "al-mg2si_mondolfo1976": {
+      "type": "book",
+      "authors": "Mondolfo, L. F.",
+      "title": "Aluminum Alloys: Structure and Properties",
+      "container": "Butterworths, London",
+      "year": "1976",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "al-fe",
+    "name": "Al–Fe (Al-reiche Seite)",
+    "name_en": "Al–Fe (Al-rich side)",
+    "A": "Al",
+    "B": "Fe",
+    "gruppe": "al",
+    "x_label": "Eisen [Gew.-%]",
+    "x_label_en": "Iron [wt%]",
+    "xlim": [0, 10],
+    "Tlim": [400, 900],
+    "q": ["al-fe_kattner1993", "al-mg2si_mondolfo1976"],
+    "hinweis": "Zitiert (Kattner und Burton 1993; Mondolfo 1976): Schmelzpunkt Al 660,3 °C; Eutektikum L ⇌ (Al) + Al₁₃Fe₄ (oft Al₃Fe genannt) bei 655 °C mit L ≈ 1,8 Gew.-% Fe; grösste Löslichkeit von Fe in (Al) nur ≈ 0,05 Gew.-% (0,025 At.-%). Liquidus, Solidus und Solvus zwischen diesen Eckwerten schematisch (Solvus als Arrhenius-Kurve); nicht zum genauen Ablesen. Das Einphasengebiet (Al) ist in diesem Massstab kaum sichtbar. Al₁₃Fe₄ (≈ 38–41 Gew.-% Fe) liegt ausserhalb des gezeigten Bereichs: in den Feldern mit Al₁₃Fe₄ endet die Konode am Diagrammrand. Metastabile Phasen bei rascher Erstarrung (Al₆Fe, AlₘFe) sind nicht dargestellt.",
+    "hinweis_en": "Cited (Kattner and Burton 1993; Mondolfo 1976): melting point of Al 660.3 °C; eutectic L ⇌ (Al) + Al₁₃Fe₄ (often called Al₃Fe) at 655 °C with L ≈ 1.8 wt% Fe; maximum solubility of Fe in (Al) only ≈ 0.05 wt% (0.025 at%). Liquidus, solidus and solvus between these key values are schematic (solvus as an Arrhenius curve); not for precise reading. The single-phase field (Al) is hardly visible at this scale. Al₁₃Fe₄ (≈ 38–41 wt% Fe) lies outside the range shown: in the fields with Al₁₃Fe₄ the tie line ends at the diagram edge. Metastable phases formed on rapid solidification (Al₆Fe, AlₘFe) are not shown.",
+    "points": [
+      {
+        "x": 0,
+        "T": 660.3,
+        "label": "Al schmilzt",
+        "label_en": "Al melts"
+      },
+      {
+        "x": 0.052,
+        "T": 655,
+        "label": "grösste Löslichkeit von Fe in (Al)",
+        "label_en": "maximum solubility of Fe in (Al)"
+      },
+      {
+        "x": 1.8,
+        "T": 655,
+        "label": "Eutektikum",
+        "label_en": "Eutectic"
+      }
+    ],
+    "curves": {
+      "liqA": {
+        "kind": "liquidus",
+        "pts": [[0, 660.3], [0.3, 659.5], [0.6, 658.6], [0.9, 657.8], [1.2, 656.9], [1.5, 656], [1.8, 655]]
+      },
+      "solA": {
+        "kind": "solidus",
+        "smooth": false,
+        "pts": [[0, 660.3], [0.025, 657.7], [0.052, 655]]
+      },
+      "liqF": {
+        "kind": "liquidus",
+        "pts": [[1.8, 655], [2.2, 672], [2.6, 687.5], [3, 701], [3.5, 717], [4, 731.5], [5, 757], [6, 780], [7, 801], [8, 820], [9, 838], [10, 854]]
+      },
+      "solv": {
+        "kind": "solvus",
+        "pts": [[0.052, 655], [0.038, 625], [0.028, 600], [0.021, 575], [0.015, 550], [0.011, 525], [0.007, 500], [0.003, 450], [0.001, 400]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 900], [10, 900], [10, 854], "-liqF", "-liqA"]
+      },
+      {
+        "label": "(Al) + L",
+        "phases": ["(Al)", "L"],
+        "poly": ["liqA", [0.052, 655], "-solA"]
+      },
+      {
+        "label": "L + Al₁₃Fe₄",
+        "phases": ["L", "Al₁₃Fe₄"],
+        "poly": ["liqF", [10, 655]],
+        "phase_x": {
+          "Al₁₃Fe₄": 40.0
+        }
+      },
+      {
+        "label": "(Al)",
+        "phases": ["(Al)"],
+        "poly": ["solA", "solv", [0, 400]]
+      },
+      {
+        "label": "(Al) + Al₁₃Fe₄",
+        "phases": ["(Al)", "Al₁₃Fe₄"],
+        "poly": [[0.052, 655], [10, 655], [10, 400], "-solv"],
+        "phase_x": {
+          "Al₁₃Fe₄": 40.0
+        }
+      }
+    ],
+    "invariants": [
+      {
+        "T": 655,
+        "type": "eutectic",
+        "x": [0.052, 1.8, 40.0],
+        "reaction": "L ⇌ (Al) + Al₁₃Fe₄",
+        "constituents": ["primäres (Al)", "Eutektikum ((Al) + Al₁₃Fe₄)", "primäres Al₁₃Fe₄"],
+        "constituents_en": ["primary (Al)", "eutectic ((Al) + Al₁₃Fe₄)", "primary Al₁₃Fe₄"],
+        "morph": "faceted"
+      }
+    ]
+  }
+}

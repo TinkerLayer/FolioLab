@@ -108,7 +108,7 @@ View: x = temperature or time, DTG on the right axis on/off, the mouse wheel zoo
   onset/peak/end and the residue, never the curve. Sharing the same run again creates a new version. In the
   Elementrechner this becomes the comparison with the theoretical loss of a decomposition.
 * File ▸ *Stufen in den Projektindex …* (steps to the project index) and *Projektindex …* (project index); in the
-  index list, *Herkunft* (history) leads from a value back to the measurement file (with SHA-256).
+  index list, *Herkunft* (history) leads from a value back to the measurement file (with SHA-256). *Use* (*Übernehmen*) in that list makes a value a named variable of your own equations, with its unit, uncertainty and origin.
 * File ▸ **Run from dataset …** (*Lauf aus Datensatz …*; since 0.11): reads a dataset of the Datenaufbereitung that
   was shared with the TGA. Columns are assigned to roles (time, temperature, mass; others under **More columns**,
   *Weitere Spalten*) and converted to min, °C, mg or %; if a unit does not fit its role, the run is refused. Rows
@@ -141,6 +141,27 @@ loss), for each step k `Lk`, `Lmgk`, `Tonk`, `Tpk`, `Tendk`, composition `C1…`
 (shared calculation core with the Rechner, `labcalc`). Stored in `outputs/tga/eigene_gleichungen.json`,
 export/import as JSON. In the report: values as `\labval` (`eq-<symbol>`), a table and the equations as display
 math in the methods text, with source.
+
+## Measurement uncertainty
+
+Optional, under **Values → Measurement uncertainty** (fold). A small ± button next to each input takes an
+uncertainty (stated u or U, limits, resolution, repeats, instrument from the library or own instruments):
+sample mass m₀ (e.g. the analytical balance), the TGA balance per reading, drift/buoyancy, the temperature
+calibration (the button *From temperature calibration* takes the residual scatter of the ITS-90 calibration line,
+three points or more) and the temperature sensor (thermocouple class), plus the heating rate. The entries apply to
+all runs and are stored with the environment. Method picker: GUM, Monte Carlo, Gaussian, worst case.
+
+Budgets (`tga/uncert.py`, one model per result so that m₀ in numerator and denominator is handled correctly):
+mass loss of each step `L = 100 (m_a − m_b + δ_drift)/m₀`, residue, T at x % loss, onset, endset and DTG peak
+(`T = T_reading + δT_cal + δT_evaluation`, the evaluation part labelled: tangent construction, mass via the local
+slope, interpolation/sampling), E1131/D7582/free composition (masses at the limits, temperature limits through the
+local slope dm/dT), contents from stoichiometry. Tables show a small `± U`; the fold lists all results, a click
+opens the budget. **Compare**: *Runs are repeats of the same sample* gives mean ± U with type A (s/√n) combined with
+the mean type B of the single runs. **Kinetics**: the regression confidence intervals in the same style, nothing
+added on top. Own equations and shared values carry `u`. In the report: `\labval{<run>-<id>-pm|-u|-U}`, one budget
+table per result, a summary table `unsicherheit…` and a methods sentence with sources.
+
+The functions `m(T)`, `dtg(T)`, `loss(T1, T2)` in own equations are still treated as exact.
 
 ## Limitations
 

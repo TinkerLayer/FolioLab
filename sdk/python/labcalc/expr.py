@@ -84,7 +84,18 @@ def preprocess(src: str, callables=frozenset()) -> str:
         s = s.replace(g, f" {n} ")
     toks = _tokens(s)
     out = []
+    skip = -1
     for ti, (kind, v) in enumerate(toks):
+        if ti <= skip:
+            continue
+        prime = 0                                          # f'(x), f''(x): Ableitung einer Funktion (labcalc.deriv)
+        if kind == "name" and v in callables and v not in SPECIAL and v not in STRFUNCS:
+            j = ti + 1
+            while j < len(toks) and toks[j] == ("op", "'"):
+                j += 1
+            if j > ti + 1 and j < len(toks) and toks[j] == ("op", "("):
+                prime, fname, skip = j - ti - 1, v, j
+                v = "fprime_"
         if kind == "name":
             if v in ("and", "or", "not"):
                 kind = "op"
@@ -109,6 +120,8 @@ def preprocess(src: str, callables=frozenset()) -> str:
                 else:
                     out.append(("op", "*"))
         out.append((kind, "**" if v == "^" else v))
+        if prime:
+            out += [("op", "("), ("name", fname), ("op", ","), ("num", str(prime)), ("op", ",")]
     return " ".join(v for _, v in out)
 
 
@@ -136,6 +149,67 @@ def parse(src: str, callables=None) -> ast.AST:
         return ast.parse(py, mode="eval").body
     except SyntaxError as e:
         raise CalcError(f"Ausdruck nicht lesbar: {src}") from e
+
+
+_DVAR = "|".join(sorted(GREEK.values(), key=len, reverse=True)) + r"|[^\W\d_](?:_?\d+)?"
+_DDX = re.compile(rf"(?<![\w.])d(?:\^?(?P<n>[2-9²³]))?\s*/\s*d(?P<v>{_DVAR})(?:\^?(?P<m>[2-9²³]))?(?=\s*\S)(?=\s|\()")
+
+
+def _ddx_operand(s: str, i: int):
+    """Operand ohne Klammer hinter d/dx: bis zum nächsten + oder − (nicht im Exponenten), Komma, = oder zur Klammer zu."""
+    depth, k = 0, i
+    while k < len(s):
+        c = s[k]
+        if c in "([":
+            depth += 1
+        elif c in ")]":
+            if not depth:
+                break
+            depth -= 1
+        elif not depth and c in ",;=<>":
+            break
+        elif not depth and c in "+-−":
+            before = s[i:k].rstrip()
+            if before and before[-1] not in "^*/·" and not re.search(r"\d[eE]$", before):
+                break
+        k += 1
+    return k
+
+
+def rewrite_ddx(src: str, known=()) -> str:
+    """Handschriftliche Ableitung ``d/dx(x^3)``, ``d²/dx²(…)``, ``d/dx x^3`` -> ``diff(…, x[, n])``.
+
+    Bleibt unverändert, wenn die Seite ``d`` oder ``dx`` selbst definiert (dann ist es ein Quotient)."""
+    s, out, pos = str(src), [], 0
+    while True:
+        m = _DDX.search(s, pos)
+        if not m:
+            out.append(s[pos:])
+            return "".join(out)
+        var = m.group("v")
+        same = (m.group("n") or "") == (m.group("m") or "")
+        start = m.end() + len(s[m.end():]) - len(s[m.end():].lstrip())
+        end = None
+        if same and "d" not in known and "d" + var not in known and start < len(s):
+            if s[start] == "(":
+                depth = 0
+                for k in range(start, len(s)):
+                    depth += s[k] in "(["
+                    depth -= s[k] in ")]"
+                    if not depth:
+                        body, end = s[start + 1:k], k + 1
+                        break
+            else:
+                k = _ddx_operand(s, start)
+                body = s[start:k].rstrip()
+                end = start + len(body)
+        if end is None or not body.strip():
+            out.append(s[pos:m.end()])
+            pos = m.end()
+            continue
+        order = {"²": "2", "³": "3"}.get(m.group("n"), m.group("n"))
+        out.append(s[pos:m.start()] + f"diff({rewrite_ddx(body, known)}, {var}{', ' + order if order else ''})")
+        pos = end
 
 
 ASSIGN = re.compile(r"^\s*([^\W\d]\w*)\s*(\(([^()]*)\))?\s*(?<![<>=!])=(?!=)(.*)$", re.S)
@@ -370,6 +444,8 @@ def evaluate(node, ctx: Ctx, local=None):
             f = _CMP.get(type(op))
             if not f:
                 raise CalcError("Vergleich nicht erlaubt")
+            if not isinstance(op, (ast.Eq, ast.NotEq)) and (np.iscomplexobj(left) or np.iscomplexobj(right)):
+                left, right = real_values(left, "Vergleich"), real_values(right, "Vergleich")     # z > 1 hat keine Ordnung
             r = f(left, right)
             res = r if res is None else np.logical_and(res, r)
             left = right
@@ -436,6 +512,8 @@ def evaluate(node, ctx: Ctx, local=None):
                 need = str(nmin) if nmin == nmax else f"{nmin} bis {nmax}" if nmax < 99 else f"mindestens {nmin}"
                 raise CalcError(f"{name} erwartet {need} Argument(e)")
             args = [evaluate(a, ctx, local) for a in node.args]
+            if name in _REAL_ONLY:                            # komplexe Werte: klare Meldung statt abgeschnittenem Imaginärteil
+                args = [real_values(a, name) if np.iscomplexobj(a) else a for a in args]
             with np.errstate(all="ignore"):
                 try:
                     return fn(ctx, *args)
@@ -474,8 +552,35 @@ def _maybe_c(f, cplx):
     return g
 
 
+def real_values(x, what="Diese Funktion"):
+    """Werte als reelles Feld; ein echter Imaginärteil ist ein Fehler (numpy würde ihn sonst stillschweigend abschneiden)."""
+    a = np.asarray(x)
+    if np.iscomplexobj(a):
+        if np.any(np.abs(a.imag) > 1e-12 * np.maximum(1, np.abs(a.real))):
+            raise CalcError(f"{what}: nur für reelle Werte, hier sind sie komplex")
+        a = a.real
+    return np.asarray(a, dtype=float)
+
+
+_REAL_ONLY = {"atan2", "cbrt", "ceil", "floor", "deg", "rad", "hypot", "mod", "gcd", "lcm", "nPr", "min", "max", "median",
+              "eye", "identity", "zeros", "ones", "rand", "seq", "range", "linspace", "interp"}
+
+
+def _number(z):
+    """Zahl aus det, trace: reell, wenn der Imaginärteil nur Rundungsrauschen ist, sonst komplex."""
+    z = np.real_if_close(z)
+    return complex(z) if np.iscomplexobj(z) else float(z)
+
+
+def _root(c, x, n):
+    n = real_values(n, "root")
+    if np.iscomplexobj(x):
+        return np.power(x, 1 / n)                         # Hauptwert
+    return np.sign(x) * np.abs(x) ** (1 / n) if np.all(np.mod(n, 2) == 1) else np.power(x, 1 / n)
+
+
 def _gamma(x):
-    a = np.asarray(x, dtype=float)
+    a = real_values(x, "gamma")
     if a.ndim == 0:
         v = float(a)
         if v < 0 and v == int(v):
@@ -488,19 +593,20 @@ def _gamma(x):
 
 
 def _erf(x):
-    v = np.vectorize(math.erf, otypes=[float])(np.asarray(x, dtype=float))
+    v = np.vectorize(math.erf, otypes=[float])(real_values(x, "erf"))
     return float(v) if v.ndim == 0 else v
 
 
 def _fact(c, n):
-    a = np.asarray(n, dtype=float)
+    a = real_values(n, "Fakultät")
     if np.any(a < 0):
         raise CalcError("Fakultät nur für n ≥ 0")
     return _gamma(a + 1)
 
 
 def _binom(c, n, k):
-    return np.round(_gamma(np.asarray(n, float) + 1) / (_gamma(np.asarray(k, float) + 1) * _gamma(np.asarray(n, float) - k + 1)))
+    n, k = real_values(n, "binom"), real_values(k, "binom")
+    return np.round(_gamma(n + 1) / (_gamma(k + 1) * _gamma(n - k + 1)))
 
 
 def _agg(fn):
@@ -512,12 +618,11 @@ def _agg(fn):
 
 
 def _vec(x):
-    a = np.asarray(x, dtype=float)
-    return a.ravel()
+    return real_values(x).ravel()
 
 
 def _rref(c, A):
-    M = np.array(A, dtype=float)
+    M = np.array(real_values(A, "rref"), dtype=float)
     if M.ndim != 2:
         raise CalcError("rref braucht eine Matrix")
     r = 0
@@ -564,7 +669,7 @@ def _convert(c, v, a, b):
     U.parse_unit(b)
     if not U.compatible(a, b):                     # auch: Skalen wie pH, dB, NTU nur in sich selbst
         raise CalcError(f"{a} und {b} passen nicht zusammen")
-    return U.from_si(U.to_si(np.asarray(v, float), a, diff), b, diff)
+    return U.from_si(U.to_si(real_values(v, "convert"), a, diff), b, diff)
 
 
 def _size(c, A):
@@ -589,6 +694,23 @@ def _sq(A):
     return A
 
 
+def _cofactors(A):
+    """Kofaktormatrix C_ij = (−1)^(i+j)·det(A ohne Zeile i und Spalte j); adj(A) = Cᵀ, auch für singuläre A.
+    Ganzzahlige Matrizen geben ganzzahlige Kofaktoren (Rundung der Determinanten der Minoren)."""
+    M = np.asarray(_sq(A))
+    n = M.shape[0]
+    if n == 1:
+        return np.array([[1.0]])
+    Cm = np.empty(M.shape, dtype=complex if np.iscomplexobj(M) else float)
+    for i in range(n):
+        for j in range(n):
+            minor = np.delete(np.delete(M, i, axis=0), j, axis=1)
+            Cm[i, j] = (-1) ** (i + j) * np.linalg.det(minor)
+    if not np.iscomplexobj(M) and np.all(np.isfinite(M)) and np.all(M == np.round(M)):
+        Cm = np.round(Cm)
+    return Cm
+
+
 def _real_if_close(v):
     a = np.asarray(v)
     if np.iscomplexobj(a) and np.all(np.abs(a.imag) <= 1e-12 * np.maximum(1, np.abs(a.real))):
@@ -605,7 +727,7 @@ BUILTINS = {
     "sinh": (lambda c, x: np.sinh(x), 1, 1), "cosh": (lambda c, x: np.cosh(x), 1, 1), "tanh": (lambda c, x: np.tanh(x), 1, 1),
     "asinh": (lambda c, x: np.arcsinh(x), 1, 1), "acosh": (lambda c, x: np.arccosh(x), 1, 1), "atanh": (lambda c, x: np.arctanh(x), 1, 1),
     "sqrt": (_maybe_c(np.sqrt, lambda x: np.emath.sqrt(x)), 1, 1), "cbrt": (lambda c, x: np.cbrt(x), 1, 1),
-    "root": (lambda c, x, n: np.sign(x) * np.abs(x) ** (1 / np.asarray(n)) if np.all(np.mod(n, 2) == 1) else np.power(x, 1 / np.asarray(n)), 2, 2),
+    "root": (_root, 2, 2),
     "exp": (lambda c, x: np.exp(x), 1, 1), "ln": (_maybe_c(np.log, lambda x: np.emath.log(x)), 1, 1),
     "log": (lambda c, x, b=10.0: np.log(x) / np.log(b), 1, 2), "log10": (lambda c, x: np.log10(x), 1, 1),
     "log2": (lambda c, x: np.log2(x), 1, 1), "abs": (lambda c, x: np.abs(x), 1, 1), "sign": (lambda c, x: np.sign(x), 1, 1),
@@ -626,7 +748,6 @@ BUILTINS = {
     "var": (lambda c, *a: np.var(_vec(a[0] if len(a) == 1 else a), ddof=1), 1, 99),
     "min": (_agg(np.min), 1, 99), "max": (_agg(np.max), 1, 99), "sort": (lambda c, x: np.sort(_vec(x)), 1, 1),
     "len": (lambda c, x: float(np.size(x)), 1, 1), "cumsum": (lambda c, x: np.cumsum(x), 1, 1),
-    "diff": (lambda c, x: np.diff(_vec(x)), 1, 1),
     "trapz": (lambda c, y, x=None: np.trapezoid(_vec(y), None if x is None else _vec(x)) if hasattr(np, "trapezoid") else np.trapz(_vec(y), None if x is None else _vec(x)), 1, 2),
     "linreg": (_linreg, 2, 2), "polyfit": (lambda c, x, y, n: np.polyfit(_vec(x), _vec(y), int(n)), 3, 3),
     "polyval": (lambda c, p, x: np.polyval(_vec(p), x), 2, 2), "roots": (lambda c, p: _real_if_close(np.roots(_vec(p))), 1, 1),
@@ -634,12 +755,14 @@ BUILTINS = {
     "seq": (_seq, 2, 3), "range": (_seq, 2, 3), "linspace": (lambda c, a, b, n=50: np.linspace(a, b, int(n)), 2, 3),
     "rand": (lambda c, n=1: np.random.default_rng().random(int(n)) if int(n) > 1 else float(np.random.default_rng().random()), 0, 1),
     # Matrizen
-    "det": (lambda c, A: float(np.real_if_close(np.linalg.det(_sq(A)))), 1, 1), "inv": (lambda c, A: np.linalg.inv(_sq(A)), 1, 1),
+    "det": (lambda c, A: _number(np.linalg.det(_sq(A))), 1, 1), "inv": (lambda c, A: np.linalg.inv(_sq(A)), 1, 1),
+    "adj": (lambda c, A: _cofactors(A).T, 1, 1), "adjugate": (lambda c, A: _cofactors(A).T, 1, 1),
+    "cof": (lambda c, A: _cofactors(A), 1, 1),
     "transpose": (lambda c, A: np.asarray(A).T if np.ndim(A) == 2 else np.asarray(A).reshape(-1, 1) if np.ndim(A) == 1 else A, 1, 1),
-    "trace": (lambda c, A: float(np.trace(_sq(A))), 1, 1), "rank": (lambda c, A: float(np.linalg.matrix_rank(np.asarray(A))), 1, 1),
+    "trace": (lambda c, A: _number(np.trace(_sq(A))), 1, 1), "rank": (lambda c, A: float(np.linalg.matrix_rank(np.asarray(A))), 1, 1),
     "eig": (lambda c, A: _real_if_close(np.linalg.eigvals(_sq(A))), 1, 1),
     "eigvec": (lambda c, A: _real_if_close(np.linalg.eig(_sq(A))[1]), 1, 1),
-    "svd": (lambda c, A: np.linalg.svd(np.asarray(A, float), compute_uv=False), 1, 1),
+    "svd": (lambda c, A: np.linalg.svd(real_values(A, "svd"), compute_uv=False), 1, 1),
     "norm": (lambda c, A, p=2.0: float(np.linalg.norm(np.asarray(A), ord=None if p == 2 and np.ndim(A) == 1 else ("fro" if p == 2 else p))), 1, 2),
     "dot": (lambda c, a, b: np.dot(_vec(a), _vec(b)), 2, 2), "cross": (lambda c, a, b: np.cross(_vec(a), _vec(b)), 2, 2),
     "eye": (lambda c, n: np.eye(int(n)), 1, 1), "identity": (lambda c, n: np.eye(int(n)), 1, 1),
@@ -647,7 +770,8 @@ BUILTINS = {
     "ones": (lambda c, m, n=None: np.ones((int(m), int(n if n is not None else m))), 1, 2),
     "diag": (lambda c, v: np.diag(np.asarray(v)), 1, 1), "rref": (_rref, 1, 1),
     "linsolve": (lambda c, A, b: np.linalg.solve(_sq(A), np.asarray(b)), 2, 2),
-    "pinv": (lambda c, A: np.linalg.pinv(np.asarray(A, float)), 1, 1), "cond": (lambda c, A: float(np.linalg.cond(np.asarray(A, float))), 1, 1),
+    "pinv": (lambda c, A: np.linalg.pinv(real_values(A, "pinv")), 1, 1),
+    "cond": (lambda c, A: float(np.linalg.cond(real_values(A, "cond"))), 1, 1),
     "size": (_size, 1, 1), "row": (lambda c, A, i: _idx(c, A, i, 0), 2, 2), "col": (lambda c, A, j: _idx(c, A, j, 1), 2, 2),
     "kron": (lambda c, A, B: np.kron(A, B), 2, 2),
     # Einheiten
@@ -664,8 +788,21 @@ def _var_name(node, fn):
 
 def _fn_of(node, var, ctx, local):
     def f(x):
-        return evaluate(node, ctx, {**local, var: x})
+        v = evaluate(node, ctx, {**local, var: x})
+        return real_values(v, "Integral, Reihe, Ableitung und nsolve") if np.iscomplexobj(v) else v    # rechnen reell
     return f
+
+
+def _refuse_complex(f, *points):
+    """Integral und Ableitung fangen Fehler im Verfahren ab: ein komplexer Integrand wird vorher klar gemeldet."""
+    for x in points:
+        try:
+            f(np.ravel(x)[0] if np.ndim(x) else x)
+        except CalcError as e:
+            if "komplex" in str(e):
+                raise
+        except Exception:                                 # alles andere meldet das Verfahren selbst
+            pass
 
 
 def _vectorized(f, X):
@@ -821,6 +958,7 @@ def _sp_integral(args, ctx, local):
     var = _var_name(args[1], "integral")
     f = _fn_of(args[0], var, ctx, local)
     a, b = evaluate(args[2], ctx, local), evaluate(args[3], ctx, local)
+    _refuse_complex(f, a, np.add(a, b) / 2)               # die Mitte: z*x ist bei x = 0 noch reell
     if np.ndim(a) or np.ndim(b):
         A, B = np.broadcast_arrays(np.asarray(a, float), np.asarray(b, float))
         return np.vectorize(lambda x, y: float(quad(f, x, y, ctx)))(A, B)
@@ -926,6 +1064,7 @@ def _sp_deriv(args, ctx, local):
     var = _var_name(args[1], "deriv")
     f = _fn_of(args[0], var, ctx, local)
     n = int(evaluate(args[3], ctx, local)) if len(args) == 4 else 1
+    _refuse_complex(f, evaluate(args[2], ctx, local))
     v, e = deriv_est(f, evaluate(args[2], ctx, local), n)
     va, ea = np.abs(np.atleast_1d(np.asarray(v, float))), np.abs(np.atleast_1d(np.asarray(e, float)))
     fin = np.isfinite(va)
@@ -1006,7 +1145,7 @@ def _sp_series(kind):
     def g(args, ctx, local):
         if len(args) == 1:
             v = np.asarray(evaluate(args[0], ctx, local))
-            return float(np.sum(v)) if kind == "sum" else float(np.prod(v))
+            return _number(np.sum(v)) if kind == "sum" else _number(np.prod(v))
         if len(args) != 4:
             raise CalcError(f"{kind}(Liste) oder {kind}(Ausdruck, k, von, bis)")
         var = _var_name(args[1], kind)
@@ -1028,8 +1167,49 @@ def _sp_if(args, ctx, local):
     return np.where(c, evaluate(args[1], ctx, local), evaluate(args[2], ctx, local))
 
 
+def _deriv_notes(ctx, numeric):
+    from . import deriv as D
+    if numeric:
+        ctx.note(D.NUMERIC_NOTE["de"].format(t=", ".join(numeric)))
+
+
+def _sp_diff(args, ctx, local):
+    """diff(Liste): Differenzen aufeinanderfolgender Werte; diff(Ausdruck, x[, n]): symbolische Ableitung nach x,
+    ausgewertet am Wert von x (labcalc.deriv)."""
+    if len(args) == 1:
+        return np.diff(_vec(evaluate(args[0], ctx, local)))
+    if len(args) not in (2, 3) or not isinstance(args[1], ast.Name):
+        raise CalcError("diff(Ausdruck, x) oder diff(Ausdruck, x, n) – bzw. diff(Liste)")
+    from . import deriv as D
+    call = ast.Call(func=ast.Name(id="diff", ctx=ast.Load()), args=list(args), keywords=[])
+    node, numeric = D.cached("diff", call, ctx.funcs, ctx.angle, lambda: D.expand(call, ctx.funcs, ctx.angle))
+    _deriv_notes(ctx, numeric)
+    return evaluate(node, ctx, local)
+
+
+def _sp_prime(args, ctx, local):
+    """fprime_(f, n, u): n-te Ableitung der Funktion f an der Stelle u (Schreibweise f'(u), f''(u))."""
+    from . import deriv as D
+    call = ast.Call(func=ast.Name(id="fprime_", ctx=ast.Load()), args=list(args), keywords=[])
+    node, numeric = D.cached("prime", call, ctx.funcs, ctx.angle, lambda: D.expand(call, ctx.funcs, ctx.angle))
+    _deriv_notes(ctx, numeric)
+    return evaluate(node, ctx, local)
+
+
+def _sp_dnum(args, ctx, local):
+    """dnum_(g, x, n): numerische Ableitung von g nach x am Wert von x (Rückfall ohne Ableitungsregel)."""
+    if len(args) != 3 or not isinstance(args[1], ast.Name):
+        raise CalcError("dnum_(Ausdruck, x, n)")
+    var = args[1].id
+    n = int(evaluate(args[2], ctx, local))
+    x0 = evaluate(args[1], ctx, local)
+    v, _e = deriv_est(_fn_of(args[0], var, ctx, local), x0, min(max(n, 1), 2))
+    return v
+
+
 SPECIAL = {"integral": _sp_integral, "deriv": _sp_deriv, "nsolve": _sp_nsolve, "sum": _sp_series("sum"),
-           "prod": _sp_series("prod"), "if_": _sp_if, "if": _sp_if}
+           "prod": _sp_series("prod"), "if_": _sp_if, "if": _sp_if, "diff": _sp_diff, "fprime_": _sp_prime,
+           "dnum_": _sp_dnum}
 
 FUNC_DOC = [
     ("Grundfunktionen", ["sqrt(x)", "cbrt(x)", "root(x, n)", "exp(x)", "ln(x)", "log(x, b)", "log10(x)", "abs(x)",
@@ -1037,9 +1217,11 @@ FUNC_DOC = [
                          "erf(x)", "erfc(x)"]),
     ("Trigonometrie", ["sin(x)", "cos(x)", "tan(x)", "asin(x)", "acos(x)", "atan(x)", "atan2(y, x)", "sinh(x)",
                        "cosh(x)", "tanh(x)", "deg(x)", "rad(x)", "hypot(a, b)"]),
-    ("Analysis", ["integral(f, x, a, b)", "deriv(f, x, x0)", "deriv(f, x, x0, 2)", "nsolve(f == g, x, x0)",
-                  "sum(f, k, a, b)", "prod(f, k, a, b)", "if(Bedingung, a, b)"]),
-    ("Matrizen", ["[[1, 2], [3, 4]]", "A*B", "A'", "inv(A)", "det(A)", "rank(A)", "trace(A)", "eig(A)",
+    ("Analysis", ["integral(f, x, a, b)", "diff(f, x)", "diff(f, x, 2)", "f'(x)", "f''(x)", "deriv(f, x, x0)",
+                  "deriv(f, x, x0, 2)", "nsolve(f == g, x, x0)", "sum(f, k, a, b)", "prod(f, k, a, b)",
+                  "if(Bedingung, a, b)"]),
+    ("Matrizen", ["[[1, 2], [3, 4]]", "A*B", "A*B = C", "A'", "inv(A)", "det(A)", "adj(A)", "cof(A)", "rank(A)",
+                  "trace(A)", "eig(A)",
                   "eigvec(A)", "rref(A)", "linsolve(A, b)", "eye(n)", "zeros(m, n)", "dot(a, b)", "cross(a, b)",
                   "norm(v)", "A[i, j]", "row(A, i)", "col(A, j)", "svd(A)", "pinv(A)"]),
     ("Statistik", ["[1, 2, 3]", "mean(L)", "median(L)", "std(L)", "var(L)", "min(L)", "max(L)", "sum(L)",
@@ -1170,6 +1352,18 @@ def _special_dims(node, dims, strict, consts):
     if n in ("if", "if_") and len(args) == 3:
         a, b = dd(args[1]), dd(args[2])
         return a if a is not None and b is not None and U.deq(a, b) else None
+    if n == "diff" and len(args) == 1:
+        return dd(args[0])
+    if n in ("diff", "dnum_") and len(args) in (2, 3) and isinstance(args[1], ast.Name):
+        dx = dd(args[1])                                   # d f/d x: Einheit von f durch Einheit von x hoch n
+        if dx is None:
+            return None
+        try:
+            order = int(float(evaluate(args[2], Ctx()))) if len(args) == 3 else 1
+        except (CalcError, TypeError, ValueError):
+            return None
+        inner = dd(args[0])
+        return U.ddiv(inner, U.dpow(dx, order)) if inner is not None else None
     return None
 
 
@@ -1244,7 +1438,7 @@ def dims_of(node, dims: dict, strict=False, consts=True):
         if n in ("len", "size", "rank", "cond", "eye", "identity", "zeros", "ones", "binom", "nCr", "nPr",
                  "rand", "gcd", "lcm"):
             return U.D0
-        if n == "det" and ds and ds[0] is not None:
+        if n in ("det", "adj", "adjugate", "cof") and ds and ds[0] is not None:
             return U.D0 if U.deq(ds[0], U.D0) else None          # Einheit^n, n = Grösse der Matrix: unbekannt
         if n == "var" and ds and ds[0] is not None:
             return U.dpow(ds[0], 2)
@@ -1354,26 +1548,41 @@ def _jnum(x):
     return x if math.isfinite(x) else None
 
 
+def _from_cell(c):
+    if c is None:
+        return math.nan
+    if isinstance(c, dict):
+        re_, im_ = c.get("re"), c.get("im", 0)
+        return complex(math.nan if re_ is None else re_, math.nan if im_ is None else im_)
+    return c
+
+
 def from_json(v):
-    """Gespeicherter Wert (Zahl, Liste, Matrix, [re, im] mit Kennung) -> numpy."""
+    """Gespeicherter Wert (Zahl, Liste, Matrix; komplexe Zahlen als {re, im}, auch als Zellen) -> numpy."""
     if isinstance(v, dict) and "re" in v:
-        return complex(v["re"], v.get("im", 0))
+        return _from_cell(v)
     if isinstance(v, list):
-        return np.array([[np.nan if c is None else c for c in r] if isinstance(r, list) else (np.nan if r is None else r)
-                         for r in v], dtype=float)
+        rows = [[_from_cell(c) for c in r] if isinstance(r, list) else _from_cell(r) for r in v]
+        cplx = any(isinstance(c, complex) for r in rows for c in (r if isinstance(r, list) else [r]))
+        return np.array(rows, dtype=complex if cplx else float)
     if v is None:
         return math.nan
     return float(v)
 
 
+def _to_cell(x):
+    z = complex(x)
+    return {"re": _jnum(z.real), "im": _jnum(z.imag)} if z.imag else _jnum(z.real)
+
+
 def to_json(v):
+    """Wert für JSON; komplexe Einträge bleiben als {re, im} erhalten."""
     a = np.asarray(v)
     if a.ndim == 0:
         z = complex(a)
         return {"re": z.real, "im": z.imag} if z.imag else _jnum(z.real)
-    if np.iscomplexobj(a):
-        a = np.real(a)
-    return [[_jnum(x) for x in r] for r in a.tolist()] if a.ndim == 2 else [_jnum(x) for x in a.tolist()]
+    cell = _to_cell if np.iscomplexobj(a) else _jnum
+    return [[cell(x) for x in r] for r in a.tolist()] if a.ndim == 2 else [cell(x) for x in a.tolist()]
 
 
 # ----------------------------------------------------------------------------- Chemie-Funktionen

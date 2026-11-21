@@ -479,9 +479,16 @@ class ModuleEnvs:
                 continue
             if v != v or v in (float("inf"), float("-inf")):
                 continue
+            q = {"value": v, "unit": str(it.get("unit") or "")[:40]}
+            try:                                             # Standardunsicherheit reist mit (Runde U)
+                u = float(str(it.get("u")).replace(",", "."))
+                if u > 0 and u != float("inf"):
+                    q["u"] = u
+            except (TypeError, ValueError):
+                pass
             outs.append({"key": str(it["sym"]).strip()[:60], "label": str(it.get("label") or it["sym"])[:200],
-                         "quantity": {"value": v, "unit": str(it.get("unit") or "")[:40]},
-                         "conditions": {"kind": str(it.get("kind") or "")[:40]}})
+                         "quantity": q, "conditions": {"kind": str(it.get("kind") or "")[:40],
+                                                       **({"unc": str(it["unc"])[:60]} if it.get("unc") else {})}})
         if not outs:
             raise EnvError("Keine Zahlenwerte zum Teilen")
         box = Sharebox(self.suite, self.project)
@@ -489,7 +496,7 @@ class ModuleEnvs:
                      and (m.get("producer") or {}).get("env") == env_id), None)
         if prev:
             last = box.get(prev["id"], prev["latest"])
-            sig = lambda os: sorted((o["key"], o["quantity"]["value"], o["quantity"].get("unit", ""), o.get("label", "")) for o in os)  # noqa: E731
+            sig = lambda os: sorted((o["key"], o["quantity"]["value"], o["quantity"].get("unit", ""), o["quantity"].get("u", 0), o.get("label", "")) for o in os)  # noqa: E731
             if sig(last.get("outputs") or []) == sig(outs):
                 return {**last, "unchanged": True}
         prod = {"module": self.module, "env": env_id, "env_name": known[env_id], "item": "umgebungswerte",

@@ -1,0 +1,267 @@
+{
+ "about": "Text des Kompendiums, Aussage für Aussage. Zeile: [Kennung, DE, EN, [Quellenschlüssel], Kennzeichen]. Kennzeichen 'sw': beschreibt das Verhalten dieses Programms (mit Schlüsseln: wendet das zitierte Verfahren an; ohne Schlüssel: keine Literaturstelle nötig). Kennzeichen 'open': Sachaussage ohne nachvollziehbare Quelle, bleibt für die Quellenprüfung offen. Kennungen sind stabil: Pins und Berichte verweisen auf sie; beim Umformulieren bleibt die Kennung, eine neue Aussage bekommt eine neue. Die Schlüssel sind dieser Aussage zugeordnet; ob das Original sie stützt, sagt erst der Prüfstatus der Quelle.",
+ "sections": {
+  "auswahl": {
+   "_": [
+    ["index", "Ein Leistungsindex fasst die für eine Bauteilfunktion massgebenden Eigenschaften in einer Kennzahl zusammen, etwa E/ρ für steife, leichte Zugstäbe.", "A performance index combines the properties governing a component function into one number, e.g. E/ρ for stiff, light ties.", ["ashby"]],
+    ["guide", "In doppelt logarithmischer Auftragung verbindet eine Leitlinie Werkstoffe mit gleichem Indexwert; Werkstoffe oberhalb der Linie erreichen einen höheren Wert.", "On log–log axes a guide line joins materials of equal index; materials above the line reach a higher value.", ["ashby"]],
+    ["plot", "Aufgetragen sind je Werkstoff der Datenbankwert oder die zitierte typische Spanne der beiden gewählten Eigenschaften.", "Plotted per material: the database value or the cited typical range of the two chosen properties.", [], "sw"],
+    ["limits", "Grenzwerte schliessen Werkstoffe aus, die eine Mindestanforderung verfehlen; die Rangliste sortiert nach dem Index.", "Limits exclude materials missing a minimum requirement; the ranking sorts by the index.", [], "sw"]
+   ]
+  },
+  "karten": {
+   "_": [
+    ["card", "Eine Karte listet die Eigenschaften eines Werkstoffs aus der gemeinsamen Datenbank, je Wert mit Wertart (Typwert, Mindestwert, Höchstwert, Mitte einer Spanne) und Quelle.", "A card lists a material's properties from the shared database, each value with its kind (typical, minimum, maximum, middle of a range) and source.", [], "sw"],
+    ["mark", "† kennzeichnet Werte, die nicht am Original geprüft sind.", "† marks values not checked against the original.", [], "sw"],
+    ["decode", "Die Aufschlüsselung der Bezeichnung nach ihrer Norm steht im Kompendiumseintrag des Werkstoffs.", "The breakdown of the designation after its standard is in the material's compendium entry.", [], "sw"]
+   ]
+  },
+  "kristall": {
+   "lines": [
+    ["bragg", "Reflexlagen folgen der Bragg-Gleichung nλ = 2d sin θ.", "Reflection positions follow Bragg's law nλ = 2d sin θ.", ["cullity"]],
+    ["allowed", "Die erlaubten Reflexe (hkl) ergeben sich aus Gitterkonstanten und Raumgruppe; ausgelöschte Reflexe treten nicht auf.", "The allowed reflections (hkl) follow from the lattice parameters and the space group; extinct reflections are absent.", ["cullity"]],
+    ["intensity", "Die Intensität folgt aus dem Strukturfaktor mit Atomformfaktoren (Cromer–Mann), der Flächenhäufigkeit und dem Lorentz-Polarisationsfaktor.", "Intensity follows from the structure factor with atomic form factors (Cromer–Mann), the multiplicity and the Lorentz-polarisation factor.", ["cullity", "itc_c"]],
+    ["computed", "Die Linien sind aus der Struktur berechnet, nicht gemessen.", "The lines are computed from the structure, not measured.", [], "sw"]
+   ],
+   "cell": [
+    ["generate", "Die Atome der asymmetrischen Einheit werden mit den Symmetrieoperationen der Raumgruppe in die Zelle gelegt.", "The atoms of the asymmetric unit are placed in the cell with the space-group symmetry operations.", [], "sw"],
+    ["spheres", "Die Kugelgrössen sind schematisch.", "Sphere sizes are schematic.", [], "sw"]
+   ]
+  },
+  "gitter": {
+   "3d": [
+    ["state", "Phase und Gitterkonstante bei der eingestellten Temperatur stammen aus dem Zustandsdiagramm und der Wärmeausdehnung.", "Phase and lattice parameter at the set temperature come from the phase diagram and thermal expansion.", [], "sw"],
+    ["solutes", "Gelöste Atome besetzen Zwischengitter- oder Gitterplätze in der Anzahl, die der Gehalt ergibt.", "Solute atoms occupy interstitial or lattice sites in the number the content yields.", ["callister"], "sw"],
+    ["lever", "Eine zweite Phase folgt dem Hebelgesetz.", "A second phase follows the lever rule.", ["callister"], "sw"],
+    ["exaggerated", "Leerstellen, Schwingung und Versetzungen sind überzeichnet und als solche beschriftet.", "Vacancies, vibration and dislocations are exaggerated and labelled as such.", [], "sw"]
+   ],
+   "cell": [
+    ["cell", "Die Elementarzelle ist die Wiederholeinheit des Gitters; ihre Kanten sind die Gitterkonstanten, hier bei der eingestellten Temperatur.", "The unit cell is the repeating unit of the lattice; its edges are the lattice parameters, here at the set temperature.", ["kittel"]]
+   ],
+   "slice": [
+    ["slice", "Der Schnitt zeigt eine Atomlage der gewählten Ebene mit Fremdatomen, Leerstellen und Verzerrungen, die Atome in wahrer Grösse.", "The slice shows one atomic layer of the chosen plane with solutes, vacancies and distortions, atoms at true size.", [], "sw"]
+   ]
+  },
+  "xrd": {
+   "pattern": [
+    ["smooth", "Das Signal wird optional nach Savitzky–Golay geglättet.", "The signal is optionally smoothed after Savitzky–Golay.", ["savitzky1964"], "sw"],
+    ["background", "Der Untergrund wird mit dem SNIP-Verfahren geschätzt und abgezogen.", "The background is estimated with the SNIP algorithm and subtracted.", ["ryan1988", "morhac1997"], "sw"],
+    ["profile", "Reflexe werden mit Pseudo-Voigt-Profilen angepasst, bei Bedarf als Kα-Doppellinie.", "Reflections are fitted with pseudo-Voigt profiles, as a Kα doublet if needed.", ["thompson1987"], "sw"],
+    ["search", "Die Phasensuche vergleicht die Reflexlagen mit aus Strukturen berechneten Linien; ICDD-Daten werden nicht verwendet.", "The phase search compares reflection positions with lines computed from structures; no ICDD data are used.", [], "sw"],
+    ["rir", "Mengenanteile folgen aus Referenz-Intensitätsverhältnissen (RIR), die aus den Strukturen berechnet und nicht gemessen sind; sie sind halbquantitativ.", "Phase fractions follow from reference intensity ratios (RIR) computed from the structures, not measured; they are semi-quantitative.", ["chung1974", "hubbard1988"], "sw"]
+   ],
+   "wh": [
+    ["plot", "Beim Williamson–Hall-Verfahren wird für jeden Reflex β cos θ gegen 4 sin θ aufgetragen.", "In the Williamson–Hall method β cos θ is plotted against 4 sin θ for every reflection.", ["williamson1953"]],
+    ["separate", "Der Achsenabschnitt Kλ/D liefert die Kristallitgrösse D, die Steigung die Mikrodehnung.", "The intercept Kλ/D gives the crystallite size D, the slope the microstrain.", ["williamson1953", "scherrer1918"]],
+    ["instrument", "Die Gerätebreite wird vor der Auftragung abgezogen.", "The instrumental breadth is subtracted before plotting.", [], "sw"]
+   ],
+   "nr": [
+    ["systematic", "Systematische Fehler durch Probenhöhe und Absorption verschwinden bei 2θ = 180°.", "Systematic errors from sample height and absorption vanish at 2θ = 180°.", ["nelson1945"]],
+    ["extrapolate", "Die Gitterkonstanten der einzelnen Reflexe werden über der Nelson–Riley-Funktion aufgetragen und auf null extrapoliert.", "The lattice parameters of the single reflections are plotted against the Nelson–Riley function and extrapolated to zero.", ["nelson1945"]]
+   ]
+  },
+  "phasen": {
+   "diagram": [
+    ["lines", "Die Linien sind geglättete Kurven durch zitierte Punkte der jeweiligen Quelle und damit schematisch.", "The lines are smoothed curves through cited points of the respective source and therefore schematic.", [], "sw"],
+    ["tie", "Im Zweiphasengebiet gibt die Konode die Zusammensetzung beider Phasen, das Hebelgesetz ihre Mengenanteile.", "In a two-phase field the tie line gives the composition of both phases, the lever rule their fractions.", ["porter", "callister"]],
+    ["inset", "Das Nebenbild zeigt das typische Gefüge am gewählten Punkt.", "The inset shows the typical microstructure at the chosen point.", [], "sw"]
+   ],
+   "cooling": [
+    ["equilibrium", "Die Abkühlung wird im Gleichgewicht gerechnet; das Hebelgesetz liefert die Phasenanteile je Temperatur.", "Cooling is computed in equilibrium; the lever rule gives the phase fractions at each temperature.", ["porter"], "sw"],
+    ["limits", "Ungleichgewicht (Seigerung, Unterkühlung) ist nicht berücksichtigt.", "Non-equilibrium (segregation, undercooling) is not included.", [], "sw"]
+   ]
+  },
+  "stahl": {
+   "_": [
+    ["ce", "CE, CET und Pcm sind Kenngrössen der Schweisseignung aus der Zusammensetzung.", "CE, CET and Pcm are weldability indicators derived from the composition.", ["en1011_2", "ito1968"]],
+    ["andrews", "Ac1, Ac3 und Ms werden nach den empirischen Formeln von Andrews berechnet.", "Ac1, Ac3 and Ms are computed with the empirical formulas of Andrews.", ["andrews1965"], "sw"],
+    ["preheat", "Die Vorwärmtemperatur nach EN 1011-2 hängt von CET, Blechdicke, Wasserstoffeintrag und Wärmeeinbringung ab.", "Preheat after EN 1011-2 depends on CET, plate thickness, hydrogen input and heat input.", ["en1011_2"]],
+    ["tempering", "Anlassbehandlungen werden über den Hollomon–Jaffe-Parameter verglichen.", "Tempering treatments are compared through the Hollomon–Jaffe parameter.", ["hollomonjaffe1945"]],
+    ["carburising", "Das Aufkohlungsprofil folgt der Fehlerfunktionslösung der Diffusionsgleichung.", "The carburising profile follows the error-function solution of the diffusion equation.", ["porter"]]
+   ]
+  },
+  "laminat": {
+   "s1": [
+    ["clt", "Die klassische Laminattheorie verknüpft Schnittlasten und Dehnungen über die ABD-Matrix.", "Classical laminate theory links section loads and strains through the ABD matrix.", ["daniel2006", "jones1999"]],
+    ["ply", "Aus den Dehnungen folgen die Spannungen jeder Lage in ihren Faserachsen.", "The strains give the stresses of every ply in its fibre axes.", ["daniel2006", "jones1999"]],
+    ["criteria", "Die Versagenskriterien werden je Lage ausgewertet.", "The failure criteria are evaluated for every ply.", ["tsai1971", "hashin1980"], "sw"]
+   ],
+   "s2": [
+    ["weak", "Quer zur Faser ist die Lage am schwächsten; σ₂ entscheidet häufig über das erste Lagenversagen.", "Across the fibre the ply is weakest; σ₂ often decides first-ply failure.", ["daniel2006", "jones1999"]]
+   ],
+   "t12": [
+    ["criteria", "Die Schubspannung in den Faserachsen geht in die Kriterien nach Tsai–Hill, Tsai–Wu und Hashin ein.", "The shear stress in fibre axes enters the Tsai–Hill, Tsai–Wu and Hashin criteria.", ["azzi1965", "tsai1971", "hashin1980"]]
+   ]
+  },
+  "ermuedung": {
+   "sn": [
+    ["basquin", "Die Zeitfestigkeitsgerade wird doppelt logarithmisch nach Basquin angepasst: σa = σf′·(2N)^b.", "The finite-life line is fitted on log–log axes after Basquin: σa = σf′·(2N)^b.", ["basquin1910", "astme739"]],
+    ["runout", "Durchläufer gehen als zensierte Werte in die Maximum-Likelihood-Schätzung ein.", "Run-outs enter the maximum-likelihood estimate as censored values.", ["nelson1990"], "sw"]
+   ],
+   "haigh": [
+    ["models", "Die Modelle nach Goodman, Gerber, Soderberg, Morrow und Smith–Watson–Topper verknüpfen Mittelspannung, Dauerfestigkeit und Festigkeit.", "The Goodman, Gerber, Soderberg, Morrow and Smith–Watson–Topper models relate mean stress, endurance limit and strength.", ["dowling", "swt1970"]],
+    ["safety", "Der Lastpunkt zeigt die Sicherheit gegenüber der gewählten Grenzlinie.", "The load point shows the safety factor against the chosen limit line.", [], "sw"]
+   ],
+   "rf": [
+    ["rainflow", "Die Rainflow-Zählung zerlegt eine Lastfolge in geschlossene Zyklen.", "Rainflow counting splits a load history into closed cycles.", ["astme1049"]],
+    ["miner", "Nach Miner verbraucht jeder Zyklus den Anteil 1/N der Lebensdauer; die Summe ist die Schädigung.", "After Miner each cycle uses the fraction 1/N of the life; the sum is the damage.", ["miner1945"]]
+   ]
+  },
+  "weibull": {
+   "_": [
+    ["parameters", "Die Auswertung liefert den Weibull-Modul m und die charakteristische Festigkeit.", "The evaluation yields the Weibull modulus m and the characteristic strength.", ["weibull1951"]],
+    ["rank", "Die Regression verwendet Rangwerte nach Bernard.", "The regression uses Bernard rank values.", ["bernard1953"], "sw"],
+    ["mle", "Alternativ wird nach ASTM C1239 mit Maximum Likelihood geschätzt.", "Alternatively the estimate uses maximum likelihood after ASTM C1239.", ["astmc1239"], "sw"],
+    ["bootstrap", "Vertrauensbereiche stammen aus dem Bootstrap.", "Confidence intervals come from the bootstrap.", ["efron1993"], "sw"],
+    ["size", "Die Probengrösse skaliert die Festigkeit über das effektive Volumen.", "Specimen size scales strength through the effective volume.", ["weibull1951", "quinn2003"]]
+   ]
+  },
+  "bruch": {
+   "_": [
+    ["kq", "K_Q folgt aus Kraft und Probengeometrie.", "K_Q follows from load and specimen geometry.", ["astme399"]],
+    ["validity", "Die Gültigkeitsbedingungen der ASTM E399 (Dicke, Ligament, Pmax/PQ) entscheiden, ob K_Q = K_Ic gilt.", "The ASTM E399 validity checks (thickness, ligament, Pmax/PQ) decide whether K_Q = K_Ic.", ["astme399"]],
+    ["critical", "Aus K_Ic und der Spannung folgt die kritische Risslänge.", "K_Ic and the stress give the critical crack length.", ["anderson"]]
+   ]
+  },
+  "haerte": {
+   "ind": [
+    ["hardness", "Die Härte folgt aus Prüfkraft und Eindruckgrösse nach der Norm des Verfahrens.", "Hardness follows from test force and indent size after the standard of the method.", ["iso6507", "iso6506", "iso4545"]],
+    ["convert", "Umwertungen zwischen Härteskalen erfolgen nur über eine gewählte, zitierte Tabelle.", "Conversions between hardness scales use only a chosen, cited table.", ["iso18265"], "sw"]
+   ],
+   "hp": [
+    ["grain", "Die Korngrösse wird aus Linienschnitt, Zählung oder Korngrössenzahl nach ASTM E112 bestimmt.", "Grain size is determined from intercepts, counts or the grain-size number after ASTM E112.", ["astme112"]],
+    ["hallpetch", "Die Hall–Petch-Beziehung σy = σ0 + k·d^−½ wird an die Messpunkte angepasst.", "The Hall–Petch relation σy = σ0 + k·d^−½ is fitted to the data points.", ["hall1951", "petch1953"]]
+   ]
+  },
+  "korrosion": {
+   "_": [
+    ["tafel", "Die Tafel-Bereiche beider Äste werden angepasst; ihr Schnittpunkt liefert E_corr und i_corr.", "The Tafel regions of both branches are fitted; their intersection gives E_corr and i_corr.", ["stern1957"]],
+    ["butler", "Optional wird die ganze Kurve nach Butler–Volmer angepasst.", "Optionally the whole curve is fitted with Butler–Volmer.", ["bard"], "sw"],
+    ["rate", "Die Abtragsrate folgt aus dem Faradayschen Gesetz.", "The penetration rate follows from Faraday's law.", ["astmg102"]]
+   ]
+  },
+  "kriechen": {
+   "lmp": [
+    ["parameter", "Der Larson–Miller-Parameter P = T·(C + log t) fasst Temperatur und Zeit zusammen.", "The Larson–Miller parameter P = T·(C + log t) combines temperature and time.", ["larsonmiller1952"]],
+    ["master", "Zeitstandversuche bei verschiedenen Temperaturen fallen über P auf eine Kurve, aus der die Lebensdauer bei anderen Temperaturen folgt.", "Creep-rupture tests at different temperatures collapse onto one curve in P, which gives the life at other temperatures.", ["larsonmiller1952"]]
+   ],
+   "norton": [
+    ["law", "Die stationäre Kriechrate folgt dem Potenzgesetz ε̇ = A·σⁿ.", "The steady-state creep rate follows the power law ε̇ = A·σⁿ.", ["norton1929", "dowling"]],
+    ["exponent", "Der Exponent n weist auf den Mechanismus hin (Diffusions- oder Versetzungskriechen).", "The exponent n indicates the mechanism (diffusion or dislocation creep).", ["dowling"]]
+   ]
+  },
+  "struktur": {
+   "gefuege": [
+    ["state", "Die Skizze folgt dem Zustand des Werkstoffs bei der eingestellten Temperatur oder dem gewählten Bild der Wärmebehandlung.", "The sketch follows the state of the material at the set temperature or the chosen picture of the heat treatment.", [], "sw"],
+    ["fractions", "Anteile (z. B. Perlit nach dem Hebelgesetz) und typische Formen stammen aus den genannten Quellen.", "Fractions (e.g. pearlite after the lever rule) and typical shapes come from the cited sources.", ["krauss2015", "callister"], "sw"],
+    ["schematic", "Die Skizze ist schematisch und keine Aufnahme.", "The sketch is schematic, not a micrograph.", [], "sw"]
+   ],
+   "gitter": [
+    ["state", "Gitterkonstante, gelöste Atome und Leerstellen folgen dem Zustand bei der eingestellten Temperatur.", "Lattice parameter, solutes and vacancies follow the state at the set temperature.", [], "sw"],
+    ["defects", "Defekte sind überzeichnet und als solche beschriftet.", "Defects are exaggerated and labelled as such.", [], "sw"]
+   ],
+   "zelle": [
+    ["atoms", "Die Atomlagen stammen aus der Strukturbestimmung (Crystallography Open Database oder Literaturzelle) und werden mit den Symmetrieoperationen in die Zelle gelegt.", "Atomic positions come from the structure determination (Crystallography Open Database or a literature cell) and are placed in the cell with the symmetry operations.", ["grazulis2012"], "sw"],
+    ["bonds", "Bindungen werden nach Kovalenzradien gezeichnet.", "Bonds are drawn after covalent radii.", ["cordero2008"], "sw"]
+   ],
+   "polymer": [
+    ["chain", "Kettenbau, Knäuel und teilkristalline Morphologie sind nach Lehrbuch dargestellt; Abmessungen sind typische Grössenordnungen.", "Chain structure, coil and semicrystalline morphology are drawn after the textbook; dimensions are typical orders of magnitude.", ["strobl2007"], "sw"]
+   ],
+   "zustand": [
+    ["state", "Das Bild gibt den Zustand wieder, den die Quelle für diesen Behandlungsschritt beschreibt; Grössen sind typisch.", "The picture renders the state the source describes for this step; sizes are typical.", ["krauss2015", "porter"], "sw"]
+   ],
+   "weg": [
+    ["path", "Jeder Punkt des Temperatur-Zeit-Wegs ist ein Bild; Zwischenbilder liegen an Beginn und Ablauf einer Umwandlung (Ac1, Ms, Anlassen ab 100 °C, Ausscheidung ab 300 °C).", "Every point of the temperature–time path is a picture; in-between pictures sit at the start and during a transformation (Ac1, Ms, tempering from 100 °C, precipitation from 300 °C).", [], "sw"],
+    ["progress", "Der Anlassfortschritt folgt dem Hollomon–Jaffe-Parameter.", "Tempering progress follows the Hollomon–Jaffe parameter.", ["hollomonjaffe1945"], "sw"]
+   ],
+   "mech": [
+    ["sequence", "Die Bildfolgen geben die in den Quellen beschriebenen Stufen wieder; die Geometrie ist schematisch.", "The sequences render the stages described in the sources; the geometry is schematic.", ["porter", "bain1924"], "sw"]
+   ],
+   "atlas": [
+    ["sheet", "Der Steckbrief nennt Entstehung, typische Härte und Ätzung mit Quellen; die Skizze zeigt einen typischen Bildausschnitt.", "The fact sheet gives formation, typical hardness and etching with sources; the sketch shows a typical field of view.", ["asm2004v9", "krauss2015", "callister"], "sw"]
+   ]
+  }
+ },
+ "notes": {
+  "auswahl": [
+   ["selection", "Klick auf Punkt oder Ranglistenzeile: Karte mit Kennwerten, Spanne und Familie, im Diagramm die Spanne des Werkstoffs. Esc: ein Schritt zurück (Werkstoff, Familie, nichts). ⇄ teilt einen Wert, ⇄ im Tabellenkopf alle Werte mit anderen Umgebungen.", "Click on a point or ranking row: card with values, range and family, and the material's range in the chart. Esc: one step back (material, family, none). ⇄ shares one value, ⇄ in the table header all values with other environments.", [], "sw"],
+   ["families", "„Familien zeigen“ zeichnet den Gesamtbereich jeder Werkstofffamilie als Umriss; die Punkte einer Familie erscheinen nach Klick in ihren Umriss.", "“Show families” draws the overall range of each material family as an outline; a family's points appear after a click inside its outline.", [], "sw"],
+   ["keys", "Keine gewählte Werkstoffklasse bedeutet alle Klassen. Grenzwerte gelten in den Anzeigeeinheiten; Eigenschaften werden mit ihren Datenbankschlüsseln angegeben (E, rho, Rp, KIc, lambda, alpha), auch bei der eigenen Kennzahl.", "No selected material class means all classes. Limits are in the display units; properties are given by their database keys (E, rho, Rp, KIc, lambda, alpha), also for an own index.", [], "sw"],
+   ["own", "Eigene Werte erscheinen als Rauten und gelten für die Achsen, unter denen sie eingegeben wurden. Ihre Quelle steht im Tooltip und als Literaturangabe im Bericht.", "Own values appear as diamonds and belong to the axes under which they were entered. Their source shows in the tooltip and as a reference in the report.", [], "sw"]
+  ],
+  "kristall": [
+   ["planes", "Die Ebene (hkl) erscheint in der Zellansicht; [uvw] liefert die Länge der Richtung, die zweite Ebene den Winkel zwischen den Ebenen.", "The plane (hkl) appears in the cell view; [uvw] gives the length of the direction, the second plane the angle between the planes.", [], "sw"],
+   ["custom", "Bei einer eigenen Zelle legt das Kristallsystem die freien Gitterparameter fest; die Zentrierung wird zu den Atomen ergänzt.", "For an own cell the crystal system sets the free lattice parameters; the centring is added to the atoms.", [], "sw"]
+  ],
+  "struktur": [
+   ["model", "Gitter und Gefüge sind Modelle bzw. Skizzen; Elementarzellen stammen aus Strukturdaten (Crystallography Open Database oder Literatur).", "Lattices and microstructures are models or sketches; unit cells come from structure data (Crystallography Open Database or literature).", ["grazulis2012"], "sw"],
+   ["slider", "Der Temperaturregler gibt den Bereichen um die Übergänge den meisten Weg. ← → ändern um 1 °C, mit Umschalt um 10 °C; das Feld nimmt jeden Wert. Ändert sich im Bereich nichts, steht das ausdrücklich dabei.", "The temperature slider gives most of its travel to the ranges around the transitions. ← → change by 1 °C, with Shift by 10 °C; the field takes any value. If nothing changes in the range, this is stated.", [], "sw"],
+   ["temper", "Wärmebehandlung: höchstens 8 Schritte; „abschr.“ bedeutet schnelles Abkühlen (Wasser), sonst langsam an Luft. Zwischenbilder liegen dort, wo eine Umwandlung beginnt oder läuft.", "Heat treatment: at most 8 steps; “quench” means fast cooling (water), otherwise slowly in air. In-between pictures sit where a transformation starts or runs.", [], "sw"],
+   ["micrograph", "„Schliffbild“ stellt die Skizzen geätzt in Grau dar; die Zeichnung bleibt schematisch und nicht massstäblich.", "“Micrograph” renders the sketches etched in grey; the drawing stays schematic and not to scale.", [], "sw"],
+   ["tensile", "Werkstoffe mit Zugversuchsdaten stehen auch im Modul Zugversuch zur Auswahl.", "Materials with tensile data are also available in the Tensile test module.", [], "sw"]
+  ],
+  "gitter": [
+   ["sites", "H, B, C, N und O werden auf Zwischengitterplätze gesetzt, alle anderen Fremdatome auf Gitterplätze.", "H, B, C, N and O are placed on interstitial sites, all other solutes on lattice sites.", [], "sw"],
+   ["solubility", "„Eigene Löslichkeit“ gilt nur ohne hinterlegtes Zustandsdiagramm und ohne lückenlose Mischbarkeit; der Überschuss erscheint als Ausscheidung.", "“Own solubility” applies only when neither a phase diagram nor complete miscibility is available; the excess shows as a precipitate.", [], "sw"],
+   ["vacancies", "Ohne Überhöhung zeigt der Ausschnitt die erwartete Zahl der Leerstellen (bei Raumtemperatur meist keine); jede Überhöhung steht im Bild und im Bericht.", "Without exaggeration the section shows the expected number of vacancies (usually none at room temperature); any exaggeration is labelled in the view and the report.", [], "sw"],
+   ["model", "Modell, kein Messbild: Lage und Form von Ausscheidungen, Versetzung, Stapelfehler und Korngrenze sind schematisch; Zahl der Fremdatome und Leerstellen, Gitterparameter und Schwingungsamplitude sind berechnet.", "Model, not a micrograph: position and shape of precipitates, dislocation, stacking fault and grain boundary are schematic; the number of solutes and vacancies, the lattice parameter and the vibration amplitude are computed.", [], "sw"]
+  ],
+  "xrd": [
+   ["overlay", "Ein Klick auf eine Zeile der Phasensuche blendet das Strichmuster ein.", "A click on a row of the phase search overlays the stick pattern.", [], "sw"]
+  ],
+  "phasen": [
+   ["click", "Ein Klick ins Diagramm setzt Zusammensetzung und Temperatur. Eingebaute Diagramme sind aus den zitierten Eckpunkten gezeichnet; Linien zwischen den Punkten sind gerade oder geglättet.", "A click in the diagram sets composition and temperature. Built-in diagrams are drawn from the cited key points; lines between the points are straight or smoothed.", [], "sw"],
+   ["model", "Berechnetes Diagramm (Lösungsmodell): Ω = 0 ist die ideale, Ω ≠ 0 die reguläre Lösung.", "Computed diagram (solution model): Ω = 0 is the ideal, Ω ≠ 0 the regular solution.", ["porter"], "sw"],
+   ["cuni", "Die Vorgabe Cu–Ni folgt dem CRC Handbook; das berechnete Diagramm weicht vom gemessenen um bis zu etwa 25 K ab.", "The Cu–Ni default follows the CRC Handbook; the computed diagram deviates from the measured one by up to about 25 K.", ["crc97"], "sw"]
+  ],
+  "laminat": [
+   ["placeholder", "Leere Lagenkennwerte übernehmen die Werte des gewählten Werkstoffs (als Platzhalter im Feld).", "Empty ply properties take the values of the chosen material (shown as placeholders).", [], "sw"]
+  ],
+  "haerte": [
+   ["tables", "Normtabellen zur Umwertung (ISO 18265, ASTM E140) werden nicht mitgeliefert. Geladen wird eine CSV mit einer Kopfzeile der Skalen (z. B. HV;HRC;Rm) und optional „# Quelle: …“.", "Standard conversion tables (ISO 18265, ASTM E140) are not included. A CSV with a header of scales (e.g. HV;HRC;Rm) and optionally “# Source: …” is loaded.", ["iso18265"], "sw"],
+   ["rule", "Ohne Tabelle steht nur die gekennzeichnete Faustregel Rm ≈ 3,3·HV für Stahl zur Verfügung.", "Without a table only the labelled rule of thumb Rm ≈ 3.3·HV for steel is available.", [], "open"]
+  ]
+ },
+ "topics": {
+  "cellulose": [
+   ["composition", "Holz und Papier bestehen aus Cellulose, Hemicellulose und (bei Holz) Lignin.", "Wood and paper consist of cellulose, hemicellulose and (in wood) lignin.", ["fengel1984"]],
+   ["moisture", "Holz hat bei 20 °C und 65 % relativer Luftfeuchte etwa 12 % Holzfeuchte; das Wasser ist in den Zellwänden gebunden.", "Wood at 20 °C and 65 % relative humidity has about 12 % moisture content; the water is bound in the cell walls.", ["fpl2010"]],
+   ["drying", "Ab 100 °C verdampft das Wasser, die Zellwände schwinden.", "From 100 °C the water evaporates and the cell walls shrink.", ["fpl2010"]],
+   ["nomelt", "Cellulose schmilzt nicht, sondern zersetzt sich vor dem Schmelzen.", "Cellulose does not melt; it decomposes first.", ["shafizadeh1982"]],
+   ["hemicellulose", "Unter Luftabschluss (Pyrolyse, wie in der Thermogravimetrie unter Stickstoff) verliert Hemicellulose ihre Masse hauptsächlich zwischen 220 und 315 °C.", "Without air (pyrolysis, as in thermogravimetry under nitrogen) hemicellulose loses its mass mainly between 220 and 315 °C.", ["yang2007"]],
+   ["cellulose", "Cellulose verliert unter denselben Bedingungen ihre Masse hauptsächlich zwischen 315 und 400 °C.", "Under the same conditions cellulose loses its mass mainly between 315 and 400 °C.", ["yang2007"]],
+   ["lignin", "Lignin zersetzt sich langsam über einen weiten Temperaturbereich.", "Lignin decomposes slowly over a wide temperature range.", ["yang2007"]],
+   ["levoglucosan", "Der erste Schritt der Cellulosepyrolyse ist die Depolymerisation zu Levoglucosan, einem flüchtigen Anhydrozucker, der zu weiteren Anhydrozuckern reagiert.", "The first step of cellulose pyrolysis is depolymerisation to levoglucosan, a volatile anhydrosugar that reacts on to other anhydrosugars.", ["lin2009"]],
+   ["char", "Kohle entsteht aus der Polymerisation der Produkte.", "Char forms from the polymerisation of the products.", ["lin2009"]],
+   ["residue", "Über 400 °C verbleibt Pyrolysekohle.", "Above 400 °C pyrolysis char remains.", ["shafizadeh1982"]],
+   ["ash", "An Luft verbrennt die Kohle; der Aschegehalt wird bei 525 °C bestimmt (ISO 1762).", "In air the char burns; the ash content is determined at 525 °C (ISO 1762).", ["iso1762"]],
+   ["filler", "Die Asche entspricht dem anorganischen Anteil, bei Papier vor allem dem Füllstoff; Calciumcarbonat und Kaolin bleiben bei 525 °C weitgehend erhalten.", "Ash is the inorganic fraction, for paper mainly the filler; calcium carbonate and kaolin largely survive at 525 °C.", ["iso1762"]],
+   ["woodash", "Der Aschegehalt von Holz liegt unter 1 %.", "The ash content of wood is below 1 %.", ["fpl2010"]],
+   ["view", "In der Struktur-Ansicht färbt sich die Skizze ab 220 °C zur Kohle hin; Kette und Kristallzelle entfallen über 400 °C. Die Farbe ist schematisch und keine Messgrösse.", "In the Structure view the sketch darkens towards char from 220 °C; chain and crystal cell disappear above 400 °C. The colour is schematic, not a measured quantity.", [], "sw"]
+  ],
+  "bezeichnung": [
+   ["steel", "Stähle: Kurznamen nach EN 10027-1, Werkstoffnummern nach EN 10027-2.", "Steels: designations after EN 10027-1, material numbers after EN 10027-2.", ["en-10027-1", "en-10027-2"]],
+   ["aluminium", "Aluminium: Legierungsbezeichnungen nach EN 573, Werkstoffzustände nach EN 515.", "Aluminium: alloy designations after EN 573, tempers after EN 515.", ["en-573-1", "en-573-2", "en-573-3", "en-515"]],
+   ["nonferrous", "Kupfer, Magnesium, Titan und Nickel: Bezeichnungen nach den jeweiligen EN-, ASTM- und UNS-Regeln.", "Copper, magnesium, titanium and nickel: designations after the respective EN, ASTM and UNS rules.", ["en-1412", "en-1173", "astm-b90", "astm-b265", "astm-b162"]],
+   ["polymers", "Kunststoffe nach ISO 1043, Elastomere nach ISO 1629.", "Plastics after ISO 1043, elastomers after ISO 1629.", ["iso-1043-1", "iso-1043-2", "iso-1629"]],
+   ["rule", "Jede angewandte Regel nennt ihre Norm. Die Zerlegung eines konkreten Werkstoffs steht in seinem Eintrag; freie Eingaben zerlegt das Feld unter „Karten“.", "Every rule applied names its standard. The breakdown of a specific material is in its entry; free input is decoded by the field under “Cards”.", [], "sw"],
+   ["examples", "Eingabebeispiele: EN AW-1050A H14, 42CrMo4, X5CrNi18-10, 1.4301, PA6-GF30.", "Input examples: EN AW-1050A H14, 42CrMo4, X5CrNi18-10, 1.4301, PA6-GF30.", [], "sw"]
+  ],
+  "unsicherheit": [
+   ["gum", "Die Messunsicherheit wird nach dem GUM ermittelt, alternativ mit der Monte-Carlo-Methode.", "Measurement uncertainty is evaluated after the GUM, alternatively with the Monte Carlo method.", ["jcgm100", "jcgm101"], "sw"],
+   ["types", "Bei der Härte geht die Streuung der Eindrücke als Typ A ein; Kraft- und Längenmessung kommen als Typ B hinzu.", "For hardness the scatter of the indents enters as type A; force and length measurement are added as type B.", ["jcgm100"], "sw"],
+   ["fields", "In Stahl, Bruch und Härte nimmt die ±-Schaltfläche neben einem Feld die Unsicherheit dieser Eingabe auf (Messmittel, Auflösung, Wiederholungen). Verfahren, Überdeckungswahrscheinlichkeit und eigene Messmittel stehen im Aufklapper „Messunsicherheit“.", "In Steel, Fracture and Hardness the ± button next to a field takes the uncertainty of that input (instrument, resolution, repeats). Method, coverage probability and own instruments are in the fold “Measurement uncertainty”.", [], "sw"]
+  ]
+ },
+ "topic_meta": {
+  "cellulose": {"tool": "struktur", "title": ["Cellulose beim Erwärmen (Holz, Papier)", "Cellulose on heating (wood, paper)"],
+   "short": ["Trocknung, Zersetzung von Hemicellulose und Cellulose, Pyrolysekohle, Asche.", "Drying, decomposition of hemicellulose and cellulose, pyrolysis char, ash."],
+   "terms": "Holz Papier Karton Pyrolyse Levoglucosan Kohle Asche Hemicellulose Lignin Trocknung wood paper board pyrolysis char ash drying"},
+  "bezeichnung": {"tool": "karten", "title": ["Werkstoffbezeichnungen", "Material designations"],
+   "short": ["Bezeichnungssysteme nach EN, ISO, ASTM und UNS.", "Designation systems after EN, ISO, ASTM and UNS."],
+   "terms": "Bezeichnung entschlüsseln Kurzzeichen Werkstoffnummer Norm Zustand designation decode standard temper number EN AW"},
+  "unsicherheit": {"tool": "", "title": ["Messunsicherheit der Eingaben", "Uncertainty of the inputs"],
+   "short": ["Unsicherheitsbudget nach GUM oder Monte-Carlo-Methode.", "Uncertainty budget after the GUM or the Monte Carlo method."],
+   "terms": "Unsicherheit GUM Monte Carlo Budget Typ A Typ B uncertainty"}
+ }
+}

@@ -405,6 +405,7 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
     smin = float(P["size_min"] or 0.0)
     smax = float(P["size_max"]) if P["size_max"] not in (None, "", "inf", "Infinity") else math.inf
     fg_area = 0.0
+    fg_areas = []                                     # Flächen aller Partikel des Flächenanteils (Bootstrap der Unsicherheit)
     for k in range(1, n + 1):
         a_px = area_px[k]
         s, e = bounds[k], bounds[k + 1]
@@ -421,6 +422,7 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
         if circ < float(P["circ_min"] or 0) or circ > float(P["circ_max"] if P["circ_max"] is not None else 1):
             continue
         fg_area += area                               # Flaechenanteil: auch Randpartikel
+        fg_areas.append(area)
         if edge_corr:
             if not inside(bx0, by0, bx1, by1):
                 continue
@@ -468,6 +470,7 @@ def particles(binary: np.ndarray, intensity: np.ndarray | None, calib: Calib, pa
     keep[keep_ids] = np.arange(1, len(keep_ids) + 1, dtype=np.int32)
     res["labels"] = keep[lab]
     res["rows"] = rows
+    res["fg_areas"] = fg_areas
     areas = np.array([r["Area"] for r in rows], dtype=np.float64)
     wts = np.array([r["Weight"] for r in rows], dtype=np.float64)
     m_a, sd_a = wmean_sd(areas, wts)

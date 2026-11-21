@@ -11,8 +11,8 @@ abstract: >-
   back to its raw file.
 authors:
   - name: FolioLab-OP
-version: 0.4.0
-date-released: "2026-11-19"
+version: 0.5.0
+date-released: "2026-11-21"
 license: MIT
 repository-code: "https://github.com/FolioLab-OP/FolioLab"
 url: "https://github.com/FolioLab-OP/FolioLab"

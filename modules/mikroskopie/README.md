@@ -107,10 +107,31 @@ Stacks have a slice slider; *Image ▸ Z-Projektion* (Z projection) combines the
   filters (Filters (size, shape, edge)) are collapsed. Header, menu titles, tabs, tasks and overview exist in German
   and English.
 - *Project index …* (Projektindex …) shows the values of the project; measured values do not go into the index yet.
+  *Use* (*Übernehmen*) in that list makes a value a named variable of your own equations, with its unit, uncertainty and origin.
 - **Values to other environments (⇄):** in the particle summary there is a ⇄ next to count, area fraction, mean area,
   ECD and D50. The value goes **live** or as a **snapshot** (Momentaufnahme) to another Mikroskopie environment and
-  appears there in the box "Received values (connection)" (Übernommene Werte (Verbindung)). The microscopy module has
-  no own equations. **⇄ Connections** (⇄ Verbindungen) in the header lists all connections.
+  appears there in the box "Received values (connection)" (Übernommene Werte (Verbindung)). A value with a measurement
+  uncertainty carries its u along. **⇄ Connections** (⇄ Verbindungen) in the header lists all connections.
+
+## Measurement uncertainty and own equations (since 1.4.0)
+
+- **± in the Scale tab:** small ± buttons next to *Linienlänge in Pixeln* (line length in pixels; the reading of the
+  line ends, e.g. limits ±1 px), *entspricht* (the known length; e.g. the stage micrometer certificate U and k) and
+  *Pixelgrösse* (pixel size). The specs belong to the image; *Übernehmen* (Apply) records how the scale was made (line
+  L/N or pixel size), and transferring the scale or the protocol copies both.
+- **Fold *Messunsicherheit* (Measurement uncertainty) in the Particles tab:** switch it on, pick the method (GUM,
+  Monte Carlo, Gauss, worst case; coverage p or fixed k). Results per parameter with budget (fold) and *Compare
+  methods*: pixel size, mean ECD, D10/D50/D90 (Q0), Dv50, mean Feret, mean area, count, area fraction.
+  Lengths scale with the pixel size, so the scale enters as a relative uncertainty (twice for areas). The sample of
+  particles enters as type A by bootstrap (fixed seed, so the result is reproducible). Count: √N (Poisson). Area
+  fraction: the scale cancels; bootstrap of the particle areas. Several images in one report: mean ± t·s/√n over the
+  fields (ASTM E562) plus the common scale term.
+- **Fold *Eigene Gleichungen* (Own equations):** symbol, label, expression, unit, optional source; variables are the
+  particle parameters (`n`, `areaFrac`, `meanArea`, `meanECD`, `D10`, `D50`, `D90`, `Dv50`, `meanFeret`, `px`, …),
+  their u is propagated with the chosen method. Stored as `eigene_gleichungen.json` in the module's output folder.
+- **Report:** values `unc-<name>-pm` / `-u` / `-U`, budget tables `unc-<name>-budget`, a methods paragraph with the
+  sources (marked "Angaben nicht am Original geprüft"), and for several images `serie-<name>-…`. The export folder
+  gets `messunsicherheit.csv` and `gleichungen.csv`. Without the switch nothing changes.
 
 ## Comparison distribution from a dataset
 

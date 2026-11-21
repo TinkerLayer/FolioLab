@@ -1,0 +1,447 @@
+{
+ "quellen": {
+  "pb-sn_karakaya1988": {
+   "type": "article",
+   "authors": "Karakaya, I.; Thompson, W. T.",
+   "title": "The Pb-Sn (lead-tin) system",
+   "container": "Bulletin of Alloy Phase Diagrams",
+   "year": "1988",
+   "volume": "9",
+   "pages": "144-152",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "pb-sn",
+  "name": "Pb–Sn",
+  "name_en": "Pb–Sn",
+  "A": "Pb",
+  "B": "Sn",
+  "gruppe": "lot",
+  "x_label": "Zinn [Gew.-%]",
+  "x_label_en": "Tin [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   0,
+   350
+  ],
+  "q": [
+   "callister",
+   "massalski1990",
+   "pb-sn_karakaya1988"
+  ],
+  "hinweis": "Weichlote. Literaturwerte (Karakaya & Thompson 1988; Massalski 1990; Callister): Pb schmilzt bei 327,5 °C, Sn bei 231,9 °C; Eutektikum L ⇌ α + β bei 183 °C und 61,9 Gew.-% Sn, grösste Löslichkeit von Sn in α (Pb) 18,3 %, von Pb in β (Sn) 2,2 %. Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm und den Schmelzbereichen genormter Lote nachgezeichnet (z. B. Sn40Pb60 Liquidus ≈ 235 °C; bei 150 °C α ≈ 11 % Sn wie Callister, Beispiel 9.2); schematisch. Nicht gezeichnet: β-Sn → α-Sn (13 °C).",
+  "hinweis_en": "Soft solders. Literature values (Karakaya & Thompson 1988; Massalski 1990; Callister): Pb melts at 327.5 °C, Sn at 231.9 °C; eutectic L ⇌ α + β at 183 °C and 61.9 wt% Sn, maximum solubility of Sn in α (Pb) 18.3 %, of Pb in β (Sn) 2.2 %. Curve points in between are traced from the assessed diagram and the melting ranges of standard solders (e.g. Sn40Pb60 liquidus ≈ 235 °C; at 150 °C α ≈ 11 % Sn as in Callister, Example 9.2); schematic. Not drawn: β-Sn → α-Sn (13 °C).",
+  "points": [
+   {
+    "x": 0,
+    "T": 327.5,
+    "label": "Pb schmilzt",
+    "label_en": "Pb melts"
+   },
+   {
+    "x": 100,
+    "T": 231.9,
+    "label": "Sn schmilzt",
+    "label_en": "Sn melts"
+   },
+   {
+    "x": 18.3,
+    "T": 183
+   },
+   {
+    "x": 61.9,
+    "T": 183,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 97.8,
+    "T": 183
+   }
+  ],
+  "curves": {
+   "liq_a": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      327.5
+     ],
+     [
+      5,
+      315
+     ],
+     [
+      10,
+      302
+     ],
+     [
+      15,
+      291
+     ],
+     [
+      20,
+      279
+     ],
+     [
+      25,
+      267.5
+     ],
+     [
+      30,
+      256
+     ],
+     [
+      35,
+      245.5
+     ],
+     [
+      40,
+      235
+     ],
+     [
+      45,
+      224.5
+     ],
+     [
+      50,
+      214
+     ],
+     [
+      55,
+      202.5
+     ],
+     [
+      60,
+      190
+     ],
+     [
+      61.9,
+      183
+     ]
+    ]
+   },
+   "sol_a": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      327.5
+     ],
+     [
+      2.5,
+      316
+     ],
+     [
+      5,
+      304
+     ],
+     [
+      7.5,
+      288
+     ],
+     [
+      10,
+      270
+     ],
+     [
+      12.5,
+      250
+     ],
+     [
+      15,
+      226
+     ],
+     [
+      17,
+      201
+     ],
+     [
+      18.3,
+      183
+     ]
+    ]
+   },
+   "solv_a": {
+    "kind": "solvus",
+    "pts": [
+     [
+      18.3,
+      183
+     ],
+     [
+      15.1,
+      170
+     ],
+     [
+      12.9,
+      160
+     ],
+     [
+      11.0,
+      150
+     ],
+     [
+      7.8,
+      130
+     ],
+     [
+      5.5,
+      110
+     ],
+     [
+      3.9,
+      90
+     ],
+     [
+      2.9,
+      70
+     ],
+     [
+      2.3,
+      50
+     ],
+     [
+      2.04,
+      25
+     ],
+     [
+      2.0,
+      0
+     ]
+    ]
+   },
+   "liq_b": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      61.9,
+      183
+     ],
+     [
+      65,
+      186
+     ],
+     [
+      70,
+      191
+     ],
+     [
+      75,
+      197
+     ],
+     [
+      80,
+      203
+     ],
+     [
+      85,
+      209
+     ],
+     [
+      90,
+      216
+     ],
+     [
+      95,
+      224
+     ],
+     [
+      100,
+      231.9
+     ]
+    ]
+   },
+   "sol_b": {
+    "kind": "solidus",
+    "pts": [
+     [
+      97.8,
+      183
+     ],
+     [
+      98.5,
+      200
+     ],
+     [
+      99.2,
+      215
+     ],
+     [
+      100,
+      231.9
+     ]
+    ]
+   },
+   "solv_b": {
+    "kind": "solvus",
+    "pts": [
+     [
+      97.8,
+      183
+     ],
+     [
+      98.0,
+      170
+     ],
+     [
+      98.3,
+      150
+     ],
+     [
+      98.7,
+      120
+     ],
+     [
+      99.1,
+      90
+     ],
+     [
+      99.4,
+      60
+     ],
+     [
+      99.6,
+      30
+     ],
+     [
+      99.7,
+      0
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      350
+     ],
+     [
+      100,
+      350
+     ],
+     [
+      100,
+      231.9
+     ],
+     "-liq_b",
+     "-liq_a"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     "sol_a",
+     "solv_a",
+     [
+      0,
+      0
+     ]
+    ]
+   },
+   {
+    "label": "α + L",
+    "phases": [
+     "α",
+     "L"
+    ],
+    "poly": [
+     "liq_a",
+     [
+      18.3,
+      183
+     ],
+     "-sol_a"
+    ]
+   },
+   {
+    "label": "β",
+    "phases": [
+     "β"
+    ],
+    "poly": [
+     [
+      100,
+      231.9
+     ],
+     [
+      100,
+      0
+     ],
+     "-solv_b",
+     "sol_b"
+    ]
+   },
+   {
+    "label": "β + L",
+    "phases": [
+     "L",
+     "β"
+    ],
+    "poly": [
+     "liq_b",
+     "-sol_b"
+    ]
+   },
+   {
+    "label": "α + β",
+    "phases": [
+     "α",
+     "β"
+    ],
+    "poly": [
+     [
+      18.3,
+      183
+     ],
+     [
+      97.8,
+      183
+     ],
+     "solv_b",
+     [
+      2.0,
+      0
+     ],
+     "-solv_a"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 183,
+    "type": "eutectic",
+    "x": [
+     18.3,
+     61.9,
+     97.8
+    ],
+    "reaction": "L ⇌ α + β",
+    "morph": "lamellar",
+    "constituents": [
+     "primäres α",
+     "Eutektikum (α + β)",
+     "primäres β"
+    ],
+    "constituents_en": [
+     "primary α",
+     "eutectic (α + β)",
+     "primary β"
+    ]
+   }
+  ]
+ }
+}

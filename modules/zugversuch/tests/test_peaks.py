@@ -407,6 +407,25 @@ class Outputs(_Stair, unittest.TestCase):
         b = bundle.build([self.result(peak_drop_frac=0.10)], {}, {"items": []}, lang="de")
         self.assertFalse(any("lastspitzen" in (i.get("id") or "") for i in b["items"]))
 
+    def test_hidden_envelope_leaves_the_caption(self):
+        from flps import bundle
+        r = self.result(peak_drop_frac=0.02)
+        fig = lambda b: next(i for i in b["items"] if i.get("id") == "lastspitzen")      # noqa: E731
+        full = fig(bundle.build([r], {}, {"items": []}, lang="de"))
+        self.assertIn("Hüllkurve", full["caption"])
+        self.assertEqual({p["id"]: p["steps"] for p in full["parts"]}["huellkurve"], ["lastspitzen", "ausgleich"])
+        req = {"items": [], "styles": {"lastspitzen": {"parts": {"huellkurve": {"hidden": True}}}}}
+        cut = fig(bundle.build([r], {}, req, lang="de"))
+        self.assertNotIn("Hüllkurve", cut["caption"])
+        self.assertIn("Lastspitzen", cut["caption"])
+        self.assertIn("Hüllkurve", cut["caption_full"])
+        self.assertEqual({p["id"]: p.get("shown", True) for p in cut["parts"]},
+                         {"spitzen": True, "taeler": True, "huellkurve": False})
+        # alles aus: die reine Kurve
+        req["styles"]["lastspitzen"]["parts"] = {k: {"hidden": True} for k in ("spitzen", "taeler", "huellkurve")}
+        plain = fig(bundle.build([r], {}, req, lang="de"))
+        self.assertRegex(plain["caption"], r"\(fortschreitendes Versagen\)\.$")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,946 @@
+{
+ "_format": "folio-structures/1",
+ "_hinweis": "Strukturen, die die COD nicht enthält, von Hand aus der genannten Literatur übertragen und nicht gegen das Original geprüft (q = nicht_geprueft). 'nur_zelle': die Atomlagen sind nicht übertragen, gezeigt werden Zelle und eine schematische Füllung. Polymerzellen: Zelle aus der Quelle, Kette aus Wiederholeinheit und Helix (werk/polymer.py).",
+ "phasen": [
+  {
+   "id": "ni3al",
+   "name": "γ′-Ni₃Al (L1₂)",
+   "name_en": "γ′-Ni₃Al (L1₂)",
+   "formula": "AlNi3",
+   "system": "cubic",
+   "spacegroup": "P m -3 m",
+   "cell": {
+    "a": 3.567
+   },
+   "centring": "P",
+   "atoms": [
+    {
+     "el": "Al",
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    {
+     "el": "Ni",
+     "x": 0.5,
+     "y": 0.5,
+     "z": 0
+    },
+    {
+     "el": "Ni",
+     "x": 0.5,
+     "y": 0,
+     "z": 0.5
+    },
+    {
+     "el": "Ni",
+     "x": 0,
+     "y": 0.5,
+     "z": 0.5
+    }
+   ],
+   "q": "bradley1937",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "al2cu-thetap",
+   "name": "θ′-Al₂Cu (metastabil)",
+   "name_en": "θ′-Al₂Cu (metastable)",
+   "formula": "Al2Cu",
+   "system": "tetragonal",
+   "spacegroup": "I -4 m 2",
+   "cell": {
+    "a": 4.04,
+    "c": 5.8
+   },
+   "centring": "P",
+   "atoms": [
+    {
+     "el": "Cu",
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    {
+     "el": "Cu",
+     "x": 0.5,
+     "y": 0.5,
+     "z": 0.5
+    },
+    {
+     "el": "Al",
+     "x": 0,
+     "y": 0.5,
+     "z": 0.25
+    },
+    {
+     "el": "Al",
+     "x": 0.5,
+     "y": 0,
+     "z": 0.25
+    },
+    {
+     "el": "Al",
+     "x": 0,
+     "y": 0.5,
+     "z": 0.75
+    },
+    {
+     "el": "Al",
+     "x": 0.5,
+     "y": 0,
+     "z": 0.75
+    }
+   ],
+   "q": "silcock1954",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "ni3nb-gpp",
+   "name": "γ″-Ni₃Nb (D0₂₂, metastabil)",
+   "name_en": "γ″-Ni₃Nb (D0₂₂, metastable)",
+   "formula": "NbNi3",
+   "system": "tetragonal",
+   "spacegroup": "I 4/m m m",
+   "cell": {
+    "a": 3.624,
+    "c": 7.406
+   },
+   "centring": "P",
+   "atoms": [
+    {
+     "el": "Nb",
+     "x": 0,
+     "y": 0,
+     "z": 0
+    },
+    {
+     "el": "Nb",
+     "x": 0.5,
+     "y": 0.5,
+     "z": 0.5
+    },
+    {
+     "el": "Ni",
+     "x": 0.5,
+     "y": 0.5,
+     "z": 0
+    },
+    {
+     "el": "Ni",
+     "x": 0,
+     "y": 0,
+     "z": 0.5
+    },
+    {
+     "el": "Ni",
+     "x": 0,
+     "y": 0.5,
+     "z": 0.25
+    },
+    {
+     "el": "Ni",
+     "x": 0.5,
+     "y": 0,
+     "z": 0.25
+    },
+    {
+     "el": "Ni",
+     "x": 0,
+     "y": 0.5,
+     "z": 0.75
+    },
+    {
+     "el": "Ni",
+     "x": 0.5,
+     "y": 0,
+     "z": 0.75
+    }
+   ],
+   "q": "oblak1974",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "eps-carbid",
+   "name": "ε-Carbid Fe₂,₄C",
+   "name_en": "ε-carbide Fe₂.₄C",
+   "formula": "Fe2.4C",
+   "system": "hexagonal",
+   "spacegroup": "P 63/m m c (Fe-Teilgitter)",
+   "cell": {
+    "a": 2.755,
+    "c": 4.349
+   },
+   "centring": "P",
+   "atoms": [
+    {
+     "el": "Fe",
+     "x": 0.333333,
+     "y": 0.666667,
+     "z": 0.25
+    },
+    {
+     "el": "Fe",
+     "x": 0.666667,
+     "y": 0.333333,
+     "z": 0.75
+    },
+    {
+     "el": "C",
+     "x": 0,
+     "y": 0,
+     "z": 0,
+     "occ": 0.4167
+    },
+    {
+     "el": "C",
+     "x": 0,
+     "y": 0,
+     "z": 0.5,
+     "occ": 0.4167
+    }
+   ],
+   "note": "hdp-Eisen mit Kohlenstoff statistisch auf den Oktaederlücken (Besetzung 1/2,4 je Fe-Paar)",
+   "q": "jack1951",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "al6mn",
+   "name": "Al₆(Mn,Fe)",
+   "name_en": "Al₆(Mn,Fe)",
+   "formula": "Al6Mn",
+   "system": "orthorhombic",
+   "spacegroup": "C m c m",
+   "cell": {
+    "a": 7.551,
+    "b": 6.499,
+    "c": 8.87
+   },
+   "nur_zelle": true,
+   "atome_je_zelle": 28,
+   "q": "kontio1981",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "al13fe4",
+   "name": "Al₁₃Fe₄ (θ)",
+   "name_en": "Al₁₃Fe₄ (θ)",
+   "formula": "Al13Fe4",
+   "system": "monoclinic",
+   "spacegroup": "C 2/m",
+   "cell": {
+    "a": 15.49,
+    "b": 8.08,
+    "c": 12.48,
+    "beta": 107.7
+   },
+   "nur_zelle": true,
+   "atome_je_zelle": 102,
+   "q": "black1955",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "mg5si6-bpp",
+   "name": "β″-Mg₅Si₆ (metastabil)",
+   "name_en": "β″-Mg₅Si₆ (metastable)",
+   "formula": "Mg5Si6",
+   "system": "monoclinic",
+   "spacegroup": "C 2/m",
+   "cell": {
+    "a": 15.16,
+    "b": 4.05,
+    "c": 6.74,
+    "beta": 105.3
+   },
+   "nur_zelle": true,
+   "atome_je_zelle": 22,
+   "q": "zandbergen1997",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "mgzn2-etap",
+   "name": "η′ (MgZn₂-artig, metastabil)",
+   "name_en": "η′ (MgZn₂-like, metastable)",
+   "formula": "MgZn2",
+   "system": "hexagonal",
+   "spacegroup": "P -6 2 c (vorgeschlagen)",
+   "cell": {
+    "a": 4.96,
+    "c": 14.02
+   },
+   "nur_zelle": true,
+   "q": "auld1974",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pe-kristall",
+   "name": "Polyethylen, orthorhombisch",
+   "name_en": "Polyethylene, orthorhombic",
+   "formula": "(C2H4)n",
+   "system": "orthorhombic",
+   "spacegroup": "P n a m",
+   "cell": {
+    "a": 7.417,
+    "b": 4.945,
+    "c": 2.547
+   },
+   "polymer": "pe",
+   "ketten": [
+    [
+     0,
+     0,
+     42
+    ],
+    [
+     0.5,
+     0.5,
+     -42
+    ]
+   ],
+   "q": "bunn1939",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pp-alpha",
+   "name": "isotaktisches PP, α-Form",
+   "name_en": "isotactic PP, α form",
+   "formula": "(C3H6)n",
+   "system": "monoclinic",
+   "spacegroup": "C 2/c",
+   "cell": {
+    "a": 6.65,
+    "b": 20.96,
+    "c": 6.5,
+    "beta": 99.3
+   },
+   "polymer": "pp",
+   "ketten": [
+    [
+     0.25,
+     0.09,
+     0
+    ],
+    [
+     0.75,
+     0.41,
+     0
+    ],
+    [
+     0.25,
+     0.59,
+     0
+    ],
+    [
+     0.75,
+     0.91,
+     0
+    ]
+   ],
+   "kettenlage_schematisch": true,
+   "q": "natta1960",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pa6-alpha",
+   "name": "PA6, α-Form",
+   "name_en": "PA6, α form",
+   "formula": "(C6H11NO)n",
+   "system": "monoclinic",
+   "spacegroup": "P 21",
+   "cell": {
+    "a": 9.56,
+    "b": 8.01,
+    "c": 17.24,
+    "beta": 67.5
+   },
+   "polymer": "pa6",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0.5,
+     0,
+     0
+    ],
+    [
+     0.25,
+     0.5,
+     0
+    ],
+    [
+     0.75,
+     0.5,
+     0
+    ]
+   ],
+   "kettenlage_schematisch": true,
+   "zelle_hinweis": "Kettenachse als c gezeichnet (in der Quelle b)",
+   "q": "holmes1955",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pa66-alpha",
+   "name": "PA66, α-Form",
+   "name_en": "PA66, α form",
+   "formula": "(C12H22N2O2)n",
+   "system": "triclinic",
+   "spacegroup": "P -1",
+   "cell": {
+    "a": 4.9,
+    "b": 5.4,
+    "c": 17.2,
+    "alpha": 48.5,
+    "beta": 77.0,
+    "gamma": 63.5
+   },
+   "polymer": "pa66",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ]
+   ],
+   "q": "bunn1947",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pom-trigonal",
+   "name": "POM, trigonal (9/5-Helix)",
+   "name_en": "POM, trigonal (9/5 helix)",
+   "formula": "(CH2O)n",
+   "system": "hexagonal",
+   "spacegroup": "P 31",
+   "cell": {
+    "a": 4.47,
+    "c": 17.39
+   },
+   "polymer": "pom",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ]
+   ],
+   "q": "tadokoro1960",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "ptfe-ii",
+   "name": "PTFE, Phase II (13/6-Helix, unter 19 °C)",
+   "name_en": "PTFE, phase II (13/6 helix, below 19 °C)",
+   "formula": "(C2F4)n",
+   "system": "hexagonal",
+   "spacegroup": "P 1 (pseudohexagonal)",
+   "cell": {
+    "a": 5.59,
+    "c": 16.88
+   },
+   "polymer": "ptfe",
+   "helix": [
+    13,
+    6
+   ],
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ]
+   ],
+   "q": "bunn1954",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "ptfe-iv",
+   "name": "PTFE, Phase IV (15/7-Helix, 19–30 °C)",
+   "name_en": "PTFE, phase IV (15/7 helix, 19–30 °C)",
+   "formula": "(C2F4)n",
+   "system": "hexagonal",
+   "spacegroup": "P 31 (pseudohexagonal)",
+   "cell": {
+    "a": 5.66,
+    "c": 19.5
+   },
+   "polymer": "ptfe",
+   "helix": [
+    15,
+    7
+   ],
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ]
+   ],
+   "q": "clark1962",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pet-kristall",
+   "name": "PET, triklin",
+   "name_en": "PET, triclinic",
+   "formula": "(C10H8O4)n",
+   "system": "triclinic",
+   "spacegroup": "P -1",
+   "cell": {
+    "a": 4.56,
+    "b": 5.94,
+    "c": 10.75,
+    "alpha": 98.5,
+    "beta": 118.0,
+    "gamma": 112.0
+   },
+   "polymer": "pet",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ]
+   ],
+   "q": "daubeny1954",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pbt-alpha",
+   "name": "PBT, α-Form",
+   "name_en": "PBT, α form",
+   "formula": "(C12H12O4)n",
+   "system": "triclinic",
+   "spacegroup": "P -1",
+   "cell": {
+    "a": 4.83,
+    "b": 5.94,
+    "c": 11.59,
+    "alpha": 99.7,
+    "beta": 115.2,
+    "gamma": 110.8
+   },
+   "polymer": "pbt",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ]
+   ],
+   "q": "mencik1975",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "peek-kristall",
+   "name": "PEEK, orthorhombisch",
+   "name_en": "PEEK, orthorhombic",
+   "formula": "(C19H12O3)n",
+   "system": "orthorhombic",
+   "spacegroup": "P b c n",
+   "cell": {
+    "a": 7.75,
+    "b": 5.86,
+    "c": 10.0
+   },
+   "polymer": "peek",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0.5,
+     0.5,
+     0
+    ]
+   ],
+   "q": "dawson1980",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pvc-kristall",
+   "name": "PVC (syndiotaktische Anteile), orthorhombisch",
+   "name_en": "PVC (syndiotactic parts), orthorhombic",
+   "formula": "(C2H3Cl)n",
+   "system": "orthorhombic",
+   "spacegroup": "P c a m",
+   "cell": {
+    "a": 10.6,
+    "b": 5.4,
+    "c": 5.1
+   },
+   "polymer": "pvc",
+   "ketten": [
+    [
+     0.25,
+     0.25,
+     0
+    ],
+    [
+     0.75,
+     0.75,
+     0
+    ]
+   ],
+   "kettenlage_schematisch": true,
+   "q": "natta1956",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "pla-alpha",
+   "name": "PLLA, α-Form (10/3-Helix)",
+   "name_en": "PLLA, α form (10/3 helix)",
+   "formula": "(C3H4O2)n",
+   "system": "orthorhombic",
+   "spacegroup": "P 21 21 21",
+   "cell": {
+    "a": 10.7,
+    "b": 6.45,
+    "c": 27.8
+   },
+   "polymer": "pla",
+   "ketten": [
+    [
+     0.25,
+     0.25,
+     0
+    ],
+    [
+     0.75,
+     0.75,
+     0
+    ]
+   ],
+   "kettenlage_schematisch": true,
+   "q": "hoogsteen1990",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "nr-kristall",
+   "name": "cis-1,4-Polyisopren (dehnungsinduziert), monoklin",
+   "name_en": "cis-1,4-polyisoprene (strain-induced), monoclinic",
+   "formula": "(C5H8)n",
+   "system": "monoclinic",
+   "spacegroup": "P 21/a",
+   "cell": {
+    "a": 12.46,
+    "b": 8.89,
+    "c": 8.1,
+    "beta": 92.0
+   },
+   "polymer": "nr",
+   "ketten": [
+    [
+     0.25,
+     0.25,
+     0
+    ],
+    [
+     0.75,
+     0.25,
+     0
+    ],
+    [
+     0.25,
+     0.75,
+     0
+    ],
+    [
+     0.75,
+     0.75,
+     0
+    ]
+   ],
+   "kettenlage_schematisch": true,
+   "q": "nyburg1954",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "ppta-kristall",
+   "name": "PPTA (Aramid), monoklin",
+   "name_en": "PPTA (aramid), monoclinic",
+   "formula": "(C14H10N2O2)n",
+   "system": "monoclinic",
+   "spacegroup": "P 21/n (pseudo-orthorhombisch)",
+   "cell": {
+    "a": 7.87,
+    "b": 5.18,
+    "c": 12.9
+   },
+   "polymer": "ppta",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0.5,
+     0.5,
+     0
+    ]
+   ],
+   "q": "northolt1974",
+   "nicht_geprueft": true
+  },
+  {
+   "id": "cellulose-ib",
+   "name": "Cellulose Iβ, monoklin",
+   "name_en": "Cellulose Iβ, monoclinic",
+   "formula": "(C6H10O5)n",
+   "system": "monoclinic",
+   "spacegroup": "P 21",
+   "cell": {
+    "a": 7.784,
+    "b": 8.201,
+    "c": 10.38,
+    "gamma": 96.5
+   },
+   "polymer": "cellulose",
+   "ketten": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0.5,
+     0.5,
+     0
+    ]
+   ],
+   "q": "nishiyama2002",
+   "nicht_geprueft": true
+  }
+ ],
+ "quellen": {
+  "bradley1937": {
+   "type": "article",
+   "authors": "Bradley, A. J.; Taylor, A.",
+   "title": "An X-ray analysis of the nickel-aluminium system",
+   "container": "Proceedings of the Royal Society of London A",
+   "year": "1937",
+   "volume": "159",
+   "pages": "56-72",
+   "doi": "10.1098/rspa.1937.0056"
+  },
+  "silcock1954": {
+   "type": "article",
+   "authors": "Silcock, J. M.; Heal, T. J.; Hardy, H. K.",
+   "title": "Structural ageing characteristics of binary aluminium-copper alloys",
+   "container": "Journal of the Institute of Metals",
+   "year": "1954",
+   "volume": "82",
+   "pages": "239-248"
+  },
+  "oblak1974": {
+   "type": "article",
+   "authors": "Oblak, J. M.; Paulonis, D. F.; Duvall, D. S.",
+   "title": "Coherency strengthening in Ni base alloys hardened by DO22 γ'' precipitates",
+   "container": "Metallurgical Transactions",
+   "year": "1974",
+   "volume": "5",
+   "pages": "143-153",
+   "doi": "10.1007/BF02642938"
+  },
+  "jack1951": {
+   "type": "article",
+   "authors": "Jack, K. H.",
+   "title": "Structural transformations in the tempering of high-carbon martensitic steels",
+   "container": "Journal of the Iron and Steel Institute",
+   "year": "1951",
+   "volume": "169",
+   "pages": "26-36"
+  },
+  "kontio1981": {
+   "type": "article",
+   "authors": "Kontio, A.; Coppens, P.",
+   "title": "New study of the structure of MnAl6",
+   "container": "Acta Crystallographica B",
+   "year": "1981",
+   "volume": "37",
+   "pages": "433-435"
+  },
+  "black1955": {
+   "type": "article",
+   "authors": "Black, P. J.",
+   "title": "The structure of FeAl3",
+   "container": "Acta Crystallographica",
+   "year": "1955",
+   "volume": "8",
+   "pages": "43-48 and 175-182"
+  },
+  "zandbergen1997": {
+   "type": "article",
+   "authors": "Zandbergen, H. W.; Andersen, S. J.; Jansen, J.",
+   "title": "Structure determination of Mg5Si6 particles in Al by dynamic electron diffraction studies",
+   "container": "Science",
+   "year": "1997",
+   "volume": "277",
+   "pages": "1221-1225",
+   "doi": "10.1126/science.277.5330.1221"
+  },
+  "auld1974": {
+   "type": "article",
+   "authors": "Auld, J. H.; Cousland, S. McK.",
+   "title": "The structure of the metastable η' phase in aluminium-zinc-magnesium alloys",
+   "container": "Journal of the Australian Institute of Metals",
+   "year": "1974",
+   "volume": "19",
+   "pages": "194-201"
+  },
+  "bunn1939": {
+   "type": "article",
+   "authors": "Bunn, C. W.",
+   "title": "The crystal structure of long-chain normal paraffin hydrocarbons. The shape of the CH2 group",
+   "container": "Transactions of the Faraday Society",
+   "year": "1939",
+   "volume": "35",
+   "pages": "482-491",
+   "doi": "10.1039/TF9393500482"
+  },
+  "natta1960": {
+   "type": "article",
+   "authors": "Natta, G.; Corradini, P.",
+   "title": "Structure and properties of isotactic polypropylene",
+   "container": "Il Nuovo Cimento, Supplemento",
+   "year": "1960",
+   "volume": "15",
+   "pages": "40-51",
+   "doi": "10.1007/BF02731859"
+  },
+  "holmes1955": {
+   "type": "article",
+   "authors": "Holmes, D. R.; Bunn, C. W.; Smith, D. J.",
+   "title": "The crystal structure of polycaproamide: nylon 6",
+   "container": "Journal of Polymer Science",
+   "year": "1955",
+   "volume": "17",
+   "pages": "159-177",
+   "doi": "10.1002/pol.1955.120178401"
+  },
+  "bunn1947": {
+   "type": "article",
+   "authors": "Bunn, C. W.; Garner, E. V.",
+   "title": "The crystal structures of two polyamides ('nylons')",
+   "container": "Proceedings of the Royal Society of London A",
+   "year": "1947",
+   "volume": "189",
+   "pages": "39-68",
+   "doi": "10.1098/rspa.1947.0028"
+  },
+  "tadokoro1960": {
+   "type": "article",
+   "authors": "Tadokoro, H.; Yasumoto, T.; Murahashi, S.; Nitta, I.",
+   "title": "Molecular configuration of polyoxymethylene",
+   "container": "Journal of Polymer Science",
+   "year": "1960",
+   "volume": "44",
+   "pages": "266-269",
+   "doi": "10.1002/pol.1960.1204414330"
+  },
+  "bunn1954": {
+   "type": "article",
+   "authors": "Bunn, C. W.; Howells, E. R.",
+   "title": "Structures of molecules and crystals of fluorocarbons",
+   "container": "Nature",
+   "year": "1954",
+   "volume": "174",
+   "pages": "549-551",
+   "doi": "10.1038/174549a0"
+  },
+  "clark1962": {
+   "type": "article",
+   "authors": "Clark, E. S.; Muus, L. T.",
+   "title": "Partial disordering and crystal transitions in polytetrafluoroethylene",
+   "container": "Zeitschrift für Kristallographie",
+   "year": "1962",
+   "volume": "117",
+   "pages": "119-127"
+  },
+  "daubeny1954": {
+   "type": "article",
+   "authors": "Daubeny, R. de P.; Bunn, C. W.; Brown, C. J.",
+   "title": "The crystal structure of polyethylene terephthalate",
+   "container": "Proceedings of the Royal Society of London A",
+   "year": "1954",
+   "volume": "226",
+   "pages": "531-542",
+   "doi": "10.1098/rspa.1954.0273"
+  },
+  "mencik1975": {
+   "type": "article",
+   "authors": "Mencik, Z.",
+   "title": "The crystal structure of poly(tetramethylene terephthalate)",
+   "container": "Journal of Polymer Science: Polymer Physics Edition",
+   "year": "1975",
+   "volume": "13",
+   "pages": "2173-2181",
+   "doi": "10.1002/pol.1975.180131109"
+  },
+  "dawson1980": {
+   "type": "article",
+   "authors": "Dawson, P. C.; Blundell, D. J.",
+   "title": "X-ray data for poly(aryl ether ketones)",
+   "container": "Polymer",
+   "year": "1980",
+   "volume": "21",
+   "pages": "577-578",
+   "doi": "10.1016/0032-3861(80)90230-0"
+  },
+  "natta1956": {
+   "type": "article",
+   "authors": "Natta, G.; Corradini, P.",
+   "title": "Molecular and crystal structure of polyvinyl chloride",
+   "container": "Journal of Polymer Science",
+   "year": "1956",
+   "volume": "20",
+   "pages": "251-266",
+   "doi": "10.1002/pol.1956.120209502"
+  },
+  "hoogsteen1990": {
+   "type": "article",
+   "authors": "Hoogsteen, W.; Postema, A. R.; Pennings, A. J.; ten Brinke, G.; Zugenmaier, P.",
+   "title": "Crystal structure, conformation and morphology of solution-spun poly(L-lactide) fibers",
+   "container": "Macromolecules",
+   "year": "1990",
+   "volume": "23",
+   "pages": "634-642",
+   "doi": "10.1021/ma00204a041"
+  },
+  "nyburg1954": {
+   "type": "article",
+   "authors": "Nyburg, S. C.",
+   "title": "A statistical structure for crystalline rubber",
+   "container": "Acta Crystallographica",
+   "year": "1954",
+   "volume": "7",
+   "pages": "385-392",
+   "doi": "10.1107/S0365110X54001168"
+  },
+  "northolt1974": {
+   "type": "article",
+   "authors": "Northolt, M. G.",
+   "title": "X-ray diffraction study of poly(p-phenylene terephthalamide) fibres",
+   "container": "European Polymer Journal",
+   "year": "1974",
+   "volume": "10",
+   "pages": "799-804",
+   "doi": "10.1016/0014-3057(74)90131-1"
+  },
+  "nishiyama2002": {
+   "type": "article",
+   "authors": "Nishiyama, Y.; Langan, P.; Chanzy, H.",
+   "title": "Crystal structure and hydrogen-bonding system in cellulose Iβ from synchrotron X-ray and neutron fiber diffraction",
+   "container": "Journal of the American Chemical Society",
+   "year": "2002",
+   "volume": "124",
+   "pages": "9074-9082",
+   "doi": "10.1021/ja0257319"
+  }
+ }
+}

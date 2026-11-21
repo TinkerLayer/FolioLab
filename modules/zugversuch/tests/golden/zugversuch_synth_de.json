@@ -92,6 +92,226 @@
    ],
    "type": "tex"
   },
+  "methods.json": {
+   "lines": [
+    "{",
+    " \"id\": \"methodik\",",
+    " \"title\": \"Methodik\",",
+    " \"steps\": [",
+    "  {",
+    "   \"id\": \"kurz\",",
+    "   \"title\": \"Ein Satz\",",
+    "   \"short\": false,",
+    "   \"par\": -1,",
+    "   \"file\": \"methods/kurz.tex\",",
+    "   \"brief\": true",
+    "  },",
+    "  {",
+    "   \"id\": \"s1\",",
+    "   \"title\": \"Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s1.tex\",",
+    "   \"of\": \"messung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s2\",",
+    "   \"title\": \"Die Zeitachse der Auswertung wurde aus dem …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s2.tex\",",
+    "   \"of\": \"zeitachse\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s3\",",
+    "   \"title\": \"Die Spannung bezieht sich auf den Ausgangsquerschnitt …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s3.tex\",",
+    "   \"of\": \"spannung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s4\",",
+    "   \"title\": \"Der lineare Abschnitt wurde ausgehend von der …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s4.tex\",",
+    "   \"of\": \"linear\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s5\",",
+    "   \"title\": \"Als Fliessbeginn gilt der erste Messpunkt nach …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s5.tex\",",
+    "   \"of\": \"linear\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s6\",",
+    "   \"title\": \"Diese Schwelle ist eine Festlegung und keine …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s6.tex\",",
+    "   \"of\": \"linear\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s7\",",
+    "   \"title\": \"Als Haltezeit gilt die Dauer des zusammenhängenden …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s7.tex\",",
+    "   \"of\": \"haltezeit\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s8\",",
+    "   \"title\": \"Die Dehnung wurde ab dem Fusspunkt der …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s8.tex\",",
+    "   \"of\": \"dehnung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s9\",",
+    "   \"title\": \"Die Bruchdehnung A und die plastische Dehnung …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s9.tex\",",
+    "   \"of\": \"dehnung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s10\",",
+    "   \"title\": \"Verglichen wurde mit den 17 Werkstoffen der …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s10.tex\",",
+    "   \"of\": \"vergleich\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s11\",",
+    "   \"title\": \"Sie dienen nur der Orientierung und sind …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s11.tex\",",
+    "   \"of\": \"vergleich\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s12\",",
+    "   \"title\": \"Rangfolge der Kandidaten: zuerst nach Status, bei …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s12.tex\",",
+    "   \"of\": \"rangfolge\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s13\",",
+    "   \"title\": \"Als Referenzwerkstoff dient EN AW-5052-H38 mit Sollwerten …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s13.tex\",",
+    "   \"of\": \"referenz\"",
+    "  },",
+    "  {",
+    "   \"id\": \"software\",",
+    "   \"title\": \"Software\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/software.tex\"",
+    "  }",
+    " ]",
+    "}"
+   ],
+   "type": "json"
+  },
+  "methods/kurz.tex": {
+   "lines": [
+    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]; Software: Folio Lab, Modul Zugversuch, Version <version>~\\cite{folio-lab-zugversuch}."
+   ],
+   "type": "tex"
+  },
+  "methods/s1.tex": {
+   "lines": [
+    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]."
+   ],
+   "type": "tex"
+  },
+  "methods/s10.tex": {
+   "lines": [
+    "Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood~\\cite{ramberg-osgood-1943} durch $R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne $R_{p0,2}$ elastisch bis $R_m$)."
+   ],
+   "type": "tex"
+  },
+  "methods/s11.tex": {
+   "lines": [
+    "Sie dienen nur der Orientierung und sind keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6})."
+   ],
+   "type": "tex"
+  },
+  "methods/s12.tex": {
+   "lines": [
+    "Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist."
+   ],
+   "type": "tex"
+  },
+  "methods/s13.tex": {
+   "lines": [
+    "Als Referenzwerkstoff dient EN AW-5052-H38 mit Sollwerten nach~\\cite{mat-en-aw-5052-h38}; diese Werte sind nicht gemessen."
+   ],
+   "type": "tex"
+  },
+  "methods/s2.tex": {
+   "lines": [
+    "Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg."
+   ],
+   "type": "tex"
+  },
+  "methods/s3.tex": {
+   "lines": [
+    "Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}."
+   ],
+   "type": "tex"
+  },
+  "methods/s4.tex": {
+   "lines": [
+    "Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als \\labval{zugversuch-synthetische-kurve}{tol} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann (gierige Suche, nicht notwendig das längste solche Fenster)."
+   ],
+   "type": "tex"
+  },
+  "methods/s5.tex": {
+   "lines": [
+    "Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster und vor dem Maximum, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht."
+   ],
+   "type": "tex"
+  },
+  "methods/s6.tex": {
+   "lines": [
+    "Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$."
+   ],
+   "type": "tex"
+  },
+  "methods/s7.tex": {
+   "lines": [
+    "Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens \\labval{zugversuch-synthetische-kurve}{holdthr} des Maximums beträgt."
+   ],
+   "type": "tex"
+  },
+  "methods/s8.tex": {
+   "lines": [
+    "Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt."
+   ],
+   "type": "tex"
+  },
+  "methods/s9.tex": {
+   "lines": [
+    "Die Bruchdehnung $A$ und die plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren \\cite{iso6892-1} aus den Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung geteilt durch die Steigung des linearen Abschnitts derselben Kurve)."
+   ],
+   "type": "tex"
+  },
+  "methods/software.tex": {
+   "lines": [
+    "Ausgewertet wurde mit Folio Lab, Modul Zugversuch, Version <version>~\\cite{folio-lab-zugversuch}."
+   ],
+   "type": "tex"
+  },
   "referenz.tex": {
    "lines": [
     "\\begin{tabular}{lrrr}",
@@ -230,6 +450,13 @@
     "  howpublished = {Folio Lab},",
     "  year = {2026},",
     "  note = {s-5e7a0001, Version 1}",
+    "}",
+    "",
+    "@misc{folio-lab-zugversuch,",
+    "  author = {{Folio Lab}},",
+    "  title = {Folio Lab: Zugversuch},",
+    "  version = {<version>},",
+    "  note = {Analysemodul}",
     "}"
    ],
    "type": "bib"
@@ -242,7 +469,7 @@
   },
   "text-methodik.tex": {
    "lines": [
-    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]. Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg. Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}. Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als \\labval{zugversuch-synthetische-kurve}{tol} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann (gierige Suche, nicht notwendig das längste solche Fenster). Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster und vor dem Maximum, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$. Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens \\labval{zugversuch-synthetische-kurve}{holdthr} des Maximums beträgt. Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren \\cite{iso6892-1} aus den Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung geteilt durch die Steigung des linearen Abschnitts derselben Kurve). Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood~\\cite{ramberg-osgood-1943} durch $R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne $R_{p0,2}$ elastisch bis $R_m$). Sie dienen nur der Orientierung und sind keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist."
+    "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version 1) \\cite{data-zugversuch-synthetische-kurve} einer Probe Manuell, b = --, Dicke -- mit den Spalten Spannung [MPa] und Dehnung [\\%]. Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit \\labval{zugversuch-synthetische-kurve}{v} berechnet; Dehnung und Modul folgen damit dem gemessenen Weg. Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $\\labval{zugversuch-synthetische-kurve}{A0}. Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als \\labval{zugversuch-synthetische-kurve}{tol} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann (gierige Suche, nicht notwendig das längste solche Fenster). Als Fliessbeginn gilt der erste Messpunkt nach diesem Fenster und vor dem Maximum, der um mehr als \\labval{zugversuch-synthetische-kurve}{thr} des Maximums von der verlängerten Geraden abweicht. Diese Schwelle ist eine Festlegung und keine Dehngrenze $R_{p0,2}$. Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens \\labval{zugversuch-synthetische-kurve}{holdthr} des Maximums beträgt. Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren \\cite{iso6892-1} aus den Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung geteilt durch die Steigung des linearen Abschnitts derselben Kurve). Verglichen wurde mit den 17 Werkstoffen der Gruppe Aluminium; ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood~\\cite{ramberg-osgood-1943} durch $R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne $R_{p0,2}$ elastisch bis $R_m$). Sie dienen nur der Orientierung und sind keine Messkurven (Kennwerte nach~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist. Als Referenzwerkstoff dient EN AW-5052-H38 mit Sollwerten nach~\\cite{mat-en-aw-5052-h38}; diese Werte sind nicht gemessen. Ausgewertet wurde mit Folio Lab, Modul Zugversuch, Version <version>~\\cite{folio-lab-zugversuch}."
    ],
    "type": "tex"
   },
@@ -414,6 +641,33 @@
    "id": "verlauf",
    "kind": "figure",
    "label": "fig:zugversuch-synthetische-kurve-verlauf",
+   "needs": {
+    "steps": [
+     "linear"
+    ]
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "fliessbeginn",
+     "label": "Fliessbeginn",
+     "steps": [
+      "linear"
+     ]
+    },
+    {
+     "cites": [],
+     "id": "maximum",
+     "label": "Maximum",
+     "steps": []
+    },
+    {
+     "cites": [],
+     "id": "bruch",
+     "label": "Bruch",
+     "steps": []
+    }
+   ],
    "preview": "fig/verlauf.png",
    "width": "0.9"
   },
@@ -424,6 +678,11 @@
    "id": "linear",
    "kind": "figure",
    "label": "fig:zugversuch-synthetische-kurve-linear",
+   "needs": {
+    "steps": [
+     "linear"
+    ]
+   },
    "preview": "fig/linear.png",
    "width": "0.9"
   },
@@ -434,11 +693,16 @@
    "id": "abweichung",
    "kind": "figure",
    "label": "fig:zugversuch-synthetische-kurve-abweichung",
+   "needs": {
+    "steps": [
+     "linear"
+    ]
+   },
    "preview": "fig/abweichung.png",
    "width": "0.9"
   },
   {
-   "caption": "Gemessene Spannungs-Dehnungs-Kurve im Feld der Vergleichsgruppe Aluminium und dem Referenzwerkstoff EN AW-5052-H38; die Werkstoffkurven sind idealisiert und dienen nur der Orientierung. Dehnung aus dem Weg an der Probe. Die Zahlen an den Kurvenenden bezeichnen die Werkstoffe im Schlüssel; Kennwerte aus den angegebenen Quellen~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "caption": "Gemessene Spannungs-Dehnungs-Kurve im Feld der Vergleichsgruppe Aluminium und mit dem Referenzwerkstoff EN AW-5052-H38~\\cite{mat-en-aw-5052-h38}. Dehnung aus dem Weg an der Probe. Die Werkstoffkurven sind idealisiert und dienen nur der Orientierung. Die Zahlen an den Kurvenenden bezeichnen die Werkstoffe im Schlüssel; Kennwerte aus den angegebenen Quellen~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
    "cites": [
     "mat-en-aw-1050a-weich",
     "mat-en-aw-8011a-o-folie",
@@ -462,6 +726,47 @@
    "id": "feld",
    "kind": "figure",
    "label": "fig:zugversuch-synthetische-kurve-feld",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [
+      "mat-en-aw-1050a-weich",
+      "mat-en-aw-8011a-o-folie",
+      "mat-en-aw-1050a-h14",
+      "mat-en-aw-3003-h14",
+      "mat-en-aw-6060-t6",
+      "mat-en-aw-5754-o-h111",
+      "mat-en-aw-5052-h32",
+      "mat-en-aw-5754-h22",
+      "mat-en-aw-5052-h38",
+      "mat-en-aw-5086-h116-h32",
+      "mat-en-aw-5083-o-h111",
+      "mat-en-aw-6061-t6",
+      "mat-en-aw-6082-t6",
+      "mat-en-aw-7020-t6",
+      "mat-en-aw-2017a-t4",
+      "mat-en-aw-2024-t3",
+      "mat-en-aw-7075-t6"
+     ],
+     "id": "feld",
+     "label": "Feld der Gruppe Aluminium",
+     "steps": [
+      "vergleich"
+     ]
+    },
+    {
+     "cites": [
+      "mat-en-aw-5052-h38"
+     ],
+     "id": "referenz",
+     "label": "Referenz EN AW-5052-H38",
+     "steps": [
+      "referenz"
+     ]
+    }
+   ],
    "preview": "fig/feld.png",
    "width": "0.9"
   },
@@ -480,6 +785,13 @@
    "id": "kandidaten",
    "kind": "figure",
    "label": "fig:zugversuch-synthetische-kurve-kandidaten",
+   "needs": {
+    "steps": [
+     "vergleich",
+     "rangfolge",
+     "referenz"
+    ]
+   },
    "preview": "fig/kandidaten.png",
    "width": "0.9"
   },
@@ -490,6 +802,9 @@
    "id": "probe",
    "kind": "figure",
    "label": "fig:zugversuch-synthetische-kurve-probe",
+   "needs": {
+    "steps": []
+   },
    "preview": "fig/probe.png",
    "width": "0.6"
   },
@@ -500,6 +815,14 @@
    "id": "kennwerte",
    "kind": "table",
    "label": "tab:zugversuch-synthetische-kurve-kennwerte",
+   "needs": {
+    "steps": [
+     "linear",
+     "haltezeit",
+     "dehnung",
+     "modul"
+    ]
+   },
    "notes": ""
   },
   {
@@ -511,6 +834,13 @@
    "id": "referenz",
    "kind": "table",
    "label": "tab:zugversuch-synthetische-kurve-referenz",
+   "needs": {
+    "steps": [
+     "referenz",
+     "linear",
+     "modul"
+    ]
+   },
    "notes": ""
   },
   {
@@ -538,6 +868,12 @@
    "id": "werkstoffe",
    "kind": "table",
    "label": "tab:zugversuch-synthetische-kurve-werkstoffe",
+   "needs": {
+    "steps": [
+     "vergleich",
+     "referenz"
+    ]
+   },
    "notes": ""
   },
   {
@@ -566,15 +902,150 @@
    "rows": 481
   },
   {
+   "key": "folio-lab-zugversuch",
+   "kind": "citation",
+   "title": "Folio Lab: Zugversuch"
+  },
+  {
    "file": "text-methodik.tex",
    "id": "methodik",
    "kind": "text",
+   "methods": true,
+   "steps": [
+    {
+     "brief": true,
+     "file": "methods/kurz.tex",
+     "id": "kurz",
+     "par": -1,
+     "short": false,
+     "title": "Ein Satz"
+    },
+    {
+     "file": "methods/s1.tex",
+     "id": "s1",
+     "of": "messung",
+     "par": 0,
+     "short": true,
+     "title": "Ausgewertet wurde der Datensatz ,,Synthetische Kurve`` (Version …"
+    },
+    {
+     "file": "methods/s2.tex",
+     "id": "s2",
+     "of": "zeitachse",
+     "par": 0,
+     "short": false,
+     "title": "Die Zeitachse der Auswertung wurde aus dem …"
+    },
+    {
+     "file": "methods/s3.tex",
+     "id": "s3",
+     "of": "spannung",
+     "par": 0,
+     "short": false,
+     "title": "Die Spannung bezieht sich auf den Ausgangsquerschnitt …"
+    },
+    {
+     "file": "methods/s4.tex",
+     "id": "s4",
+     "of": "linear",
+     "par": 0,
+     "short": false,
+     "title": "Der lineare Abschnitt wurde ausgehend von der …"
+    },
+    {
+     "file": "methods/s5.tex",
+     "id": "s5",
+     "of": "linear",
+     "par": 0,
+     "short": false,
+     "title": "Als Fliessbeginn gilt der erste Messpunkt nach …"
+    },
+    {
+     "file": "methods/s6.tex",
+     "id": "s6",
+     "of": "linear",
+     "par": 0,
+     "short": false,
+     "title": "Diese Schwelle ist eine Festlegung und keine …"
+    },
+    {
+     "file": "methods/s7.tex",
+     "id": "s7",
+     "of": "haltezeit",
+     "par": 0,
+     "short": false,
+     "title": "Als Haltezeit gilt die Dauer des zusammenhängenden …"
+    },
+    {
+     "file": "methods/s8.tex",
+     "id": "s8",
+     "of": "dehnung",
+     "par": 0,
+     "short": false,
+     "title": "Die Dehnung wurde ab dem Fusspunkt der …"
+    },
+    {
+     "file": "methods/s9.tex",
+     "id": "s9",
+     "of": "dehnung",
+     "par": 0,
+     "short": true,
+     "title": "Die Bruchdehnung A und die plastische Dehnung …"
+    },
+    {
+     "file": "methods/s10.tex",
+     "id": "s10",
+     "of": "vergleich",
+     "par": 0,
+     "short": false,
+     "title": "Verglichen wurde mit den 17 Werkstoffen der …"
+    },
+    {
+     "file": "methods/s11.tex",
+     "id": "s11",
+     "of": "vergleich",
+     "par": 0,
+     "short": false,
+     "title": "Sie dienen nur der Orientierung und sind …"
+    },
+    {
+     "file": "methods/s12.tex",
+     "id": "s12",
+     "of": "rangfolge",
+     "par": 0,
+     "short": false,
+     "title": "Rangfolge der Kandidaten: zuerst nach Status, bei …"
+    },
+    {
+     "file": "methods/s13.tex",
+     "id": "s13",
+     "of": "referenz",
+     "par": 0,
+     "short": false,
+     "title": "Als Referenzwerkstoff dient EN AW-5052-H38 mit Sollwerten …"
+    },
+    {
+     "file": "methods/software.tex",
+     "id": "software",
+     "par": 0,
+     "short": true,
+     "title": "Software"
+    }
+   ],
    "title": "Methodik"
   },
   {
    "file": "text-ergebnisse.tex",
    "id": "ergebnisse",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "linear",
+     "haltezeit",
+     "dehnung",
+     "referenz"
+    ]
+   },
    "title": "Ergebnisse"
   },
   {

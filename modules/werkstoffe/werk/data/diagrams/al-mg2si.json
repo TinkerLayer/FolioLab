@@ -1,0 +1,109 @@
+{
+  "quellen": {
+    "al-mg2si_mondolfo1976": {
+      "type": "book",
+      "authors": "Mondolfo, L. F.",
+      "title": "Aluminum Alloys: Structure and Properties",
+      "container": "Butterworths, London",
+      "year": "1976",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "al-mg2si",
+    "name": "Al–Mg₂Si (quasibinärer Schnitt, Al-reiche Seite)",
+    "name_en": "Al–Mg₂Si (quasi-binary section, Al-rich side)",
+    "A": "Al",
+    "B": "Mg2Si",
+    "gruppe": "al",
+    "x_label": "Mg₂Si [Gew.-%]",
+    "x_label_en": "Mg₂Si [wt%]",
+    "xlim": [0, 20],
+    "Tlim": [200, 700],
+    "q": ["al-mg2si_mondolfo1976"],
+    "hinweis": "Quasibinärer Schnitt Al–Mg₂Si durch das Dreistoffsystem Al–Mg–Si (Grundlage der 6xxx-Legierungen), kein echtes Zweistoffsystem: Legierungen mit Mg- oder Si-Überschuss liegen ausserhalb des Schnitts. Zitiert (Mondolfo 1976): Schmelzpunkt Al 660,3 °C; Eutektikum L ⇌ (Al) + Mg₂Si bei 595 °C und 13,9 Gew.-% Mg₂Si; grösste Löslichkeit von Mg₂Si in (Al) 1,85 Gew.-%; Mg₂Si schmilzt bei etwa 1085 °C. Liquidus, Solidus und Solvus zwischen diesen Eckwerten schematisch (Solvus als Arrhenius-Kurve, Mg₂Si-Liquidus mit der Form einer idealen Lösung zwischen Eutektikum und Schmelzpunkt von Mg₂Si); nicht zum genauen Ablesen. Mg₂Si liegt bei 100 % ausserhalb des gezeigten Bereichs: in den Feldern mit Mg₂Si endet die Konode am Diagrammrand, die Phase selbst ist reines Mg₂Si. Metastabile Ausscheidungen (β″, β′) sind nicht dargestellt.",
+    "hinweis_en": "Quasi-binary section Al–Mg₂Si through the ternary Al–Mg–Si system (basis of the 6xxx alloys), not a true binary: alloys with excess Mg or Si lie off the section. Cited (Mondolfo 1976): melting point of Al 660.3 °C; eutectic L ⇌ (Al) + Mg₂Si at 595 °C and 13.9 wt% Mg₂Si; maximum solubility of Mg₂Si in (Al) 1.85 wt%; Mg₂Si melts at about 1085 °C. Liquidus, solidus and solvus between these key values are schematic (solvus as an Arrhenius curve, Mg₂Si liquidus with the shape of an ideal solution between the eutectic and the melting point of Mg₂Si); not for precise reading. Mg₂Si lies at 100 %, outside the range shown: in the fields with Mg₂Si the tie line ends at the diagram edge, the phase itself is pure Mg₂Si. Metastable precipitates (β″, β′) are not shown.",
+    "points": [
+      {
+        "x": 0,
+        "T": 660.3,
+        "label": "Al schmilzt",
+        "label_en": "Al melts"
+      },
+      {
+        "x": 1.85,
+        "T": 595,
+        "label": "grösste Löslichkeit von Mg₂Si in (Al)",
+        "label_en": "maximum solubility of Mg₂Si in (Al)"
+      },
+      {
+        "x": 13.9,
+        "T": 595,
+        "label": "Eutektikum",
+        "label_en": "Eutectic"
+      }
+    ],
+    "curves": {
+      "liq": {
+        "kind": "liquidus",
+        "pts": [[0, 660.3], [1.5, 654.4], [3, 648.2], [4.5, 641.7], [6, 635.0], [7.5, 627.9], [9, 620.7], [10.5, 613.1], [12, 605.3], [13.9, 595]]
+      },
+      "liqM": {
+        "kind": "liquidus",
+        "pts": [[13.9, 595], [14.5, 600.0], [15, 604.1], [15.5, 608.1], [16, 612.0], [17, 619.6], [18, 627.0], [19, 634.1], [20, 641.1]]
+      },
+      "sol": {
+        "kind": "solidus",
+        "pts": [[0, 660.3], [0.3, 649.7], [0.6, 639.1], [0.9, 628.5], [1.2, 617.9], [1.5, 607.4], [1.85, 595]]
+      },
+      "solv": {
+        "kind": "solvus",
+        "pts": [[1.85, 595], [1.66, 575], [1.44, 550], [1.24, 525], [1.05, 500], [0.884, 475], [0.734, 450], [0.602, 425], [0.487, 400], [0.302, 350], [0.173, 300], [0.089, 250], [0.04, 200]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 700], [20, 700], [20, 641.1], "-liqM", "-liq"]
+      },
+      {
+        "label": "(Al) + L",
+        "phases": ["(Al)", "L"],
+        "poly": ["liq", [1.85, 595], "-sol"]
+      },
+      {
+        "label": "L + Mg₂Si",
+        "phases": ["L", "Mg₂Si"],
+        "poly": ["liqM", [20, 595]],
+        "phase_x": {
+          "Mg₂Si": 100
+        }
+      },
+      {
+        "label": "(Al)",
+        "phases": ["(Al)"],
+        "poly": ["sol", "solv", [0, 200]]
+      },
+      {
+        "label": "(Al) + Mg₂Si",
+        "phases": ["(Al)", "Mg₂Si"],
+        "poly": [[1.85, 595], [20, 595], [20, 200], "-solv"],
+        "phase_x": {
+          "Mg₂Si": 100
+        }
+      }
+    ],
+    "invariants": [
+      {
+        "T": 595,
+        "type": "eutectic",
+        "x": [1.85, 13.9, 100],
+        "reaction": "L ⇌ (Al) + Mg₂Si",
+        "constituents": ["primäres (Al)", "Eutektikum ((Al) + Mg₂Si)", "primäres Mg₂Si"],
+        "constituents_en": ["primary (Al)", "eutectic ((Al) + Mg₂Si)", "primary Mg₂Si"],
+        "morph": "faceted"
+      }
+    ]
+  }
+}

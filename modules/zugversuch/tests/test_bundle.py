@@ -1,5 +1,6 @@
 """Bundle fuer Folio Lab (folio-lab-bundle/1): Inhalt, Sprache, Vergleich, Neuaufbau aus den Quelldaten."""
 import base64
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -11,6 +12,7 @@ sys.path.insert(0, str(ROOT.parents[1] / "sdk" / "python"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _input import measurement  # noqa: E402
+from labbundle import split_sentences  # noqa: E402
 from flps import analyse, bundle  # noqa: E402
 from flps.parser import parse_bytes  # noqa: E402
 
@@ -116,6 +118,27 @@ class BundleTest(unittest.TestCase):
         for p in pages:
             import matplotlib.pyplot as plt
             plt.close(p)
+
+    def test_plain_field_figure_cites_and_describes_only_the_curve(self):
+        """Feld und Referenz abgeschaltet: die reine Messkurve nennt und zitiert keinen Vergleich mehr."""
+        full = bundle.build([self.r], {NAME: self.raw}, self.req, lang="de")
+        feld = next(i for i in full["items"] if i.get("id") == "feld")
+        self.assertEqual({p["id"] for p in feld["parts"]} & {"feld", "referenz"}, {"feld", "referenz"})
+        self.assertTrue(feld["cites"])
+        off = {p["id"]: {"hidden": True} for p in feld["parts"]}
+        b = bundle.build([self.r], {NAME: self.raw}, dict(self.req, styles={"feld": {"parts": off}}), lang="de")
+        plain = next(i for i in b["items"] if i.get("id") == "feld")
+        self.assertEqual(plain["cites"], [])
+        self.assertNotIn(r"\cite", plain["caption"])
+        self.assertNotIn("Vergleichsgruppe", plain["caption"])
+        self.assertNotIn("Referenzwerkstoff", plain["caption"])
+        self.assertIn("Vergleichsgruppe", plain["caption_full"])
+        self.assertTrue(all(p.get("shown") is False for p in plain["parts"]))
+        steps = json.loads(base64.b64decode(b["files"]["methods.json"]))["steps"]
+        brief = next(s for s in steps if s["id"] == "kurz")
+        text = base64.b64decode(b["files"][brief["file"]]).decode()
+        self.assertEqual(len(split_sentences(text.strip())), 1, text)
+        self.assertNotIn(r"\cite{mat-", text)
 
     def test_rebuild_keeps_slug(self):
         b = bundle.build([self.r], {NAME: self.raw}, {**self.req, "slug": "mein-ergebnis"}, lang="de")

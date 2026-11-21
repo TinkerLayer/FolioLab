@@ -9,11 +9,12 @@ import numpy as np
 
 import labcite
 import labdataset as DS
-from labbundle import Bundle, booktabs, num, tex_escape
+from labbundle import Bundle, booktabs, num, step_tag, tex_escape
 from labcalc import units as U
 
 from . import __version__
 from . import clean as C
+from . import uncert as UC
 from .export import FLAG_NAMES
 
 MAX_EMBED = 4 * 1024 * 1024                  # dataset JSON kept in the bundle source for Refresh up to this size
@@ -64,6 +65,14 @@ def _col_fmt(vals, lang):
     return lambda v: "--" if v is None or not math.isfinite(float(v)) else num(float(v), nd, lang)
 
 
+def _part(arts, pid):
+    """Mark artists as one part of the figure (labstyle: what the report can switch off with its caption and sources)."""
+    if pid:
+        for a in arts if isinstance(arts, (list, tuple)) else [arts]:
+            a._labpart = pid
+    return arts
+
+
 def _axis(c) -> str:
     return c["name"] + (f" [{c['unit']}]" if c.get("unit") else "")
 
@@ -87,18 +96,21 @@ def figure(ds: DS.Dataset):
     fig, ax = plt.subplots(figsize=(6.0, 3.6))
     for i, yc in enumerate(ys):
         y = ds.data[yc["key"]]
-        u = ds.data[yc["u"]] if yc.get("u") else None
+        u = UC.std_u(ds.columns, ds.data, yc["key"])[0] if yc.get("u") else None
+        if u is None and yc.get("u"):                       # type not stated: the numbers as given
+            u = ds.data[yc["u"]]
         lab = _axis(yc)
         if u is not None:
-            ax.errorbar(x[used], y[used], yerr=u[used], fmt="o", ms=3.5, capsize=2, lw=0.8, label=lab, color=f"C{i}")
+            eb = ax.errorbar(x[used], y[used], yerr=u[used], fmt="o", ms=3.5, capsize=2, lw=0.8, label=lab, color=f"C{i}")
+            _part(list(eb[1]) + list(eb[2]), "fehlerbalken")
         else:
             ax.plot(x[used], y[used], "o-" if ds.rows <= 60 else "-", ms=3.5, lw=1.0, label=lab, color=f"C{i}")
         out = [f["row"] for f in ds.header.get("flags") or [] if f["code"] == "outlier" and f.get("col") == yc["key"]
                and not f.get("excluded")]
         if out:
-            ax.plot(x[out], y[out], "o", ms=8, mfc="none", mec="#c0392b", mew=1.2)
+            _part(ax.plot(x[out], y[out], "o", ms=8, mfc="none", mec="#c0392b", mew=1.2), "ausreisser")
         if (~used).any():
-            ax.plot(x[~used], y[~used], "x", ms=6, color="0.55")
+            _part(ax.plot(x[~used], y[~used], "x", ms=6, color="0.55"), "ausgeschlossen")
     ax.set_xlabel(_axis(xc))
     ax.set_ylabel(_axis(ys[0]) if len(ys) == 1 else "")
     if len(ys) > 1:
@@ -109,17 +121,44 @@ def figure(ds: DS.Dataset):
 
 
 def u_texts(ds: DS.Dataset, lang: str) -> list[str]:
-    """"name: type" for every column with an uncertainty, e.g. "Masse: erweiterte Unsicherheit U (k = 2)"."""
+    """"name: type" for every column with an uncertainty, e.g. "Masse: erweiterte Unsicherheit U (k = 2)", followed by
+    the conversion into a standard uncertainty where one is needed ("→ u = U/k mit k = 2 (JCGM 100:2008, 4.3.3)")."""
     out = []
     by_key = {c["key"]: c for c in ds.columns}
     for c in ds.columns:
         if c.get("u") and c["u"] in by_key:
             u = by_key[c["u"]]
-            out.append(f"{c['name']}: " + DS.u_type_text(u if u.get("u_type") or not c.get("u_type") else c, lang))
+            src = u if u.get("u_type") or not c.get("u_type") else c
+            f, how = UC.factor(src, lang)
+            out.append(f"{c['name']}: " + DS.u_type_text(src, lang)
+                       + (f" → {how}" if f is not None and src.get("u_type") not in ("u",) else ""))
     return out
 
 
-def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str], note: str = "") -> str:
+def u_rows(ds: DS.Dataset, lang: str) -> list[dict]:
+    """Value columns with a usable standard uncertainty: column, u column, how, median u and median relative u."""
+    used = ds.used_mask()
+    out = []
+    for c in ds.columns:
+        if c["dtype"] != "number" or not c.get("u"):
+            continue
+        u, how = UC.std_u(ds.columns, ds.data, c["key"], lang)
+        uc = next((x for x in ds.columns if x["key"] == c["u"]), None)
+        rec = {"col": c, "ucol": uc, "how": how, "n": 0, "med": None, "rel": None}
+        if u is not None:
+            ok = used & np.isfinite(u)
+            rec["n"] = int(ok.sum())
+            if ok.any():
+                rec["med"] = float(np.median(u[ok]))
+                x = np.abs(ds.data[c["key"]][ok])
+                rr = u[ok][x > 0] / x[x > 0]
+                rec["rel"] = float(np.median(rr)) * 100 if rr.size else None
+        out.append(rec)
+    return out
+
+
+def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str], note: str = "",
+            u_cite: list[str] | None = None) -> str:
     h = ds.header
     chain = _chain(h.get("provenance") or {})
     files = next((p.get("files") for p in chain if p.get("files")), []) or []
@@ -147,7 +186,7 @@ def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str], n
         counts[f["code"]] = counts.get(f["code"], 0) + 1
     if counts:
         names = FLAG_NAMES if de else FLAG_EN
-        parts.append(tx(("Markierungen (keine Zeile wurde dadurch entfernt): " if de else "Flags (no row was removed by a flag): ")
+        parts.append(step_tag("markierungen") + tx(("Markierungen (keine Zeile wurde dadurch entfernt): " if de else "Flags (no row was removed by a flag): ")
                         + ", ".join(f"{n} {names.get(k, k)}" for k, n in counts.items()) + "."))
     excl = [f for f in fl if f.get("excluded")]
     if excl:
@@ -158,8 +197,24 @@ def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str], n
                         + ((": " + "; ".join(reasons[:6])) if reasons else "") + "."))
     ut = u_texts(ds, lang)
     if ut:
-        parts.append(tx(("Art der angegebenen Unsicherheit: " if de else "Type of the stated uncertainty: ")
+        parts.append(step_tag("unsicherheit") + tx(("Art der angegebenen Unsicherheit: " if de else "Type of the stated uncertainty: ")
                         + "; ".join(ut[:8]) + "."))
+    if u_cite is not None:                               # the dataset has standard uncertainties (list: their cites)
+        ops = [o.get("op") for p in chain for o in (p.get("ops") or [])]
+        s = ("Unsicherheiten sind als Standardunsicherheiten u angegeben (Angaben U, s oder Vertrauensbereich wie oben "
+             "umgerechnet); Fehlerbalken der Abbildung zeigen ±u" if de else
+             "Uncertainties are given as standard uncertainties u (stated U, s or confidence intervals converted as "
+             "above); error bars in the figure show ±u")
+        if "formula" in ops:
+            s += ("; Formelspalten erhalten u zeilenweise nach dem linearen Fortpflanzungsgesetz des GUM für "
+                  "unabhängige Eingangsgrössen" if de else
+                  "; formula columns get u row by row from the linear GUM law of propagation for independent inputs")
+        if "unc" in ops:
+            s += ("; Typ-B-Spalten u_B stammen aus Messmittelangaben (Grenzen ±a, Rechteckverteilung u = a/√3, sofern "
+                  "nicht anders angegeben)" if de else
+                  "; type-B columns u_B come from instrument specifications (limits ±a, rectangular distribution "
+                  "u = a/√3 unless stated otherwise)")
+        parts.append(step_tag("unsicherheit") + tx(s) + (r"~\cite{" + ",".join(u_cite) + "}" if u_cite else "") + ".")
     cut = [t for p in chain for t in (p.get("truncations") or [])]
     if cut:
         parts.append(tx(("GEKÜRZT: " if de else "TRUNCATED: ") + "; ".join(
@@ -175,7 +230,8 @@ def methods(ds: DS.Dataset, meta: dict, lang: str, describe, cites: list[str], n
                     + (f" (Version {ver}, Kennung {sid}" if de else f" (version {ver}, ID {sid}") + f", SHA-256 {h['data_hash'][:16]}...)"
                     + (f" umfasst {ds.rows} Zeilen und {len(ds.columns)} Spalten, davon {int(used.sum())} Zeilen verwendet."
                        if de else f" has {ds.rows} rows and {len(ds.columns)} columns; {int(used.sum())} rows are used.")))
-    return "\n\n".join(parts) + "\n"
+    # a paragraph without a step of its own belongs to no step (the mark would otherwise run on)
+    return "\n\n".join(p if p.startswith(step_tag("")[:1]) else step_tag("") + p for p in parts) + "\n"
 
 
 def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = "") -> dict:
@@ -210,6 +266,14 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = 
         for k in srcs:
             rec = {kk: vv for kk, vv in C.SOURCES[k].items() if kk != "key"}
             labcite.to_bib(b, C.SOURCES[k]["key"], rec)
+    urows = [r for r in u_rows(ds, lang) if r["med"] is not None]
+    u_cite = []
+    if urows and inc["citations"]:
+        from labcalc.sources import REFS
+        u_cite.append(labcite.to_bib(b, UC.CITE, REFS[UC.REF]))
+        for k, rec in UC.op_sources(ops):
+            u_cite.append(labcite.to_bib(b, k, rec))
+        u_cite = list(dict.fromkeys(u_cite))
     if inc["data"] and nums:
         texts = [c for c in ds.columns if c["dtype"] == "text"][:3]
         header = [c["key"] for c in nums] + ["used"] + [c["key"] for c in texts]
@@ -229,18 +293,21 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = 
         if fr:
             fig, xc, ys = fr
             cap = f"{h['title']}: " + ", ".join(c["name"] for c in ys) + (f" über {xc['name']}" if de else f" against {xc['name']}")
-            notes = []
-            if any(f["code"] == "outlier" and not f.get("excluded") for f in h.get("flags") or []):
-                notes.append("rote Ringe: Ausreisser-Markierungen" if de else "red rings: outlier flags")
-            if (~used).any():
-                notes.append("graue Kreuze: ausgeschlossene Zeilen" if de else "grey crosses: excluded rows")
-            if notes:
-                cap += " (" + "; ".join(notes) + ")"
             shown = {c["key"] for c in ys}
-            fc = [C.SOURCES[k]["key"] for k in srcs if inc["citations"] and (
-                (k == "savgol" and any("Savitzky" in (c.get("note") or "") for c in ys)) or
-                (k != "savgol" and any(f["code"] == "outlier" and f.get("col") in shown for f in h.get("flags") or [])))]
-            b.add_figure(fig, "vorschau", tx(cap + "."), cites=fc)
+            fc = [C.SOURCES[k]["key"] for k in srcs if inc["citations"] and k == "savgol"
+                  and any("Savitzky" in (c.get("note") or "") for c in ys)]
+            oc = [C.SOURCES[k]["key"] for k in srcs if inc["citations"] and k != "savgol"
+                  and any(f["code"] == "outlier" and f.get("col") in shown for f in h.get("flags") or [])]
+            fparts = []                                   # what can be switched off, with its sentence and sources
+            if any(f["code"] == "outlier" and f.get("col") in shown and not f.get("excluded") for f in h.get("flags") or []):
+                fparts.append({"id": "ausreisser", "label": "Ausreisser" if de else "Outliers", "cites": oc, "steps": ["markierungen"],
+                               "note": "Rote Ringe: Ausreisser-Markierungen." if de else "Red rings: outlier flags."})
+            if (~used).any():
+                fparts.append({"id": "ausgeschlossen", "label": "Ausgeschlossene Zeilen" if de else "Excluded rows",
+                               "note": "Graue Kreuze: ausgeschlossene Zeilen." if de else "Grey crosses: excluded rows."})
+            if any(c.get("u") for c in ys):
+                fparts.append({"id": "fehlerbalken", "label": "Fehlerbalken" if de else "Error bars", "steps": ["unsicherheit"]})
+            b.add_figure(fig, "vorschau", tx(cap + "."), cites=fc, steps=[], parts=fparts)
     if inc["tables"]:
         rows = []
         for c in ds.columns:
@@ -259,7 +326,7 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = 
               ["Column", "Unit", "Quantity", "n", "Min", "Max", "Mean"]
         b.add_table("spalten", booktabs(hdr, rows, align="lllrrrr"),
                     tx(f"Spalten des Datensatzes {h['title']} (verwendete Zeilen)." if de
-                       else f"Columns of the dataset {h['title']} (rows used)."))
+                       else f"Columns of the dataset {h['title']} (rows used)."), steps=[])
         show = ds.columns[:6]
         drows, n15 = [], min(15, ds.rows)
         fmts = {c["key"]: _col_fmt(ds.data[c["key"]][:n15], lang) for c in show if c["dtype"] == "number"}
@@ -268,7 +335,19 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = 
                                           else tx(str(ds.data[c["key"]][r])[:24])) for c in show])
         b.add_table("daten", booktabs(["#"] + [_axis(c) for c in show], [[x for x in row] for row in drows],
                                       align="r" + "".join("r" if c["dtype"] == "number" else "l" for c in show)),
-                    tx((f"Erste {len(drows)} von {ds.rows} Zeilen." if de else f"First {len(drows)} of {ds.rows} rows.")))
+                    tx((f"Erste {len(drows)} von {ds.rows} Zeilen." if de else f"First {len(drows)} of {ds.rows} rows.")), steps=[])
+        if urows:                                         # uncertainty columns: what they hold and how they became u
+            pct = lambda v: "--" if v is None else _fmt(v, lang) + r"\,\%"  # noqa: E731
+            ur = [[tx(r["col"]["name"]), tx(r["ucol"]["name"] if r["ucol"] else "--"),
+                   "{\\raggedright " + tx(r["how"]) + "\\par}", str(r["n"]),
+                   _fmt(r["med"], lang) + (" " + tx(r["col"].get("unit")) if r["col"].get("unit") else ""), pct(r["rel"])]
+                  for r in urows[:30]]
+            b.add_table("unsicherheiten", booktabs(
+                ["Spalte", "Unsicherheitsspalte", "Umrechnung in u", "n", "Median u", "Median u/|x|"] if de else
+                ["Column", "Uncertainty column", "Conversion to u", "n", "Median u", "Median u/|x|"], ur,
+                align="llp{5cm}rrr"),
+                tx("Standardunsicherheiten u der Spalten (verwendete Zeilen)." if de
+                   else "Standard uncertainties u of the columns (rows used)."), cites=u_cite, steps=["unsicherheit"])
         fl = h.get("flags") or []
         if fl:
             names = {c["key"]: c["name"] for c in ds.columns}
@@ -284,7 +363,7 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = 
                                                  ["Row", "Column", "Flag", "excluded", "Reason"], frows, align="rlllp{5cm}"),
                         tx((f"Markierungen ({len(fl)}" + (", erste 40)" if len(fl) > 40 else ")") + "; Markierungen entfernen keine Zeilen.")
                            if de else (f"Flags ({len(fl)}" + (", first 40)" if len(fl) > 40 else ")") + "; flags remove no rows.")),
-                        cites=cites)
+                        cites=cites, steps=["markierungen"])
     if inc["values"]:
         b.add_values([("zeilen", "Zeilen" if de else "Rows", str(ds.rows), str(ds.rows)),
                       ("verwendet", "Verwendete Zeilen" if de else "Rows used", str(int(used.sum())), str(int(used.sum()))),
@@ -292,7 +371,8 @@ def build(ds: DS.Dataset, meta: dict, request: dict, describe=None, note: str = 
                        str(int((~used).sum()))),
                       ("version", "Version", str(meta.get("version") or ""), str(meta.get("version") or ""))])
     if inc["text"]:
-        b.add_text("methodik", methods(ds, meta, lang, describe, cites, note), "Methodik" if de else "Methods")
+        mt = methods(ds, meta, lang, describe, cites, note, u_cite if urows else None)
+        b.add_methods([mt], "Methodik" if de else "Methods", brief=b.brief_from(mt.strip().split("\n\n")[-1]))
     raw = None
     try:
         from .export import to_json

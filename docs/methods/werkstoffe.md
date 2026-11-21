@@ -21,7 +21,16 @@ computed from structures), *berechnet (DFT)* for Materials Project values.
 
 - **Data:** the shared materials database `sdk/python/labcalc/data/materials.json` (136 materials, every value with
   source and value kind, ranges where given). The module adds no values of its own.
-- **Ashby chart:** any two properties on log axes; ranges are drawn as boxes. Classes are coloured.
+- **Ashby chart:** any two properties on log axes; each material is drawn as a pale ellipse spanning its range in x
+  and y, and each class as an outline around its members. Classes are coloured.
+- **Ranges:** where a material has a single value, its range comes from the database entry; where it has none, from
+  `labcalc/data/ranges.json` (typical ranges per material and property, each with its source; written from the
+  handbooks and datasheets named there and not checked against the originals). A material known only by a range is
+  placed at the geometric mean √(min·max) and labelled *nur Spanne* in the tooltip, card and report.
+- **Selection card:** a click on a point selects the material instead of copying it anywhere. Its ellipse is outlined
+  in green, and a card lists the main properties (value, range, unit, source), the decoded designation and buttons to
+  compare, copy as tab-separated text, add to the report, or share every value or a single one through the shared
+  overview (values `<tag>_<property>`).
 - **Performance index** M = Π P_k^e_k (e.g. E^½/ρ). On log–log axes Y against X, lines of constant M have slope
   −b/a (Ashby, *Materials Selection*, ch. 5). The ranked list gives M and, for excluded materials, the reason
   (property missing, limit not met).
@@ -35,6 +44,13 @@ computed from structures), *berechnet (DFT)* for Materials Project values.
   without a source is marked *ohne Quellenangabe*.
 - **Cards:** for 2–6 materials, every stored value with value kind and source; values not checked against the
   original are marked †.
+- **Designation decoder** (`labcalc/designation.py`): splits a designation into its parts by the rules of the standard
+  it follows and explains each: EN 573-1/-3 and EN 515 (EN AW-1050A H14, EN AW-AlMg3), EN 1706 (EN AC-…), EN 10027-1
+  (S235JR, 42CrMo4, X5CrNi18-10, with alloy factors 4/10/100/1000 and the +QT/+N/+A suffixes), EN 10027-2 material
+  numbers, EN 1412 (CW…), ISO 1043-1/-2 (PA6-GF30), UNS and AISI/SAE. Nominal composition ranges and equivalents are
+  shown only where the rules or the database give them. Unknown parts are listed as unknown, never guessed. Some
+  rarely used codes (EN 10027-2 groups 88/89, a few ISO 1043-2 letters) are written from memory and not checked
+  against the current editions.
 - Tests: `SelectTest.*` (order of the ranking, MP excluded by default, every card value has a source; own values:
   M = E^½/ρ by hand, merged order and ranks, exclusion with further properties or limits, validation).
 
@@ -120,6 +136,152 @@ The page, the figure tags and the report say so.
   - own solubility limit: excess as precipitate, its source in `refs.bib` with URL, report figures, table, data and the
     equations in the methods text.
 
+## 2b Material structure (`struktur.py`, `polymer.py`, `data/gefuege.json`, `data/structures*.json`)
+
+Every material of the shared database (136, including all tensile-test materials) has a structure record in
+`data/gefuege.json`: the type (metal, thermoplastic, elastomer, thermoset, crystal, glass, glass-ceramic, composite,
+carbon fibre, wood, paper, concrete) and what the views need (nominal composition and temper of alloys, crystallinity
+and Tg/Tm of polymers, network formers and modifiers of glasses, fibre, matrix and volume fraction of composites, …).
+The values come from the standards and textbooks named per entry and are marked *nicht am Original geprüft*. For a
+temperature `build(material, T)` returns views ("panels"), statements, the transitions in the range and the sources.
+**The views are models or sketches, not micrographs;** unit cells are the only part taken directly from structure data.
+The page tag, the figure tag and the report caption say which is which.
+
+- **Structure data.** 25 phases from the Crystallography Open Database (Gražulis et al. 2012), converted by
+  `tools/build_structures.py` (cell, symmetry operations, sites with occupancy; COD number and the publication of the
+  entry are kept and cited). 23 further cells, mainly polymer crystals (PE, PP, PA6, PET, PTFE, POM, cellulose Iβ, …)
+  and phases the COD lacks, transcribed from the literature (`structures_lit.json`); where the atom positions were not
+  transcribed (`nur_zelle`) the cell is drawn with a labelled schematic filling.
+- **Unit cells.** Sites expanded with the symmetry operations, duplicates merged (0,01 Å), images on faces, edges and
+  corners added, plus anions bonded to a cation inside the cell (drawn faint). Bonds where
+  d < 1,18·(r_c,i + r_c,j) with covalent radii after Cordero 2008 and at least one non-metal; coordination polyhedra
+  for cations with 4 or 6 bonded anions (convex hull). Partly occupied sites are drawn dashed with their occupancy.
+- **Metals.** Rules per alloy family turn composition, temper and T into phases:
+  - **Steels and cast irons:** Ac1, Ac3 and Ms after Andrews 1965; below Ac1 ferrite + cementite (normalised) or
+    martensite and its tempering stages (quenched and tempered); between Ac1 and Ac3 α + γ; above Ac3 austenite.
+    Martensite c/a = 1 + 0,045·w_C (Roberts 1953) in a bct section with carbon on octahedral sites. Tempering stages
+    from the Hollomon–Jaffe parameter P = T(C + lg t), converted to the equivalent 1 h temperature (Hollomon & Jaffe
+    1945; stages after Speich & Leslie 1972 and Krauss 2015): < 100 °C as quenched, 100–200 °C ε-carbide, 200–300 °C
+    retained austenite decomposes, 300–500 °C cementite in ferrite, above 500 °C spheroidised cementite. Austenitic
+    stainless steels: γ, sensitisation (Cr₂₃C₆ on grain boundaries) between 450 and 850 °C. Grey and ductile iron:
+    flake or spheroidal graphite in a pearlitic or ferritic matrix.
+  - **Age-hardening Al alloys (2xxx, 6xxx, 7xxx):** solidus, solvus and the precipitation sequence per series after
+    Polmear 2017 (GP zones → θ″/θ′ → θ; GP → β″ → β′ → β; GP → η′ → η; S in 2xxx with Mg ≥ 1 %). The state follows
+    the time–temperature history converted to an equivalent time at the peak temperature with an Arrhenius factor,
+    Q = 130 kJ/mol (diffusion of Mg/Si/Cu in Al, order of magnitude). Non-hardening alloys: Al₁₃Fe₄ particles (1xxx)
+    or Al₆Mn dispersoids (3xxx) as their own cells; 5xxx as a Mg solid solution (β-Al₃Mg₂ is named in the statements
+    but not drawn); cold-worked tempers with elongated grains and a recrystallisation mark at ≈ 300 °C.
+  - **Cu, Ti, Mg, Ni:** Cu–Zn α/α+β, Cu–Sn; α-Ti, α + β of Ti-6Al-4V with the β fraction rising to the β transus
+    (≈ 995 °C, Lütjering & Williams 2007); AZ alloys with β-Mg₁₇Al₁₂ below the solvus (Nayeb-Hashemi & Clark 1988);
+    Ni alloys with γ′/γ″ and δ (Reed 2006). Pure metals use the allotropes of the lattice model (§2a); their
+    statements name the phase, its lattice and the next transition above T.
+  - The matrix lattice is the lattice model of §2a with the alloy's composition as the solubility limit, so the solutes
+    shown are the dissolved ones and no extra precipitate is drawn in the lattice; precipitates appear as their own
+    unit cells and in the sketch.
+- **Polymers.** The chain is built from its repeat unit (`polymer.py`): backbone bond lengths C–C 1,54, C–O 1,43, C–N
+  1,45, Si–O 1,64 Å; zigzag with 112° bond angle, or a helix whose radius follows from the fibre period (PE 2,55 Å,
+  Bunn 1939; PP 3/1 6,50 Å, Natta 1960; PTFE 13/6 16,8 Å, POM 9/5 17,39 Å; PLA 10/3 28,8 Å); side groups in
+  tetrahedral or trigonal directions; rings with their entry and exit bonds along the chain. H atoms are not shown.
+  Tactic chains alternate or randomise the side. Crystal cell from the literature with chains of this geometry;
+  amorphous regions as random coils (fixed bond length and angle, random torsion, reflected at the walls of the box;
+  not self-avoiding) with the crystallinity of the record;
+  elastomers and thermosets as networks with cross-links (S or C) at the density of the record. Above Tg the coil is
+  labelled mobile, above Tm molten, above the decomposition temperature decomposed.
+- **Ceramics and glasses.** Crystals as unit cells with polyhedra (corundum, SiC, Si₃N₄, MgO, diamond, Si, Ge, GaAs,
+  β-Sn/α-Sn below 13 °C), switching by T where the record lists phases per temperature range. 3Y-TZP shows the
+  tetragonal cell up to 2370 °C (stabilised by Y₂O₃) next to monoclinic ZrO₂ for comparison; the cubic phase above is
+  named but has no cell. Glasses as a Zachariasen network
+  (Zachariasen 1932): a distorted cristobalite-like SiO₄ network, bridging oxygens broken in proportion to the modifier
+  content (non-bridging O per tetrahedron reported), modifier cations in the holes; above Tg labelled as a supercooled
+  melt.
+- **Carbon fibres and composites.** Turbostratic carbon (Oberlin 1984): graphene layers with random rotation and shift,
+  spacing d₀₀₂, layer count from the stack height Lc and waviness from the degree of order given in the record. Composites as a sketch of the fibre arrangement (UD, fabric, short
+  fibre) with the fibre volume fraction, plus the views of fibre and matrix (one level of nesting).
+- **Wood, paper, concrete, glass-ceramics:** sketches only (cell walls with early- and latewood and the S2 microfibril
+  angle; fibre network; aggregate in C-S-H paste with pores and, below ≈ 500 °C, portlandite, plus the cells of
+  portlandite, CaO and calcite; crystals in residual glass).
+- **Microstructure sketches** are drawn from a jittered hexagonal grain tessellation (seeded): lamellae and laths as
+  hatching within a grain, particles as dots, needles along grain boundaries. They show the kind of microstructure,
+  not its size; the scale bars on polymer and composite sketches are orders of magnitude.
+- **Transitions and range.** The slider spans −196 °C (20 °C for glass, wood, paper and concrete) to 80 K above the
+  highest transition; its marks are the transitions of the material (Ac1/Ac3, solvus, β transus, Tg, Tm,
+  decomposition, …). Moving across a mark changes the views.
+- **Heat treatment (`temper`).** A path of up to 8 steps (T from −50 to 1400 °C, hold 0 to 10 000 h, cooling in air or
+  quenched). Presets: hardening at Ac3 + 40 K and tempering at 200, 400 or 600 °C for 1 h (steels with C ≥ 0,2 %);
+  T4, T6 and T7 for age-hardening Al alloys at their solution and ageing temperatures; the two-step ageing of
+  alloy 718; recrystallisation annealing of cold-worked metals. The time axis adds assumed ramps of
+  max(0,1 h, ΔT/600 K·h⁻¹), i.e. 10 K/min and at least 6 min, and 0,02 h for a quench. A frame is computed at the end
+  of each step and, for holds longer than 2 h, also after 10 % and 30 % of the hold.
+  Each frame is a full set of views at that point of the history. Step names of the presets follow the report
+  language; own names stay as entered.
+- **In-between frames.** For steels (quench and temper), Al–Cu ageing and the recrystallisation of cold-worked Cu,
+  brass and Al, six frames of the microstructure are inserted between two key frames. They sit where the change
+  happens on the path: austenite forms above Ac1 and martensite below Ms. The martensite fraction follows
+  Koistinen–Marburger, f = 1 − exp(−0,011 (Ms − T)), normalised to the end temperature. Tempering is shown above
+  100 °C with a progress (T₁ − 80)/570 from the Hollomon–Jaffe equivalent 1-h temperature T₁. Precipitates dissolve
+  above 300 °C. Ageing progress follows log(t_eq/t_peak), interpolated through 0,03 (supersaturated), 0,2 (GP
+  zones), 0,6 (peak), 0,85 (over-aged) and 1 (equilibrium). Every frame of one path uses the same random geometry,
+  and the player cross-fades between frames. In-between frames appear only in the page; the report shows the key
+  frames.
+- **Microstructure library (`gefuege.py`, `data/gefuege_quellen.json`).** It covers 29 constituents (ferrite,
+  pearlite, ferrite–pearlite, cementite network, ledeburite, Widmanstätten ferrite, upper and lower bainite, lath and
+  plate martensite, tempered martensite, spheroidite, austenite, δ-ferrite, duplex, flake and nodular cast iron, Al
+  solid solution, GP zones, θ′, over-aged Al–Cu, Al–Si and Pb–Sn eutectics, dendrites, lamellar and bimodal Ti,
+  α/β brass, cold-worked and recrystallised grains). Each comes with a fact sheet: description, how it forms,
+  etchant, typical hardness and field of view. The library also has 10 transformations drawn at any progress
+  0 … 1 and 12 animated mechanisms, including the Bain strain fcc → bct as a 3-D scene with c/a going from √2 to the
+  Roberts value. The drawings follow textbooks and atlases (Krauss, Bhadeshia, Porter & Easterling, Humphreys &
+  Hatherly, ASM Handbook Vol. 9 and others named per entry, not checked against the originals). They are schematic
+  and not to scale. Steels, Al–Cu alloys and cold-worked metals open on these sketches at any temperature, so the
+  temperature slider, the heat treatment and the atlas show the same picture.
+- **Phase-diagram inset.** A clicked point in a phase diagram shows the microstructure after slow cooling to it
+  (equilibrium), as follows:
+  - Fe–C below A1: ferrite, ferrite–pearlite, pearlite, cementite network or ledeburite, by carbon content. Fe–C
+    between A1 and A3: austenite growing into ferrite, at the lever-rule fraction.
+  - Pb–Sn and Al–Si below the eutectic: their eutectic sketch.
+  - Al–Cu (Al) + θ, α/β brass, α + β titanium: their constituent sketch.
+  - Fields with liquid: dendrites at the solid fraction.
+  - Any other single phase: grains of that phase.
+  - Any other two-phase field: no sketch.
+- **Etched view.** Optionally the sketches are shown as a micrograph: greyscale, film grain, a slight blur and
+  vignetting. Only the rendering changes; the drawing stays schematic.
+- **Cellulose on heating (wood, paper).** Five marks on the temperature axis, for heating without air unless stated:
+  - 100 °C: bound water evaporates and the walls shrink. Wood holds about 12 % moisture at 20 °C and 65 % relative
+    humidity (Wood Handbook, FPL-GTR-190, 2010†).
+  - No melting: cellulose decomposes before it melts (Shafizadeh, *J. Anal. Appl. Pyrolysis* 3 (1982) 283–305,
+    doi:10.1016/0165-2370(82)80017-X†).
+  - 220–315 °C: hemicellulose decomposes; 315–400 °C: cellulose decomposes; lignin decomposes slowly over a wide range
+    (Yang et al., *Fuel* 86 (2007) 1781–1788, doi:10.1016/j.fuel.2006.12.013; the two ranges were checked against the
+    abstract, the rest is marked †).
+  - The first step of cellulose pyrolysis is depolymerisation to levoglucosan; char forms from the polymerisation of
+    the products (Lin et al., *J. Phys. Chem. C* 113 (2009) 20097–20107, doi:10.1021/jp906702p; checked against excerpts of the article). Above 400 °C the view
+    shows char, without chain and crystal cell.
+  - 525 °C, in air: ash, the inorganic residue (ISO 1762:2019†). For paper mainly the filler, for wood below 1 %
+    (Wood Handbook†).
+
+  The darkening of the sketch runs linearly from 220 to 400 °C. It is schematic and not a measured quantity. † means
+  *Angaben nicht am Original geprüft*.
+- **Materials without a transformation.** If no transition lies inside the slider's range, the result carries
+  `no_change: true` and one line says that the structure stays as shown (for example SiC, Si₃N₄, diamond). Glasses and
+  the glass-ceramic mark their network as frozen or as a supercooled liquid at Tg.
+- Limits: rules per alloy family, not a thermodynamic calculation (no CALPHAD); no nucleation or growth kinetics, no
+  amount of retained austenite, no segregation; the equivalent-time conversion uses one activation energy for all
+  Al alloys; polymer conformations in the coil are random, not equilibrated; glass networks are topological sketches
+  (no real Si–O–Si angle distribution). Three to seven cells per edge in the lattice view.
+- Tests (`StrukturTest.*`):
+  - every material of the shared database has a structure record; all 136 build at 20 °C with at least one
+    statement, known references and below 400 kB;
+  - C45E +QT ferrite at 20 °C and austenite at 850 °C; EN AW-6061-T6 with the β″ cell at 20 °C and without it at
+    560 °C; PE-HD molten at 200 °C;
+  - all 28 polymer chains: bonded distances 1,1–1,9 Å, non-bonded distances (beyond 1–3 neighbours) above 2,05 Å;
+    repeat lengths of PE (2,55 Å), PP (6,50/3 Å), PTFE (16,8/13 Å) and POM (17,39/9 Å);
+  - steel path: martensite after quenching, 3rd tempering stage after 1 h at 400 °C, monotonic time axis, at most 8
+    steps; Al path: supersaturated solid solution after quenching and peak ageing for T6; no presets for PE;
+  - step names translated, own names kept; sketches compact (hatching instead of single lines); report figures for
+    scenes, sketches, the path and the frame grid render.
+- Tests (`StructureOverTemperature.*`): a temperature sweep over every material either changes the result or sets
+  `no_change`; wood and paper show six distinct states with cited transitions.
+
 ## 3 XRD files (`xrdio.py`)
 
 | Format | What is read | Wavelength |
@@ -169,10 +331,19 @@ profile family) → indexing and lattice parameter → size and strain → phase
 
 ## 5 Phase diagrams (`phasediag.py`, `data/diagrams.json`)
 
-- **Schematic diagrams:** Fe–Fe₃C (metastable), Pb–Sn, Al–Si, Cu–Ag and Cu–Ni are drawn through invariant and key
-  points as given in Callister & Rethwisch (Fe–C, Pb–Sn, Cu–Ni), Murray & McAlister 1984 (Al–Si) and Subramanian &
-  Perepezko 1993 (Cu–Ag). Lines between the cited points are straight or smooth guides, not measured curves: every
-  figure and text says *schematisch*.
+- **Schematic diagrams:** about 30 binary systems in `data/diagrams.json` and `data/diagrams/*.json`, grouped by
+  family: steels and irons (Fe–Fe₃C metastable, Fe–C stable, Fe–Cr, Fe–Ni), aluminium (Al with Cu, Si, Mg, Mn, Zn,
+  Fe), copper (Cu–Zn, Cu–Sn, Cu–Ni, Cu–Ag), magnesium, titanium and nickel alloys, solders, teaching systems and
+  ceramics (e.g. Al₂O₃–SiO₂, ZrO₂–Y₂O₃, MgO–Al₂O₃). Melting points, invariant reactions and maximum solubilities are
+  taken from the assessments named per system (Massalski 1990, ASM Handbook Vol. 3, the J. Phase Equilibria and Bull.
+  Alloy Phase Diagrams evaluations, Callister & Rethwisch). Each boundary is a named curve through those points,
+  smoothed by a Catmull–Rom spline; the regions are built from the curves, so lines and regions always agree. Lines
+  between the cited points are traced, not measured: every figure and text says *schematisch*, and the fold
+  *Datengrundlage dieses Diagramms* names what is cited and what is simplified (e.g. ζ in Cu–Sn left out, FeNi₃
+  ordering as one dome).
+- **Phases outside the plotted range:** where a partner phase lies beyond the axis (graphite at 100 % C in the stable
+  Fe–C system, the liquid near 43 % Sn at 676 °C in Cu–Sn), the region carries the true composition where it is
+  known; otherwise the lever rule uses the axis end and the diagram's note says so.
 - **Lever rule:** W_left = (x_r − x₀)/(x_r − x_l) on the horizontal tie line through the chosen point; constituents
   below an eutectic or eutectoid (e.g. proeutectoid ferrite and pearlite); a cooling path with the fraction of every
   phase against T.
@@ -182,7 +353,10 @@ profile family) → indexing and lattice parameter → size and strain → phase
   diagram by up to about 25 K; it is labelled *berechnet (Lösungsmodell)*.
 - Tests (`PhaseTest.*`):
   - Fe–C 0,35 % C just below 727 °C: proeutectoid ferrite (0,76 − 0,35)/(0,76 − 0,022) = 0,556, pearlite 0,444;
-  - Pb–Sn 40 wt% Sn at 150 °C: α fraction 0,70 from the cited solvus points;
+  - Pb–Sn 40 wt% Sn at 150 °C: α fraction 0,67 (Callister's worked example; ±0,02 for the traced solvus);
+  - every system validates (closed regions, curves inside the box), and in every two-phase region the lever rule at
+    an inner point gives two fractions that sum to 1 (`test_runde_mt.DiagramCoverage`);
+  - Al–Mn 3 wt% at 500 °C uses the stoichiometric Al₆Mn (25,3 wt% Mn) as the partner phase;
   - the computed Cu–Ni tie line at 1225 °C against the closed-form ideal solution
     x_S/x_L = exp(ΔG_B/RT), (1−x_S)/(1−x_L) = exp(ΔG_A/RT) (±0,15 wt%), and the liquid fraction (±0,01);
   - liquidus end points at the melting temperatures, solidus below liquidus.
@@ -264,7 +438,66 @@ A11 = A22, A16 = 0, B = 0 and A11 = (Q11 + Q22)·h/2; `[0]₄` under N_x has R(m
   recovered exactly by the BV fit and within 0,6 µA/cm² by the Tafel lines; units and area; G102 rate; LMP round
   trip; Norton n = 5 and Q = 280 kJ/mol recovered.
 
+## 11a Measurement uncertainty (`tools.py`, shared `labcalc/uncertainty.py`)
+
+The calculation is the suite's ([uncertainty.md](uncertainty.md)); this module supplies the models and inputs. The
+model is always the module's own function, so the budget follows the same formula as the result.
+
+| Result | Model | Inputs with ± |
+|---|---|---|
+| K_Q (E399) | `reliability.k_q` for the chosen geometry | P_Q, B, W, a, S (SE(B)) |
+| critical crack length a_c | (K_Ic/(Y σ))²/π · 1000 mm | K_Ic, σ, Y |
+| hardness mean | H̄ · (F/F̄)(d̄/d)² (HV, HK); for HBW the Brinell ratio with the ball diameter | H̄ from the indents (type A, n − 1 degrees of freedom, from two indents on), F, d |
+| CE, CET, Pcm, Ms, Ac1, Ac3 | `steel.formulas` | every element |
+| preheat temperature T_p (EN 1011-2) | `steel.preheat_tp` with CET from the composition | elements, thickness, HD, heat input |
+
+The hardness model separates the scatter of the indents (in H̄) from a systematic error of the force or the length
+measurement, which acts on every indent alike. A result that depends on no uncertain input (for example Ac1 when only
+C has an uncertainty) is not shown and not reported. The uncertainty of the empirical formulas themselves (CE, Ms,
+Ac1, Ac3, T_p) is not included; the budget covers the inputs only.
+
+Tests (`UncertaintyViewsTest.*`): the K_Q value equals the result without uncertainty, its budget lists exactly the
+inputs given, all four methods are compared; three indents give type A with ν = 2; Ac1 is dropped when only C is
+uncertain; the report has `bruch-kq-budget` and cites JCGM 100.
+
+## 11b What a view shows (`views.py`, `kompendium.py`, `finder.py`)
+
+Each view of each tool has a one-line description, an explanation and the reference keys that view relies on
+(`views.V`, `views.S_CAT` for the structure panels). A tool result carries only the keys and the id of the matching
+compendium entry (`views_info[view] = {keys, entry}`). The page lists that view's sources first, and report figures of
+a view cite those keys.
+
+**Compendium** (`kompendium.py`, `data/kompendium.json`, route `kompendium`). Entries: `tool:<tool>` with one section
+per view (`tool:<tool>#<view>`), usage notes and example data; `mech:<id>` (mechanism animations); `atlas:<id>`
+(constituents with fact sheet and sketch); `topic:<id>` (cellulose on heating, designations, uncertainty). Every entry
+has reference keys that resolve in `refs.py` and are written out in full. Mechanisms and atlas entries can still be
+sent to a report.
+
+**Search** (`finder.py`, route `finden`). The index holds tools, views and modes, materials of the shared database
+(name, English name, aliases, id, family), phase diagrams, crystal phases and the full text of the compendium. Text is
+compared in lower case without diacritics (ä = ae, ß = ss). Rank: exact title, title prefix, all words at a word start
+in the title, word match elsewhere, then a compact substring without spaces and hyphens (`x5crni` finds `X5CrNi18-10`).
+
+**Input checks** (`tools.run`). NaN or infinity anywhere in a request, empty fields where a number is required, text
+in a number field and values outside a formula's domain return a clear input error (HTTP 400) and no longer an internal
+error. Tests (`ToolAudit.*`): every numeric input of every tool changes the result; empty and edge values neither crash
+nor hang. Tests (`Search.*`, `Compendium.*`): every tool, material and entry is findable; every former view text is in
+the compendium; every entry has resolving sources.
+
+The structure tool's temperature slider maps positions 0–1000 piecewise linearly onto T. Around every transition
+temperature of the material (Ac1, Ac3, solvus, Tg, Tm, decomposition …) lies a zone of ± max(8 K, 3 % of the range);
+zones closer than 12 % of the range merge. The stretches between zones, where no view changes, share 20 % of the
+travel (at least 3 % each); the zones share the rest in proportion to their width and are shaded on the track. The
+arrow keys still move T by exactly 1 °C (10 °C with Shift).
+
 ## 12 Report (`bundle.py`)
+
+Uncertainty results add the values `<tool>-<name>-pm`, `-U`, `-u`, a budget table `<tool>-<name>-budget` and one
+methods sentence per method (see [uncertainty.md](uncertainty.md)).
+
+The structure tool writes one figure per view (the view shown on the page first), a table of the phases with their
+cells and data source, and for a heat treatment the T(t) path, a grid of the frames in one view, the steps and the
+state of each frame; the captions say model, sketch or unit cell from structure data.
 
 Per tool: figures (matplotlib, PDF), booktabs tables, `\labval` values, CSV data for pgfplots, methods and results
 paragraphs, citations. Data files used (diffractograms, CIF, tables) are stored in the bundle and cited as data files.
@@ -293,6 +526,19 @@ Shigley, Bernard 1953, Quinn 2003, International Tables Vol. C, Bearden 1967.
 - Weibull m by MLE is biased high for small n (no C1239 unbiasing factor).
 - Empirical steel formulas apply only within their stated composition ranges.
 - Hardness conversion depends entirely on the table the user loads.
+- Structure tool: phases from rules per alloy family, not from a thermodynamic calculation; frames of a heat treatment
+  without kinetics of nucleation and growth (in-between frames interpolate the progress, except martensite after
+  Koistinen–Marburger); sketches not to scale; literature cells not checked against the original. The ageing
+  sequence of the library is that of Al–Cu, so 6xxx and 7xxx alloys get no in-between frames.
+- Cellulose: one fixed set of temperature marks. Real decomposition ranges shift with heating rate, atmosphere and
+  composition, and the view does not model mass loss or char yield.
+- Phase diagrams: where a partner phase lies beyond the plotted axis and no true composition is stored (the liquid
+  near 43 % Sn at 676 °C in Cu–Sn), the lever rule uses the axis end. ζ in Cu–Sn, the FeNi₃ two-phase fields, Ni₂Cr
+  ordering and the Cu–Ni miscibility gap are not drawn. Ti–V, the Ag–Pt peritectic, the ZrO₂–Y₂O₃ eutectoid, the
+  MgO–Al₂O₃ eutectic compositions, the Ni–Cr eutectic and the maximum solubility in Al–Mg are uncertain and want
+  checking against the assessments.
+- Property ranges and the designation decoder were written from the handbooks and standards named, without
+  comparing them to the originals.
 - Lattice model: a(T) with a constant α away from tabulated points; solubility only where a diagram, a miscible pair or
   an own limit exists (otherwise drawn fully dissolved, with a note); defects, precipitate shape and position are
   schematic; no short-range order, clustering or segregation to defects.

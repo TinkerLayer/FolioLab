@@ -1,0 +1,222 @@
+{
+  "quellen": {
+    "ti-al_schuster2006": {
+      "type": "article",
+      "authors": "Schuster, J. C.; Palm, M.",
+      "title": "Reassessment of the Binary Aluminum-Titanium Phase Diagram",
+      "container": "Journal of Phase Equilibria and Diffusion",
+      "year": "2006",
+      "volume": "27",
+      "pages": "255-277",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "ti-al",
+    "name": "Ti–Al (Ti-reiche Seite)",
+    "name_en": "Ti–Al (Ti-rich side)",
+    "A": "Ti",
+    "B": "Al",
+    "gruppe": "ti",
+    "x_label": "Aluminium [Gew.-%]",
+    "x_label_en": "Aluminium [wt%]",
+    "xlim": [0, 45],
+    "Tlim": [600, 1800],
+    "q": ["ti-al_schuster2006", "massalski1990"],
+    "hinweis": "Achse in Gewichtsprozent (45 Gew.-% Al ≈ 60 At.-% Al; 6 Gew.-% ≈ 10 At.-%, 36 Gew.-% ≈ 50 At.-%). Zitiert (Schuster und Palm 2006, dort in At.-%): Schmelzpunkt Ti 1670 °C, β → α bei 882 °C; Peritektikum L + β ⇌ α bei 1491 °C (β ≈ 44,8 At.-% = 31,4 Gew.-% Al); Peritektikum L + α ⇌ γ bei 1463 °C; Eutektoid α ⇌ α₂ + γ bei 1118 °C (ältere Bewertungen ≈ 1125 °C). Die Zusammensetzungen von L und α an den Peritektika, das Ordnungsmaximum von α₂ (Ti₃Al) bei etwa 1180 °C und alle Linien zwischen den Eckwerten sind dem bewerteten Diagramm nur genähert nachgezeichnet: schematisch, nicht zum Ablesen. Vereinfacht: das Diagramm endet bei 45 Gew.-% Al im γ-Gebiet (TiAl); Al-reichere Phasen (TiAl₂, TiAl₃ …) sowie die in der Literatur strittigen Einzelheiten (Hochtemperatur-α-Bereich, β-Ordnung) fehlen. Die Hebelanteile sind Massenanteile.",
+    "hinweis_en": "Axis in weight percent (45 wt% Al ≈ 60 at% Al; 6 wt% ≈ 10 at%, 36 wt% ≈ 50 at%). Cited (Schuster and Palm 2006, given there in at%): melting point of Ti 1670 °C, β → α at 882 °C; peritectic L + β ⇌ α at 1491 °C (β ≈ 44.8 at% = 31.4 wt% Al); peritectic L + α ⇌ γ at 1463 °C; eutectoid α ⇌ α₂ + γ at 1118 °C (older assessments ≈ 1125 °C). The compositions of L and α at the peritectics, the ordering maximum of α₂ (Ti₃Al) at about 1180 °C and all lines between the key values are only approximately traced from the assessed diagram: schematic, not for reading values. Simplified: the diagram ends at 45 wt% Al in the γ field (TiAl); Al-richer phases (TiAl₂, TiAl₃ …) and details disputed in the literature (high-temperature α range, β ordering) are omitted. Lever-rule fractions are mass fractions.",
+    "points": [
+      {
+        "x": 0,
+        "T": 1670,
+        "label": "Ti schmilzt",
+        "label_en": "Ti melts"
+      },
+      {
+        "x": 0,
+        "T": 882,
+        "label": "β → α (Ti)"
+      },
+      {
+        "x": 31.4,
+        "T": 1491,
+        "label": "Peritektikum L + β ⇌ α",
+        "label_en": "Peritectic L + β ⇌ α"
+      },
+      {
+        "x": 40.3,
+        "T": 1463,
+        "label": "Peritektikum L + α ⇌ γ",
+        "label_en": "Peritectic L + α ⇌ γ"
+      },
+      {
+        "x": 27.3,
+        "T": 1118,
+        "label": "Eutektoid α ⇌ α₂ + γ",
+        "label_en": "Eutectoid α ⇌ α₂ + γ"
+      },
+      {
+        "x": 21,
+        "T": 1180,
+        "label": "Ordnungsmaximum α₂ (Ti₃Al), genähert",
+        "label_en": "ordering maximum α₂ (Ti₃Al), approximate"
+      }
+    ],
+    "curves": {
+      "liqB": {
+        "kind": "liquidus",
+        "pts": [[0, 1670], [5, 1662], [10, 1650], [15, 1634], [20, 1612], [25, 1584], [28, 1563], [31, 1537], [33.5, 1512], [35.5, 1491]]
+      },
+      "solB": {
+        "kind": "solidus",
+        "pts": [[0, 1670], [5, 1655], [10, 1637], [15, 1615], [20, 1588], [24, 1562], [27, 1538], [29.5, 1514], [31.4, 1491]]
+      },
+      "liqA": {
+        "kind": "liquidus",
+        "pts": [[35.5, 1491], [37, 1484.5], [38.5, 1477.5], [40, 1469.5], [41.2, 1463]]
+      },
+      "solA": {
+        "kind": "solidus",
+        "pts": [[33.6, 1491], [34.6, 1484], [35.6, 1476.5], [36.5, 1469.5], [37.3, 1463]]
+      },
+      "liqG": {
+        "kind": "liquidus",
+        "pts": [[41.2, 1463], [42.5, 1457.5], [43.8, 1451.5], [45, 1445]]
+      },
+      "solG": {
+        "kind": "solidus",
+        "pts": [[40.3, 1463], [41.9, 1455], [43.5, 1446], [45, 1437]]
+      },
+      "betaT": {
+        "kind": "transus",
+        "pts": [[0.0, 882], [2.45, 940], [5.09, 1000], [7.83, 1060], [10.69, 1120], [13.66, 1180], [16.77, 1240], [20.02, 1300], [23.41, 1360], [26.97, 1420], [31.4, 1491]]
+      },
+      "alphaB": {
+        "kind": "transus",
+        "pts": [[0.0, 882], [3.19, 940], [6.49, 1000], [9.84, 1060], [13.2, 1120], [16.56, 1180], [19.88, 1240], [23.16, 1300], [26.41, 1360], [29.67, 1420], [33.6, 1491]]
+      },
+      "aGA": {
+        "kind": "solvus",
+        "pts": [[37.3, 1463], [35.5, 1410], [33.5, 1350], [31.5, 1285], [29.8, 1220], [28.4, 1165], [27.3, 1118]]
+      },
+      "gA": {
+        "kind": "solvus",
+        "pts": [[40.3, 1463], [39.4, 1410], [38.4, 1350], [37.3, 1285], [36.2, 1220], [35.3, 1160], [34.7, 1118]]
+      },
+      "gB": {
+        "kind": "solvus",
+        "pts": [[34.7, 1118], [35.0, 1000], [35.2, 900], [35.4, 800], [35.5, 700], [35.6, 600]]
+      },
+      "a2R": {
+        "kind": "solvus",
+        "pts": [[21.0, 1180], [22.06, 1176], [22.84, 1170], [23.62, 1162], [24.41, 1152], [25.23, 1140], [25.95, 1128], [26.5, 1118]]
+      },
+      "aR": {
+        "kind": "solvus",
+        "pts": [[21.0, 1180], [22.88, 1177], [23.78, 1172], [24.66, 1164], [25.45, 1154], [26.18, 1142], [26.78, 1130], [27.3, 1118]]
+      },
+      "a2Rl": {
+        "kind": "solvus",
+        "pts": [[26.5, 1118], [26.3, 1000], [26.1, 900], [25.9, 800], [25.8, 700], [25.7, 600]]
+      },
+      "a2L": {
+        "kind": "solvus",
+        "pts": [[21.0, 1180], [20.61, 1178], [20.21, 1172], [19.76, 1160], [19.24, 1140], [18.67, 1110], [18.08, 1070], [17.48, 1020], [16.87, 960], [16.26, 890], [15.65, 810], [15.03, 720], [14.3, 600]]
+      },
+      "aL": {
+        "kind": "solvus",
+        "pts": [[21.0, 1180], [20.15, 1178], [19.31, 1172], [18.33, 1160], [17.22, 1140], [16.0, 1110], [14.73, 1070], [13.44, 1020], [12.13, 960], [10.82, 890], [9.5, 810], [8.18, 720], [6.6, 600]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 1800], [45, 1800], [45, 1445], "-liqG", "-liqA", "-liqB"]
+      },
+      {
+        "label": "β + L",
+        "phases": ["β", "L"],
+        "poly": ["liqB", "-solB"]
+      },
+      {
+        "label": "α + L",
+        "phases": ["α", "L"],
+        "poly": ["liqA", "-solA"]
+      },
+      {
+        "label": "γ + L",
+        "phases": ["γ", "L"],
+        "poly": ["liqG", "-solG"]
+      },
+      {
+        "label": "β",
+        "phases": ["β"],
+        "poly": ["solB", "-betaT"]
+      },
+      {
+        "label": "β + α",
+        "phases": ["β", "α"],
+        "poly": ["betaT", "-alphaB"]
+      },
+      {
+        "label": "α",
+        "phases": ["α"],
+        "poly": [[0, 600], "alphaB", "solA", "aGA", "-aR", "aL"]
+      },
+      {
+        "label": "α + γ",
+        "phases": ["α", "γ"],
+        "poly": ["aGA", "-gA"]
+      },
+      {
+        "label": "γ",
+        "phases": ["γ"],
+        "poly": ["solG", [45, 600], "-gB", "-gA"]
+      },
+      {
+        "label": "α + α₂",
+        "phases": ["α", "α₂"],
+        "poly": ["aL", "-a2L"]
+      },
+      {
+        "label": "α₂ + α",
+        "phases": ["α₂", "α"],
+        "poly": ["a2R", "-aR"]
+      },
+      {
+        "label": "α₂",
+        "phases": ["α₂"],
+        "poly": ["a2R", "a2Rl", "-a2L"]
+      },
+      {
+        "label": "α₂ + γ",
+        "phases": ["α₂", "γ"],
+        "poly": [[26.5, 1118], [34.7, 1118], "gB", "-a2Rl"]
+      }
+    ],
+    "invariants": [
+      {
+        "T": 1491,
+        "type": "peritectic",
+        "x": [31.4, 33.6, 35.5],
+        "reaction": "L + β ⇌ α"
+      },
+      {
+        "T": 1463,
+        "type": "peritectic",
+        "x": [37.3, 40.3, 41.2],
+        "reaction": "L + α ⇌ γ"
+      },
+      {
+        "T": 1118,
+        "type": "eutectoid",
+        "x": [26.5, 27.3, 34.7],
+        "reaction": "α ⇌ α₂ + γ",
+        "constituents": ["voreutektoides α₂", "lamellares (α₂ + γ)", "voreutektoides γ"],
+        "constituents_en": ["proeutectoid α₂", "lamellar (α₂ + γ)", "proeutectoid γ"],
+        "morph": "lamellar"
+      }
+    ]
+  }
+}

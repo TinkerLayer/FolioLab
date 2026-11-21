@@ -24,6 +24,14 @@ def _style(ax, lang, yunit=None, ylab=None):
     ax.tick_params(colors=MUTED, labelsize=8.5)
 
 
+def _part(arts, pid):
+    """Mark artists as one part of the figure (labstyle: what the report can switch off with its caption and sources)."""
+    if pid:
+        for a in arts if isinstance(arts, (list, tuple)) else [arts]:
+            a._labpart = pid
+    return arts
+
+
 def _fmt(v, lang, nd=0):
     s = f"{v:.{nd}f}"
     return s.replace(".", ",") if lang == "de" else s
@@ -38,14 +46,14 @@ def fig_spectra(series, yunit, lang="de", peaks=None, regions=None, stacked=Fals
         step = 1.1 * max(float(np.ptp(s["y"])) for s in series)
     for i, s in enumerate(series):
         col = COLORS[i % len(COLORS)]
-        ax.plot(s["x"], np.asarray(s["y"]) + off, color=col, lw=1.0, label=s["name"])
+        _part(ax.plot(s["x"], np.asarray(s["y"]) + off, color=col, lw=1.0, label=s["name"]), s.get("part"))
         if stacked:
             off -= step
     for lo, hi, txt in regions or []:
-        ax.axvspan(min(lo, hi), max(lo, hi), color="#007b83", alpha=0.08, lw=0)
+        _part(ax.axvspan(min(lo, hi), max(lo, hi), color="#007b83", alpha=0.08, lw=0), "flaechen")
         if txt:
-            ax.text((lo + hi) / 2, 1.0, txt, transform=ax.get_xaxis_transform(), ha="center", va="bottom", fontsize=7,
-                    color=MUTED)
+            _part(ax.text((lo + hi) / 2, 1.0, txt, transform=ax.get_xaxis_transform(), ha="center", va="bottom", fontsize=7,
+                          color=MUTED), "flaechen")
     if peaks and series:
         valley = yunit in ("T", "R")
         top = sorted(peaks, key=lambda p: -p.get("prom", 0))
@@ -60,8 +68,8 @@ def fig_spectra(series, yunit, lang="de", peaks=None, regions=None, stacked=Fals
                 continue
             placed.append(p["x"])
             y0 = p["y"]
-            ax.annotate(_fmt(p["x"], lang), (p["x"], y0), xytext=(0, -9 if valley else 9), textcoords="offset points",
-                        rotation=90, ha="center", va="top" if valley else "bottom", fontsize=6.5, color=INK)
+            _part(ax.annotate(_fmt(p["x"], lang), (p["x"], y0), xytext=(0, -9 if valley else 9), textcoords="offset points",
+                              rotation=90, ha="center", va="top" if valley else "bottom", fontsize=6.5, color=INK), "banden")
         lo, hi = ax.get_ylim()
         ax.set_ylim(lo - (0.12 * yr if valley else 0), hi + (0 if valley else 0.12 * yr))
     if xlim:
@@ -102,9 +110,9 @@ def fig_search(x, q, hits, lang="de", qname=""):
         off -= 1.15
         y = np.asarray(h["y"], float)
         m = np.isfinite(y)
-        ax.plot(x[m], y[m] + off, color=COLORS[(i + 1) % len(COLORS)], lw=1.0)
-        ax.text(float(x[v].max()), off + 0.92, f"{i + 1}. {h['name']} (HQI {_fmt(h['hqi'], lang, 1)}) · {ref_tag(h, lang)}",
-                fontsize=7.5, color=COLORS[(i + 1) % len(COLORS)], ha="left", va="top")
+        _part(ax.plot(x[m], y[m] + off, color=COLORS[(i + 1) % len(COLORS)], lw=1.0), f"treffer{i + 1}")
+        _part(ax.text(float(x[v].max()), off + 0.92, f"{i + 1}. {h['name']} (HQI {_fmt(h['hqi'], lang, 1)}) · {ref_tag(h, lang)}",
+                      fontsize=7.5, color=COLORS[(i + 1) % len(COLORS)], ha="left", va="top"), f"treffer{i + 1}")
     ax.set_xlim(float(x[v].max()), float(x[v].min()))
     _style(ax, lang, ylab="Absorbanz, normiert" if lang == "de" else "Absorbance, normalised")
     ax.set_yticks([])
@@ -122,9 +130,10 @@ def fig_mixture(x, q, combo, lang="de", qname=""):
     for i, c in enumerate(combo["components"]):
         y = np.asarray(c["y"], float)
         m = np.isfinite(y)
-        a1.fill_between(x[m], 0, y[m], color=COLORS[(i + 2) % len(COLORS)], alpha=0.18, lw=0)
-        a1.plot(x[m], y[m], color=COLORS[(i + 2) % len(COLORS)], lw=0.8,
-                label=f"{c['name']} ({_fmt(100 * c['frac'], lang)} % {'Fläche' if lang == 'de' else 'area'}) · {ref_tag(c, lang)}")
+        _part(a1.fill_between(x[m], 0, y[m], color=COLORS[(i + 2) % len(COLORS)], alpha=0.18, lw=0), f"komponente{i + 1}")
+        _part(a1.plot(x[m], y[m], color=COLORS[(i + 2) % len(COLORS)], lw=0.8,
+                      label=f"{c['name']} ({_fmt(100 * c['frac'], lang)} % {'Fläche' if lang == 'de' else 'area'}) · {ref_tag(c, lang)}"),
+              f"komponente{i + 1}")
     a1.legend(fontsize=7, frameon=False, loc="upper left")
     _style(a1, lang, ylab="Absorbanz, normiert" if lang == "de" else "Absorbance, normalised")
     a1.set_xlabel("")

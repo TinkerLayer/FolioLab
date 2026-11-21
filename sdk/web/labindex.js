@@ -4,10 +4,13 @@
  *     – fragt Grösse, Art und Notiz nach und legt einen neuen, unveränderlichen Eintrag an.
  *   LabIndex.browse(api, toast, onTake?)
  *     – zeigt alle Einträge des aktiven Projekts nach Grösse (Alternativen untereinander); onTake(entry) übernimmt.
+ *   LabIndex.taker({api, toast, get, set, names, vars, refresh, save, el, reveal?})
+ *     – Indexwerte als benannte Variablen eigener Gleichungen: .take(entry), .render(), .defs(), .ext(), .own(rows).
  */
 (function (g) {
   "use strict";
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const L = (de, en) => (g.LabUI && g.LabUI.lang && g.LabUI.lang() === "en" ? en : de);
   const TYPES = { measured: "gemessen", calculated: "berechnet", tabulated: "Tabellenwert", estimated: "Schätzung" };
   const fmt = (q) => `${Number(q.value).toPrecision(6).replace(/\.?0+(e|$)/, "$1")}${q.u != null ? ` ± ${q.u}` : ""} ${q.unit || ""}`.trim();
 
@@ -80,7 +83,7 @@
       return `<tr${i ? ' style="opacity:.92"' : ""}><td>${i ? "" : `<b>${esc(gp.key)}</b>${gp.entries.length > 1 ? ` <small>(${gp.entries.length} Werte)</small>` : ""}`}</td>
         <td style="text-align:right;white-space:nowrap">${esc(fmt(e.quantity))}</td><td>${esc(TYPES[e.type] || e.type)}</td>
         <td><small>${esc(e.id)} · ${esc([p.module, p.env_name || p.env, p.item_name].filter(Boolean).join(" · "))}${p.share ? ` · ${esc(p.share)} v${esc(p.version)}` : ""}${e.source && e.source.title ? ` · ${esc(e.source.title)}` : ""}${e.note ? ` · ${esc(e.note)}` : ""}</small></td>
-        <td style="white-space:nowrap"><button type="button" data-hist="${esc(e.id)}" title="Herkunft bis zur Rohdatei">Herkunft</button>${onTake ? ` <button type="button" data-take="${esc(e.id)}">Übernehmen</button>` : ""}</td></tr>`;
+        <td style="white-space:nowrap"><button type="button" data-hist="${esc(e.id)}" title="Herkunft bis zur Rohdatei">Herkunft</button>${onTake ? ` <button type="button" data-take="${esc(e.id)}">${esc(L("Übernehmen", "Use"))}</button>` : ""}</td></tr>`;
     }).join("")).join("");
     const d = box(`<form method="dialog" style="display:flex;flex-direction:column;gap:8px">
       <b style="font-size:1.05em">Projektindex</b>
@@ -118,5 +121,104 @@
     toast(`${j.shares.length} Versionen, ${j.index.length} Indexeinträge, ${j.raw_files.length} Rohdateien aufgelistet.`);
   }
 
-  g.LabIndex = { add, addMany, browse, history, exportDeps };
+  // ---- Indexwerte als Variablen eigener Gleichungen (labcalc.formulas, Kanal ext_values) ----
+  // Der Wert bleibt in seiner Einheit, mit u und Herkunft. Je Wert eine Berichtszeile <name>_idx = <name>; so steht er mit
+  // Einheit, ± und Quelle in der Gleichungstabelle. Einheiten prüft der Server (taken.py des Moduls).
+  const NAME_RE = /^[A-Za-z][A-Za-z0-9_]{0,23}$/;
+  const originOf = (e) => { const p = e.provenance || {}; return [p.module, p.env_name || p.env, p.item_name].filter(Boolean).join(" · "); };
+  function symFor(e) {
+    const s = String(e.key || "x").normalize("NFKD").replace(/[^A-Za-z0-9_]+/g, "_").replace(/^_+|_+$/g, "").replace(/^(\d)/, "x$1").slice(0, 20);
+    return NAME_RE.test(s) ? s : "x";
+  }
+  function sigDigits(v) {
+    const n = String(Math.abs(+v)).replace(/e.*$/, "").replace(".", "").replace(/^0+/, "").length;
+    return Math.max(4, Math.min(10, n));
+  }
+  function takenItem(e, name) {
+    const q = e.quantity || {}, o = originOf(e), s = e.source;
+    return { key: name, label: String(e.label || e.key || name).slice(0, 80), value: +q.value, unit: q.unit || "", ...(+q.u > 0 ? { u: +q.u } : {}),
+      from: "index", from_name: `Projektindex ${e.id}${o ? " · " + o : ""}`, mode: "index", index: e.id, type: e.type || "",
+      row: `${name.slice(0, 20)}_idx`, source: s && (s.title || s.doi || s.url) ? s : null };
+  }
+  const takenDefs = (list) => (list || []).map((t) => ({ sym: t.row, label: `${t.label.slice(0, 50)} · ${t.from_name}`.slice(0, 120), expr: t.key,
+    unit: t.unit, digits: sigDigits(t.value), source: t.source || null }));
+  const ownRows = (list, rows) => (rows || []).filter((r) => !(list || []).some((t) => t.row === r.sym));
+
+  function askName(e, used) {
+    let name = symFor(e);
+    for (let i = 1; used.has(name) || used.has(`${name.slice(0, 20)}_idx`); i++) name = `${symFor(e).slice(0, 18)}_i${i > 1 ? i : ""}`;
+    const q = e.quantity;
+    return new Promise((res) => {
+      let over = false;
+      const end = (v) => { if (!over) { over = true; res(v); } };
+      const d = box(`<form method="dialog" style="display:flex;flex-direction:column;gap:8px">
+        <b style="font-size:1.05em">${esc(L("In die eigenen Gleichungen", "Into the own equations"))}</b>
+        <div><b>${esc(fmt(q))}</b> – ${esc(e.label || e.key || "")}</div>
+        <div class="small" style="opacity:.8">${esc(e.id)}${originOf(e) ? " · " + esc(originOf(e)) : ""}</div>
+        <label>${esc(L("Name in den Gleichungen", "Name in the equations"))} <input name="sym" maxlength="24" style="width:100%" spellcheck="false" value="${esc(name)}"></label>
+        <div class="small" style="opacity:.8">${esc(L("Gleichungen rechnen mit dem Zahlenwert in dieser Einheit. Neben einer Grösse gleicher Art in anderer Einheit wird die Gleichung abgelehnt.",
+          "Equations use the number in this unit. Next to a quantity of the same kind in another unit the equation is refused."))}</div>
+        <div data-err role="alert" style="color:#b00" hidden></div>
+        <div style="display:flex;gap:6px;justify-content:flex-end"><button value="cancel" formnovalidate>${esc(L("Abbrechen", "Cancel"))}</button><button value="ok" class="primary">${esc(L("Übernehmen", "Use"))}</button></div></form>`);
+      const f = d.querySelector("form"), err = d.querySelector("[data-err]");
+      f.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        if (!ev.submitter || ev.submitter.value !== "ok") { d.close(); return end(null); }
+        const s = f.sym.value.trim();
+        const msg = !NAME_RE.test(s) ? L("Name: Buchstabe am Anfang, dann Buchstaben, Ziffern oder _ (höchstens 24 Zeichen).", "Name: a letter first, then letters, digits or _ (at most 24 characters).")
+          : used.has(s) || used.has(`${s.slice(0, 20)}_idx`) ? L(`„${s}“ ist hier schon vergeben.`, `“${s}” is already used here.`) : "";
+        if (msg) { err.textContent = msg; err.hidden = false; return; }
+        d.close(); end(s);
+      });
+      d.addEventListener("close", () => end(null));
+    });
+  }
+
+  function taker(o) {
+    const list = () => o.get() || [];
+    async function verify() {                          // reservierte Namen (pi, R …) benennt der Server um: dann nicht still weiter
+      const vars = o.vars() || [];
+      if (!vars.length) return;
+      const bad = list().filter((t) => !vars.some((v) => v.name === t.key && v.ext));
+      if (!bad.length) return;
+      o.set(list().filter((t) => !bad.includes(t)));
+      o.toast(L(`„${bad[0].key}“ ist ein reservierter Name; Wert nicht übernommen.`, `“${bad[0].key}” is a reserved name; value not taken.`), true);
+      await o.refresh();
+    }
+    function render() {
+      const el = o.el && o.el();
+      if (!el) return;
+      const L_ = list();
+      el.hidden = !L_.length;
+      el.innerHTML = L_.length ? `<div class="small" style="margin:6px 0 2px"><b>${esc(L("Aus dem Projektindex", "From the project index"))}</b></div>` + L_.map((t, i) =>
+        `<div style="display:flex;gap:6px;align-items:baseline;flex-wrap:wrap"><code>${esc(t.key)}</code><span>= ${esc(fmt(t))}</span><span class="small" style="opacity:.8;flex:1 1 120px">${esc(t.label)} · ${esc(t.from_name)}</span>
+          <button type="button" data-t-h="${i}">${esc(L("Herkunft", "Provenance"))}</button><button type="button" data-t-x="${i}" aria-label="${esc(L("Entfernen", "Remove"))}" title="${esc(L("Entfernen", "Remove"))}">×</button></div>`).join("") : "";
+      el.onclick = async (ev) => {
+        const h = ev.target.closest("[data-t-h]"), x = ev.target.closest("[data-t-x]");
+        if (h) return history(o.api, o.toast, { index: list()[+h.dataset.tH].index });
+        if (!x) return;
+        o.set(list().filter((_, i) => i !== +x.dataset.tX));
+        await o.refresh(); render(); o.save();
+      };
+    }
+    async function take(e) {
+      const q = e && e.quantity;
+      if (!q || !Number.isFinite(+q.value)) return o.toast(L("Dieser Eintrag hat keinen Zahlenwert.", "This entry has no number."), true);
+      const had = list().find((t) => t.index === e.id);
+      if (had) return o.toast(L(`Schon übernommen als ${had.key}.`, `Already taken as ${had.key}.`));
+      const used = new Set([...(o.names() || []), ...list().flatMap((t) => [t.key, t.row])]);
+      const name = await askName(e, used);
+      if (!name) return;
+      const it = takenItem(e, name);
+      o.set([...list(), it]);
+      await o.refresh();
+      await verify();
+      render(); o.save();
+      if (o.reveal) o.reveal();
+      if (list().includes(it)) o.toast(L(`${name} aus dem Projektindex (${e.id}) übernommen.`, `${name} taken from the project index (${e.id}).`));
+    }
+    return { take, render, verify, defs: () => takenDefs(list()), own: (rows) => ownRows(list(), rows), ext: (rest) => [...list(), ...(rest || [])] };
+  }
+
+  g.LabIndex = { add, addMany, browse, history, exportDeps, taker, takenItem, takenDefs, ownRows, symFor, originOf };
 })(window);

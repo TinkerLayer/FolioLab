@@ -92,6 +92,226 @@
    ],
    "type": "tex"
   },
+  "methods.json": {
+   "lines": [
+    "{",
+    " \"id\": \"methodik\",",
+    " \"title\": \"Methods\",",
+    " \"steps\": [",
+    "  {",
+    "   \"id\": \"kurz\",",
+    "   \"title\": \"One sentence\",",
+    "   \"short\": false,",
+    "   \"par\": -1,",
+    "   \"file\": \"methods/kurz.tex\",",
+    "   \"brief\": true",
+    "  },",
+    "  {",
+    "   \"id\": \"s1\",",
+    "   \"title\": \"The dataset ``Synthetische Kurve'' (version 1) of …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s1.tex\",",
+    "   \"of\": \"messung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s2\",",
+    "   \"title\": \"The time axis of the evaluation was …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s2.tex\",",
+    "   \"of\": \"zeitachse\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s3\",",
+    "   \"title\": \"Stress refers to the initial cross-section A0 …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s3.tex\",",
+    "   \"of\": \"spannung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s4\",",
+    "   \"title\": \"The linear section was found by growing …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s4.tex\",",
+    "   \"of\": \"linear\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s5\",",
+    "   \"title\": \"Yield onset is the first point after …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s5.tex\",",
+    "   \"of\": \"linear\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s6\",",
+    "   \"title\": \"This threshold is a convention, not a …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s6.tex\",",
+    "   \"of\": \"linear\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s7\",",
+    "   \"title\": \"The hold time is the duration of …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s7.tex\",",
+    "   \"of\": \"haltezeit\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s8\",",
+    "   \"title\": \"Strain was counted from the foot point …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s8.tex\",",
+    "   \"of\": \"dehnung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s9\",",
+    "   \"title\": \"The percentage elongation after fracture A and …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s9.tex\",",
+    "   \"of\": \"dehnung\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s10\",",
+    "   \"title\": \"The measurement was compared with the 17 …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s10.tex\",",
+    "   \"of\": \"vergleich\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s11\",",
+    "   \"title\": \"They are for orientation only and are …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s11.tex\",",
+    "   \"of\": \"vergleich\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s12\",",
+    "   \"title\": \"Candidates are ranked first by status and, …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s12.tex\",",
+    "   \"of\": \"rangfolge\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s13\",",
+    "   \"title\": \"The reference material is EN AW-5052-H38, with …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s13.tex\",",
+    "   \"of\": \"referenz\"",
+    "  },",
+    "  {",
+    "   \"id\": \"software\",",
+    "   \"title\": \"Software\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/software.tex\"",
+    "  }",
+    " ]",
+    "}"
+   ],
+   "type": "json"
+  },
+  "methods/kurz.tex": {
+   "lines": [
+    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]; software: Folio Lab, Tensile test module, version <version>~\\cite{folio-lab-zugversuch}."
+   ],
+   "type": "tex"
+  },
+  "methods/s1.tex": {
+   "lines": [
+    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]."
+   ],
+   "type": "tex"
+  },
+  "methods/s10.tex": {
+   "lines": [
+    "The measurement was compared with the 17 materials of the group Aluminium; their stress--strain curves are idealised from $R_{p0.2}$, $R_m$, $A$ and $E$ (elastic with $E$, then the Ramberg--Osgood relation~\\cite{ramberg-osgood-1943} through $R_{p0.2}$ and $R_m$ at $0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$)."
+   ],
+   "type": "tex"
+  },
+  "methods/s11.tex": {
+   "lines": [
+    "They are for orientation only and are not measured curves (property values from~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6})."
+   ],
+   "type": "tex"
+  },
+  "methods/s12.tex": {
+   "lines": [
+    "Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ relative to the material value; the ratio of maximum to yield onset only lowers the status, because the yield onset is a threshold, not $R_{p0.2}$."
+   ],
+   "type": "tex"
+  },
+  "methods/s13.tex": {
+   "lines": [
+    "The reference material is EN AW-5052-H38, with nominal values from~\\cite{mat-en-aw-5052-h38}; these values are not measured."
+   ],
+   "type": "tex"
+  },
+  "methods/s2.tex": {
+   "lines": [
+    "The time axis of the evaluation was calculated from the travelled displacement and the test speed \\labval{tensile-test-synthetische-kurve}{v}, so strain and modulus follow the measured displacement."
+   ],
+   "type": "tex"
+  },
+  "methods/s3.tex": {
+   "lines": [
+    "Stress refers to the initial cross-section $A_0 = $\\labval{tensile-test-synthetische-kurve}{A0}."
+   ],
+   "type": "tex"
+  },
+  "methods/s4.tex": {
+   "lines": [
+    "The linear section was found by growing a window from the point of steepest slope, one data point at a time to the left and to the right, as long as all points of the window deviate from their regression line by less than \\labval{tensile-test-synthetische-kurve}{tol}; the search stops when neither side can grow (a greedy search, not necessarily the longest such window)."
+   ],
+   "type": "tex"
+  },
+  "methods/s5.tex": {
+   "lines": [
+    "Yield onset is the first point after this window and before the maximum that deviates from the extended line by more than \\labval{tensile-test-synthetische-kurve}{thr} of the maximum."
+   ],
+   "type": "tex"
+  },
+  "methods/s6.tex": {
+   "lines": [
+    "This threshold is a convention, not a proof stress $R_{p0.2}$."
+   ],
+   "type": "tex"
+  },
+  "methods/s7.tex": {
+   "lines": [
+    "The hold time is the duration of the contiguous section around the maximum in which the load stays at or above \\labval{tensile-test-synthetische-kurve}{holdthr} of the maximum."
+   ],
+   "type": "tex"
+  },
+  "methods/s8.tex": {
+   "lines": [
+    "Strain was counted from the foot point of the regression line."
+   ],
+   "type": "tex"
+  },
+  "methods/s9.tex": {
+   "lines": [
+    "The percentage elongation after fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer method \\cite{iso6892-1} from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part (stress divided by the slope of the linear section of the same curve)."
+   ],
+   "type": "tex"
+  },
+  "methods/software.tex": {
+   "lines": [
+    "The analysis used Folio Lab, Tensile test module, version <version>~\\cite{folio-lab-zugversuch}."
+   ],
+   "type": "tex"
+  },
   "referenz.tex": {
    "lines": [
     "\\begin{tabular}{lrrr}",
@@ -230,6 +450,13 @@
     "  howpublished = {Folio Lab},",
     "  year = {2026},",
     "  note = {s-5e7a0001, Version 1}",
+    "}",
+    "",
+    "@misc{folio-lab-zugversuch,",
+    "  author = {{Folio Lab}},",
+    "  title = {Folio Lab: Tensile test},",
+    "  version = {<version>},",
+    "  note = {analysis module}",
     "}"
    ],
    "type": "bib"
@@ -242,7 +469,7 @@
   },
   "text-methodik.tex": {
    "lines": [
-    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]. The time axis of the evaluation was calculated from the travelled displacement and the test speed \\labval{tensile-test-synthetische-kurve}{v}, so strain and modulus follow the measured displacement. Stress refers to the initial cross-section $A_0 = $\\labval{tensile-test-synthetische-kurve}{A0}. The linear section was found by growing a window from the point of steepest slope, one data point at a time to the left and to the right, as long as all points of the window deviate from their regression line by less than \\labval{tensile-test-synthetische-kurve}{tol}; the search stops when neither side can grow (a greedy search, not necessarily the longest such window). Yield onset is the first point after this window and before the maximum that deviates from the extended line by more than \\labval{tensile-test-synthetische-kurve}{thr} of the maximum. This threshold is a convention, not a proof stress $R_{p0.2}$. The hold time is the duration of the contiguous section around the maximum in which the load stays at or above \\labval{tensile-test-synthetische-kurve}{holdthr} of the maximum. Strain was counted from the foot point of the regression line. The percentage elongation after fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer method \\cite{iso6892-1} from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part (stress divided by the slope of the linear section of the same curve). The measurement was compared with the 17 materials of the group Aluminium; their stress--strain curves are idealised from $R_{p0.2}$, $R_m$, $A$ and $E$ (elastic with $E$, then the Ramberg--Osgood relation~\\cite{ramberg-osgood-1943} through $R_{p0.2}$ and $R_m$ at $0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$). They are for orientation only and are not measured curves (property values from~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ relative to the material value; the ratio of maximum to yield onset only lowers the status, because the yield onset is a threshold, not $R_{p0.2}$."
+    "The dataset ``Synthetische Kurve'' (version 1) \\cite{data-tensile-test-synthetische-kurve} of a specimen Manuell, b = --, Dicke -- was evaluated, with the columns Spannung [MPa] and Dehnung [\\%]. The time axis of the evaluation was calculated from the travelled displacement and the test speed \\labval{tensile-test-synthetische-kurve}{v}, so strain and modulus follow the measured displacement. Stress refers to the initial cross-section $A_0 = $\\labval{tensile-test-synthetische-kurve}{A0}. The linear section was found by growing a window from the point of steepest slope, one data point at a time to the left and to the right, as long as all points of the window deviate from their regression line by less than \\labval{tensile-test-synthetische-kurve}{tol}; the search stops when neither side can grow (a greedy search, not necessarily the longest such window). Yield onset is the first point after this window and before the maximum that deviates from the extended line by more than \\labval{tensile-test-synthetische-kurve}{thr} of the maximum. This threshold is a convention, not a proof stress $R_{p0.2}$. The hold time is the duration of the contiguous section around the maximum in which the load stays at or above \\labval{tensile-test-synthetische-kurve}{holdthr} of the maximum. Strain was counted from the foot point of the regression line. The percentage elongation after fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer method \\cite{iso6892-1} from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part (stress divided by the slope of the linear section of the same curve). The measurement was compared with the 17 materials of the group Aluminium; their stress--strain curves are idealised from $R_{p0.2}$, $R_m$, $A$ and $E$ (elastic with $E$, then the Ramberg--Osgood relation~\\cite{ramberg-osgood-1943} through $R_{p0.2}$ and $R_m$ at $0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$). They are for orientation only and are not measured curves (property values from~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}). Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ relative to the material value; the ratio of maximum to yield onset only lowers the status, because the yield onset is a threshold, not $R_{p0.2}$. The reference material is EN AW-5052-H38, with nominal values from~\\cite{mat-en-aw-5052-h38}; these values are not measured. The analysis used Folio Lab, Tensile test module, version <version>~\\cite{folio-lab-zugversuch}."
    ],
    "type": "tex"
   },
@@ -414,6 +641,33 @@
    "id": "verlauf",
    "kind": "figure",
    "label": "fig:tensile-test-synthetische-kurve-verlauf",
+   "needs": {
+    "steps": [
+     "linear"
+    ]
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "fliessbeginn",
+     "label": "Yield onset",
+     "steps": [
+      "linear"
+     ]
+    },
+    {
+     "cites": [],
+     "id": "maximum",
+     "label": "Maximum",
+     "steps": []
+    },
+    {
+     "cites": [],
+     "id": "bruch",
+     "label": "Break",
+     "steps": []
+    }
+   ],
    "preview": "fig/verlauf.png",
    "width": "0.9"
   },
@@ -424,6 +678,11 @@
    "id": "linear",
    "kind": "figure",
    "label": "fig:tensile-test-synthetische-kurve-linear",
+   "needs": {
+    "steps": [
+     "linear"
+    ]
+   },
    "preview": "fig/linear.png",
    "width": "0.9"
   },
@@ -434,11 +693,16 @@
    "id": "abweichung",
    "kind": "figure",
    "label": "fig:tensile-test-synthetische-kurve-abweichung",
+   "needs": {
+    "steps": [
+     "linear"
+    ]
+   },
    "preview": "fig/abweichung.png",
    "width": "0.9"
   },
   {
-   "caption": "Measured stress--strain curve within the field of the comparison group Aluminium and the reference material EN AW-5052-H38; the material curves are idealised, for orientation only. Strain from the displacement measured on the specimen. Numbers at the curve ends identify the materials in the key; property values from the sources given~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
+   "caption": "Measured stress--strain curve within the field of the comparison group Aluminium and with the reference material EN AW-5052-H38~\\cite{mat-en-aw-5052-h38}. Strain from the displacement measured on the specimen. The material curves are idealised, for orientation only. Numbers at the curve ends identify the materials in the key; property values from the sources given~\\cite{mat-en-aw-1050a-weich,mat-en-aw-8011a-o-folie,mat-en-aw-1050a-h14,mat-en-aw-3003-h14,mat-en-aw-6060-t6,mat-en-aw-5754-o-h111,mat-en-aw-5052-h32,mat-en-aw-5754-h22,mat-en-aw-5052-h38,mat-en-aw-5086-h116-h32,mat-en-aw-5083-o-h111,mat-en-aw-6061-t6,mat-en-aw-6082-t6,mat-en-aw-7020-t6,mat-en-aw-2017a-t4,mat-en-aw-2024-t3,mat-en-aw-7075-t6}.",
    "cites": [
     "mat-en-aw-1050a-weich",
     "mat-en-aw-8011a-o-folie",
@@ -462,6 +726,47 @@
    "id": "feld",
    "kind": "figure",
    "label": "fig:tensile-test-synthetische-kurve-feld",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [
+      "mat-en-aw-1050a-weich",
+      "mat-en-aw-8011a-o-folie",
+      "mat-en-aw-1050a-h14",
+      "mat-en-aw-3003-h14",
+      "mat-en-aw-6060-t6",
+      "mat-en-aw-5754-o-h111",
+      "mat-en-aw-5052-h32",
+      "mat-en-aw-5754-h22",
+      "mat-en-aw-5052-h38",
+      "mat-en-aw-5086-h116-h32",
+      "mat-en-aw-5083-o-h111",
+      "mat-en-aw-6061-t6",
+      "mat-en-aw-6082-t6",
+      "mat-en-aw-7020-t6",
+      "mat-en-aw-2017a-t4",
+      "mat-en-aw-2024-t3",
+      "mat-en-aw-7075-t6"
+     ],
+     "id": "feld",
+     "label": "Field of the group Aluminium",
+     "steps": [
+      "vergleich"
+     ]
+    },
+    {
+     "cites": [
+      "mat-en-aw-5052-h38"
+     ],
+     "id": "referenz",
+     "label": "Reference EN AW-5052-H38",
+     "steps": [
+      "referenz"
+     ]
+    }
+   ],
    "preview": "fig/feld.png",
    "width": "0.9"
   },
@@ -480,6 +785,13 @@
    "id": "kandidaten",
    "kind": "figure",
    "label": "fig:tensile-test-synthetische-kurve-kandidaten",
+   "needs": {
+    "steps": [
+     "vergleich",
+     "rangfolge",
+     "referenz"
+    ]
+   },
    "preview": "fig/kandidaten.png",
    "width": "0.9"
   },
@@ -490,6 +802,9 @@
    "id": "probe",
    "kind": "figure",
    "label": "fig:tensile-test-synthetische-kurve-probe",
+   "needs": {
+    "steps": []
+   },
    "preview": "fig/probe.png",
    "width": "0.6"
   },
@@ -500,6 +815,14 @@
    "id": "kennwerte",
    "kind": "table",
    "label": "tab:tensile-test-synthetische-kurve-kennwerte",
+   "needs": {
+    "steps": [
+     "linear",
+     "haltezeit",
+     "dehnung",
+     "modul"
+    ]
+   },
    "notes": ""
   },
   {
@@ -511,6 +834,13 @@
    "id": "referenz",
    "kind": "table",
    "label": "tab:tensile-test-synthetische-kurve-referenz",
+   "needs": {
+    "steps": [
+     "referenz",
+     "linear",
+     "modul"
+    ]
+   },
    "notes": ""
   },
   {
@@ -538,6 +868,12 @@
    "id": "werkstoffe",
    "kind": "table",
    "label": "tab:tensile-test-synthetische-kurve-werkstoffe",
+   "needs": {
+    "steps": [
+     "vergleich",
+     "referenz"
+    ]
+   },
    "notes": ""
   },
   {
@@ -566,15 +902,150 @@
    "rows": 481
   },
   {
+   "key": "folio-lab-zugversuch",
+   "kind": "citation",
+   "title": "Folio Lab: Tensile test"
+  },
+  {
    "file": "text-methodik.tex",
    "id": "methodik",
    "kind": "text",
+   "methods": true,
+   "steps": [
+    {
+     "brief": true,
+     "file": "methods/kurz.tex",
+     "id": "kurz",
+     "par": -1,
+     "short": false,
+     "title": "One sentence"
+    },
+    {
+     "file": "methods/s1.tex",
+     "id": "s1",
+     "of": "messung",
+     "par": 0,
+     "short": true,
+     "title": "The dataset ``Synthetische Kurve'' (version 1) of …"
+    },
+    {
+     "file": "methods/s2.tex",
+     "id": "s2",
+     "of": "zeitachse",
+     "par": 0,
+     "short": false,
+     "title": "The time axis of the evaluation was …"
+    },
+    {
+     "file": "methods/s3.tex",
+     "id": "s3",
+     "of": "spannung",
+     "par": 0,
+     "short": false,
+     "title": "Stress refers to the initial cross-section A0 …"
+    },
+    {
+     "file": "methods/s4.tex",
+     "id": "s4",
+     "of": "linear",
+     "par": 0,
+     "short": false,
+     "title": "The linear section was found by growing …"
+    },
+    {
+     "file": "methods/s5.tex",
+     "id": "s5",
+     "of": "linear",
+     "par": 0,
+     "short": false,
+     "title": "Yield onset is the first point after …"
+    },
+    {
+     "file": "methods/s6.tex",
+     "id": "s6",
+     "of": "linear",
+     "par": 0,
+     "short": false,
+     "title": "This threshold is a convention, not a …"
+    },
+    {
+     "file": "methods/s7.tex",
+     "id": "s7",
+     "of": "haltezeit",
+     "par": 0,
+     "short": false,
+     "title": "The hold time is the duration of …"
+    },
+    {
+     "file": "methods/s8.tex",
+     "id": "s8",
+     "of": "dehnung",
+     "par": 0,
+     "short": false,
+     "title": "Strain was counted from the foot point …"
+    },
+    {
+     "file": "methods/s9.tex",
+     "id": "s9",
+     "of": "dehnung",
+     "par": 0,
+     "short": true,
+     "title": "The percentage elongation after fracture A and …"
+    },
+    {
+     "file": "methods/s10.tex",
+     "id": "s10",
+     "of": "vergleich",
+     "par": 0,
+     "short": false,
+     "title": "The measurement was compared with the 17 …"
+    },
+    {
+     "file": "methods/s11.tex",
+     "id": "s11",
+     "of": "vergleich",
+     "par": 0,
+     "short": false,
+     "title": "They are for orientation only and are …"
+    },
+    {
+     "file": "methods/s12.tex",
+     "id": "s12",
+     "of": "rangfolge",
+     "par": 0,
+     "short": false,
+     "title": "Candidates are ranked first by status and, …"
+    },
+    {
+     "file": "methods/s13.tex",
+     "id": "s13",
+     "of": "referenz",
+     "par": 0,
+     "short": false,
+     "title": "The reference material is EN AW-5052-H38, with …"
+    },
+    {
+     "file": "methods/software.tex",
+     "id": "software",
+     "par": 0,
+     "short": true,
+     "title": "Software"
+    }
+   ],
    "title": "Methods"
   },
   {
    "file": "text-ergebnisse.tex",
    "id": "ergebnisse",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "linear",
+     "haltezeit",
+     "dehnung",
+     "referenz"
+    ]
+   },
    "title": "Results"
   },
   {

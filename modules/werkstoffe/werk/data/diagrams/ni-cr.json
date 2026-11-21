@@ -1,0 +1,445 @@
+{
+ "quellen": {
+  "asm3_2016": {
+   "type": "book",
+   "authors": "Okamoto, H.; Schlesinger, M. E.; Mueller, E. M. (Hrsg.)",
+   "title": "ASM Handbook, Vol. 3: Alloy Phase Diagrams",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2016",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "ni-cr_nash1986": {
+   "type": "article",
+   "authors": "Nash, P.",
+   "title": "The Cr-Ni (chromium-nickel) system",
+   "container": "Bulletin of Alloy Phase Diagrams",
+   "year": "1986",
+   "volume": "7",
+   "pages": "466-476",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "ni-cr",
+  "name": "Ni–Cr",
+  "name_en": "Ni–Cr",
+  "A": "Ni",
+  "B": "Cr",
+  "gruppe": "ni",
+  "x_label": "Chrom [Gew.-%]",
+  "x_label_en": "Chromium [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   400,
+   1900
+  ],
+  "q": [
+   "ni-cr_nash1986",
+   "massalski1990",
+   "asm3_2016"
+  ],
+  "hinweis": "Grundsystem der Ni-Basislegierungen (Inconel, NiCr 80/20). Literaturwerte (Nash 1986; Massalski 1990): Ni schmilzt bei 1455 °C, Cr bei 1863 °C; Eutektikum L ⇌ γ + α bei 1345 °C, Schmelze ≈ 51 Gew.-% Cr (≈ 49 % Ni), grösste Löslichkeit von Cr in γ (kfz, Ni) ≈ 47 %, von Ni in α (krz, Cr) ≈ 36 %. Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm nachgezeichnet (schematisch, nicht zum genauen Ablesen von Löslichkeiten). Nicht gezeichnet: Ordnung Ni₂Cr unter ≈ 590 °C.",
+  "hinweis_en": "Base system of Ni-base alloys (Inconel, NiCr 80/20). Literature values (Nash 1986; Massalski 1990): Ni melts at 1455 °C, Cr at 1863 °C; eutectic L ⇌ γ + α at 1345 °C, liquid ≈ 51 wt% Cr (≈ 49 % Ni), maximum solubility of Cr in γ (fcc, Ni) ≈ 47 %, of Ni in α (bcc, Cr) ≈ 36 %. Curve points in between are traced from the assessed diagram (schematic, not for reading solubilities precisely). Not drawn: Ni₂Cr ordering below ≈ 590 °C.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1455,
+    "label": "Ni schmilzt",
+    "label_en": "Ni melts"
+   },
+   {
+    "x": 100,
+    "T": 1863,
+    "label": "Cr schmilzt",
+    "label_en": "Cr melts"
+   },
+   {
+    "x": 47,
+    "T": 1345,
+    "label": "max. Löslichkeit in γ",
+    "label_en": "max. solubility in γ"
+   },
+   {
+    "x": 51,
+    "T": 1345,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 64,
+    "T": 1345
+   }
+  ],
+  "curves": {
+   "liq_l": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1455
+     ],
+     [
+      10,
+      1435
+     ],
+     [
+      20,
+      1415
+     ],
+     [
+      30,
+      1393
+     ],
+     [
+      40,
+      1368
+     ],
+     [
+      46,
+      1354
+     ],
+     [
+      51,
+      1345
+     ]
+    ]
+   },
+   "sol_l": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1455
+     ],
+     [
+      10,
+      1425
+     ],
+     [
+      20,
+      1401
+     ],
+     [
+      30,
+      1381
+     ],
+     [
+      40,
+      1362
+     ],
+     [
+      47,
+      1345
+     ]
+    ]
+   },
+   "liq_r": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      51,
+      1345
+     ],
+     [
+      55,
+      1395
+     ],
+     [
+      60,
+      1455
+     ],
+     [
+      65,
+      1510
+     ],
+     [
+      70,
+      1560
+     ],
+     [
+      80,
+      1660
+     ],
+     [
+      90,
+      1765
+     ],
+     [
+      100,
+      1863
+     ]
+    ]
+   },
+   "sol_r": {
+    "kind": "solidus",
+    "pts": [
+     [
+      64,
+      1345
+     ],
+     [
+      67,
+      1410
+     ],
+     [
+      70,
+      1465
+     ],
+     [
+      75,
+      1540
+     ],
+     [
+      80,
+      1610
+     ],
+     [
+      90,
+      1745
+     ],
+     [
+      100,
+      1863
+     ]
+    ]
+   },
+   "solv_g": {
+    "kind": "solvus",
+    "pts": [
+     [
+      47,
+      1345
+     ],
+     [
+      46,
+      1300
+     ],
+     [
+      44.6,
+      1200
+     ],
+     [
+      42.8,
+      1100
+     ],
+     [
+      41,
+      1000
+     ],
+     [
+      39.3,
+      900
+     ],
+     [
+      37.7,
+      800
+     ],
+     [
+      36.3,
+      700
+     ],
+     [
+      35.1,
+      600
+     ],
+     [
+      34.1,
+      500
+     ],
+     [
+      33.3,
+      400
+     ]
+    ]
+   },
+   "solv_a": {
+    "kind": "solvus",
+    "pts": [
+     [
+      64,
+      1345
+     ],
+     [
+      65.8,
+      1300
+     ],
+     [
+      69.3,
+      1200
+     ],
+     [
+      73.2,
+      1100
+     ],
+     [
+      77.3,
+      1000
+     ],
+     [
+      81.5,
+      900
+     ],
+     [
+      85.6,
+      800
+     ],
+     [
+      89.4,
+      700
+     ],
+     [
+      92.7,
+      600
+     ],
+     [
+      95.3,
+      500
+     ],
+     [
+      97.2,
+      400
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1900
+     ],
+     [
+      100,
+      1900
+     ],
+     [
+      100,
+      1863
+     ],
+     "-liq_r",
+     "-liq_l"
+    ]
+   },
+   {
+    "label": "γ + L",
+    "phases": [
+     "γ",
+     "L"
+    ],
+    "poly": [
+     "liq_l",
+     [
+      47,
+      1345
+     ],
+     "-sol_l"
+    ]
+   },
+   {
+    "label": "L + α",
+    "phases": [
+     "L",
+     "α"
+    ],
+    "poly": [
+     [
+      51,
+      1345
+     ],
+     "liq_r",
+     "-sol_r"
+    ]
+   },
+   {
+    "label": "γ",
+    "phases": [
+     "γ"
+    ],
+    "poly": [
+     "sol_l",
+     "solv_g",
+     [
+      0,
+      400
+     ]
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     [
+      64,
+      1345
+     ],
+     "sol_r",
+     [
+      100,
+      400
+     ],
+     [
+      97.2,
+      400
+     ],
+     "-solv_a"
+    ]
+   },
+   {
+    "label": "γ + α",
+    "phases": [
+     "γ",
+     "α"
+    ],
+    "poly": [
+     [
+      47,
+      1345
+     ],
+     [
+      64,
+      1345
+     ],
+     "solv_a",
+     [
+      33.3,
+      400
+     ],
+     "-solv_g"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 1345,
+    "type": "eutectic",
+    "x": [
+     47,
+     51,
+     64
+    ],
+    "reaction": "L ⇌ γ + α",
+    "morph": "lamellar",
+    "constituents": [
+     "primäres γ (Ni)",
+     "Eutektikum (γ + α)",
+     "primäres α (Cr)"
+    ],
+    "constituents_en": [
+     "primary γ (Ni)",
+     "eutectic (γ + α)",
+     "primary α (Cr)"
+    ]
+   }
+  ]
+ }
+}

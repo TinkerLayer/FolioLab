@@ -1,0 +1,517 @@
+{
+ "quellen": {
+  "zro2-y2o3_scott1975": {
+   "type": "article",
+   "authors": "Scott, H. G.",
+   "title": "Phase relationships in the zirconia–yttria system",
+   "container": "Journal of Materials Science",
+   "year": "1975",
+   "volume": "10",
+   "pages": "1527–1535",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "zro2-y2o3",
+  "name": "ZrO₂–Y₂O₃ (ZrO₂-reiche Seite)",
+  "name_en": "ZrO₂–Y₂O₃ (ZrO₂-rich side)",
+  "A": "ZrO₂",
+  "B": "Y₂O₃",
+  "gruppe": "keramik",
+  "x_label": "Y₂O₃ [Mol-%]",
+  "x_label_en": "Y₂O₃ [mol%]",
+  "xlim": [
+   0,
+   25
+  ],
+  "Tlim": [
+   200,
+   2900
+  ],
+  "q": [
+   "zro2-y2o3_scott1975",
+   "crc97"
+  ],
+  "hinweis": "x = Mol-% Y₂O₃ (1 Mol-% Y₂O₃ ≈ 2 Mol-% YO₁,₅); Hebelgesetz liefert hier Stoffmengenanteile. Gezeichnet nach Scott (1975): reines ZrO₂ monoklin (m) ⇌ tetragonal (t) bei ≈ 1170 °C (beim Abkühlen mit Hysterese tiefer), t ⇌ kubisch (c) bei ≈ 2370 °C, Schmelzpunkt ≈ 2710 °C; Eutektoid t ⇌ m + c bei ≈ 565 °C. Die Zusammensetzungen am Eutektoid (≈ 0,5 / 2 / 8 Mol-% Y₂O₃) und alle Phasengrenzen sind aus dem Diagramm abgelesen und gerundet (schematisch); Liquidus und Solidus sind nur angedeutet (Messungen streuen stark). 3 Mol-% Y₂O₃ (3Y-TZP): beim Sintern (≈ 1400–1500 °C) liegt die Zusammensetzung an der Grenze t / t + c, das Gefüge ist überwiegend tetragonal mit wenig kubischer Phase. Unter dem Eutektoid wäre m + c stabil, die diffusionsgesteuerte Zersetzung ist aber extrem langsam und die martensitische t → m-Umwandlung wird durch Y-Gehalt und feines Korn unterdrückt: t bleibt metastabil erhalten (Grundlage der Umwandlungsverstärkung). Nicht gezeigt: die metastabile, nicht umwandelbare t′-Phase (diffusionslos aus c bei schnellem Abkühlen) und die T₀(t/m)- und T₀(c/t)-Linien.",
+  "hinweis_en": "x = mol% Y₂O₃ (1 mol% Y₂O₃ ≈ 2 mol% YO₁.₅); the lever rule gives mole fractions here. Drawn after Scott (1975): pure ZrO₂ monoclinic (m) ⇌ tetragonal (t) at ≈ 1170 °C (lower on cooling, hysteresis), t ⇌ cubic (c) at ≈ 2370 °C, melting point ≈ 2710 °C; eutectoid t ⇌ m + c at ≈ 565 °C. Eutectoid compositions (≈ 0.5 / 2 / 8 mol% Y₂O₃) and all phase boundaries are read from the diagram and rounded (schematic); liquidus and solidus are only indicated (data scatter widely). 3 mol% Y₂O₃ (3Y-TZP): at the sintering temperature (≈ 1400–1500 °C) the composition lies at the t / t + c boundary, the structure is mostly tetragonal with a little cubic phase. Below the eutectoid m + c would be stable, but the diffusion-controlled decomposition is extremely slow and the martensitic t → m transformation is suppressed by the Y content and the fine grain size: t is retained metastably (basis of transformation toughening). Not shown: the metastable non-transformable t′ phase (formed diffusionlessly from c on fast cooling) and the T₀(t/m) and T₀(c/t) lines.",
+  "points": [
+   {
+    "x": 0,
+    "T": 2710,
+    "label": "ZrO₂ schmilzt",
+    "label_en": "ZrO₂ melts"
+   },
+   {
+    "x": 0,
+    "T": 2370,
+    "label": "t ⇌ c",
+    "label_en": "t ⇌ c"
+   },
+   {
+    "x": 0,
+    "T": 1170,
+    "label": "m ⇌ t",
+    "label_en": "m ⇌ t"
+   },
+   {
+    "x": 2.0,
+    "T": 565,
+    "label": "Eutektoid",
+    "label_en": "Eutectoid"
+   },
+   {
+    "x": 0.5,
+    "T": 565
+   },
+   {
+    "x": 8.0,
+    "T": 565
+   },
+   {
+    "x": 3,
+    "T": 1450,
+    "label": "3Y-TZP (Sintern)",
+    "label_en": "3Y-TZP (sintering)"
+   }
+  ],
+  "curves": {
+   "liq": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      2710
+     ],
+     [
+      3,
+      2706
+     ],
+     [
+      6,
+      2701
+     ],
+     [
+      9,
+      2695
+     ],
+     [
+      12,
+      2688
+     ],
+     [
+      15,
+      2680
+     ],
+     [
+      18,
+      2671
+     ],
+     [
+      21,
+      2661
+     ],
+     [
+      25,
+      2648
+     ]
+    ]
+   },
+   "sol": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      2710
+     ],
+     [
+      3,
+      2696
+     ],
+     [
+      6,
+      2683
+     ],
+     [
+      9,
+      2670
+     ],
+     [
+      12,
+      2657
+     ],
+     [
+      15,
+      2644
+     ],
+     [
+      18,
+      2631
+     ],
+     [
+      21,
+      2618
+     ],
+     [
+      25,
+      2600
+     ]
+    ]
+   },
+   "tc_t": {
+    "kind": "transus",
+    "pts": [
+     [
+      0,
+      2370
+     ],
+     [
+      0.3,
+      2250
+     ],
+     [
+      0.7,
+      2100
+     ],
+     [
+      1.2,
+      1900
+     ],
+     [
+      1.7,
+      1700
+     ],
+     [
+      2.1,
+      1500
+     ],
+     [
+      2.35,
+      1300
+     ],
+     [
+      2.45,
+      1100
+     ],
+     [
+      2.4,
+      900
+     ],
+     [
+      2.25,
+      720
+     ],
+     [
+      2.0,
+      565
+     ]
+    ]
+   },
+   "tc_c": {
+    "kind": "transus",
+    "pts": [
+     [
+      0,
+      2370
+     ],
+     [
+      0.8,
+      2250
+     ],
+     [
+      1.8,
+      2100
+     ],
+     [
+      3.2,
+      1900
+     ],
+     [
+      4.6,
+      1700
+     ],
+     [
+      5.8,
+      1500
+     ],
+     [
+      6.8,
+      1300
+     ],
+     [
+      7.4,
+      1100
+     ],
+     [
+      7.8,
+      900
+     ],
+     [
+      7.95,
+      720
+     ],
+     [
+      8.0,
+      565
+     ]
+    ]
+   },
+   "mt_t": {
+    "kind": "transus",
+    "pts": [
+     [
+      0,
+      1170
+     ],
+     [
+      0.5,
+      1020
+     ],
+     [
+      1.0,
+      870
+     ],
+     [
+      1.5,
+      715
+     ],
+     [
+      2.0,
+      565
+     ]
+    ]
+   },
+   "mt_m": {
+    "kind": "transus",
+    "pts": [
+     [
+      0,
+      1170
+     ],
+     [
+      0.2,
+      1000
+     ],
+     [
+      0.35,
+      850
+     ],
+     [
+      0.45,
+      700
+     ],
+     [
+      0.5,
+      565
+     ]
+    ]
+   },
+   "mc_m": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0.5,
+      565
+     ],
+     [
+      0.4,
+      400
+     ],
+     [
+      0.3,
+      200
+     ]
+    ]
+   },
+   "mc_c": {
+    "kind": "solvus",
+    "pts": [
+     [
+      8.0,
+      565
+     ],
+     [
+      8.05,
+      400
+     ],
+     [
+      8.1,
+      200
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      2900
+     ],
+     [
+      25,
+      2900
+     ],
+     [
+      25,
+      2648
+     ],
+     "-liq"
+    ]
+   },
+   {
+    "label": "c + L",
+    "phases": [
+     "c",
+     "L"
+    ],
+    "poly": [
+     "liq",
+     [
+      25,
+      2600
+     ],
+     "-sol"
+    ]
+   },
+   {
+    "label": "c",
+    "phases": [
+     "c"
+    ],
+    "poly": [
+     [
+      0,
+      2710
+     ],
+     "sol",
+     [
+      25,
+      200
+     ],
+     [
+      8.1,
+      200
+     ],
+     "-mc_c",
+     "-tc_c"
+    ]
+   },
+   {
+    "label": "t + c",
+    "phases": [
+     "t",
+     "c"
+    ],
+    "poly": [
+     "tc_t",
+     [
+      8.0,
+      565
+     ],
+     "-tc_c"
+    ]
+   },
+   {
+    "label": "t",
+    "phases": [
+     "t"
+    ],
+    "poly": [
+     [
+      0,
+      2370
+     ],
+     "tc_t",
+     "-mt_t"
+    ]
+   },
+   {
+    "label": "m + t",
+    "phases": [
+     "m",
+     "t"
+    ],
+    "poly": [
+     [
+      0,
+      1170
+     ],
+     "mt_t",
+     [
+      0.5,
+      565
+     ],
+     "-mt_m"
+    ]
+   },
+   {
+    "label": "m",
+    "phases": [
+     "m"
+    ],
+    "poly": [
+     [
+      0,
+      1170
+     ],
+     "mt_m",
+     "mc_m",
+     [
+      0,
+      200
+     ]
+    ]
+   },
+   {
+    "label": "m + c",
+    "phases": [
+     "m",
+     "c"
+    ],
+    "poly": [
+     [
+      0.5,
+      565
+     ],
+     [
+      8.0,
+      565
+     ],
+     "mc_c",
+     [
+      0.3,
+      200
+     ],
+     "-mc_m"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 565,
+    "type": "eutectoid",
+    "x": [
+     0.5,
+     2.0,
+     8.0
+    ],
+    "reaction": "t ⇌ m + c",
+    "constituents": [
+     "voreutektoides m",
+     "Eutektoid (m + c)",
+     "voreutektoides c"
+    ],
+    "constituents_en": [
+     "proeutectoid m",
+     "eutectoid (m + c)",
+     "proeutectoid c"
+    ],
+    "morph": "divorced"
+   }
+  ]
+ }
+}

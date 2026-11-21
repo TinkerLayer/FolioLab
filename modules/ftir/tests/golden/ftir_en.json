@@ -69,6 +69,141 @@
    ],
    "type": "tex"
   },
+  "methods.json": {
+   "lines": [
+    "{",
+    " \"id\": \"methodik\",",
+    " \"title\": \"Methods\",",
+    " \"steps\": [",
+    "  {",
+    "   \"id\": \"kurz\",",
+    "   \"title\": \"One sentence\",",
+    "   \"short\": false,",
+    "   \"par\": -1,",
+    "   \"file\": \"methods/kurz.tex\",",
+    "   \"brief\": true",
+    "  },",
+    "  {",
+    "   \"id\": \"s1\",",
+    "   \"title\": \"Spectrum ProbeFolieATR was evaluated between 3999 and …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s1.tex\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s2\",",
+    "   \"title\": \"Processing: Convert to absorbance.\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s2.tex\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s3\",",
+    "   \"title\": \"Bands were picked as local maxima with …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s3.tex\",",
+    "   \"of\": \"banden\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s4\",",
+    "   \"title\": \"The assignments are suggestions.\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s4.tex\",",
+    "   \"of\": \"banden\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s5\",",
+    "   \"title\": \"The signal-to-noise ratio is about 353: height …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s5.tex\",",
+    "   \"of\": \"rauschen\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s6\",",
+    "   \"title\": \"The library search (Correlation) compared the spectrum …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s6.tex\",",
+    "   \"of\": \"suche\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s7\",",
+    "   \"title\": \"The hit quality index HQI ranges from …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s7.tex\",",
+    "   \"of\": \"suche\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s8\",",
+    "   \"title\": \"The model library contains references calculated from …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s8.tex\",",
+    "   \"of\": \"suche\"",
+    "  }",
+    " ]",
+    "}"
+   ],
+   "type": "json"
+  },
+  "methods/kurz.tex": {
+   "lines": [
+    "Spectrum Probe\\_Folie\\_ATR~\\cite{data-ftir-probe-folie-atr} was evaluated between 3999 and 600~cm$^{-1}$ (3527 data points) with Folio Lab, FTIR module, version <version>~\\cite{folio-lab-ftir}."
+   ],
+   "type": "tex"
+  },
+  "methods/s1.tex": {
+   "lines": [
+    "Spectrum Probe\\_Folie\\_ATR~\\cite{data-ftir-probe-folie-atr} was evaluated between 3999 and 600~cm$^{-1}$ (3527 data points)."
+   ],
+   "type": "tex"
+  },
+  "methods/s2.tex": {
+   "lines": [
+    "Processing: Convert to absorbance."
+   ],
+   "type": "tex"
+  },
+  "methods/s3.tex": {
+   "lines": [
+    "Bands were picked as local maxima with a prominence of at least 2.0~\\% of the data range, at least 10 times the noise and a minimum distance of 8~cm$^{-1}$, and assigned using a correlation table of group frequencies~\\cite{socrates2001,silverstein2014}; among the matching table entries, those whose shape fits the band and whose group is supported by the functional-group rating of the whole spectrum come first."
+   ],
+   "type": "tex"
+  },
+  "methods/s4.tex": {
+   "lines": [
+    "The assignments are suggestions."
+   ],
+   "type": "tex"
+  },
+  "methods/s5.tex": {
+   "lines": [
+    "The signal-to-noise ratio is about 353: height of the strongest band (maximum of the spectrum after a 12~cm$^{-1}$ moving mean, above a rubber-band baseline) divided by the standard deviation of the noise, estimated from the residual of a Savitzky-Golay smooth (7 points, cubic)~\\cite{savitzky1964} as a robust standard deviation (1.4826 $\\cdot$ median of the absolute values) over the quiet sections."
+   ],
+   "type": "tex"
+  },
+  "methods/s6.tex": {
+   "lines": [
+    "The library search (Correlation) compared the spectrum with Modellbibliothek (Folio Lab); sample and references were prepared the same way (absorbance, 2~cm$^{-1}$ grid, rubber-band baseline, maximum 1), the processing steps above apply to the sample only."
+   ],
+   "type": "tex"
+  },
+  "methods/s7.tex": {
+   "lines": [
+    "The hit quality index HQI ranges from 0 to 100."
+   ],
+   "type": "tex"
+  },
+  "methods/s8.tex": {
+   "lines": [
+    "The model library~\\cite{folio-ftir-modell} contains references calculated from literature band positions, not measured spectra; its hits are indications."
+   ],
+   "type": "tex"
+  },
   "peaks.tex": {
    "lines": [
     "\\small",
@@ -134,6 +269,13 @@
     "  title = {FTIR model library (Folio Lab): reference spectra calculated from literature band positions},",
     "  howpublished = {Folio Lab, FTIR module},",
     "  note = {Not measured spectra; position, relative intensity and width of the main bands from standard tables (e.g. Socrates 2001)}",
+    "}",
+    "",
+    "@misc{folio-lab-ftir,",
+    "  author = {{Folio Lab}},",
+    "  title = {Folio Lab: FTIR},",
+    "  version = {<version>},",
+    "  note = {analysis module}",
     "}"
    ],
    "type": "bib"
@@ -215,6 +357,28 @@
    "id": "spektrum",
    "kind": "figure",
    "label": "fig:ftir-probe-folie-atr-spektrum",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "banden",
+     "label": "Bands",
+     "steps": [
+      "banden",
+      "rauschen"
+     ]
+    },
+    {
+     "cites": [],
+     "id": "flaechen",
+     "label": "Band areas",
+     "steps": [
+      "flaechen"
+     ]
+    }
+   ],
    "preview": "fig/spektrum.png",
    "width": "0.9"
   },
@@ -227,6 +391,38 @@
    "id": "suche",
    "kind": "figure",
    "label": "fig:ftir-probe-folie-atr-suche",
+   "needs": {
+    "steps": [
+     "suche",
+     "rauschen"
+    ]
+   },
+   "parts": [
+    {
+     "cites": [
+      "folio-ftir-modell"
+     ],
+     "id": "treffer1",
+     "label": "Polyethylenterephthalat (PET)",
+     "steps": []
+    },
+    {
+     "cites": [
+      "folio-ftir-modell"
+     ],
+     "id": "treffer2",
+     "label": "Polyester-Melamin (Einbrennlack)",
+     "steps": []
+    },
+    {
+     "cites": [
+      "folio-ftir-modell"
+     ],
+     "id": "treffer3",
+     "label": "Ethylacetat",
+     "steps": []
+    }
+   ],
    "preview": "fig/suche.png",
    "width": "0.9"
   },
@@ -237,6 +433,12 @@
    "id": "peaks",
    "kind": "table",
    "label": "tab:ftir-probe-folie-atr-peaks",
+   "needs": {
+    "steps": [
+     "banden",
+     "rauschen"
+    ]
+   },
    "notes": ""
   },
   {
@@ -246,6 +448,12 @@
    "id": "gruppen",
    "kind": "table",
    "label": "tab:ftir-probe-folie-atr-gruppen",
+   "needs": {
+    "steps": [
+     "banden",
+     "rauschen"
+    ]
+   },
    "notes": "No O--H/N--H band: no alcohol, water, primary/secondary amine or amide. No triple bond (C$\\equiv$N, C$\\equiv$C) and no isocyanate."
   },
   {
@@ -257,6 +465,12 @@
    "id": "treffer",
    "kind": "table",
    "label": "tab:ftir-probe-folie-atr-treffer",
+   "needs": {
+    "steps": [
+     "suche",
+     "rauschen"
+    ]
+   },
    "notes": ""
   },
   {
@@ -266,6 +480,11 @@
    "id": "flaechen",
    "kind": "table",
    "label": "tab:ftir-probe-folie-atr-flaechen",
+   "needs": {
+    "steps": [
+     "flaechen"
+    ]
+   },
    "notes": "C=O/Ring: 1.429"
   },
   {
@@ -310,15 +529,103 @@
    "rows": 14
   },
   {
+   "key": "folio-lab-ftir",
+   "kind": "citation",
+   "title": "Folio Lab: FTIR"
+  },
+  {
    "file": "text-methodik.tex",
    "id": "methodik",
    "kind": "text",
+   "methods": true,
+   "steps": [
+    {
+     "brief": true,
+     "file": "methods/kurz.tex",
+     "id": "kurz",
+     "par": -1,
+     "short": false,
+     "title": "One sentence"
+    },
+    {
+     "file": "methods/s1.tex",
+     "id": "s1",
+     "par": 0,
+     "short": true,
+     "title": "Spectrum ProbeFolieATR was evaluated between 3999 and …"
+    },
+    {
+     "file": "methods/s2.tex",
+     "id": "s2",
+     "par": 0,
+     "short": false,
+     "title": "Processing: Convert to absorbance."
+    },
+    {
+     "file": "methods/s3.tex",
+     "id": "s3",
+     "of": "banden",
+     "par": 0,
+     "short": false,
+     "title": "Bands were picked as local maxima with …"
+    },
+    {
+     "file": "methods/s4.tex",
+     "id": "s4",
+     "of": "banden",
+     "par": 0,
+     "short": false,
+     "title": "The assignments are suggestions."
+    },
+    {
+     "file": "methods/s5.tex",
+     "id": "s5",
+     "of": "rauschen",
+     "par": 0,
+     "short": false,
+     "title": "The signal-to-noise ratio is about 353: height …"
+    },
+    {
+     "file": "methods/s6.tex",
+     "id": "s6",
+     "of": "suche",
+     "par": 0,
+     "short": true,
+     "title": "The library search (Correlation) compared the spectrum …"
+    },
+    {
+     "file": "methods/s7.tex",
+     "id": "s7",
+     "of": "suche",
+     "par": 0,
+     "short": false,
+     "title": "The hit quality index HQI ranges from …"
+    },
+    {
+     "file": "methods/s8.tex",
+     "id": "s8",
+     "of": "suche",
+     "par": 0,
+     "short": false,
+     "title": "The model library contains references calculated from …"
+    }
+   ],
    "title": "Methods"
   },
   {
    "file": "text-ergebnisse.tex",
    "id": "ergebnisse",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "banden",
+     "flaechen",
+     "rauschen",
+     "suche",
+     "mischung",
+     "unsicherheit"
+    ]
+   },
    "title": "Results"
   },
   {

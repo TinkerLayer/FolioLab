@@ -202,14 +202,14 @@ dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
         const keys = new Set(extra || []);
         chLinks((l) => l.kind === "env.values" && l.from === "env:" + envId).forEach((l) => (l.keys || []).forEach((k) => keys.add(k)));
         if (!keys.size) return null;
-        const items = cat(envId).filter((x) => x && keys.has(x.sym)).map(({ sym, label, value, unit, kind }) => ({ sym, label, value, unit, kind }));
+        const items = cat(envId).filter((x) => x && keys.has(x.sym)).map(({ sym, label, value, unit, kind, u, unc }) => ({ sym, label, value, unit, kind, ...(u > 0 ? { u, unc: unc || "" } : {}) }));
         const have = new Set(items.map((x) => x.sym));
         if (items.length < keys.size) {
           const sh = (st.shares.envvalues || []).find((s) => s.producer && s.producer.module === o.module && s.producer.env === envId);
           if (sh) {
             const last = await o.api("api/env/share", { id: sh.id });
             for (const x of (last && last.outputs) || []) if (keys.has(x.key) && !have.has(x.key))
-              items.push({ sym: x.key, label: x.label, value: x.quantity.value, unit: x.quantity.unit, kind: (x.conditions || {}).kind || "" });
+              items.push({ sym: x.key, label: x.label, value: x.quantity.value, unit: x.quantity.unit, kind: (x.conditions || {}).kind || "", ...(x.quantity.u > 0 ? { u: x.quantity.u, unc: (x.conditions || {}).unc || "" } : {}) });
           }
         }
         const j = await o.api("api/env/envvalues", { env: envId, items, module_version: v.version || "" });
@@ -223,7 +223,7 @@ dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
       return {
         kind: "env.values", label: (n) => t(n === 1 ? "ov.ch_value1" : "ov.ch_values"),
         offers: async (envId) => cat(envId).filter((x) => x && x.sym && Number.isFinite(num(x.value)))
-          .map((x) => ({ key: x.sym, label: x.label || x.sym, text: `${fmt(x.value)}${x.unit ? " " + x.unit : ""}` })),
+          .map((x) => ({ key: x.sym, label: x.label || x.sym, text: `${fmt(x.value)}${+x.u > 0 ? " ± " + fmt(x.u) : ""}${x.unit ? " " + x.unit : ""}` })),
         link: async (envId, keys, mode) => { const j = await publish(envId, keys); return j ? { share: j.id, version: mode === "copy" ? j.version : undefined } : {}; },
         republish: async (envId) => { await publish(envId); },
         apply: async (links) => {
@@ -236,6 +236,7 @@ dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
             for (const key of l.keys || []) {
               const x = outs[key]; if (!x) continue;
               rows.push({ key, label: x.label || key, value: x.quantity.value, unit: x.quantity.unit || "", kind: (x.conditions || {}).kind || "",
+                ...(x.quantity.u > 0 ? { u: x.quantity.u, unc: (x.conditions || {}).unc || "" } : {}),
                 from: l.from.slice(4), from_name: envName(l.from), share: env.id, version: env.version, mode: l.mode || "live" });
             }
           }
@@ -325,10 +326,16 @@ dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
       if (!st.ok || !c) return o.toast(t("ov.noenv"), true);
       const me = meBox(), others = info().envs.filter((e) => "env:" + e.id !== me);
       Promise.resolve(c.offers(info().active)).then((offers) => {
-        const it = (offers || []).find((x) => x.key === key);
+        // Schlüssel mit „*“ am Ende: alle Angebote mit diesem Präfix auf einmal (z. B. alle Werte eines Werkstoffs)
+        const group = key.endsWith("*") ? (offers || []).filter((x) => x.key.startsWith(key.slice(0, -1))) : null;
+        // gemeinsamer Teil der Beschriftungen („Werkstoff: Kennwert“) als Überschrift, der Rest als Liste
+        const gl = group && group.map((x) => String(x.label || x.key)), cut = gl && gl.length && gl.every((s) => s.includes(": ") && s.split(": ")[0] === gl[0].split(": ")[0]) ? gl[0].split(": ")[0] : "";
+        const it = group ? (group.length ? { key, label: gl.map((s) => (cut ? s.slice(cut.length + 2) : s)).join(", "), text: "", head: cut } : null) : (offers || []).find((x) => x.key === key);
         if (!it) return o.toast(t("ov.gone"), true);
-        const already = chLinks((l) => l.kind === kind && l.from === me && (l.keys || []).some((k) => baseKey(c, k) === key));
-        const html = `<div class="lov-pop"><b>${esc(byLabel(c, it.key) ? it.label : it.key)}${it.text ? (c.keyLabel ? " · " : " = ") + esc(it.text) : ""}</b><div class="small">${esc(byLabel(c, it.key) ? "" : it.label)}</div>
+        const keys = group ? group.map((x) => x.key) : [key];
+        const already = chLinks((l) => l.kind === kind && l.from === me && (l.keys || []).some((k) => keys.includes(baseKey(c, k))));
+        const head = group ? `${it.head || key.slice(0, -1).replace(/_$/, "")} · ${group.length}` : (byLabel(c, it.key) ? it.label : it.key) + (it.text ? (c.keyLabel ? " · " : " = ") + it.text : "");
+        const html = `<div class="lov-pop"><b>${esc(head)}</b><div class="small">${esc(group || byLabel(c, it.key) ? (group ? it.label : "") : it.label)}</div>
           ${others.length ? `<div class="row"><label>${esc(t("ov.to_env"))} <select data-to>${others.map((e) => `<option value="env:${esc(e.id)}">${esc(e.name)}</option>`).join("")}</select></label></div>
             <div class="row"><button type="button" class="primary" data-go="live" title="${esc(t("ov.live_t"))}">${esc(t("ov.go_live"))}</button><button type="button" data-go="copy" title="${esc(t("ov.copy_t"))}">${esc(t("ov.go_copy"))}</button></div>`
             : `<div class="small" style="margin-top:6px">${esc(t("ov.one", { w: word(0) }))}</div>`}
@@ -339,7 +346,7 @@ dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
           const to = p.querySelector("[data-to]").value;
           UI.closePop();
           const l = chLinks((x) => x.kind === kind && x.from === me && x.to === to)[0];
-          await linkSave(c, me, to, [...new Set([...((l && l.keys) || []).map((k) => baseKey(c, k)), key])], b.dataset.go);
+          await linkSave(c, me, to, [...new Set([...((l && l.keys) || []).map((k) => baseKey(c, k)), ...keys])], b.dataset.go);
         });
       });
     }
@@ -616,7 +623,8 @@ dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
   // Wertekatalog für die Zusammenfassung einer Umgebung (Grenze des Servers: 48 KB je Zusammenfassung, Grafiken eingeschlossen)
   function summaryValues(list) {
     const v = (list || []).filter((x) => x && x.sym).slice(0, 80).map((x) => ({ sym: String(x.sym).slice(0, 60), label: String(x.label || x.sym).slice(0, 120),
-      value: String(x.value ?? "").slice(0, 30), unit: String(x.unit || "").slice(0, 30), kind: String(x.kind || "").slice(0, 40) }));
+      value: String(x.value ?? "").slice(0, 30), unit: String(x.unit || "").slice(0, 30), kind: String(x.kind || "").slice(0, 40),
+      ...(+x.u > 0 ? { u: String(x.u).slice(0, 30), unc: String(x.unc || "").slice(0, 60) } : {}) }));
     while (v.length && JSON.stringify(v).length > 24000) v.pop();
     return v;
   }
@@ -632,19 +640,20 @@ dialog.lov-del .danger{background:#c5221f;border-color:#c5221f;color:#fff}`;
       for (const v of r.vars || []) {
         if (!v || v.ext || !v.name || !ok(v.value)) continue;           // übernommene Werte nicht weiterreichen
         const sym = String(v.name).slice(0, 21) + sfx; seen.add(sym);
-        out.push({ sym, label: pre + (v.label || v.name), value: +v.value, unit: v.unit || "", kind: "" });
+        out.push({ sym, label: pre + (v.label || v.name), value: +v.value, unit: v.unit || "", kind: "", ...(+v.u > 0 ? { u: +v.u } : {}) });
       }
       for (const e of r.eqs || []) {
         if (!e || e.error || !e.sym || !ok(e.value)) continue;
         const sym = String(e.sym).slice(0, 21) + sfx; if (seen.has(sym)) continue;
-        out.push({ sym, label: pre + (e.label || e.sym), value: +e.value, unit: e.unit || "", kind: "" });
+        out.push({ sym, label: pre + (e.label || e.sym), value: +e.value, unit: e.unit || "", kind: "",
+          ...(e.unc && +e.unc.u > 0 ? { u: +e.unc.u, unc: e.unc.method_name || e.unc.method || "" } : {}) });
       }
     });
     return out;
   }
   // Eingehende Werte (rows von values.apply) als Liste für den Server (ext_values); changed: anders als vorher
   function extValues(prev, rows) {
-    const list = (rows || []).map((r) => ({ key: r.key, label: r.label, value: r.value, unit: r.unit || "", from: r.from,
+    const list = (rows || []).map((r) => ({ key: r.key, label: r.label, value: r.value, unit: r.unit || "", ...(+r.u > 0 ? { u: +r.u } : {}), from: r.from,
       from_name: r.from_name, mode: r.mode, version: r.version }));
     return { list, changed: JSON.stringify(list) !== JSON.stringify(prev || []) };
   }

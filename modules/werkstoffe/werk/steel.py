@@ -50,15 +50,28 @@ def _c(comp: dict) -> dict:
     return out
 
 
+def formulas(c: dict) -> dict:
+    """Kennzahlen aus der Zusammensetzung (Gew.-%); Werte dürfen numpy-Felder sein (Messunsicherheit, Monte Carlo)."""
+    import numpy as np
+    return {"CE": c["C"] + c["Mn"] / 6 + (c["Cr"] + c["Mo"] + c["V"]) / 5 + (c["Ni"] + c["Cu"]) / 15,
+            "CET": c["C"] + (c["Mn"] + c["Mo"]) / 10 + (c["Cr"] + c["Cu"]) / 20 + c["Ni"] / 40,
+            "Pcm": c["C"] + c["Si"] / 30 + (c["Mn"] + c["Cu"] + c["Cr"]) / 20 + c["Ni"] / 60 + c["Mo"] / 15 + c["V"] / 10 + 5 * c["B"],
+            "Ms": 539 - 423 * c["C"] - 30.4 * c["Mn"] - 17.7 * c["Ni"] - 12.1 * c["Cr"] - 7.5 * c["Mo"],
+            "Ac1": 723 - 10.7 * c["Mn"] - 16.9 * c["Ni"] + 29.1 * c["Si"] + 16.9 * c["Cr"] + 290 * c["As"] + 6.38 * c["W"],
+            "Ac3": 910 - 203 * np.sqrt(c["C"]) - 15.2 * c["Ni"] + 44.7 * c["Si"] + 104 * c["V"] + 31.5 * c["Mo"] + 13.1 * c["W"]}
+
+
+def preheat_tp(cet, d, HD, Q):
+    """Vorwärmtemperatur nach EN 1011-2 (CET-Verfahren); vektorisierbar."""
+    import numpy as np
+    return 697 * cet + 160 * np.tanh(d / 35) + 62 * HD ** 0.35 + (53 * cet - 32) * Q - 328
+
+
 def composition_report(comp: dict, preheat: dict | None = None) -> dict:
     """Alle Kennzahlen einer Zusammensetzung mit Hinweisen zum Gültigkeitsbereich."""
     c = _c(comp)
-    ce = c["C"] + c["Mn"] / 6 + (c["Cr"] + c["Mo"] + c["V"]) / 5 + (c["Ni"] + c["Cu"]) / 15
-    cet = c["C"] + (c["Mn"] + c["Mo"]) / 10 + (c["Cr"] + c["Cu"]) / 20 + c["Ni"] / 40
-    pcm = c["C"] + c["Si"] / 30 + (c["Mn"] + c["Cu"] + c["Cr"]) / 20 + c["Ni"] / 60 + c["Mo"] / 15 + c["V"] / 10 + 5 * c["B"]
-    ms = 539 - 423 * c["C"] - 30.4 * c["Mn"] - 17.7 * c["Ni"] - 12.1 * c["Cr"] - 7.5 * c["Mo"]
-    ac1 = 723 - 10.7 * c["Mn"] - 16.9 * c["Ni"] + 29.1 * c["Si"] + 16.9 * c["Cr"] + 290 * c["As"] + 6.38 * c["W"]
-    ac3 = 910 - 203 * math.sqrt(c["C"]) - 15.2 * c["Ni"] + 44.7 * c["Si"] + 104 * c["V"] + 31.5 * c["Mo"] + 13.1 * c["W"]
+    f = formulas(c)
+    ce, cet, pcm, ms, ac1, ac3 = (float(f[k]) for k in ("CE", "CET", "Pcm", "Ms", "Ac1", "Ac3"))
     notes = []
     out_rng = [k for k, (lo, hi) in RANGES_ANDREWS.items() if not (lo <= c[k] <= hi)]
     if out_rng:
@@ -73,7 +86,7 @@ def composition_report(comp: dict, preheat: dict | None = None) -> dict:
 
 def preheat_temp(cet: float, d: float = 20, HD: float = 5, Q: float = 1.0) -> dict:
     d, HD, Q = float(d), float(HD), float(Q)
-    tp = 697 * cet + 160 * math.tanh(d / 35) + 62 * HD ** 0.35 + (53 * cet - 32) * Q - 328
+    tp = float(preheat_tp(cet, d, HD, Q))
     warn = []
     for name, v, lo, hi in (("CET", cet, 0.2, 0.5), ("d", d, 10, 90), ("HD", HD, 1, 20), ("Q", Q, 0.5, 4.0)):
         if not lo <= v <= hi:

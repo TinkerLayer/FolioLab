@@ -231,6 +231,7 @@ export function registerLatex(monaco, getSymbols) {
         [/\\(?:part|chapter|section|subsection|subsubsection|paragraph|subparagraph|frametitle)\*?(?=[{[\s])/, 'keyword.section'],
         [/\\(?:label|ref|eqref|cref|Cref|autoref|pageref|nameref|subref)\b/, 'keyword.ref'],
         [/\\(?:[a-zA-Z]*cite[a-zA-Z]*|nocite)\b/, 'keyword.ref'],
+        [/\\labstale(?:\[[^\]]*\])?(?:\{[^{}]*\})?/, 'keyword.stale'],
         [/\\(?:usepackage|RequirePackage|documentclass|input|include|includegraphics|addbibresource|bibliography|bibliographystyle|graphicspath)\b/, 'keyword.include'],
         [/\\verb\*?([^a-zA-Z\s]).*?\1/, 'string'],
         [/\\[a-zA-Z@]+\*?/, 'keyword'],
@@ -424,6 +425,17 @@ export function registerLatex(monaco, getSymbols) {
   monaco.languages.registerHoverProvider('latex', {
     provideHover(model, position) {
       const line = model.getLineContent(position.lineNumber);
+      // a value or reference frozen when its Folio Lab result was removed
+      for (const s of line.matchAll(/\\labstale(?:\[([^\]]*)\])?\{([^{}]*)\}/g)) {
+        if (position.column < s.index + 1 || position.column > s.index + s[0].length + 1) continue;
+        return {
+          range: new monaco.Range(position.lineNumber, s.index + 1, position.lineNumber, s.index + s[0].length + 1),
+          contents: [
+            { value: `⚠ **No longer backed by a result**${s[1] ? ` (was *${s[1]}*)` : ''}` },
+            { value: `The text \`${s[2]}\` stays as it was printed and is marked with † in the PDF. It no longer updates; replace it with your own wording or a new value when you are ready.` },
+          ],
+        };
+      }
       const re = /\\([a-zA-Z]+)\*?(?:\[[^\]]*\])*\{([^}]*)\}/g;
       let m;
       while ((m = re.exec(line))) {
@@ -460,6 +472,7 @@ export function registerLatex(monaco, getSymbols) {
     { token: 'keyword.escape', foreground: dark ? '82aaff' : '2a4fc2' },
     { token: 'keyword.section', foreground: dark ? 'e5a8ff' : '8b2fb8', fontStyle: 'bold' },
     { token: 'keyword.ref', foreground: dark ? '5fd4c4' : '0f7d72' },
+    { token: 'keyword.stale', foreground: dark ? 'ffb454' : 'b45309', fontStyle: 'italic underline' },
     { token: 'keyword.include', foreground: dark ? 'f0a35e' : 'b4570b' },
     { token: 'keyword.math', foreground: dark ? 'b5d97a' : '43761a' },
     { token: 'type', foreground: dark ? 'f7c26b' : 'a35d00' },

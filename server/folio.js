@@ -85,20 +85,22 @@ function checkIds(module, env) {
 /** Describe the pieces of a staged bundle for the dialog. */
 function describe(stage, b) {
   const cites = new Map((b.items || []).filter((i) => i.kind === 'citation').map((i) => [i.key, i.title || i.key]));
-  const methods = (b.items || []).filter((i) => i.kind === 'text' && (METHODS_RE.test(i.id) || METHODS_RE.test(i.title || '')));
+  const methods = (b.items || []).filter((i) => i.kind === 'text' && (i.methods === true || METHODS_RE.test(i.id) || METHODS_RE.test(i.title || '')));
   const pieces = [];
   for (const it of b.items || []) {
     const cite = (it.cites || []).map((k) => ({ key: k, title: cites.get(k) || k }));
-    if (it.kind === 'figure') pieces.push({ key: `item:${it.id}`, kind: 'figure', id: it.id, title: it.caption || it.id, preview: it.preview || null, cites: cite });
-    else if (it.kind === 'table') pieces.push({ key: `item:${it.id}`, kind: 'table', id: it.id, title: it.caption || it.id, notes: it.notes || '', cites: cite, snippet: (b._texts || {})[it.file] || '' });
+    // what a piece needs and the parts it can leave out (report pieces cite and describe only what they show)
+    const decl = it.needs || it.parts ? { needs: it.needs || { steps: [] }, parts: (it.parts || []).map((p) => ({ id: p.id, label: p.label, steps: p.steps || [], cites: (p.cites || []).map((k) => ({ key: k, title: cites.get(k) || k })) })) } : {};
+    if (it.kind === 'figure') pieces.push({ key: `item:${it.id}`, kind: 'figure', id: it.id, title: it.caption || it.id, preview: it.preview || null, cites: cite, ...decl });
+    else if (it.kind === 'table') pieces.push({ key: `item:${it.id}`, kind: 'table', id: it.id, title: it.caption || it.id, notes: it.notes || '', cites: cite, snippet: (b._texts || {})[it.file] || '', ...decl });
     else if (it.kind === 'data') pieces.push({ key: `item:${it.id}`, kind: 'data', id: it.id, title: it.description || it.id, columns: it.columns || [], rows: it.rows || null });
-    else if (it.kind === 'text') pieces.push({ key: `item:${it.id}`, kind: 'text', id: it.id, title: it.title || it.id, methods: methods.includes(it), snippet: ((b._texts || {})[it.file] || '').slice(0, 1500) });
-    else if (it.kind === 'values') for (const v of it.values || []) pieces.push({ key: `value:${v.key}`, kind: 'value', id: v.key, title: v.label || v.key, text: v.text || '', latex: v.latex || '' });
+    else if (it.kind === 'text') pieces.push({ key: `item:${it.id}`, kind: 'text', id: it.id, title: it.title || it.id, methods: methods.includes(it), snippet: ((b._texts || {})[it.file] || '').slice(0, 1500), ...decl });
+    else if (it.kind === 'values') for (const v of it.values || []) pieces.push({ key: `value:${v.key}`, kind: 'value', id: v.key, title: v.label || v.key, text: v.text || '', latex: v.latex || '', ...(v.needs ? { needs: { steps: v.needs } } : {}) });
   }
   return {
     stage, module: b.module, module_name: b.module_name, title: b.title, lang: b.lang, summary: b.summary || '',
-    origin: b.origin || null, references: [...cites].map(([key, title]) => ({ key, title })),
-    methods: methods.map((m) => ({ id: m.id, title: m.title || m.id })), pieces,
+    origin: b.origin || null, references: [...cites].map(([key, title]) => ({ key, title })), redraw: !!(b.source && b.source.request),
+    methods: methods.map((m) => ({ id: m.id, title: m.title || m.id, steps: (m.steps || []).map((s) => ({ id: s.id, title: s.title, short: !!s.short, eq: !!s.eq, ...(s.brief ? { brief: true } : {}), ...(s.of ? { of: s.of } : {}), par: s.par, text: String((b._texts || {})[s.file] || '').trim() })) })), pieces,
   };
 }
 
@@ -164,7 +166,10 @@ async function stageFile(stage, rel) {
   return path.join(STAGE, stage, 'files', rel);
 }
 
-const applyPick = (b, pick) => lab.applyPick(b, pick);
+const applyPick = (b, pick, text, opts) => lab.applyPick(b, pick, text, opts);
+
+/** Methods choice of an import request: true / false (older dialog) or {mode, steps, eq}. */
+const methodsOf = (m) => (m && typeof m === 'object' ? lab.methodsChoice({ methods: m }) : m !== false);
 
 /** Import chosen pieces of a staged environment bundle into report `id`. body: {source: {type: 'env', stage},
  *  keys: ['item:<id>', 'value:<key>'], mode, methods}. Returns {results: [manifest], warnings, pick}. */
@@ -177,7 +182,7 @@ async function importEnv(id, body = {}, opts = {}) {
   if (!keys.length) throw new HttpError(400, 'Choose at least one piece to import');
   const ids = new Set((b.items || []).map((i) => i.id));
   const vals = new Set((b.items || []).filter((i) => i.kind === 'values').flatMap((i) => (i.values || []).map((v) => v.key)));
-  const pick = { items: [], values: [], methods: body.methods !== false };
+  const pick = { items: [], values: [], methods: methodsOf(body.methods) };
   const missing = [];
   for (const k of keys) {
     const [kind, rest] = [k.slice(0, k.indexOf(':')), k.slice(k.indexOf(':') + 1)];
@@ -186,10 +191,17 @@ async function importEnv(id, body = {}, opts = {}) {
     else missing.push(k);
   }
   if (missing.length && !opts.slug) throw new HttpError(400, `Not in this environment: ${missing.join(', ')}`);
-  const { items, keep } = applyPick(b, pick);
   const dir = path.join(STAGE, body.source.stage, 'files');
+  const readStaged = (rel) => {
+    if (!/^[A-Za-z0-9_][A-Za-z0-9_.\-/]{0,120}$/.test(String(rel || '')) || rel.includes('..')) return '';
+    try { return fs.readFileSync(path.join(dir, rel), 'utf8'); } catch { return ''; }
+  };
+  // an Update keeps the variants of the result: they stand in for their pieces in the methods text
+  const forks = opts.slug ? await lab.variantsOf(id, opts.slug) : [];
+  const { items, keep, extra, warnings: pw } = applyPick(b, pick, readStaged, { forks });
   const files = {};
   for (const rel of b.files || []) if (keep(rel)) files[rel] = (await fsp.readFile(path.join(dir, rel))).toString('base64');
+  for (const [rel, t] of Object.entries(extra)) files[rel] = Buffer.from(t, 'utf8').toString('base64');
   const env = b._env || {};
   const chosen = (b.items || []).filter((i) => pick.items.includes(i.id));
   const one = chosen.length === 1 && !pick.values.length ? chosen[0] : null;
@@ -206,7 +218,7 @@ async function importEnv(id, body = {}, opts = {}) {
     link: mode === 'copy' ? { ...link, type: 'env', mode: 'copy' } : link, pick,
   };
   const man = await lab.save(id, bundle, opts.slug ? 'replace' : 'new', { action: opts.slug ? 'update' : 'import' });
-  return { results: [man], warnings: missing.map((k) => `${k}: no longer in the environment; left out.`), pick };
+  return { results: [man], warnings: [...missing.map((k) => `${k}: no longer in the environment; left out.`), ...pw], pick };
 }
 
 /** Link state of a result imported from an environment. */
@@ -233,7 +245,7 @@ async function update(id, man, opts = {}) {
   const d = await envPieces(link.module, link.env, (opts.lang || man.lang) === 'en' ? 'en' : 'de');
   const pick = man.pick || { items: [], values: [], methods: true };
   const keys = [...(pick.items || []).map((k) => `item:${k}`), ...(pick.values || []).map((k) => `value:${k}`)];
-  const res = await importEnv(id, { source: { type: 'env', stage: d.stage }, keys, mode, methods: pick.methods !== false }, { slug: man.slug, title: man.title });
+  const res = await importEnv(id, { source: { type: 'env', stage: d.stage }, keys, mode, methods: pick.methods === undefined ? true : pick.methods }, { slug: man.slug, title: man.title });
   return res.results[0];
 }
 

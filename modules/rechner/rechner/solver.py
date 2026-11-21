@@ -405,7 +405,15 @@ class Sheet:
             if kn is not None:
                 return self._as(kn, var), bind
             return None, "missing"
+        if bind.startswith("line:"):
+            kn = self.page_known(bind[5:], var)
+            return (kn, bind) if kn is not None else (None, "missing")
         kn = base.get((var["sym"], var["kind"]))
+        if kn is not None and kn.src.startswith("user:"):
+            return kn, kn.src
+        pk = self.page_known(var["sym"], var)          # m = 2 kg auf der Seite speist die Karte F = m·a
+        if pk is not None:
+            return pk, pk.src
         if kn is not None:
             return kn, kn.src
         # Ersatz: genau ein Benutzerwert dieser Art und die Formel hat nur eine Variable dieser Art
@@ -415,11 +423,50 @@ class Sheet:
             return self._as(cands[0], var), "kind:" + cands[0].src
         return None, "missing"
 
+    def page_known(self, name, var):
+        """Wert einer Rechenzeile derselben Seite (state["page"]: {Name: {si, dims, line}}) für die Variable `var`;
+        None, wenn es ihn nicht gibt oder die Dimension nicht passt. Eine Zahl ohne Einheit gilt in SI."""
+        p = (self.state.get("page") or {}).get(name)
+        if not p or not isinstance(p.get("si"), (int, float)) or isinstance(p.get("si"), bool):
+            return None
+        kind = U.KINDS[var["kind"]]
+        dims = p.get("dims")
+        if dims and not U.deq(dims, kind.dims):
+            return None
+        si = float(p["si"])
+        if not math.isfinite(si):
+            return None
+        unit = U.auto_unit(var["kind"], si) if dims else kind.si
+        return Known(var["sym"], var["kind"], si, unit, "line:" + name, var["de"] if self.lang == "de" else var["en"],
+                     name=name)
+
+    def page_options(self, var):
+        """Zeilenvariablen der Seite, die zur Variable passen (Auswahl „aus Zeile“ in der Karte)."""
+        page = self.state.get("page") or {}
+        return [n for n in sorted(page) if (page[n].get("dims") or n == var["sym"]) and self.page_known(n, var) is not None]
+
     @staticmethod
     def _as(kn, var):
         if kn.kind != var["kind"]:
             raise E.CalcError(f"{kn.sym} hat die Grössenart {U.ensure_kind(kn.kind).de}, gebraucht wird {U.KINDS[var['kind']].de}")
         return kn
+
+    def _partial(self, eq, iso, target, resolved, free):
+        """Umgestellte Formel mit den bekannten Werten: Einzelwerte in ihrer Einheit, ausrechenbare Teile in SI."""
+        from . import console as CON                            # console importiert solver nicht: kein Zyklus
+        names = {s: kn.si for s, kn in resolved.items() if s != target}
+        dims = {s: U.KINDS[eq.var(s)["kind"]].dims for s in names}
+        ctx = E.Ctx(names=names, angle="rad", dims=dims)
+        subs = {}
+        for s, kn in resolved.items():
+            if s == target:
+                continue
+            k = U.ensure_kind(kn.kind)
+            v = to_unit(kn.si, kn.unit, k)
+            u = kn.unit if kn.unit != "1" else ""
+            subs[s] = (R.qty_tex(v, u, self.lang, 5), R.qty_html(v, u, self.lang, 5),
+                       R.P_NEG if v < 0 else (R.P_MUL if u else R.P_ATOM))
+        return CON.partial(iso, ctx, self.lang, free=free, subs=subs)
 
     def eval_card(self, card):
         cid = str(card.get("id"))
@@ -462,6 +509,10 @@ class Sheet:
             d = {"sym": v["sym"], "kind": v["kind"], "html": R.sym_html(v["sym"]), "de": v["de"], "en": v["en"],
                  "src": "target" if v["sym"] == target else src.get(v["sym"]),
                  "units": U.KINDS[v["kind"]].units}
+            if self.state.get("page"):
+                opts = self.page_options(v)
+                if opts:
+                    d["page"] = opts
             if kn is not None and v["sym"] != target:
                 d.update(si=E._jnum(kn.si), value=E._jnum(to_unit(kn.si, kn.unit, U.KINDS[v["kind"]])), unit=kn.unit,
                          text=R.qty_html(to_unit(kn.si, kn.unit, U.KINDS[v["kind"]]), kn.unit, self.lang, 5))
@@ -488,6 +539,14 @@ class Sheet:
             if iso is not None:
                 t, h = R.render(iso, lang=self.lang)
                 out["sol_tex"], out["sol_html"] = f"{R.sym_tex(target)} = {t}", f"{R.sym_html(target)} = {h}"
+                if resolved:                                    # RC-01: Bekanntes einsetzen, Fehlendes bleibt stehen
+                    try:
+                        pt, ph = self._partial(eq, iso, target, resolved, [m["sym"] for m in miss_other])
+                        if pt != t:
+                            out["partial_tex"] = f"{R.sym_tex(target)} = {pt}"
+                            out["partial_html"] = f"{R.sym_html(target)} = {ph}"
+                    except (E.CalcError, U.UnitError, TypeError, ValueError):
+                        pass
             return out, None
         vals = {s: kn.si for s, kn in resolved.items() if s != target}
         tv = eq.var(target)

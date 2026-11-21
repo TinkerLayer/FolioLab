@@ -1,0 +1,324 @@
+{
+ "quellen": {},
+ "system": {
+  "id": "al-si",
+  "name": "Al–Si",
+  "name_en": "Al–Si",
+  "A": "Al",
+  "B": "Si",
+  "gruppe": "al",
+  "x_label": "Silicium [Gew.-%]",
+  "x_label_en": "Silicon [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   300,
+   1500
+  ],
+  "q": [
+   "murray1984",
+   "massalski1990"
+  ],
+  "hinweis": "Gusslegierungen (AlSi7Mg, AlSi12). Literaturwerte (Murray & McAlister 1984; Massalski 1990): Al schmilzt bei 660,5 °C, Si bei 1414 °C; Eutektikum L ⇌ (Al) + (Si) bei 577 °C und 12,6 Gew.-% Si; grösste Löslichkeit von Si in (Al) 1,65 %, von Al in (Si) vernachlässigbar (Si als Linie am rechten Rand). Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm nachgezeichnet (schematisch, nicht zum genauen Ablesen von Löslichkeiten). Eutektisches Si ist unveredelt nadelig/plattig (facettiert), mit Na oder Sr veredelt faserig.",
+  "hinweis_en": "Casting alloys (AlSi7Mg, AlSi12). Literature values (Murray & McAlister 1984; Massalski 1990): Al melts at 660.5 °C, Si at 1414 °C; eutectic L ⇌ (Al) + (Si) at 577 °C and 12.6 wt% Si; maximum solubility of Si in (Al) 1.65 %, of Al in (Si) negligible (Si as a line at the right edge). Curve points in between are traced from the assessed diagram (schematic, not for reading solubilities precisely). Eutectic Si is acicular/plate-like (faceted) when unmodified, fibrous when modified with Na or Sr.",
+  "points": [
+   {
+    "x": 0,
+    "T": 660.45,
+    "label": "Al schmilzt",
+    "label_en": "Al melts"
+   },
+   {
+    "x": 100,
+    "T": 1414,
+    "label": "Si schmilzt",
+    "label_en": "Si melts"
+   },
+   {
+    "x": 1.65,
+    "T": 577,
+    "label": "max. Löslichkeit in (Al)",
+    "label_en": "max. solubility in (Al)"
+   },
+   {
+    "x": 12.6,
+    "T": 577,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   }
+  ],
+  "curves": {
+   "liq_a": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      660.45
+     ],
+     [
+      2,
+      648
+     ],
+     [
+      4,
+      636
+     ],
+     [
+      6,
+      623
+     ],
+     [
+      7,
+      616
+     ],
+     [
+      9,
+      602
+     ],
+     [
+      11,
+      589
+     ],
+     [
+      12.6,
+      577
+     ]
+    ]
+   },
+   "sol_a": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      660.45
+     ],
+     [
+      0.33,
+      645
+     ],
+     [
+      0.65,
+      628
+     ],
+     [
+      1.07,
+      606
+     ],
+     [
+      1.65,
+      577
+     ]
+    ]
+   },
+   "solv_a": {
+    "kind": "solvus",
+    "pts": [
+     [
+      1.65,
+      577
+     ],
+     [
+      1.3,
+      550
+     ],
+     [
+      0.8,
+      500
+     ],
+     [
+      0.48,
+      450
+     ],
+     [
+      0.29,
+      400
+     ],
+     [
+      0.17,
+      350
+     ],
+     [
+      0.1,
+      300
+     ]
+    ]
+   },
+   "liq_s": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      12.6,
+      577
+     ],
+     [
+      15,
+      615
+     ],
+     [
+      17,
+      648
+     ],
+     [
+      20,
+      692
+     ],
+     [
+      25,
+      760
+     ],
+     [
+      30,
+      820
+     ],
+     [
+      40,
+      920
+     ],
+     [
+      50,
+      1010
+     ],
+     [
+      60,
+      1090
+     ],
+     [
+      70,
+      1170
+     ],
+     [
+      80,
+      1250
+     ],
+     [
+      90,
+      1330
+     ],
+     [
+      100,
+      1414
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1500
+     ],
+     [
+      100,
+      1500
+     ],
+     [
+      100,
+      1414
+     ],
+     "-liq_s",
+     "-liq_a"
+    ]
+   },
+   {
+    "label": "(Al)",
+    "phases": [
+     "(Al)"
+    ],
+    "poly": [
+     "sol_a",
+     "solv_a",
+     [
+      0,
+      300
+     ]
+    ]
+   },
+   {
+    "label": "(Al) + L",
+    "phases": [
+     "(Al)",
+     "L"
+    ],
+    "poly": [
+     "liq_a",
+     [
+      1.65,
+      577
+     ],
+     "-sol_a"
+    ]
+   },
+   {
+    "label": "L + (Si)",
+    "phases": [
+     "L",
+     "(Si)"
+    ],
+    "poly": [
+     "liq_s",
+     [
+      100,
+      577
+     ]
+    ]
+   },
+   {
+    "label": "(Al) + (Si)",
+    "phases": [
+     "(Al)",
+     "(Si)"
+    ],
+    "poly": [
+     [
+      1.65,
+      577
+     ],
+     [
+      100,
+      577
+     ],
+     [
+      100,
+      300
+     ],
+     [
+      0.1,
+      300
+     ],
+     "-solv_a"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 577,
+    "type": "eutectic",
+    "x": [
+     1.65,
+     12.6,
+     100
+    ],
+    "reaction": "L ⇌ (Al) + (Si)",
+    "morph": "acicular",
+    "morph_modified": "fibrous",
+    "constituents": [
+     "primäres (Al)",
+     "Eutektikum",
+     "primäres Si"
+    ],
+    "constituents_en": [
+     "primary (Al)",
+     "eutectic",
+     "primary Si"
+    ]
+   }
+  ]
+ }
+}

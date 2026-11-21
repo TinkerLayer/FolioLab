@@ -312,6 +312,7 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
   <button id="drawerBtn" class="dv" aria-haspopup="dialog" data-i18n="er.drawer" data-i18n-title="er.drawer_t" title="Ergebnisse dieser Seite als typisierte Grössen: in den Rechner oder den Projektindex">Werte …</button>
   <button type="button" id="rsBtn" class="dv" aria-haspopup="dialog" data-i18n="er.rs_btn" data-i18n-title="er.rs_btn_t" title="Nachschlagen: Elemente, Stoffe, Tabellenwerte, Lösungsmittel, Indikatoren, Konstanten, Quellen; Werte mit Quelle in die Umgebung übernehmen">📖 Nachschlagen</button>
   <button type="button" id="conBtn" class="dv" aria-haspopup="dialog" data-i18n="er.cm_btn" data-i18n-title="er.cm_btn_t" title="Verbindungen dieser Umgebung: welche Werte sie an andere Umgebungen liefert und von ihnen bezieht, live oder als Momentaufnahme">Verbindungen ▾</button>
+  <button type="button" id="uncBtn" class="dv" hidden aria-haspopup="dialog" data-i18n-title="er.u_btn_t" title="Messunsicherheit: Verfahren für alle Ergebnisse wählen, eigene Messmittel">± GUM</button>
   <span class="grow"></span>
   <button type="button" id="modBtn" aria-haspopup="dialog" data-i18n="er.mod" data-i18n-title="er.mod_t" title="Für das ganze Modul: eigene Stoffe, Quellen, Umgebungen, Projektindex, geteilte Eingaben">Modul ▾</button>
   <span id="langSw"></span>
@@ -458,7 +459,8 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
         <div class="row small"><span>Dichte des Reagenzes (für % (w/w); auch für „Masse statt Volumen“):</span><input data-pp="k.dv" style="width:56px" placeholder="g/mL"><label>bei <input data-pp="k.dT" style="width:40px" placeholder="20"> °C</label><input data-pp="k.ds" style="width:140px" placeholder="Quelle (Pflicht)"></div>
         <div class="row"><label>Ziel <input data-pp="k.tv" style="width:56px" placeholder="1"></label><select data-pp="k.tu"></select>
           <label>Bezug <input data-pp="k.basis" style="width:80px" placeholder="= Stoff"></label>
-          <label>Endvolumen <input data-pp="k.V" style="width:60px" placeholder="1000"></label><select data-pp="k.Vu"><option>mL</option><option>L</option></select></div>
+          <label>Endvolumen <input data-pp="k.V" style="width:60px" placeholder="1000"></label><select data-pp="k.Vu"><option>mL</option><option>L</option></select>
+          <label data-i18n-title="er.u_v1_t" title="Tatsächlich abgemessenes Volumen der Stammlösung (leer = berechnet); ± für Pipette oder Bürette"><span data-i18n="er.u_v1">abgemessen</span> <input data-pp="k.V1" style="width:56px"> mL</label></div>
         <div id="prkOut"></div></div></details>
       <details class="fold" data-fold="prr"><summary>Reaktionsansatz und grüne Kennzahlen</summary><div class="in">
         <div class="small">Gleichung aus dem Eingabefeld oben. Lösungsmittel, Katalysator und Zusätze gehen nicht in die Stöchiometrie ein; beobachtete Massen ändern den Plan nicht.</div>
@@ -488,6 +490,7 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
         <div class="row"><label>Ausgang <input data-pp="v.c0" style="width:56px" placeholder="1"></label><select data-pp="v.unit"><option>mol/L</option><option>mmol/L</option><option>g/L</option><option>mg/L</option><option>%(w/v)</option></select>
           <label>1 : <input data-pp="v.f" style="width:40px" placeholder="10"></label><label>Stufen <input data-pp="v.n" style="width:36px" placeholder="5"></label></div>
         <div class="row"><label>je Stufe behalten <input data-pp="v.V" style="width:50px" placeholder="10"> mL</label><label>× <input data-pp="v.rep" style="width:30px" placeholder="1"> Wdh.</label><label title="Kleinstes Volumen, das sicher pipettiert werden kann">min. Pipette <input data-pp="v.min" style="width:44px" placeholder="10"> µL</label></div>
+        <div class="row small" id="prvTools"><span data-i18n="er.u_tools">Messmittel je Stufe:</span><label><span data-i18n="er.u_pip">Übertrag</span> <input id="prvPip" readonly tabindex="-1" style="width:56px"> mL</label><label><span data-i18n="er.u_fl">Auffüllen</span> <input id="prvFl" readonly tabindex="-1" style="width:56px"> mL</label></div>
         <div id="prvOut"></div></div></details>
       <details class="fold" data-fold="prm"><summary>Mischen (Stoffbilanz, ein Wert offen)</summary><div class="in">
         <div class="small">Σ c<sub>i</sub>·V<sub>i</sub> = c·V für einen Stoff. Genau ein Feld leer lassen: es wird berechnet. Konzentrationen in einer gemeinsamen Einheit (z. B. mol/L), Volumen in mL.</div>
@@ -644,6 +647,7 @@ button.shr:hover, button.shr:focus-visible { opacity: 1; }
 <script src="labindex.js"></script>
 <script src="labboard.js"></script>
 <script src="labimport.js"></script>
+<script src="labunc.js"></script>
 <script>
 "use strict";
 // Ein Modulserver, der vor einer Aktualisierung gestartet wurde, liefert neue Hilfsskripte nicht aus (404). Die Seite
@@ -711,6 +715,8 @@ function recompute() { clearTimeout(timer); timer = setTimeout(run, 220); }
 async function run() {
   save();
   const state = { equation: S.equation, amounts: cleanAmounts(S.amounts), actual: cleanAmounts(S.actual), thermo: thermoState(), redox: rxState() };
+  const ur = uncReq(["st."]); if (ur && Object.keys(S.actual || {}).length) { state.unc = ur; state.lang = LabUI.lang(); }   // Runde U: Ausbeute ± U
+  UNC_RUN = state;
   const j = await api("api/run", { state });
   if (j.error) { $("#eqOut").innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
   S.last = j;
@@ -830,9 +836,10 @@ function onSpClick(e) {
         $("#eq").value = S.equation = nx; openSp = null; recompute(); } }));
   }
 }
-const molarItem = (c) => ({ sym: `M_${symFor(c.text)}`, kind: "molar_mass", value: String(+c.M.toPrecision(8)), unit: "g/mol", label: `Molare Masse ${c.unicode}` });
+const molarItem = (c) => ({ sym: `M_${symFor(c.text)}`, kind: "molar_mass", value: String(+c.M.toPrecision(8)), unit: "g/mol", label: `Molare Masse ${c.unicode}`,
+  ...(Number.isFinite(c.M_u) && c.M_u > 0 ? { u: +c.M_u.toPrecision(2), unc: "gum" } : {}) });   // Runde U: u aus den Standardatomgewichten
 function indexEntry(it, type) {
-  return { key: it.label, label: it.label, type, quantity: { value: +it.value, unit: it.unit },
+  return { key: it.label, label: it.label, type, quantity: { value: +it.value, unit: it.unit, ...(Number.isFinite(it.u) ? { u: it.u } : {}) },
     conditions: S.equation ? { equation: S.equation } : undefined,
     source: type === "tabulated" ? { type: "web", authors: "CIAAW", title: "Standard Atomic Weights", year: "2024", url: "https://www.ciaaw.org/atomic-weights.htm" } : undefined,
     provenance: { item: "gleichung", item_name: S.equation || "" } };
@@ -861,10 +868,12 @@ function pageValues() {
     if (m != null) out.push({ sym: stSym("m", x.species), kind: "mass", value: String(+m.toPrecision(7)), unit: "g", label: `${used ? "Umgesetzte" : "Theoretische"} Masse ${x.species}${stTag}`, group: gS, type: "calculated" });
     if (x.n_left != null && x.n_left > 1e-12) out.push({ sym: stSym("n", x.species) + "_rest", kind: "amount", value: String(+x.n_left.toPrecision(7)), unit: "mol", label: `Übrige Stoffmenge ${x.species}${stTag}`, group: gS, type: "calculated" });
   }
-  if (S.lastPH && S.lastPH.pH != null) out.push({ sym: "pH_L", kind: "number", value: String(+S.lastPH.pH.toPrecision(5)), unit: "", label: `pH von ${S.phMix}`, group: "pH", type: "calculated" });
+  if (S.lastPH && S.lastPH.pH != null) { const ur = S.lastPH.unc && S.lastPH.unc.result;
+    out.push({ sym: "pH_L", kind: "number", value: String(+S.lastPH.pH.toPrecision(5)), unit: "", label: `pH von ${S.phMix}`, group: "pH", type: "calculated", ...(uncOk(ur) ? { u: +ur.u.toPrecision(3), unc: ur.method } : {}) }); }
+  out.push(...Object.values(UNC_VALS));                          // Runde U: Ausbeuten und Konzentrationen mit u
   out.push(...chainItems());                                     // UI-12
   for (const v of S.vals || []) if (v.kind !== "range" && Number.isFinite(+v.value))   // UI-13: übernommene Werte
-    out.push({ sym: v.sym, kind: ["constant", "pressure", "temperature"].includes(v.kind) ? "number" : v.kind || "number", value: v.value, unit: v.unit, label: `${v.label} (${(v.source || {}).short || "?"})`, group: LabUI.t("er.v_h"), type: "tabulated" });
+    out.push({ sym: v.sym, kind: ["constant", "pressure", "temperature"].includes(v.kind) ? "number" : v.kind || "number", value: v.value, unit: v.unit, label: `${v.label} (${(v.source || {}).short || "?"})`, group: LabUI.t("er.v_h"), type: v.index ? (v.itype || "calculated") : "tabulated", ...(+v.u > 0 ? { u: +v.u } : {}) });
   return out;
 }
 function openDrawer() {
@@ -872,7 +881,7 @@ function openDrawer() {
   const KIND = { molar_mass: "M", molar_energy: "E/n", molar_entropy: "S/n", number: "1", temperature: "T", mass: "m" };
   let g = "";
   const rows = vals.map((v, i) => { const head = v.group !== g ? `<tr class="sep"><td colspan="4">${esc(g = v.group)}</td></tr>` : "";
-    return head + `<tr><td><input type="checkbox" data-dv="${i}" checked aria-label="${esc(v.label)}"></td><td class="l">${esc(v.label)}</td><td>${esc(v.value.replace(".", ","))} ${esc(v.unit)}</td><td class="l small" title="${esc(LabUI.t("er.dr_kind"))}">${esc(KIND[v.kind] || v.kind)}</td></tr>`; }).join("");
+    return head + `<tr><td><input type="checkbox" data-dv="${i}" checked aria-label="${esc(v.label)}"></td><td class="l">${esc(v.label)}</td><td>${esc(v.value.replace(".", ","))}${Number.isFinite(v.u) ? ` ± ${esc(String(v.u).replace(".", ","))}` : ""} ${esc(v.unit)}</td><td class="l small" title="${esc(LabUI.t("er.dr_kind"))}">${esc(KIND[v.kind] || v.kind)}</td></tr>`; }).join("");
   const p = LabUI.popover($("#drawerBtn"), `<div class="drawer"><b>${esc(LabUI.t("er.drawer_h"))}</b>
     ${vals.length ? `<div style="max-height:50vh;overflow:auto"><table class="res">${rows}</table></div>
       <div class="row" style="margin-top:8px"><span class="small">${esc(LabUI.t("er.dr_use"))}</span><button type="button" data-dr="rechner" class="primary">${esc(LabUI.t("er.dr_rechner"))}</button><button type="button" data-dr="index">${esc(LabUI.t("er.dr_index"))}</button></div>`
@@ -918,9 +927,11 @@ function renderStoich(r) {
       for (const x of st.rows) if (x.side > 0) lines.push(`n(${esc(x.species)}) = ν · ξ = ${esc(x.nu)} · ${fmt(st.extent)} mol = ${fmt(x.n_theor)} mol${x.M ? `; m = n · M = ${fmt(x.n_theor)} mol · ${fmt(x.M, 6)} g/mol = ${fmt(x.m_theor)} g` : ""}`);
       h += `<div class="steps">${lines.map(l => `<div>${l}</div>`).join("")}</div>`;
     }
+    h += `<div id="stUnc"></div>`;                                   // Runde U: Ausbeute ± U
     h += `<div class="row" style="margin-top:8px"><button id="toRechner" title="Molare Massen und Mengen als Grössen in den Rechner übernehmen">In den Rechner übernehmen</button></div>`;
   }
   $("#stOut").innerHTML = h;
+  uncStoich(r);
 }
 const evalFrac = (s) => { const [a, b] = String(s).split("/"); return b ? (+a / +b) : +a; };
 function onStoichInput(e) {
@@ -1254,14 +1265,14 @@ let spTimer = null;
 async function runSpecies() {
   const f = $("#sp").value.trim(); S.species = f; save();
   if (!f) { $("#spOut").innerHTML = ""; return; }
-  const [j, sc] = await Promise.all([api("api/species", { formula: f }), api("api/substance", S.spKey ? { key: S.spKey } : { q: f })]);
+  const [j, sc] = await Promise.all([api("api/species", { formula: f, unc: uncReq([]), lang: LabUI.lang() }), api("api/substance", S.spKey ? { key: S.spKey } : { q: f })]);
   const card = sc && sc.substance ? substanceCard(sc) : "";
   if (j.error) { $("#spOut").innerHTML = (card ? "" : `<div class="note err">${esc(j.error)}</div>`) + card; wireCard(sc); return; }
   const mm = j.molar_mass;
   let h = `<div class="big">${esc(j.unicode)}</div>`;
   for (const x of j.hints || []) h += `<div class="note warn">${esc(x)}</div>`;
   if (mm) {
-    h += `<div style="font-size:16px"><b>M = ${fmt(mm.M, 7)} g/mol</b> <span class="small">± ${fmt(mm.u, 2)} g/mol</span></div>`;
+    h += `<div style="font-size:16px"><b>M = ${fmt(mm.M, 7)} g/mol</b> <span class="small">± ${fmt(mm.u, 2)} g/mol</span></div><div id="spUnc"></div>`;
     h += `<dl class="kv"><dt>Hill-Formel</dt><dd class="mono">${esc(j.hill)}</dd>${j.dbe != null ? `<dt>Doppelbindungsäquivalente</dt><dd>${fmt(j.dbe, 3)}</dd>` : ""}${j.charge ? `<dt>Ladung</dt><dd>${j.charge > 0 ? "+" : ""}${j.charge}</dd>` : ""}</dl>`;
     const cols = ["#7c3aed", "#0891b2", "#d97706", "#16a34a", "#dc2626", "#2563eb", "#db2777", "#65a30d", "#9333ea", "#0d9488"];
     h += `<div class="bar">${mm.rows.map((r, i) => `<i style="width:${(r.frac * 100).toFixed(3)}%;background:${cols[i % cols.length]}" title="${esc(r.el)} ${fmt(r.frac * 100, 4)} %"></i>`).join("")}</div>`;
@@ -1273,6 +1284,7 @@ async function runSpecies() {
     h += `<div class="row" style="margin-top:8px"><button id="spRechner">Als M in den Rechner</button> <button id="spIndex" title="A7: als unveränderlichen Eintrag in den Projektindex">In den Projektindex …</button></div>`;
   }
   $("#spOut").innerHTML = h + card;
+  uncSpecies(j, f);                                                  // Runde U: M ± U nach Possolo et al. 2018
   const b = $("#spRechner"); if (b) b.onclick = () => sendRechner([{ sym: `M_${symFor(j.formula)}`, kind: "molar_mass", value: String(+mm.M.toPrecision(8)), unit: "g/mol", label: `Molare Masse ${j.unicode}` }]);
   const bi = $("#spIndex"); if (bi) bi.onclick = () => LabIndex.add(api, toast, { key: `M(${j.formula})`, label: `Molare Masse ${j.unicode}`, type: "tabulated",
     quantity: { value: +mm.M.toPrecision(10), unit: "g/mol", u: mm.u ? +mm.u.toPrecision(2) : undefined },
@@ -2292,7 +2304,8 @@ function reportState() {
         state.chain = { steps: S.steps.map(s => ({ id: s.id, equation: s.equation, yield: s.yield, links: s.links || {} })),
           feeds: S.chain.mode === "target" ? {} : S.chain.feeds, target: S.chain.mode === "target" && S.chain.target && S.chain.target.step ? S.chain.target : null };
       }
-      if ((S.vals || []).length) state.values = S.vals.map(v => ({ sym: v.sym, label: v.label, value: v.value, unit: v.unit, source: v.source, dataset: v.dataset, copied: v.copied, used: v.used || [] }));   // UI-13
+      if ((S.vals || []).length) state.values = S.vals.map(v => ({ sym: v.sym, label: v.label, value: +v.u > 0 ? `${v.value} ± ${v.u}` : v.value, unit: v.unit, source: v.source, dataset: v.dataset, copied: v.copied, used: v.used || [] }));
+      const ur = uncReq(["st.", "ph."]); if (ur) { delete ur.lang; state.unc = ur; }   // Runde U: Verfahren und ±-Angaben (Aktualisieren rechnet gleich)
       return state;
   }
 }
@@ -2308,7 +2321,7 @@ async function runPH() {
   const m = (S.phMix || "").trim();
   save();
   if (!m) { $("#phOut").innerHTML = ""; S.lastPH = null; return; }
-  const j = await api("api/ph", { mixture: m, T: phTempC(), activity: S.phAct || "" });
+  const j = await api("api/ph", { mixture: m, T: phTempC(), activity: S.phAct || "", unc: uncReq(["ph."]), lang: LabUI.lang() });
   if (j.error) { $("#phOut").innerHTML = `<div class="note err">${esc(j.error)}</div>`; S.lastPH = null; return; }
   S.lastPH = j;
   renderPH(j);
@@ -2316,7 +2329,7 @@ async function runPH() {
   if (RS_CUR === "ind" && !$("#rsWin").hidden) runInd();          // UI-13: Indikatoren im Nachschlagefenster
 }
 function renderPH(j) {
-  let h = `<div class="phbig">pH ${fx(j.pH, 2)}${shr("pH_L")}</div><div class="small">pOH ${fx(j.pOH, 2)} · [H⁺] = ${fmt(j.H, 3)} mol/L · Ionenstärke ${fmt(j.I, 2)} mol/L</div>
+  let h = `<div class="phbig">pH ${fx(j.pH, 2)}${shr("pH_L")}</div><div id="phUncRes"></div><div class="small">pOH ${fx(j.pOH, 2)} · [H⁺] = ${fmt(j.H, 3)} mol/L · Ionenstärke ${fmt(j.I, 2)} mol/L</div>
     <div class="small">${tl(j.T_C)} °C: pK<sub>w</sub> = ${fx(j.pKw, 3)}, neutral bei pH ${fx(j.pH_neutral, 2)}${Math.abs(j.T_C - 25) > 1e-9 ? " (Bandura &amp; Lvov 2006)" : ""}</div>`;
   if (j.activity) { const a = j.activity; h += `<div style="margin:4px 0">Mit Aktivitäten (${a.model === "edh" ? "erw. Debye–Hückel" : "Davies"}): <b>pH ${fx(a.pH, 2)}</b> = −lg a(H⁺) · ideal ${fx(a.pH_ideal, 2)} · Δ ${fx(a.dpH, 2)} · I = ${fmt(a.I, 3)} mol/L · γ(H⁺) = ${fx(a.gamma_H, 3)}, γ(z=1) = ${fx(a.gamma_1, 3)}, γ(z=2) = ${fx(a.gamma_2, 3)}</div>${a.notes.map(n => `<div class="small">${esc(n)}</div>`).join("")}<div class="src">${esc(refsShort(a.refs))}</div>`; }
   for (const n of j.notes || []) h += `<div class="note warn">${esc(n)}</div>`;
@@ -2340,8 +2353,10 @@ function renderPH(j) {
     <div class="small" style="margin-top:4px">A = vollständig deprotonierte Form. Konzentrationen statt Aktivitäten (ideal verdünnt).</div></details>`;
   if (S.detail === "steps") h += `<div class="steps"><div><b>Rechenweg.</b> Protonenbilanz bezogen auf die eingesetzten Formen: [H⁺] − [OH⁻] = Σ c<sub>i</sub>(h<sub>i</sub> − n̄<sub>i</sub>) + c(starke Säure) − c(starke Base); n̄ = mittlere Zahl gebundener Protonen beim gesuchten pH, aus den pK<sub>a</sub>. Gelöst durch Intervallhalbierung; pK<sub>w</sub> = ${fx(j.pKw, 3)}.</div></div>`;
   h += `<div class="src" style="margin-top:6px">${esc(refsShort([...(j.refs || []), ...new Set(Object.values(sys).flatMap(s => Object.values(s.src || {}).map(x => x.source)).filter(Boolean))]))}</div>`;
+  h += `<div id="phUncIn"></div>`;                                    // Runde U: ± an c und pKa
   h += `<div class="row" style="margin-top:6px"><button id="phRechner" title="pH als Grösse in den Rechner übernehmen">In den Rechner übernehmen</button></div>`;
   $("#phOut").innerHTML = h;
+  uncPH(j);
   $("#phRechner").onclick = () => sendRechner([{ sym: "pH_L", kind: "number", value: String(+j.pH.toPrecision(5)), unit: "", label: `pH von ${S.phMix}` }]);
 }
 async function runTit() {
@@ -2448,18 +2463,20 @@ async function runPrepGas() {
   const val = (k) => (g[k] || "").trim() ? String(numIn(g[k]) ?? g[k]) : null;
   const mix = {};
   for (const part of (g.mix || "").split(";")) { const m = part.trim().match(/^(\S+)\s+([\d.,]+)\s*%?$/); if (m) mix[m[1]] = numIn(m[2]); }
-  const body = { p: val("p"), V: val("V"), n: val("n"), T: val("T"), p_unit: g.pu || "kPa", V_unit: g.Vu || "L", T_unit: g.Tu || "°C", formula: g.f || "", mix: Object.keys(mix).length ? mix : null };
+  const unc = uncReq(["g."]);                                     // Runde U: die gesuchte Grösse bekommt u
+  const body = { p: val("p"), V: val("V"), n: val("n"), T: val("T"), p_unit: g.pu || "kPa", V_unit: g.Vu || "L", T_unit: g.Tu || "°C", formula: g.f || "", mix: Object.keys(mix).length ? mix : null, ...(unc ? { unc, lang: LabUI.lang() } : {}) };
   if ([body.p, body.V, body.n, body.T].filter(x => x != null).length < 2 && !body.mix) { $("#prgOut").innerHTML = ""; return; }
   const j = await api("api/prep/gas", body);
   if (j.error) { $("#prgOut").innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
   const U = { p: body.p_unit, V: body.V_unit, n: "mol", T: body.T_unit }, N = { p: "p", V: "V", n: "n", T: "T" };
   let h = "";
-  if (j.ideal) h += `<div class="phbig" style="font-size:20px">${N[j.ideal.solved]} = ${fmt(j.ideal.value, 5)} ${esc(U[j.ideal.solved])}</div>`;
+  if (j.ideal) h += `<div class="phbig" style="font-size:20px">${N[j.ideal.solved]} = ${fmt(j.ideal.value, 5)} ${esc(U[j.ideal.solved])}</div><div data-uncres="0"></div>`;
   if (j.density) h += `<div>Dichte ${esc(body.formula)}: <b>${fmt(j.density.rho_g_L, 4)} g/L</b> <span class="small">(M = ${fmt(j.density.M, 6)} g/mol; Molvolumen ${fmt(8.314462618 * j.density.T_K / j.density.p_Pa * 1000, 5)} L/mol)</span></div>`;
   if (j.mixture) h += `<div style="overflow-x:auto"><table class="res"><tr><th class="l">Gas</th><th>x</th><th>p in ${esc(j.mixture.p_unit)}</th></tr>${Object.entries(j.mixture.components).map(([k, c]) => `<tr><td class="l">${esc(k)}</td><td>${fmt(c.x, 4)}</td><td>${fmt(c.p, 4)}</td></tr>`).join("")}</table></div>`;
   const notes = [...new Set([j.ideal, j.density, j.mixture].filter(Boolean).flatMap(x => x.notes))];
   h += notes.map(n => `<div class="small">${esc(n)}</div>`).join("") + `<div class="src">R exakt (CODATA 2022)</div>`;
   $("#prgOut").innerHTML = h;
+  if (j.ideal) uncResults($("#prgOut"), j.unc, "prep:gas", body, () => ({ sym: `${N[j.ideal.solved]}_gas` }));
 }
 const ROLE_DE = { reactant: "Edukt", reagent: "Reagenz", solvent: "Lösungsmittel", catalyst: "Katalysator", additive: "Zusatz", product: "Produkt" };
 let RX_TERMS = { eq: null, terms: [] };
@@ -2476,6 +2493,7 @@ function prrRender() {
     <td class="l"><select data-prx="${k}.role">${["solvent", "catalyst", "additive"].map(o => `<option value="${o}"${(e.role || "solvent") === o ? " selected" : ""}>${ROLE_DE[o]}</option>`).join("")}</select></td>
     <td class="l"><input data-prx="${k}.value" style="width:46px" value="${esc(e.value || "")}"></td><td class="l"><select data-prx="${k}.unit">${["mL", "L", "g", "mg", "mol%", "mol/L"].map(u => `<option${(e.unit || "mL") === u ? " selected" : ""}>${u}</option>`).join("")}</select></td>
     <td class="l"><input data-prx="${k}.dens" style="width:46px" value="${esc(e.dens || "")}"></td><td class="l"><input data-prx="${k}.formula" style="width:60px" value="${esc(e.formula || "")}"></td><td><button data-prxdel="${k}">×</button></td></tr>`).join("")}</table></div>` : "";
+  for (const t of ts) if (t.side > 0) uncAttach($(`[data-prr="${t.i}.obs"]`), `r.obs.${t.i}`, `${LabUI.t("er.u_l_obs")} ${t.species}`, "g");   // Runde U
 }
 function prrInputs() {
   const r = PP().r || {}, dens = (x) => (x || "").trim() ? { value: x, unit: "g/mL", T_C: (r.dT || "").trim() || null, source: (r.ds || "").trim() || null } : null;
@@ -2499,7 +2517,9 @@ async function runPrepReaction() {
   const r = PP().r || {};
   if (numIn(r.amt) == null) { $("#prrOut").innerHTML = `<div class="small">Menge des Bezugsstoffs eingeben.</div>`; return; }
   const b = { reagents: r.bR !== false, solvents: r.bS !== false, catalyst: r.bC !== false, additives: r.bA !== false, workup: r.bW !== false };
-  const j = await api("api/prep/reaction", { equation: eq, ...prrInputs(), metrics: true, boundary: b, workup: numIn(r.wm) ? [{ name: "Aufarbeitung", m_g: numIn(r.wm) }] : [] });
+  const unc = uncReq(["r."]);                                     // Runde U: Ausbeute ± U aus Bezugsmenge und erhaltener Masse
+  const body = { equation: eq, ...prrInputs(), metrics: true, boundary: b, workup: numIn(r.wm) ? [{ name: "Aufarbeitung", m_g: numIn(r.wm) }] : [], ...(unc ? { unc, lang: LabUI.lang() } : {}) };
+  const j = await api("api/prep/reaction", body);
   if (j.error) { $("#prrOut").innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
   const p = j.plan, m = j.metrics;
   const amt = (x) => [x.m_g != null ? `${fmt(x.m_g, 4)} g` : "", x.V_mL != null ? `${fmt(x.V_mL, 4)} mL` : ""].filter(Boolean).join(" / ");
@@ -2512,8 +2532,10 @@ async function runPrepReaction() {
     <div class="small">Zählgrenze – ${esc(m.boundary_text)}. ${esc(refsShort(m.refs))}</div></div>`;
   else if (j.metrics_error) h += `<div class="note warn">Kennzahlen: ${esc(j.metrics_error)}</div>`;
   h += (p.notes || []).map(n => `<div class="small">${esc(n)}</div>`).join("");
+  h += `<div id="prrUnc"></div>`;                                   // Runde U
   if (m) h += `<div class="row" style="margin-top:4px"><input id="prrLabel" style="width:150px" placeholder="Name, z. B. Variante A"><button id="prrKeep" title="Diesen Ansatz für den Vergleich merken (höchstens 4)">Für Vergleich merken</button></div>`;
   $("#prrOut").innerHTML = h;
+  uncResults($("#prrUnc"), j.unc, "prep:reaction", body, (x) => ({ sym: `Y_${symFor((p.products.find(q => `yield-plan-${q.i}` === x.name) || {}).species || x.name)}_ansatz` }));
   if (m) $("#prrKeep").onclick = () => {
     S.plans = S.plans || [];
     if (S.plans.length >= 4) return toast("Höchstens 4 Ansätze im Vergleich; einen entfernen", true);
@@ -2556,11 +2578,21 @@ function bindReaction() {
 async function runPrepSeries() {
   const v = PP().v || {}; save();
   if (!(v.c0 || "").trim() || !(v.V || "").trim()) { $("#prvOut").innerHTML = ""; return; }
-  const j = await api("api/prep/series", { c0: v.c0, unit: v.unit || "mol/L", factor: numIn(v.f) ?? 10, steps: numIn(v.n) ?? 5, V: v.V, replicates: numIn(v.rep) ?? 1, min_uL: numIn(v.min) });
+  const unc = uncReq(["v."]);                                     // Runde U: ± an c₀, Pipette und Messkolben; u pflanzt sich fort
+  const body = { c0: v.c0, unit: v.unit || "mol/L", factor: numIn(v.f) ?? 10, steps: numIn(v.n) ?? 5, V: v.V, replicates: numIn(v.rep) ?? 1, min_uL: numIn(v.min), ...(unc ? { unc, lang: LabUI.lang() } : {}) };
+  const j = await api("api/prep/series", body);
   if (j.error) { $("#prvOut").innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
-  const html = `<div style="overflow-x:auto"><table class="res"><tr><th>Stufe</th><th>c in ${esc(j.unit)}</th><th>Übertrag aus vorheriger</th><th>auffüllen auf</th><th>LM ca.</th></tr>${j.rows.map(r => `<tr><td>${r.step}</td><td>${fmt(r.c, 4)}</td><td>${fmt(r.transfer_mL, 4)} mL</td><td>${fmt(r.total_mL, 4)} mL</td><td>${fmt(r.diluent_approx_mL, 3)} mL</td></tr>`).join("")}</table></div>
+  if (j.rows && j.rows[0]) { $("#prvPip").value = fmt(j.rows[0].transfer_mL, 4); $("#prvFl").value = fmt(j.rows[0].total_mL, 4); }
+  const ures = Object.fromEntries((((j.unc || {}).results) || []).filter(uncOk).map(r => [r.name, r]));
+  const hasU = Object.keys(ures).length > 0;
+  const html = `<div style="overflow-x:auto"><table class="res"><tr><th>Stufe</th><th>c in ${esc(j.unit)}</th>${hasU ? `<th>± U</th>` : ""}<th>Übertrag aus vorheriger</th><th>auffüllen auf</th><th>LM ca.</th></tr>${j.rows.map(r => { const x = ures[`series-c${r.step}`];
+    return `<tr><td>${r.step}</td><td>${fmt(r.c, 4)}</td>${hasU ? `<td>${x ? fmt(x.U ?? (x.hi - x.lo) / 2, 2) : ""}</td>` : ""}<td>${fmt(r.transfer_mL, 4)} mL</td><td>${fmt(r.total_mL, 4)} mL</td><td>${fmt(r.diluent_approx_mL, 3)} mL</td></tr>`; }).join("")}</table></div>
     ${j.notes.map(n => `<div class="small">${esc(n)}</div>`).join("")}`;
-  $("#prvOut").innerHTML = html + `<div class="row" style="margin-top:4px"><button id="prvPrint">Drucken</button></div>`;
+  const cr = (j.unc || {}).corr, steps = j.rows.map(r => r.step);
+  const corr = cr && cr.r && cr.r.length > 1 ? `<div class="small" style="margin-top:6px"><b>${esc(LabUI.t("er.u_corr"))}</b></div><div style="overflow-x:auto"><table class="res"><tr><th></th>${steps.map(s => `<th>${s}</th>`).join("")}</tr>${cr.r.map((row, a) => `<tr><td>${steps[a]}</td>${row.map(x => `<td>${fx(x, 3)}</td>`).join("")}</tr>`).join("")}</table></div><div class="small">${esc(cr.note || "")}</div>` : "";
+  const fold = j.unc && (hasU || j.unc.error) ? `<details class="sub" data-fold="prvunc"${op("prvunc")}><summary>${esc(LabUI.t("er.u_series"))}</summary><div id="prvUnc"></div>${corr}</details>` : "";
+  $("#prvOut").innerHTML = html + fold + `<div class="row" style="margin-top:4px"><button id="prvPrint">Drucken</button></div>`;
+  if (fold) uncResults($("#prvUnc"), j.unc, "prep:series", body, (r) => ({ sym: `c_${r.name.replace(/^series-c/, "S")}`, label: r.label }));
   $("#prvPrint").onclick = () => printSheet(html, `Verdünnungsreihe 1:${tl(j.factor)} ab ${tl(j.c0)} ${j.unit}`);
 }
 async function runPrepMix() {
@@ -2578,13 +2610,18 @@ const PP = () => (S.prep = S.prep || { s: { rows: [{}] }, k: {} });
 const decComma = (t) => String(t).replace(/(\d)\.(\d)/g, "$1,$2");
 function prepRows() {
   const s = PP().s; if (!s.rows || !s.rows.length) s.rows = [{}];
-  $("#prsRows").innerHTML = `<tr><th class="l">Stoff (Form)</th><th class="l">Bezug</th><th class="l">Ziel</th><th></th><th class="l">Reinheit %</th><th></th></tr>` +
+  $("#prsRows").innerHTML = `<tr><th class="l">Stoff (Form)</th><th class="l">Bezug</th><th class="l">Ziel</th><th></th><th class="l">Reinheit %</th>${UNC_OK() ? `<th class="l" title="${esc(LabUI.t("er.u_mw_t"))}">${esc(LabUI.t("er.u_mw"))}</th>` : ""}<th></th></tr>` +
     s.rows.map((r, i) => `<tr><td class="l"><input data-pr="${i}.substance" style="width:110px" placeholder="CuSO4·5H2O" value="${esc(r.substance || "")}"></td>
       <td class="l"><input data-pr="${i}.basis" style="width:70px" placeholder="= Stoff" value="${esc(r.basis || "")}"></td>
       <td class="l"><input data-pr="${i}.value" style="width:56px" placeholder="0,1" value="${esc(r.value || "")}"></td>
       <td class="l"><select data-pr="${i}.unit">${PREP_UNITS.map(u => `<option${(r.unit || "mol/L") === u ? " selected" : ""}>${u}</option>`).join("")}</select></td>
       <td class="l"><input data-pr="${i}.purity" style="width:44px" placeholder="100" value="${esc(r.purity || "")}"></td>
+      ${UNC_OK() ? `<td class="l"><input data-pr="${i}.mw" style="width:60px" value="${esc(r.mw || "")}"></td>` : ""}
       <td>${s.rows.length > 1 ? `<button data-prdel="${i}" title="Bestandteil entfernen">×</button>` : ""}</td></tr>`).join("");
+  s.rows.forEach((r, i) => {                                      // Runde U: ± an Einwaage (Waage) und Reinheit
+    uncAttach($(`[data-pr="${i}.mw"]`), `s.m.${i}`, `${LabUI.t("er.u_l_m")} ${r.substance || ""}`.trim(), "g");
+    uncAttach($(`[data-pr="${i}.purity"]`), `s.purity.${i}`, `${LabUI.t("er.u_l_P")} ${r.substance || ""}`.trim(), "%");
+  });
 }
 function worksheet(r, title) {
   const rows = (r.steps || []).map(s => s.value == null ? `<tr><td class="l" colspan="3"><b>${esc(decComma(s.text))}</b></td></tr>`
@@ -2601,29 +2638,40 @@ function printSheet(html, title) {
 function rhoOf(v, T, s) { return (v || "").trim() ? { value: v, unit: "g/mL", T_C: (T || "").trim() || null, source: (s || "").trim() || null } : null; }
 async function runPrepSolid() {
   const s = PP().s; save();
-  const comps = (s.rows || []).filter(r => (r.substance || "").trim() && (r.value || "").trim()).map(r => ({ substance: r.substance, basis: r.basis || null, value: r.value, unit: r.unit || "mol/L", purity: r.purity || null }));
+  const use = (s.rows || []).map((r, i) => [r, i]).filter(([r]) => (r.substance || "").trim() && (r.value || "").trim());
+  const comps = use.map(([r]) => ({ substance: r.substance, basis: r.basis || null, value: r.value, unit: r.unit || "mol/L", purity: r.purity || null, mw: numIn(r.mw) }));
   if (!comps.length || !(s.V || "").trim()) { $("#prsOut").innerHTML = ""; return; }
-  const j = await api("api/prep/solid", { components: comps, V: s.V, V_unit: s.Vu || "mL", balance_d: numIn(s.d), flask: !!s.flask, rho_solution: rhoOf(s.rv, s.rT, s.rs) });
+  const r2c = Object.fromEntries(use.map(([, ri], ci) => [ri, ci]));          // Runde U: ±-Schlüssel je Zeile → je Bestandteil
+  const unc = uncReq(["s."], (k) => { const m = k.match(/^s\.(m|purity)\.(\d+)$/); return !m ? k : r2c[m[2]] == null ? null : `s.${m[1]}.${r2c[m[2]]}`; });
+  const body = { components: comps, V: s.V, V_unit: s.Vu || "mL", balance_d: numIn(s.d), flask: !!s.flask, rho_solution: rhoOf(s.rv, s.rT, s.rs), ...(unc ? { unc, lang: LabUI.lang() } : {}) };
+  const j = await api("api/prep/solid", body);
   if (j.error) { $("#prsOut").innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
   const list = j.components || [j];
-  let h = list.map(r => `<div class="phbig" style="font-size:20px">${fmt(r.mass_rounded_g ?? r.mass_g, 4)} g ${esc(r.form.formula)}</div>
-    <div class="small">für ${fmt(r.target.value, 4)} ${esc(r.target.unit)} ${esc(r.basis.formula)} in ${fmt(r.V_L * 1000, 4)} mL${r.purity < 1 ? ` · Reinheit ${fmt(100 * r.purity, 4)} %` : ""}${r.actual_value != null ? ` · tatsächlich ${fmt(r.actual_value, 4)} ${esc(r.target.unit)}` : ""}</div>`).join("");
+  list.forEach((r, ci) => { const el = $(`[data-pr="${use[ci][1]}.mw"]`); if (el) el.placeholder = fmt(r.mass_rounded_g ?? r.mass_g, 4); });
+  let h = list.map((r, ci) => `<div class="phbig" style="font-size:20px">${fmt(r.mass_rounded_g ?? r.mass_g, 4)} g ${esc(r.form.formula)}</div>
+    <div class="small">für ${fmt(r.target.value, 4)} ${esc(r.target.unit)} ${esc(r.basis.formula)} in ${fmt(r.V_L * 1000, 4)} mL${r.purity < 1 ? ` · Reinheit ${fmt(100 * r.purity, 4)} %` : ""}${r.actual_value != null ? ` · tatsächlich ${fmt(r.actual_value, 4)} ${esc(r.target.unit)}` : ""}</div><div data-uncres="${ci}"></div>`).join("");
   const mixNotes = j.components ? (j.notes || []) : [];
   h += `<details class="sub" data-fold="prsws"${op("prsws")}><summary>Arbeitsblatt</summary>${list.map(r => (list.length > 1 ? `<div style="margin-top:6px"><b>${esc(r.form.formula)}</b></div>` : "") + worksheet(r)).join("")}${mixNotes.map(n => `<div class="small">${esc(n)}</div>`).join("")}
     <div class="row" style="margin-top:4px"><button id="prsPrint">Arbeitsblatt drucken</button></div></details>`;
   $("#prsOut").innerHTML = h;
+  uncResults($("#prsOut"), j.unc, "prep:solid", body, (res, ci) => ({ sym: `c_${symFor(list[ci] ? list[ci].basis.formula : "")}_prep`, kind: "number" }));
   $("#prsPrint").onclick = () => printSheet(list.map(r => `<h3>${esc(r.form.formula)}</h3>` + worksheet(r)).join("") + mixNotes.map(n => `<p>${esc(n)}</p>`).join(""), "Lösung aus Feststoff");
 }
 async function runPrepStock() {
   const k = PP().k; save();
   if (!(k.substance || "").trim() || !(k.sv || "").trim() || !(k.tv || "").trim() || !(k.V || "").trim()) { $("#prkOut").innerHTML = ""; return; }
   const stock = { value: k.sv, unit: k.su || "%(w/w)", basis: k.sb || "form", density: rhoOf(k.dv, k.dT, k.ds) };
-  const j = await api("api/prep/stock", { substance: k.substance, stock, value: k.tv, unit: k.tu || "mol/L", V: k.V, V_unit: k.Vu || "mL", basis: (k.basis || "").trim() || null });
+  const unc = uncReq(["k."]);                                     // Runde U: ± an Gehalt, Dichte, Volumina
+  const body = { substance: k.substance, stock, value: k.tv, unit: k.tu || "mol/L", V: k.V, V_unit: k.Vu || "mL", basis: (k.basis || "").trim() || null,
+    ...(numIn(k.V1) != null ? { V1: numIn(k.V1) } : {}), ...(unc ? { unc, lang: LabUI.lang() } : {}) };
+  const j = await api("api/prep/stock", body);
   if (j.error) { $("#prkOut").innerHTML = `<div class="note err">${esc(j.error)}</div>`; return; }
+  const v1 = $('[data-pp="k.V1"]'); if (v1) v1.placeholder = fmt(j.V_stock_mL, 4);
   let h = `<div class="phbig" style="font-size:20px">${fmt(j.V_stock_mL, 4)} mL Stammlösung</div>
-    <div class="small">${j.m_stock_g != null ? `oder ${fmt(j.m_stock_g, 4)} g wägen · ` : ""}c(Stamm) = ${fmt(j.c_stock, 4)} mol/L ${esc(j.basis.formula)} · Verdünnung 1 : ${fmt(j.dilution, 4)} · auf ${fmt(j.V_L * 1000, 4)} mL auffüllen</div>`;
+    <div class="small">${j.m_stock_g != null ? `oder ${fmt(j.m_stock_g, 4)} g wägen · ` : ""}c(Stamm) = ${fmt(j.c_stock, 4)} mol/L ${esc(j.basis.formula)} · Verdünnung 1 : ${fmt(j.dilution, 4)} · auf ${fmt(j.V_L * 1000, 4)} mL auffüllen</div><div data-uncres="0"></div>`;
   h += `<details class="sub" data-fold="prkws"${op("prkws")}><summary>Arbeitsblatt</summary>${worksheet(j)}<div class="row" style="margin-top:4px"><button id="prkPrint">Arbeitsblatt drucken</button></div></details>`;
   $("#prkOut").innerHTML = h;
+  uncResults($("#prkOut"), j.unc, "prep:stock", body, () => ({ sym: `c_${symFor(j.basis.formula)}_stamm` }));
   $("#prkPrint").onclick = () => printSheet(worksheet(j), "Lösung aus Stammlösung");
 }
 function bindPrep() {
@@ -2638,6 +2686,14 @@ function bindPrep() {
       prLater(g);
     });
   }
+  // Runde U: ± an den gemessenen bzw. eingegebenen Grössen (Einstellungen wie Faktor oder Stufenzahl bleiben ohne ±)
+  const ppU = (g, f, d) => () => (PP()[g] || {})[f] || d;
+  for (const [k, lab, unit] of [["s.V", "er.u_l_V", ppU("s", "Vu", "mL")], ["s.rv", "er.u_l_rho", "g/mL"], ["k.sv", "er.u_l_cs", ppU("k", "su", "%(w/w)")],
+    ["k.dv", "er.u_l_rho", "g/mL"], ["k.V", "er.u_l_V", ppU("k", "Vu", "mL")], ["k.V1", "er.u_l_V1", "mL"], ["v.c0", "er.u_l_c0", ppU("v", "unit", "mol/L")],
+    ["g.p", "er.u_l_p", ppU("g", "pu", "kPa")], ["g.V", "er.u_l_Vg", ppU("g", "Vu", "L")], ["g.n", "er.u_l_n", "mol"], ["g.T", "er.u_l_T", ppU("g", "Tu", "°C")],
+    ["r.amt", "er.u_l_amt", ppU("r", "amtU", "mmol")]]) uncAttach($(`[data-pp="${k}"]`), k, LabUI.t(lab), unit);
+  uncAttach($("#prvPip"), "v.pip", LabUI.t("er.u_pip"), "mL");
+  uncAttach($("#prvFl"), "v.flask", LabUI.t("er.u_fl"), "mL");
   prepRows();
   const onRow = (e) => { const t = e.target.dataset.pr; if (!t) return; const [i, f] = t.split("."); PP().s.rows[+i][f] = e.target.value; prLater("s"); };
   $("#prsRows").addEventListener("input", onRow); $("#prsRows").addEventListener("change", onRow);
@@ -3677,7 +3733,8 @@ function toEnv(items) {
     let sym = String(it.sym || "w").slice(0, 40);
     for (let i = 2; S.vals.some(v => v.sym === sym); i++) sym = `${String(it.sym).slice(0, 36)}_${i}`;
     S.vals.push({ id: "v" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), sym, label: String(it.label || sym).slice(0, 200), value: String(it.value),
-      unit: it.unit || "", kind: it.kind || "number", source: it.source || {}, dataset: it.dataset || "", copied: now, used: [] });
+      unit: it.unit || "", kind: it.kind || "number", source: it.source || {}, dataset: it.dataset || "", copied: now, used: [],
+      ...(+it.u > 0 ? { u: +it.u } : {}), ...(it.index ? { index: it.index, itype: it.itype || "" } : {}) });
     added++;
   }
   if (S.vals.length > 200) S.vals = S.vals.slice(-200);
@@ -3685,11 +3742,32 @@ function toEnv(items) {
   const d = $('details[data-fold="vals"]'); if (d && added) d.open = true;
   toast(added ? LabUI.t("er.v_added", { n: added }) : LabUI.t("er.v_again"));
 }
+// Wert aus dem Projektindex: mit Einheit, u und Herkunft in die übernommenen Werte; von dort „Einsetzen“
+function takeIdx(e) {
+  const q = (e && e.quantity) || {};
+  if (!Number.isFinite(+q.value)) return toast(LabUI.t("er.v_idx_nonum"), true);
+  const o = LabIndex.originOf(e), src = e.source || {};
+  toEnv([{ sym: LabIndex.symFor(e), value: String(q.value), unit: q.unit || "", kind: "number", label: e.label || e.key, u: q.u,
+    index: e.id, itype: e.type || "", dataset: o,
+    source: { key: "index", short: `Projektindex ${e.id}`, text: [`Projektindex ${e.id}`, o, src.title || ""].filter(Boolean).join(" · ") } }]);
+}
+// Einheit, die ein Eingabefeld erwartet (null: das Feld sagt es nicht)
+function fieldUnit(el) {
+  if (el.dataset.unit) return el.dataset.unit;
+  const fixed = { T: "°C", p: "bar", V: "mL" }[el.dataset.f];
+  if (fixed) return fixed;
+  if (el.dataset.f === "value") {
+    const s = el.parentNode && el.parentNode.querySelector('select[data-f="unit"]');
+    if (s) return s.value === "c" ? "mol/L" : s.value;
+  }
+  const m = /\[([^\]]+)\]\s*$/.exec(el.getAttribute("aria-label") || el.closest("label")?.textContent.trim() || el.title || "");
+  return m ? m[1] : null;
+}
 function renderVals() {
   const vs = S.vals || [];
   $("#valCard").hidden = !vs.length;
   $("#valN").textContent = vs.length ? `(${vs.length})` : "";
-  $("#valList").innerHTML = vs.map(v => `<div class="vi" data-vid="${esc(v.id)}"><code>${esc(v.sym)}</code><span>= <b>${esc(v.value.replace(/^(-?\d+)\.(\d)/, "$1,$2"))}</b>${v.unit ? " " + esc(v.unit) : ""}</span>
+  $("#valList").innerHTML = vs.map(v => `<div class="vi" data-vid="${esc(v.id)}"><code>${esc(v.sym)}</code><span>= <b>${esc(v.value.replace(/^(-?\d+)\.(\d)/, "$1,$2"))}</b>${+v.u > 0 ? " ± " + esc(String(v.u).replace(".", ",")) : ""}${v.unit ? " " + esc(v.unit) : ""}</span>
     <span class="vl small" title="${esc(v.label)}">${esc(v.label)} · ${esc((v.source || {}).short || "")}</span>${v.used && v.used.length ? `<span class="small" title="${esc(LabUI.t("er.v_used_t"))}">${v.used.length}×</span>` : ""}
     ${v.origin && v.origin.link ? (v.origin.detached ? LabUI.chip("warn", LabUI.t("er.ev_detached")) : LabUI.chip(v.origin.mode === "copy" ? "info" : "live", `${v.origin.mode === "copy" ? LabUI.t("er.ev_copy") : LabUI.t("er.ev_live")} v${v.origin.version}`)) : ""}
     ${v.changed ? `<span title="${esc(LabUI.t("er.ev_changed_t", { a: v.changed.from, b: v.value }))}">${LabUI.chip("warn", LabUI.t("er.ev_changed", { a: v.changed.from }))}</span><button type="button" data-v-ok title="${esc(LabUI.t("er.ev_ok_t"))}">✓</button>` : ""}${shr(v.sym)}
@@ -3715,16 +3793,28 @@ function bindVals() {
       const a = document.activeElement;                            // Fokus bleibt dank mousedown im Feld
       const el = isField(a) ? a : lastInput && document.contains(lastInput) && !lastInput.disabled ? lastInput : $("#eq");
       lastInput = el;
-      insertAtCursor(v.value);
-      v.used = (v.used || []).concat([{ where: fieldName(el), at: new Date().toISOString().slice(0, 19) }]).slice(-50);
-      renderVals(); save();
-      toast(LabUI.t("er.v_inserted", { s: v.sym, w: fieldName(el) }));
+      const put = () => {
+        lastInput = el;
+        insertAtCursor(v.value);
+        v.used = (v.used || []).concat([{ where: fieldName(el), at: new Date().toISOString().slice(0, 19) }]).slice(-50);
+        renderVals(); save();
+        toast(LabUI.t("er.v_inserted", { s: v.sym, w: fieldName(el) }) + (v.index && v.unit ? ` (${v.value} ${v.unit})` : ""));
+      };
+      const want = v.index ? fieldUnit(el) : null;                  // Indexwert: nie still in eine andere Einheit
+      if (want === null) return put();
+      api("api/unit_fit", { a: v.unit || "", b: want }).then((j) => {
+        if (!j || j.error || j.known === undefined) return toast(LabUI.t("er.v_unit_nc"), true);
+        if (j.known && !j.same) return toast(LabUI.t("er.v_unit_no", { s: v.sym, a: v.unit || "1", b: want }), true);
+        put();
+      });
     } else if (e.target.closest("[data-v-info]")) {
       const s = v.source || {};
-      LabUI.popover(e.target.closest("[data-v-info]"), `<div class="toolmenu"><b>${esc(v.sym)} = ${esc(v.value)} ${esc(v.unit)}</b><div class="small">${esc(v.label)}</div>
+      const pop = LabUI.popover(e.target.closest("[data-v-info]"), `<div class="toolmenu"><b>${esc(v.sym)} = ${esc(v.value)}${+v.u > 0 ? " ± " + esc(String(v.u)) : ""} ${esc(v.unit)}</b><div class="small">${esc(v.label)}</div>${v.index ? `<button type="button" data-v-chain>${esc(LabUI.t("er.v_info"))} …</button>` : ""}
         <dl class="kv"><dt>${esc(LabUI.t("er.v_src"))}</dt><dd>${esc(s.text || s.short || "–")}</dd>${v.dataset ? `<dt>${esc(LabUI.t("er.v_ds"))}</dt><dd>${esc(v.dataset)}</dd>` : ""}
         <dt>${esc(LabUI.t("er.v_copied"))}</dt><dd>${esc(v.copied.replace("T", " "))}</dd>
         <dt>${esc(LabUI.t("er.v_usedin"))}</dt><dd>${v.used && v.used.length ? v.used.map(u => `${esc(u.where)} <span class="small">${esc((u.at || "").slice(11, 16))}</span>`).join("<br>") : "–"}</dd></dl></div>`);
+      const ch = pop && pop.querySelector("[data-v-chain]");
+      if (ch) ch.addEventListener("click", () => { LabUI.closePop(); LabIndex.history(api, toast, { index: v.index }); });
     } else if (e.target.closest("[data-v-del]")) {
       S.vals = S.vals.filter(x => x.id !== v.id); renderVals(); save();
     } else if (e.target.closest("[data-v-ok]")) {                   // UI-15: Änderung der Quelle zur Kenntnis genommen
@@ -3757,7 +3847,7 @@ function shr(sym) {
   return `<button type="button" class="shr" data-shr="${esc(sym)}" title="${esc(LabUI.t("er.ev_shr_t"))}" aria-label="${esc(LabUI.t("er.ev_shr_t"))}: ${esc(sym)}">⇄</button>`;
 }
 function catalogue() {                                            // teilbare Zahlenwerte der geöffneten Umgebung
-  return pageValues().filter(v => Number.isFinite(+v.value)).map(({ sym, label, value, unit, kind }) => ({ sym, label, value, unit, kind }));
+  return pageValues().filter(v => Number.isFinite(+v.value)).map(({ sym, label, value, unit, kind, u, unc }) => ({ sym, label, value, unit, kind, ...(Number.isFinite(u) ? { u, unc: unc || "gum" } : {}) }));
 }
 function catalogueOf(boxId) {
   if (boxId === meBox()) return catalogue();
@@ -3939,7 +4029,7 @@ function moduleMenu(anchor) {
     if (k === "eigene") openModWin(k);
     else if (k === "quellen") openResearch("quellen");
     else if (k === "envs") ENVS.dialog();
-    else if (k === "index") LabIndex.browse(api, toast);
+    else if (k === "index") LabIndex.browse(api, toast, takeIdx);
     else if (k === "shared") shareDialog();
   });
 }
@@ -4119,7 +4209,7 @@ function onBoardUnlink(l) {
 }
 async function onBoardOpen(box) {
   if (!box) return;
-  if (box.id === "idx") return LabIndex.browse(api, toast);
+  if (box.id === "idx") return LabIndex.browse(api, toast, (e) => { showDetail(); takeIdx(e); });
   if (box.id === "add:env") {
     const name = prompt(tB("er.b_new_q"), "");
     if (name === null) return;
@@ -4397,6 +4487,8 @@ LabUI.strings({
         "er.v_n": "Aus dem Nachschlagefenster übernommen. „Einsetzen“ schreibt den Wert in das zuletzt benutzte Eingabefeld und merkt sich, wo er eingesetzt wurde; ⓘ zeigt die Herkunft.", "er.v_to_t": "Wert mit Quelle in die Umgebung übernehmen; von dort in Eingabefelder einsetzen",
         "er.v_chosen_env": "Gewählte Werte → Umgebung", "er.v_added": "{n} Wert(e) in die Umgebung übernommen.", "er.v_again": "Schon übernommen; Zeitpunkt aktualisiert.",
         "er.v_ins": "Einsetzen", "er.v_ins_t": "In das zuletzt benutzte Eingabefeld einsetzen", "er.v_info": "Herkunft", "er.v_del": "Aus der Umgebung entfernen",
+        "er.v_idx_nonum": "Dieser Eintrag hat keinen Zahlenwert.", "er.v_unit_no": "{s} steht in {a}, das Feld erwartet {b}: nicht eingesetzt (keine stille Umrechnung).",
+        "er.v_unit_nc": "Einheit konnte nicht geprüft werden, nicht eingesetzt. Bitte das Modul neu starten.",
         "er.v_used_t": "So oft in Eingabefelder eingesetzt", "er.v_inserted": "{s} eingesetzt in {w}.", "er.v_where_eq": "Gleichung",
         "er.v_src": "Quelle", "er.v_ds": "Datensatz, Bedingungen", "er.v_copied": "übernommen", "er.v_usedin": "eingesetzt in" },
   en: { "er.rs_h": "Look up", "er.rs_btn": "📖 Look up",
@@ -4413,6 +4505,8 @@ LabUI.strings({
         "er.v_n": "Copied from the look-up window. “Insert” writes the value into the last used input field and records where it went; ⓘ shows the provenance.", "er.v_to_t": "Copy the value with its source into the environment; insert it into input fields from there",
         "er.v_chosen_env": "Chosen values → environment", "er.v_added": "{n} value(s) copied into the environment.", "er.v_again": "Already copied; time updated.",
         "er.v_ins": "Insert", "er.v_ins_t": "Insert into the last used input field", "er.v_info": "Provenance", "er.v_del": "Remove from the environment",
+        "er.v_idx_nonum": "This entry has no number.", "er.v_unit_no": "{s} is in {a}, the field expects {b}: not inserted (no silent conversion).",
+        "er.v_unit_nc": "The unit could not be checked, not inserted. Please restart the module.",
         "er.v_used_t": "Times inserted into input fields", "er.v_inserted": "{s} inserted into {w}.", "er.v_where_eq": "Equation",
         "er.v_src": "Source", "er.v_ds": "Data set, conditions", "er.v_copied": "copied", "er.v_usedin": "inserted into" },
 });
@@ -4448,6 +4542,152 @@ LabUI.strings({
         "er.ds_err": "Dataset not readable ({e}); the numbers from v{v} stay.", "er.ds_line_t": "Editing by hand detaches the dataset.",
         "er.ds_done": "{n} rows taken from “{t}”.", "er.ds_upd": "“{t}”: live, updated to v{v}.",
         "er.ds_res": "Data: dataset “{t}” ({id} v{v}, {m})" },
+});
+// ------------------------------------------------------------------ Runde U: Messunsicherheit (labunc.js; MODULES.md „Measurement uncertainty“)
+// ±-Angaben liegen in S.uncSpecs (Schlüssel wie „s.m.0“, „st.2“, „ph.c.0“), das Verfahren in S.uncM. Molare Massen tragen immer die
+// Unsicherheit der Standardatomgewichte (Intervalle als Rechteckverteilung nach Possolo et al. 2018).
+const UNC_OK = () => !!window.LabUnc;
+const UNC_VALS = {};                                               // Ergebnisse mit u für die Werte-Schublade und den Katalog
+let UNC_RUN = null;                                                // Zustand der letzten Rechnung (für „Verfahren vergleichen“)
+const uncMeth = () => ({ method: "gum", p: 0.95, k: null, ...(S.uncM || {}) });
+const uncSpecsAll = () => (UNC_OK() ? LabUnc.all() : (S.uncSpecs || {}));
+const uncUsed = () => UNC_OK() && (!!S.uncM || Object.keys(uncSpecsAll()).length > 0);
+const UNC_AMT = ["g", "mg", "kg", "mol", "mmol"];
+// Anfrageteil {method, p, k, specs, lang}; prefixes wählt die Schlüssel, map benennt sie um (null = weglassen).
+// Ohne ±-Angabe und ohne gewähltes Verfahren null (dann rechnet der Server ohne Unsicherheit), ausser force.
+function uncReq(prefixes, map, force) {
+  if (!UNC_OK() || !(force || uncUsed())) return null;
+  const specs = {};
+  for (const [k, v] of Object.entries(uncSpecsAll())) {
+    if (!prefixes.some(p => k.startsWith(p))) continue;
+    const k2 = map ? map(k) : k; if (k2 == null) continue;
+    const sp = { ...v }, m = k.match(/^st\.(\d+)$/);
+    if (m) { const a = (S.amounts || {})[m[1]] || (S.actual || {})[m[1]]; if (a && UNC_AMT.includes(a.unit) && numIn(a.value) != null) { sp.value = numIn(a.value); sp.unit = a.unit; } }
+    specs[k2] = sp;
+  }
+  const me = uncMeth();
+  return { method: me.method, p: me.p, k: me.k, specs, lang: LabUI.lang() };
+}
+function uncAttach(el, key, label, unit) {
+  if (!UNC_OK() || !el) return;
+  try { LabUnc.attach(el, { key, label, unit: unit || "" }); } catch (e) { console.warn(e); }
+}
+// Ergebnis mit „Verfahren vergleichen“ (POST api/uncer rechnet dasselbe Modell mit allen vier Verfahren)
+function uncShow(el, r, where, req) {
+  if (!el) return;
+  if (!UNC_OK() || !r || r.none || (!r.error && !r.u && !r.U)) { el.innerHTML = ""; return; }   // u = U = 0: nichts anzeigen
+  LabUnc.result(el, r, { label: true, compare: r.error ? null : async () => {
+    const j = await api("api/uncer", { where, req, name: r.name, lang: LabUI.lang() });
+    if (j.error) throw new Error(j.error);
+    return j;
+  } });
+}
+const uncOk = (r) => r && !r.none && !r.error && Number.isFinite(r.u) && (r.u > 0 || r.U > 0);
+function uncVal(sym, r, label, kind) {                              // Ergebnis mit u in die Werte-Schublade
+  if (!uncOk(r)) { delete UNC_VALS[sym]; return; }
+  UNC_VALS[sym] = { sym, kind: kind || "number", value: String(+r.value.toPrecision(7)), unit: r.unit || "", u: +r.u.toPrecision(3), unc: r.method, label: label || r.label, group: LabUI.t("er.u_group"), type: "calculated" };
+}
+// Ergebnisse einer Rechnung in die Plätze [data-uncres="i"] (sonst unten angehängt); symOf(r, i) → Symbol für die Schublade
+function uncResults(el, unc, where, req, symOf) {
+  if (!el) return;
+  const old = el.querySelector(":scope > .unc-more"); if (old) old.remove();
+  if (!UNC_OK() || !unc) return;
+  if (unc.error) { el.insertAdjacentHTML("beforeend", `<div class="unc-more note warn">${esc(LabUI.t("er.u_err"))}: ${esc(unc.error)}</div>`); return; }
+  let more = null;
+  (unc.results || []).forEach((r, i) => {
+    let slot = el.querySelector(`[data-uncres="${i}"]`);
+    if (!slot) { if (!more) { more = document.createElement("div"); more.className = "unc-more"; el.appendChild(more); } slot = document.createElement("div"); more.appendChild(slot); }
+    uncShow(slot, r, where, req);
+    const s = symOf && symOf(r, i); if (s) uncVal(s.sym, r, s.label, s.kind);
+  });
+}
+const UNC_SHORT = { gum: "GUM", mc: "MC", gauss: "Gauss", worst: "Max" };
+function uncBtnPaint() {
+  const b = $("#uncBtn"); if (!b) return;
+  b.hidden = !UNC_OK();
+  b.textContent = `± ${UNC_SHORT[uncMeth().method] || "GUM"}`;
+  b.classList.toggle("on", uncUsed());
+}
+function uncRerun() {
+  if ((S.equation || "").trim()) recompute();
+  if ((S.species || "").trim()) runSpecies();
+  if ((S.phMix || "").trim()) runPH();
+  for (const g of ["s", "k", "v", "g", "r"]) if ($(`details[data-fold="${({ s: "prs", k: "prk", v: "prv", g: "prg", r: "prr" })[g]}"]`)?.open) prLater(g);
+}
+function uncMenu(anchor) {
+  const p = LabUI.popover(anchor, `<div style="max-width:380px"><b>${esc(LabUI.t("er.u_h"))}</b>
+    <div data-um style="margin:6px 0"></div>
+    <div class="small">${esc(LabUI.t("er.u_hint"))}</div>
+    <div class="row" style="margin-top:6px"><button type="button" data-uown>${esc(LabUI.t("er.u_own"))}</button></div></div>`);
+  LabUnc.methodPicker(p.querySelector("[data-um]"), { ...uncMeth(), onChange: (m) => { S.uncM = m; save(); uncBtnPaint(); uncRerun(); } });
+  p.querySelector("[data-uown]").onclick = () => { LabUI.closePop(); LabUnc.instrumentsDialog().then(uncRerun); };
+}
+function uncInit() {
+  if (!UNC_OK()) { const t = $("#prvTools"); if (t) t.hidden = true; return; }
+  LabUnc.load(S.uncSpecs || {});
+  LabUnc.onChange((key) => {
+    S.uncSpecs = LabUnc.all(); save(); uncBtnPaint();
+    const g = String(key).split(".")[0];
+    if (g === "st") recompute();
+    else if (g === "ph") runPH();
+    else if (["s", "k", "v", "g", "r"].includes(g)) prLater(g);
+  });
+  $("#uncBtn").addEventListener("click", (e) => uncMenu(e.currentTarget));
+  uncBtnPaint();
+}
+// Gleichung: ± an den Mengen; Ausbeute ± U aus S.last.unc
+function uncStoich(r) {
+  if (!UNC_OK() || !r || !r.cards) return;
+  const unitOf = (i) => () => { const a = (S.amounts || {})[i] || (S.actual || {})[i] || {}; return a.unit === "c" ? "mol/L" : a.unit || "g"; };
+  $$('#stIn input[data-f="value"]').forEach(inp => {
+    const i = inp.dataset.i, c = r.cards[+i]; if (!c) return;
+    uncAttach(inp, `st.${i}`, `${LabUI.t(c.side < 0 ? "er.u_l_use" : "er.u_l_got")} ${c.unicode}`, unitOf(i));
+  });
+  const box = $("#stUnc"); if (!box) return;
+  const ys = (((S.last && S.last.unc) || {}).results || []).filter(x => /^yield-/.test(x.name) && !x.none);
+  for (const k of Object.keys(UNC_VALS)) if (k.startsWith("Y_")) delete UNC_VALS[k];
+  box.innerHTML = ys.map((_, k) => `<div data-uncres="${k}" style="margin-top:6px"></div>`).join("");
+  ys.forEach((x, k) => { uncShow(box.querySelector(`[data-uncres="${k}"]`), x, "run", UNC_RUN); uncVal(`Y_${symFor(x.name.slice(6))}`, x); });
+}
+// Einzelner Stoff: M ± U (Possolo et al. 2018)
+function uncSpecies(j, f) {
+  const box = $("#spUnc"); if (!box) return;
+  uncShow(box, j.M_unc, "species", { formula: f, unc: uncReq([], null, true) });
+}
+// pH: ± an c und pKa (Fold), u(pH) durch Fortpflanzung
+function uncPH(j) {
+  const inBox = $("#phUncIn"), resBox = $("#phUncRes"); if (!UNC_OK() || !inBox) return;
+  const u = j.unc;
+  if (!u || u.error) { inBox.innerHTML = u && u.error ? `<div class="small">${esc(LabUI.t("er.u_err"))}: ${esc(u.error)}</div>` : ""; if (resBox) resBox.innerHTML = ""; return; }
+  const ins = u.inputs || [];
+  inBox.innerHTML = ins.length ? `<details class="sub" data-fold="phunc"${op("phunc")}><summary>${esc(LabUI.t("er.u_ph_in"))}</summary>
+    <table class="res">${ins.map((x, i) => `<tr><td class="l">${esc(x.label)}</td><td class="l"><input data-phu="${i}" readonly tabindex="-1" style="width:84px" value="${esc(fx(x.value, x.unit ? 4 : 2))}"> ${esc(x.unit)}</td></tr>`).join("")}</table>
+    <div class="small">${esc(LabUI.t("er.u_ph_note"))}</div></details>` : "";
+  ins.forEach((x, i) => uncAttach(inBox.querySelector(`[data-phu="${i}"]`), x.key, x.label, x.unit));
+  uncShow(resBox, u.result, "ph", { mixture: S.phMix, T: phTempC(), unc: uncReq(["ph."], null, true) });
+}
+
+LabUI.strings({
+  de: { "er.u_btn_t": "Messunsicherheit: Verfahren für alle Ergebnisse wählen, eigene Messmittel",
+        "er.u_h": "Messunsicherheit", "er.u_own": "Eigene Messmittel …", "er.u_group": "Mit Messunsicherheit",
+        "er.u_hint": "Das Verfahren gilt für alle Ergebnisse dieser Seite. ± neben einem Feld gibt dessen Unsicherheit an; ohne Angabe gilt der Wert als exakt. Molare Massen tragen immer die Unsicherheit der Standardatomgewichte (Intervalle als Rechteckverteilung, Possolo et al. 2018).",
+        "er.u_err": "Messunsicherheit nicht berechnet", "er.u_v1": "abgemessen", "er.u_v1_t": "Tatsächlich abgemessenes Volumen der Stammlösung (leer = berechnet); ± für Pipette oder Bürette",
+        "er.u_tools": "Messmittel je Stufe:", "er.u_pip": "Übertrag", "er.u_fl": "Auffüllen", "er.u_mw": "eingewogen g", "er.u_mw_t": "Tatsächliche Einwaage (leer = berechnete Einwaage); ± für die Waage",
+        "er.u_l_use": "Einsatz", "er.u_l_got": "erhalten", "er.u_l_V": "Endvolumen", "er.u_l_rho": "Dichte", "er.u_l_cs": "Gehalt der Stammlösung",
+        "er.u_l_V1": "abgemessenes Volumen Stammlösung", "er.u_l_c0": "Ausgangskonzentration", "er.u_l_amt": "Bezugsmenge", "er.u_l_m": "Einwaage",
+        "er.u_l_P": "Reinheit", "er.u_l_obs": "erhaltene Masse", "er.u_l_p": "Druck p", "er.u_l_Vg": "Volumen V", "er.u_l_n": "Stoffmenge n", "er.u_l_T": "Temperatur T",
+        "er.u_ph_in": "± an Konzentrationen und pKa", "er.u_ph_note": "u(pH) durch Fortpflanzung der Unsicherheiten von c und pKa durch die Protonenbilanz; Aktivitäten und Temperatur gelten als exakt.",
+        "er.u_series": "Unsicherheit je Stufe und Korrelation", "er.u_corr": "Korrelationskoeffizienten der Stufen", "er.u_step": "Stufe" },
+  en: { "er.u_btn_t": "Measurement uncertainty: choose the method for all results, own instruments",
+        "er.u_h": "Measurement uncertainty", "er.u_own": "Own instruments …", "er.u_group": "With measurement uncertainty",
+        "er.u_hint": "The method applies to every result on this page. ± next to a field states its uncertainty; without one the value is exact. Molar masses always carry the uncertainty of the standard atomic weights (intervals as rectangular distributions, Possolo et al. 2018).",
+        "er.u_err": "Measurement uncertainty not computed", "er.u_v1": "measured", "er.u_v1_t": "Volume of stock solution actually measured (empty = computed); ± for the pipette or burette",
+        "er.u_tools": "Glassware per step:", "er.u_pip": "Transfer", "er.u_fl": "Make up to", "er.u_mw": "weighed g", "er.u_mw_t": "Actual mass weighed (empty = computed mass); ± for the balance",
+        "er.u_l_use": "Amount", "er.u_l_got": "obtained", "er.u_l_V": "Final volume", "er.u_l_rho": "Density", "er.u_l_cs": "Content of the stock solution",
+        "er.u_l_V1": "measured volume of stock solution", "er.u_l_c0": "Starting concentration", "er.u_l_amt": "Reference amount", "er.u_l_m": "Mass weighed",
+        "er.u_l_P": "Purity", "er.u_l_obs": "mass obtained", "er.u_l_p": "Pressure p", "er.u_l_Vg": "Volume V", "er.u_l_n": "Amount n", "er.u_l_T": "Temperature T",
+        "er.u_ph_in": "± on concentrations and pKa", "er.u_ph_note": "u(pH) by propagating the uncertainties of c and pKa through the proton balance; activities and temperature count as exact.",
+        "er.u_series": "Uncertainty per step and correlation", "er.u_corr": "Correlation coefficients of the steps", "er.u_step": "Step" },
 });
 // UI-02: Aufgaben-Einstieg; jede Aufgabe öffnet den passenden Werkzeugbereich und setzt die Schreibmarke
 function goTask(tab, fold, focus) {
@@ -4510,7 +4750,7 @@ async function init() {
   }
   updateShareBtn();
   window.addEventListener("focus", updateShareBtn);
-  $("#indexBtn").addEventListener("click", () => LabIndex.browse(api, toast));
+  $("#indexBtn").addEventListener("click", () => LabIndex.browse(api, toast, takeIdx));
   META = await fetch("api/meta").then(r => r.json());
   $("#ver").textContent = `Elementrechner ${META.version}`;
   buildTools();                                                   // UI-11: Werkzeugbereiche werden zu Karten der Umgebung
@@ -4525,6 +4765,7 @@ async function init() {
   $("#phMix").value = S.phMix || ""; $("#phTemp").value = S.phTemp || ""; $("#tiV0").value = S.ti.V0 || ""; $("#tiT").value = S.ti.t || ""; $("#tiC").value = S.ti.c || ""; $("#tiVmax").value = S.ti.Vmax || "";
   $("#bfPH").value = S.bf.pH || ""; $("#bfC").value = S.bf.c || "";
   for (const k of ["tit", "buf", "ind"]) $(`details[data-fold="${k}"]`).open = !!(S.fold || {})[k];
+  uncInit();                                                      // Runde U: ±-Angaben laden, bevor gerechnet wird
   if (S.equation) run(); if (S.species) runSpecies(); runEA(); if (S.phMix) runPH();
   if (S.steps.length > 1) runChainSoon();
   bindPrep();

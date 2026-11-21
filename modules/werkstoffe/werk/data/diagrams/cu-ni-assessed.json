@@ -1,0 +1,203 @@
+{
+ "quellen": {
+  "cu-ni-assessed_chakrabarti1991": {
+   "type": "book",
+   "authors": "Chakrabarti, D. J.; Laughlin, D. E.; Chen, S. W.; Chang, Y. A.",
+   "title": "Cu-Ni (Copper-Nickel)",
+   "container": "Nash, P. (Hrsg.): Phase Diagrams of Binary Nickel Alloys, ASM International, Materials Park (OH)",
+   "year": "1991",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "cu-ni-assessed",
+  "name": "Cu–Ni (bewertet)",
+  "name_en": "Cu–Ni (assessed)",
+  "A": "Cu",
+  "B": "Ni",
+  "gruppe": "cu",
+  "x_label": "Nickel [Gew.-%]",
+  "x_label_en": "Nickel [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   800,
+   1500
+  ],
+  "q": [
+   "cu-ni-assessed_chakrabarti1991",
+   "massalski1990",
+   "callister"
+  ],
+  "hinweis": "Isomorphes System (lückenlose Mischkristallreihe α, kfz). Literaturwerte (Chakrabarti et al. 1991; Massalski 1990): Cu schmilzt bei 1084,9 °C, Ni bei 1455 °C. Liquidus und Solidus sind dem bewerteten Diagramm nachgezeichnet und mit den Schmelzbereichen genormter Legierungen abgeglichen (CuNi10 ≈ 1100–1145 °C, CuNi30 ≈ 1170–1240 °C; Callister: bei 1250 °C L ≈ 32 %, α ≈ 43 % Ni); schematisch. Nicht gezeichnet: die Mischungslücke unter ≈ 354 °C (unterhalb des Ausschnitts) und die magnetische Umwandlung.",
+  "hinweis_en": "Isomorphous system (continuous fcc solid solution α). Literature values (Chakrabarti et al. 1991; Massalski 1990): Cu melts at 1084.9 °C, Ni at 1455 °C. Liquidus and solidus are traced from the assessed diagram and checked against the melting ranges of standard alloys (CuNi10 ≈ 1100–1145 °C, CuNi30 ≈ 1170–1240 °C; Callister: at 1250 °C L ≈ 32 %, α ≈ 43 % Ni); schematic. Not drawn: the miscibility gap below ≈ 354 °C (below the section) and the magnetic transition.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1084.87,
+    "label": "Cu schmilzt",
+    "label_en": "Cu melts"
+   },
+   {
+    "x": 100,
+    "T": 1455,
+    "label": "Ni schmilzt",
+    "label_en": "Ni melts"
+   }
+  ],
+  "curves": {
+   "liq": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      10,
+      1145
+     ],
+     [
+      20,
+      1195
+     ],
+     [
+      30,
+      1240
+     ],
+     [
+      40,
+      1278
+     ],
+     [
+      50,
+      1310
+     ],
+     [
+      60,
+      1338
+     ],
+     [
+      70,
+      1365
+     ],
+     [
+      80,
+      1392
+     ],
+     [
+      90,
+      1422
+     ],
+     [
+      100,
+      1455
+     ]
+    ]
+   },
+   "sol": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      10,
+      1102
+     ],
+     [
+      20,
+      1137
+     ],
+     [
+      30,
+      1180
+     ],
+     [
+      40,
+      1230
+     ],
+     [
+      50,
+      1277
+     ],
+     [
+      60,
+      1316
+     ],
+     [
+      70,
+      1351
+     ],
+     [
+      80,
+      1386
+     ],
+     [
+      90,
+      1420
+     ],
+     [
+      100,
+      1455
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1500
+     ],
+     [
+      100,
+      1500
+     ],
+     [
+      100,
+      1455
+     ],
+     "-liq"
+    ]
+   },
+   {
+    "label": "α + L",
+    "phases": [
+     "L",
+     "α"
+    ],
+    "poly": [
+     "liq",
+     "-sol"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     "sol",
+     [
+      100,
+      800
+     ],
+     [
+      0,
+      800
+     ]
+    ]
+   }
+  ],
+  "invariants": []
+ }
+}

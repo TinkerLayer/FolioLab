@@ -152,6 +152,14 @@ def draw_scalebar(ax, W, H, calib, opts, lang="de", width_in=6.4):
     return g
 
 
+def _part(arts, pid):
+    """Mark artists as one part of the figure (labstyle: what the report can switch off with its caption and sources)."""
+    if pid:
+        for a in arts if isinstance(arts, (list, tuple)) else [arts]:
+            a._labpart = pid
+    return arts
+
+
 def fig_image(rgb: np.ndarray, calib, lang="de", overlay: np.ndarray | None = None, rois=None, scalebar=True,
               labels=None, width_in=6.4):
     """Bild als Abbildung; scalebar: False, True oder Einstellungen (siehe scalebar_opts)."""
@@ -163,7 +171,9 @@ def fig_image(rgb: np.ndarray, calib, lang="de", overlay: np.ndarray | None = No
     if overlay is not None:
         ax.imshow(overlay, interpolation="nearest", extent=(0, W, H, 0))
     for r in rois or []:
+        before = set(ax.get_children())
         _draw_roi(ax, r)
+        _part([a for a in ax.get_children() if a not in before], "auswahl")
     if labels:
         fs = max(5, min(9, 900 / max(W, H) * 6))
         for i, (x, y) in enumerate(labels, 1):
@@ -211,9 +221,9 @@ def fig_hist(values: np.ndarray, lang="de", thr: dict | None = None, unit_label=
     v = values[np.isfinite(values)].ravel()
     ax.hist(v, bins=256, color="#5f6368", histtype="stepfilled", alpha=0.85)
     if thr and thr.get("lo") is not None:
-        ax.axvspan(thr["lo"], thr["hi"], color="#d93025", alpha=0.15,
-                   label=("Schwellenbereich" if lang == "de" else "Threshold range"))
-        ax.axvline(thr["value"] if thr.get("value") is not None else thr["lo"], color="#d93025", lw=1.2)
+        _part(ax.axvspan(thr["lo"], thr["hi"], color="#d93025", alpha=0.15,
+                         label=("Schwellenbereich" if lang == "de" else "Threshold range")), "schwelle")
+        _part(ax.axvline(thr["value"] if thr.get("value") is not None else thr["lo"], color="#d93025", lw=1.2), "schwelle")
         ax.legend(frameon=False, fontsize=8)
     ax.set_xlabel(unit_label or ("Grauwert" if lang == "de" else "Grey value"))
     ax.set_ylabel("Pixel" if lang == "de" else "Pixels")
@@ -271,11 +281,12 @@ def fig_sizes_overlay(ecd, other, unit: str, lang="de", names=("Partikel", "Date
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
     if a.size and b.size:
         edges = overlay_bins(a, b)
-        for v, wv, col, name, kw in ((a, wa, "#1a73e8", names[0], {"alpha": 0.55, "edgecolor": "white"}),
-                                     (b, np.ones_like(b), "#e37400", names[1], {"histtype": "step", "lw": 1.8})):
-            ax.hist(v, bins=edges, weights=wv * 100.0 / wv.sum(), color=col, label=f"{name} (n = {v.size})", **kw)
+        for pid, v, wv, col, name, kw in ((None, a, wa, "#1a73e8", names[0], {"alpha": 0.55, "edgecolor": "white"}),
+                                          ("vergleich", b, np.ones_like(b), "#e37400", names[1], {"histtype": "step", "lw": 1.8})):
+            bars = ax.hist(v, bins=edges, weights=wv * 100.0 / wv.sum(), color=col, label=f"{name} (n = {v.size})", **kw)[2]
+            _part(list(bars), pid)
             d50 = wquantile(v, wv, (0.5,))[0]
-            ax.axvline(d50, color=col, lw=1.3, ls="--", label=f"D50 (Q0) = {_fmt(round(d50, 3), lang)} {unit}")
+            _part(ax.axvline(d50, color=col, lw=1.3, ls="--", label=f"D50 (Q0) = {_fmt(round(d50, 3), lang)} {unit}"), pid)
         ax.legend(frameon=False, fontsize=8)
     ax.set_xlabel(("Äquivalentdurchmesser / Länge" if lang == "de" else "Equivalent diameter / length") + f" [{unit}]")
     ax.set_ylabel(("Relative Häufigkeit (Anzahl)" if lang == "de" else "Relative frequency (number)") + " [%]")

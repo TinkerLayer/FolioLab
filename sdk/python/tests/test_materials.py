@@ -123,6 +123,116 @@ class CalcFunctions(unittest.TestCase):
         self.assertEqual(recs[1]["source"]["title"], "EN 10088-2, Kaltband C")
 
 
+class Ranges(unittest.TestCase):
+    """data/ranges.json: cited min–max ranges per material and property (areas in the Ashby chart)."""
+    MAIN = ("rho", "E", "Rp", "Rm", "A", "sigma_f", "sigma_c", "KIc", "HV", "Tm", "Tg", "alpha", "lambda", "cp", "rho_el")
+
+    @classmethod
+    def setUpClass(cls):
+        M.reload()
+        cls.data = M._ranges()
+        cls.bereiche = cls.data.get("bereiche") or {}
+
+    def test_file_header(self):
+        self.assertEqual(self.data.get("_format"), "folio-ranges/1")
+        meta = M.ranges_meta()
+        self.assertTrue(meta["de"] and meta["en"])
+        ids = {r["id"] for r in M.materials()}
+        self.assertEqual(set(self.bereiche) - ids, set(), "ranges for unknown material ids")
+
+    def test_every_material_has_rho_and_E_and_its_main_props(self):
+        for r in M.materials():
+            have = M.props_of(r)
+            mine = self.bereiche.get(r["id"]) or {}
+            for p in ("rho", "E"):
+                if p in have:
+                    self.assertIn(p, mine, f"{r['id']}.{p}")
+            for p in self.MAIN:
+                if p in have:
+                    self.assertIn(p, mine, f"{r['id']}.{p}")
+            self.assertTrue({"rho", "E"} <= set(mine), f"{r['id']}: rho and E range for the default Ashby axes")
+
+    def test_ranges_are_ordered_convertible_and_cited(self):
+        from labcalc import sources as S
+        quellen = self.data.get("quellen") or {}
+        for k, rec in quellen.items():
+            self.assertNotIn(k, S.REFS, f"source key {k} shadows a labcalc key")
+            self.assertTrue(rec.get("title") and rec.get("type"), k)
+            self.assertIn("nicht am Original geprüft", rec.get("note", ""), k)
+            self.assertNotIn("doi", rec, k)
+        for mid, props in self.bereiche.items():
+            for p, b in props.items():
+                where = f"{mid}.{p}"
+                self.assertIn(p, M.PROPS, where)
+                self.assertLess(b["min"], b["max"], where)
+                self.assertTrue(b["q"] in quellen or b["q"] in S.REFS, f"{where}: source {b['q']} unknown")
+                self.assertIn(b.get("art"), ("norm", "datenblatt", "handbuch", "literatur"), where)
+                self.assertEqual(b["u"], M.PROPS[p][1], f"{where}: unit should be the display unit")
+                _, dims, _ = U.parse_unit(b["u"])
+                if M.PROPS[p][0] != "number":
+                    self.assertTrue(U.deq(dims, U.kind_dims(M.PROPS[p][0])), where)
+                rg = M.range_of(mid, p)
+                self.assertLess(rg["min_si"], rg["max_si"], where)
+                self.assertTrue(rg["range_source"].get("title"), where)
+
+    def test_stored_values_lie_inside_their_range(self):
+        for mid, props in self.bereiche.items():
+            have = M.props_of(mid)
+            for p, b in props.items():
+                if p not in have:
+                    continue
+                v = M.value(mid, p)
+                rg = M.range_of(mid, p)
+                inside = rg["min_si"] * (1 - 1e-9) <= v["si"] <= rg["max_si"] * (1 + 1e-9)
+                self.assertTrue(inside or b.get("note"), f"{mid}.{p}: stored value outside range without note")
+
+    def test_value_takes_range_from_file_when_it_has_none(self):
+        v = M.value("S235JR", "Rp")                        # stored 235 MPa, no own range
+        self.assertAlmostEqual(v["si"], 235e6)
+        self.assertEqual((v["min_si"], v["max_si"]), (235e6, 355e6))
+        self.assertEqual(v["range_key"], "en10025_2")
+        self.assertIn("EN 10025-2", v["range_source"]["title"])
+        self.assertEqual(v["range_art"], "norm")
+        self.assertFalse(v["range_own"])
+        self.assertIsNone(v["key"])                         # the value keeps its own source
+        v = M.value("Cu", "E")
+        self.assertEqual(v["range_source"]["title"], "ASM Handbook, Vol. 2: Properties and Selection: Nonferrous "
+                                                     "Alloys and Special-Purpose Materials")
+        v = M.value("PE-HD", "Tg")                          # °C range -> K
+        self.assertAlmostEqual(v["min_si"], -125 + 273.15)
+        self.assertEqual(v["range_key"], "mark2007")
+        self.assertEqual(v["range_source"]["authors"], "Mark, J. E.")
+
+    def test_own_range_wins_and_cites_the_value(self):
+        v = M.value("1.4301", "Rm")
+        self.assertEqual((v["min_si"], v["max_si"]), (540e6, 750e6))
+        self.assertTrue(v["range_own"])
+        self.assertEqual(v["range_source"], v["source"])
+        v = M.value("Al2O3", "KIc")
+        self.assertEqual(v["range_key"], "callister")
+
+    def test_card_text_unchanged_by_file_ranges(self):
+        e = next(w for w in M.card("Cu")["werte"] if w["prop"] == "E")
+        self.assertEqual(e["text"], "130 GPa")
+
+    def test_missing_file_means_no_ranges(self):
+        import tempfile
+        from pathlib import Path
+        old = M.DATA
+        with tempfile.TemporaryDirectory() as td:
+            M.DATA = Path(td)
+            M._ranges.cache_clear()
+            try:
+                self.assertEqual(M._ranges(), {})
+                self.assertIsNone(M.range_of("S235JR", "Rp"))
+                v = M.value("S235JR", "Rp")
+                self.assertIsNone(v["min_si"])
+                self.assertIsNone(v["range_key"])
+            finally:
+                M.DATA = old
+                M._ranges.cache_clear()
+
+
 # fixed sample in the shape of the Materials Project /materials/summary/ answer ("data"); no download in tests
 MP_SAMPLE = {
     "Fe": [{"material_id": "mp-13", "formula_pretty": "Fe", "density": 8.0, "band_gap": 0.0,

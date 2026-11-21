@@ -68,6 +68,22 @@ equations may use earlier ones; errors stay with their row. Stored in `outputs/f
 export and import as JSON. In the report: values as `\labval` (`eq-<symbol>`), a table, and each equation as a
 displayed formula in the methods text, with its source.
 
+## Measurement uncertainty
+
+Optional, under **Bands → Measurement uncertainty** (fold). Wavenumber accuracy with the ± button (stated limits,
+an own instrument, or the template *Ph. Eur. 2.2.24*, ±1.0 cm⁻¹, details not verified against the original) and
+the noise: *automatic* (σ per point from the same smoothing residual as the S/N, type A), *from a band-free region*
+(RMS after removing a line, n − 2 degrees of freedom) or *stated* (±). Method picker: GUM, Monte Carlo, Gaussian,
+worst case. Applies to all spectra and is stored with the environment.
+
+Budgets (`ftir/uncert.py`): peak positions (wavenumber accuracy, interpolation over the point spacing, noise of the
+parabolic vertex), band areas and heights (noise as Σcᵢ²σᵢ² of the trapezoid/baseline weights, plus limits moved by
+±1 point as type B), band positions, ratios in one model with the noise correlation of overlapping bands. Own
+equations get `u` for B/H/P/R and for the calls `A(ν)`, `y(ν)`, `area(…)`, `area0(…)`, `height(…)` (the noise of
+shared data points is correlated; arguments count as exact). Tables show `± U`; the fold lists all results and a
+click opens the budget. Shared values and peak tables carry `u`. In the report: `\labval{<id>-pm|-u|-U}`, budget
+tables, a summary table and a methods sentence.
+
 ## Workflow
 
 1. **Open FTIR from its card on the hub start page.** Drag files in or use *File (Datei) ▸ Öffnen …* (open;
@@ -194,7 +210,7 @@ carbonyl, C–H/O–H). **Ctrl+O** (Strg+O) opens, **Ctrl+Z/Y** (Strg+Z/Y) undoe
   reload); *Update from dataset (Aus Datensatz aktualisieren)* loads the latest version. The info line and the
   methods text name ID, version and column.
 * *File ▸ Projektindex …* (project index) shows the values of the project; band values do not go into the index
-  yet.
+  yet. *Use* (*Übernehmen*) in that list makes a value a named variable of your own equations, with its unit, uncertainty and origin.
 * **Values to other environments (⇄):** next to band areas, ratios and the results of own equations there is a ⇄
   button: the value goes **live** or as a **snapshot** (Momentaufnahme) to another FTIR environment and can be used
   there in own equations (if the name is taken → `Name_ext`). **⇄ Connections (⇄ Verbindungen)** in the header

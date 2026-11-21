@@ -1,0 +1,805 @@
+{
+ "quellen": {
+  "cu-zn_miodownik1994": {
+   "type": "book",
+   "authors": "Miodownik, A. P.",
+   "title": "Cu-Zn (Copper-Zinc)",
+   "container": "Subramanian, P. R.; Chakrabarti, D. J.; Laughlin, D. E. (Hrsg.): Phase Diagrams of Binary Copper Alloys, ASM International, Materials Park (OH)",
+   "year": "1994",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "cu-zn",
+  "name": "Cu–Zn (Messingseite)",
+  "name_en": "Cu–Zn (brass side)",
+  "A": "Cu",
+  "B": "Zn",
+  "gruppe": "cu",
+  "x_label": "Zink [Gew.-%]",
+  "x_label_en": "Zinc [wt%]",
+  "xlim": [
+   0,
+   60
+  ],
+  "Tlim": [
+   200,
+   1100
+  ],
+  "q": [
+   "cu-zn_miodownik1994",
+   "massalski1990",
+   "callister"
+  ],
+  "hinweis": "Messingseite (z. B. CuZn37). Literaturwerte (Miodownik 1994; Massalski 1990; Callister): Cu schmilzt bei 1084,9 °C; Peritektikum α + L ⇌ β bei 902 °C (α 32,5 / β 36,8 / L 37,5 Gew.-% Zn); Peritektikum β + L ⇌ γ bei 834 °C (β 56,5 / γ ≈ 59,1 / L ≈ 59,8 %); grösste Zn-Löslichkeit in α ≈ 39 % bei 454 °C; Ordnung β → β′ bei 454–468 °C (Umwandlung höherer Ordnung, als Linie gezeichnet). Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm und den Schmelzbereichen genormter Messinge nachgezeichnet (schematisch). Am rechten Rand beginnt γ; die schmalen Felder dort sind angeschnitten.",
+  "hinweis_en": "Brass side (e.g. CuZn37). Literature values (Miodownik 1994; Massalski 1990; Callister): Cu melts at 1084.9 °C; peritectic α + L ⇌ β at 902 °C (α 32.5 / β 36.8 / L 37.5 wt% Zn); peritectic β + L ⇌ γ at 834 °C (β 56.5 / γ ≈ 59.1 / L ≈ 59.8 %); maximum Zn solubility in α ≈ 39 % at 454 °C; ordering β → β′ at 454–468 °C (higher-order transition, drawn as a line). Curve points in between are traced from the assessed diagram and the melting ranges of standard brasses (schematic). γ begins at the right edge; the narrow fields there are cut off.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1084.87,
+    "label": "Cu schmilzt",
+    "label_en": "Cu melts"
+   },
+   {
+    "x": 32.5,
+    "T": 902
+   },
+   {
+    "x": 36.8,
+    "T": 902,
+    "label": "Peritektikum",
+    "label_en": "Peritectic"
+   },
+   {
+    "x": 37.5,
+    "T": 902
+   },
+   {
+    "x": 56.5,
+    "T": 834
+   },
+   {
+    "x": 59.1,
+    "T": 834,
+    "label": "Peritektikum",
+    "label_en": "Peritectic"
+   },
+   {
+    "x": 59.8,
+    "T": 834
+   },
+   {
+    "x": 39.0,
+    "T": 454,
+    "label": "max. Löslichkeit in α",
+    "label_en": "max. solubility in α"
+   },
+   {
+    "x": 45.6,
+    "T": 454,
+    "label": "β → β′ (Ordnung)",
+    "label_en": "β → β′ (ordering)"
+   },
+   {
+    "x": 51.6,
+    "T": 468
+   }
+  ],
+  "curves": {
+   "liq_a": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      5,
+      1066
+     ],
+     [
+      10,
+      1045
+     ],
+     [
+      15,
+      1024
+     ],
+     [
+      20,
+      1000
+     ],
+     [
+      25,
+      978
+     ],
+     [
+      30,
+      954
+     ],
+     [
+      34,
+      926
+     ],
+     [
+      37.5,
+      902
+     ]
+    ]
+   },
+   "sol_a": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      5,
+      1050
+     ],
+     [
+      10,
+      1020
+     ],
+     [
+      15,
+      992
+     ],
+     [
+      20,
+      965
+     ],
+     [
+      25,
+      940
+     ],
+     [
+      30,
+      916
+     ],
+     [
+      32.5,
+      902
+     ]
+    ]
+   },
+   "liq_b": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      37.5,
+      902
+     ],
+     [
+      40,
+      894
+     ],
+     [
+      45,
+      878
+     ],
+     [
+      50,
+      863
+     ],
+     [
+      55,
+      848
+     ],
+     [
+      59.8,
+      834
+     ]
+    ]
+   },
+   "sol_b": {
+    "kind": "solidus",
+    "pts": [
+     [
+      36.8,
+      902
+     ],
+     [
+      40,
+      895
+     ],
+     [
+      45,
+      881
+     ],
+     [
+      50,
+      864
+     ],
+     [
+      53.5,
+      850
+     ],
+     [
+      56.5,
+      834
+     ]
+    ]
+   },
+   "liq_g": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      59.8,
+      834
+     ],
+     [
+      60,
+      832
+     ]
+    ],
+    "smooth": false
+   },
+   "sol_g": {
+    "kind": "solidus",
+    "pts": [
+     [
+      59.1,
+      834
+     ],
+     [
+      60,
+      822
+     ]
+    ],
+    "smooth": false
+   },
+   "a_ab": {
+    "kind": "solvus",
+    "pts": [
+     [
+      32.5,
+      902
+     ],
+     [
+      33.3,
+      850
+     ],
+     [
+      34.3,
+      800
+     ],
+     [
+      35.3,
+      750
+     ],
+     [
+      36.3,
+      700
+     ],
+     [
+      37.1,
+      650
+     ],
+     [
+      37.8,
+      600
+     ],
+     [
+      38.4,
+      550
+     ],
+     [
+      38.8,
+      500
+     ],
+     [
+      39.0,
+      454
+     ]
+    ]
+   },
+   "a_ab2": {
+    "kind": "solvus",
+    "pts": [
+     [
+      39.0,
+      454
+     ],
+     [
+      38.6,
+      400
+     ],
+     [
+      37.8,
+      350
+     ],
+     [
+      37.0,
+      300
+     ],
+     [
+      36.0,
+      250
+     ],
+     [
+      35.2,
+      200
+     ]
+    ]
+   },
+   "b_ab": {
+    "kind": "solvus",
+    "pts": [
+     [
+      36.8,
+      902
+     ],
+     [
+      37.8,
+      850
+     ],
+     [
+      39.0,
+      800
+     ],
+     [
+      40.3,
+      750
+     ],
+     [
+      41.5,
+      700
+     ],
+     [
+      42.6,
+      650
+     ],
+     [
+      43.6,
+      600
+     ],
+     [
+      44.5,
+      550
+     ],
+     [
+      45.2,
+      500
+     ],
+     [
+      45.6,
+      454
+     ]
+    ]
+   },
+   "b_ab2": {
+    "kind": "solvus",
+    "pts": [
+     [
+      45.6,
+      454
+     ],
+     [
+      46.2,
+      400
+     ],
+     [
+      46.7,
+      350
+     ],
+     [
+      47.1,
+      300
+     ],
+     [
+      47.5,
+      250
+     ],
+     [
+      47.8,
+      200
+     ]
+    ]
+   },
+   "ord": {
+    "kind": "other",
+    "pts": [
+     [
+      45.6,
+      454
+     ],
+     [
+      47,
+      459
+     ],
+     [
+      48.5,
+      463
+     ],
+     [
+      50,
+      466
+     ],
+     [
+      51.6,
+      468
+     ]
+    ]
+   },
+   "b_bg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      56.5,
+      834
+     ],
+     [
+      55.9,
+      800
+     ],
+     [
+      55.0,
+      750
+     ],
+     [
+      54.2,
+      700
+     ],
+     [
+      53.4,
+      650
+     ],
+     [
+      52.7,
+      600
+     ],
+     [
+      52.1,
+      550
+     ],
+     [
+      51.8,
+      500
+     ],
+     [
+      51.6,
+      468
+     ]
+    ]
+   },
+   "b_bg2": {
+    "kind": "solvus",
+    "pts": [
+     [
+      51.6,
+      468
+     ],
+     [
+      51.2,
+      400
+     ],
+     [
+      50.8,
+      300
+     ],
+     [
+      50.5,
+      200
+     ]
+    ]
+   },
+   "g_bg1": {
+    "kind": "solvus",
+    "pts": [
+     [
+      59.1,
+      834
+     ],
+     [
+      58.8,
+      800
+     ],
+     [
+      58.5,
+      750
+     ],
+     [
+      58.3,
+      700
+     ],
+     [
+      58.2,
+      600
+     ],
+     [
+      58.2,
+      500
+     ],
+     [
+      58.3,
+      468
+     ]
+    ]
+   },
+   "g_bg2": {
+    "kind": "solvus",
+    "pts": [
+     [
+      58.3,
+      468
+     ],
+     [
+      58.4,
+      400
+     ],
+     [
+      58.6,
+      300
+     ],
+     [
+      58.8,
+      200
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1100
+     ],
+     [
+      60,
+      1100
+     ],
+     [
+      60,
+      832
+     ],
+     "-liq_g",
+     "-liq_b",
+     "-liq_a"
+    ]
+   },
+   {
+    "label": "α + L",
+    "phases": [
+     "α",
+     "L"
+    ],
+    "poly": [
+     "liq_a",
+     [
+      32.5,
+      902
+     ],
+     "-sol_a"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     "sol_a",
+     "a_ab",
+     "a_ab2",
+     [
+      0,
+      200
+     ]
+    ]
+   },
+   {
+    "label": "β + L",
+    "phases": [
+     "β",
+     "L"
+    ],
+    "poly": [
+     [
+      36.8,
+      902
+     ],
+     [
+      37.5,
+      902
+     ],
+     "liq_b",
+     [
+      56.5,
+      834
+     ],
+     "-sol_b"
+    ]
+   },
+   {
+    "label": "α + β",
+    "phases": [
+     "α",
+     "β"
+    ],
+    "poly": [
+     [
+      32.5,
+      902
+     ],
+     [
+      36.8,
+      902
+     ],
+     "b_ab",
+     [
+      39.0,
+      454
+     ],
+     "-a_ab"
+    ]
+   },
+   {
+    "label": "β",
+    "phases": [
+     "β"
+    ],
+    "poly": [
+     "sol_b",
+     "b_bg",
+     "-ord",
+     "-b_ab"
+    ]
+   },
+   {
+    "label": "β + γ",
+    "phases": [
+     "β",
+     "γ"
+    ],
+    "poly": [
+     [
+      56.5,
+      834
+     ],
+     [
+      59.1,
+      834
+     ],
+     "g_bg1",
+     [
+      51.6,
+      468
+     ],
+     "-b_bg"
+    ]
+   },
+   {
+    "label": "γ + L",
+    "phases": [
+     "γ",
+     "L"
+    ],
+    "poly": [
+     [
+      59.1,
+      834
+     ],
+     [
+      59.8,
+      834
+     ],
+     "liq_g",
+     [
+      60,
+      822
+     ],
+     "-sol_g"
+    ]
+   },
+   {
+    "label": "γ",
+    "phases": [
+     "γ"
+    ],
+    "poly": [
+     "sol_g",
+     [
+      60,
+      200
+     ],
+     [
+      58.8,
+      200
+     ],
+     "-g_bg2",
+     "-g_bg1"
+    ]
+   },
+   {
+    "label": "α + β′",
+    "phases": [
+     "α",
+     "β′"
+    ],
+    "poly": [
+     [
+      39.0,
+      454
+     ],
+     [
+      45.6,
+      454
+     ],
+     "b_ab2",
+     [
+      35.2,
+      200
+     ],
+     "-a_ab2"
+    ]
+   },
+   {
+    "label": "β′",
+    "phases": [
+     "β′"
+    ],
+    "poly": [
+     "ord",
+     "b_bg2",
+     [
+      47.8,
+      200
+     ],
+     "-b_ab2"
+    ]
+   },
+   {
+    "label": "β′ + γ",
+    "phases": [
+     "β′",
+     "γ"
+    ],
+    "poly": [
+     [
+      51.6,
+      468
+     ],
+     [
+      58.3,
+      468
+     ],
+     "g_bg2",
+     [
+      50.5,
+      200
+     ],
+     "-b_bg2"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 902,
+    "type": "peritectic",
+    "x": [
+     32.5,
+     36.8,
+     37.5
+    ],
+    "reaction": "α + L ⇌ β"
+   },
+   {
+    "T": 834,
+    "type": "peritectic",
+    "x": [
+     56.5,
+     59.1,
+     59.8
+    ],
+    "reaction": "β + L ⇌ γ"
+   }
+  ]
+ }
+}

@@ -1,0 +1,1010 @@
+{
+ "quellen": {
+  "asm3_2016": {
+   "type": "book",
+   "authors": "Okamoto, H.; Schlesinger, M. E.; Mueller, E. M. (Hrsg.)",
+   "title": "ASM Handbook, Vol. 3: Alloy Phase Diagrams",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2016",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "cu-sn_saunders1990": {
+   "type": "article",
+   "authors": "Saunders, N.; Miodownik, A. P.",
+   "title": "The Cu-Sn (copper-tin) system",
+   "container": "Bulletin of Alloy Phase Diagrams",
+   "year": "1990",
+   "volume": "11",
+   "pages": "278-287",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "cu-sn",
+  "name": "Cu–Sn (Bronzeseite)",
+  "name_en": "Cu–Sn (bronze side)",
+  "A": "Cu",
+  "B": "Sn",
+  "gruppe": "cu",
+  "x_label": "Zinn [Gew.-%]",
+  "x_label_en": "Tin [wt%]",
+  "xlim": [
+   0,
+   40
+  ],
+  "Tlim": [
+   300,
+   1100
+  ],
+  "q": [
+   "cu-sn_saunders1990",
+   "massalski1990",
+   "asm3_2016"
+  ],
+  "hinweis": "Bronzeseite (z. B. CuSn6). Literaturwerte (Saunders & Miodownik 1990; Massalski 1990): Cu schmilzt bei 1084,9 °C; Peritektikum α + L ⇌ β bei 798 °C (α 13,5 / β 22,0 / L 25,5 Gew.-% Sn); Eutektoide β ⇌ α + γ bei 586 °C (α 15,8 / β 24,6 / γ 25,4 %), γ ⇌ α + δ bei 520 °C (γ 27,0 / δ 32,4 %) und δ ⇌ α + ε bei 350 °C (α ≈ 11 / ε ≈ 37,4 %). Ungefähr: β + L ⇌ γ bei ≈ 755 °C, ε (Cu₃Sn) aus γ + L bei ≈ 676 °C. Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm und den Schmelzbereichen genormter Bronzen nachgezeichnet (schematisch). Vereinfacht: die ζ-Phase (≈ 582–640 °C) ist weggelassen, δ (Cu₄₁Sn₁₁) ist als Linie gezeichnet und entsteht hier aus γ + ε bei ≈ 590 °C; ε reicht bis zum Rand (tatsächlich bis ≈ 39,5 %); die Schmelze der 676-°C-Reaktion (≈ 43 %) liegt ausserhalb, die Linie endet am Rand. Die Reaktionen bei 520 °C und besonders 350 °C laufen in der Praxis kaum ab (Gussbronzen zeigen α + (α + δ)-Eutektoid).",
+  "hinweis_en": "Bronze side (e.g. CuSn6). Literature values (Saunders & Miodownik 1990; Massalski 1990): Cu melts at 1084.9 °C; peritectic α + L ⇌ β at 798 °C (α 13.5 / β 22.0 / L 25.5 wt% Sn); eutectoids β ⇌ α + γ at 586 °C (α 15.8 / β 24.6 / γ 25.4 %), γ ⇌ α + δ at 520 °C (γ 27.0 / δ 32.4 %) and δ ⇌ α + ε at 350 °C (α ≈ 11 / ε ≈ 37.4 %). Approximate: β + L ⇌ γ at ≈ 755 °C, ε (Cu₃Sn) from γ + L at ≈ 676 °C. Curve points in between are traced from the assessed diagram and the melting ranges of standard bronzes (schematic). Simplified: the ζ phase (≈ 582–640 °C) is omitted, δ (Cu₄₁Sn₁₁) is drawn as a line and forms here from γ + ε at ≈ 590 °C; ε extends to the edge (actually to ≈ 39.5 %); the liquid of the 676 °C reaction (≈ 43 %) lies outside, the line ends at the edge. The 520 °C and especially the 350 °C reactions hardly occur in practice (cast bronzes show α + (α + δ) eutectoid).",
+  "points": [
+   {
+    "x": 0,
+    "T": 1084.87,
+    "label": "Cu schmilzt",
+    "label_en": "Cu melts"
+   },
+   {
+    "x": 13.5,
+    "T": 798
+   },
+   {
+    "x": 22.0,
+    "T": 798,
+    "label": "Peritektikum",
+    "label_en": "Peritectic"
+   },
+   {
+    "x": 25.5,
+    "T": 798
+   },
+   {
+    "x": 24.6,
+    "T": 586,
+    "label": "Eutektoid",
+    "label_en": "Eutectoid"
+   },
+   {
+    "x": 27.0,
+    "T": 520,
+    "label": "Eutektoid",
+    "label_en": "Eutectoid"
+   },
+   {
+    "x": 32.4,
+    "T": 350,
+    "label": "Eutektoid",
+    "label_en": "Eutectoid"
+   },
+   {
+    "x": 15.8,
+    "T": 586,
+    "label": "max. Löslichkeit in α",
+    "label_en": "max. solubility in α"
+   }
+  ],
+  "curves": {
+   "liq_a": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      3,
+      1066
+     ],
+     [
+      5,
+      1052
+     ],
+     [
+      8,
+      1028
+     ],
+     [
+      10,
+      1008
+     ],
+     [
+      13,
+      976
+     ],
+     [
+      16,
+      940
+     ],
+     [
+      20,
+      890
+     ],
+     [
+      23,
+      842
+     ],
+     [
+      25.5,
+      798
+     ]
+    ]
+   },
+   "sol_a": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      1,
+      1064
+     ],
+     [
+      2,
+      1040
+     ],
+     [
+      3,
+      1012
+     ],
+     [
+      5,
+      955
+     ],
+     [
+      8,
+      885
+     ],
+     [
+      10,
+      848
+     ],
+     [
+      12,
+      816
+     ],
+     [
+      13.5,
+      798
+     ]
+    ]
+   },
+   "liq_b": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      25.5,
+      798
+     ],
+     [
+      27.2,
+      784
+     ],
+     [
+      28.9,
+      769
+     ],
+     [
+      30.6,
+      755
+     ]
+    ]
+   },
+   "sol_b": {
+    "kind": "solidus",
+    "pts": [
+     [
+      22.0,
+      798
+     ],
+     [
+      23.0,
+      785
+     ],
+     [
+      24.0,
+      770
+     ],
+     [
+      25.0,
+      755
+     ]
+    ]
+   },
+   "liq_g": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      30.6,
+      755
+     ],
+     [
+      33.0,
+      741
+     ],
+     [
+      35.5,
+      726
+     ],
+     [
+      38.0,
+      709
+     ],
+     [
+      40,
+      694
+     ]
+    ]
+   },
+   "sol_g": {
+    "kind": "solidus",
+    "pts": [
+     [
+      26.0,
+      755
+     ],
+     [
+      28.5,
+      740
+     ],
+     [
+      31.0,
+      724
+     ],
+     [
+      33.5,
+      707
+     ],
+     [
+      35.5,
+      691
+     ],
+     [
+      37.0,
+      676
+     ]
+    ]
+   },
+   "a_ab": {
+    "kind": "solvus",
+    "pts": [
+     [
+      13.5,
+      798
+     ],
+     [
+      14.1,
+      760
+     ],
+     [
+      14.7,
+      720
+     ],
+     [
+      15.2,
+      680
+     ],
+     [
+      15.5,
+      640
+     ],
+     [
+      15.7,
+      610
+     ],
+     [
+      15.8,
+      586
+     ]
+    ]
+   },
+   "b_ab": {
+    "kind": "solvus",
+    "pts": [
+     [
+      22.0,
+      798
+     ],
+     [
+      22.6,
+      760
+     ],
+     [
+      23.2,
+      720
+     ],
+     [
+      23.7,
+      680
+     ],
+     [
+      24.1,
+      640
+     ],
+     [
+      24.4,
+      610
+     ],
+     [
+      24.6,
+      586
+     ]
+    ]
+   },
+   "b_bg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      25.0,
+      755
+     ],
+     [
+      24.95,
+      700
+     ],
+     [
+      24.85,
+      650
+     ],
+     [
+      24.7,
+      610
+     ],
+     [
+      24.6,
+      586
+     ]
+    ]
+   },
+   "g_bg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      26.0,
+      755
+     ],
+     [
+      25.85,
+      700
+     ],
+     [
+      25.65,
+      650
+     ],
+     [
+      25.5,
+      610
+     ],
+     [
+      25.4,
+      586
+     ]
+    ]
+   },
+   "g_ag": {
+    "kind": "solvus",
+    "pts": [
+     [
+      25.4,
+      586
+     ],
+     [
+      25.8,
+      565
+     ],
+     [
+      26.3,
+      545
+     ],
+     [
+      27.0,
+      520
+     ]
+    ]
+   },
+   "g_gd": {
+    "kind": "solvus",
+    "pts": [
+     [
+      27.0,
+      520
+     ],
+     [
+      28.3,
+      540
+     ],
+     [
+      29.6,
+      560
+     ],
+     [
+      30.7,
+      577
+     ],
+     [
+      31.6,
+      590
+     ]
+    ]
+   },
+   "g_ge": {
+    "kind": "solvus",
+    "pts": [
+     [
+      31.6,
+      590
+     ],
+     [
+      33.0,
+      610
+     ],
+     [
+      34.5,
+      632
+     ],
+     [
+      35.8,
+      655
+     ],
+     [
+      37.0,
+      676
+     ]
+    ]
+   },
+   "eps1": {
+    "kind": "solvus",
+    "pts": [
+     [
+      37.7,
+      676
+     ],
+     [
+      37.6,
+      630
+     ],
+     [
+      37.55,
+      590
+     ]
+    ],
+    "smooth": false
+   },
+   "eps2": {
+    "kind": "solvus",
+    "pts": [
+     [
+      37.55,
+      590
+     ],
+     [
+      37.5,
+      500
+     ],
+     [
+      37.45,
+      420
+     ],
+     [
+      37.4,
+      350
+     ]
+    ],
+    "smooth": false
+   },
+   "eps3": {
+    "kind": "solvus",
+    "pts": [
+     [
+      37.4,
+      350
+     ],
+     [
+      37.4,
+      300
+     ]
+    ],
+    "smooth": false
+   },
+   "a_s1": {
+    "kind": "solvus",
+    "pts": [
+     [
+      15.8,
+      520
+     ],
+     [
+      15.3,
+      480
+     ],
+     [
+      14.5,
+      440
+     ],
+     [
+      13.5,
+      405
+     ],
+     [
+      12.3,
+      375
+     ],
+     [
+      11.0,
+      350
+     ]
+    ]
+   },
+   "a_s2": {
+    "kind": "solvus",
+    "pts": [
+     [
+      11.0,
+      350
+     ],
+     [
+      10.2,
+      325
+     ],
+     [
+      9.5,
+      300
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1100
+     ],
+     [
+      40,
+      1100
+     ],
+     [
+      40,
+      694
+     ],
+     "-liq_g",
+     "-liq_b",
+     "-liq_a"
+    ]
+   },
+   {
+    "label": "α + L",
+    "phases": [
+     "α",
+     "L"
+    ],
+    "poly": [
+     "liq_a",
+     [
+      13.5,
+      798
+     ],
+     "-sol_a"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     "sol_a",
+     "a_ab",
+     [
+      15.8,
+      520
+     ],
+     "a_s1",
+     "a_s2",
+     [
+      0,
+      300
+     ]
+    ]
+   },
+   {
+    "label": "β + L",
+    "phases": [
+     "β",
+     "L"
+    ],
+    "poly": [
+     [
+      22.0,
+      798
+     ],
+     [
+      25.5,
+      798
+     ],
+     "liq_b",
+     [
+      25.0,
+      755
+     ],
+     "-sol_b"
+    ]
+   },
+   {
+    "label": "α + β",
+    "phases": [
+     "α",
+     "β"
+    ],
+    "poly": [
+     [
+      13.5,
+      798
+     ],
+     [
+      22.0,
+      798
+     ],
+     "b_ab",
+     [
+      15.8,
+      586
+     ],
+     "-a_ab"
+    ]
+   },
+   {
+    "label": "β",
+    "phases": [
+     "β"
+    ],
+    "poly": [
+     "sol_b",
+     "b_bg",
+     "-b_ab"
+    ]
+   },
+   {
+    "label": "β + γ",
+    "phases": [
+     "β",
+     "γ"
+    ],
+    "poly": [
+     [
+      25.0,
+      755
+     ],
+     [
+      26.0,
+      755
+     ],
+     "g_bg",
+     [
+      24.6,
+      586
+     ],
+     "-b_bg"
+    ]
+   },
+   {
+    "label": "γ + L",
+    "phases": [
+     "γ",
+     "L"
+    ],
+    "poly": [
+     [
+      26.0,
+      755
+     ],
+     [
+      30.6,
+      755
+     ],
+     "liq_g",
+     [
+      40,
+      676
+     ],
+     [
+      37.0,
+      676
+     ],
+     "-sol_g"
+    ]
+   },
+   {
+    "label": "γ",
+    "phases": [
+     "γ"
+    ],
+    "poly": [
+     "sol_g",
+     "-g_ge",
+     "-g_gd",
+     "-g_ag",
+     "-g_bg"
+    ]
+   },
+   {
+    "label": "α + γ",
+    "phases": [
+     "α",
+     "γ"
+    ],
+    "poly": [
+     [
+      15.8,
+      586
+     ],
+     [
+      25.4,
+      586
+     ],
+     "g_ag",
+     [
+      15.8,
+      520
+     ]
+    ]
+   },
+   {
+    "label": "γ + δ",
+    "phases": [
+     "γ",
+     "δ"
+    ],
+    "poly": [
+     [
+      27.0,
+      520
+     ],
+     [
+      32.4,
+      520
+     ],
+     [
+      32.4,
+      590
+     ],
+     [
+      31.6,
+      590
+     ],
+     "-g_gd"
+    ]
+   },
+   {
+    "label": "γ + ε",
+    "phases": [
+     "γ",
+     "ε"
+    ],
+    "poly": [
+     "g_ge",
+     [
+      37.7,
+      676
+     ],
+     "eps1"
+    ]
+   },
+   {
+    "label": "δ + ε",
+    "phases": [
+     "δ",
+     "ε"
+    ],
+    "poly": [
+     [
+      32.4,
+      590
+     ],
+     [
+      37.55,
+      590
+     ],
+     "eps2",
+     [
+      32.4,
+      350
+     ]
+    ]
+   },
+   {
+    "label": "ε",
+    "phases": [
+     "ε"
+    ],
+    "poly": [
+     [
+      37.7,
+      676
+     ],
+     [
+      40,
+      676
+     ],
+     [
+      40,
+      300
+     ],
+     [
+      37.4,
+      300
+     ],
+     "-eps3",
+     "-eps2",
+     "-eps1"
+    ]
+   },
+   {
+    "label": "α + δ",
+    "phases": [
+     "α",
+     "δ"
+    ],
+    "poly": [
+     [
+      15.8,
+      520
+     ],
+     [
+      32.4,
+      520
+     ],
+     [
+      32.4,
+      350
+     ],
+     [
+      11.0,
+      350
+     ],
+     "-a_s1"
+    ]
+   },
+   {
+    "label": "α + ε",
+    "phases": [
+     "α",
+     "ε"
+    ],
+    "poly": [
+     [
+      11.0,
+      350
+     ],
+     [
+      37.4,
+      350
+     ],
+     "eps3",
+     [
+      9.5,
+      300
+     ],
+     "-a_s2"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 798,
+    "type": "peritectic",
+    "x": [
+     13.5,
+     22.0,
+     25.5
+    ],
+    "reaction": "α + L ⇌ β"
+   },
+   {
+    "T": 755,
+    "type": "peritectic",
+    "x": [
+     25.0,
+     26.0,
+     30.6
+    ],
+    "reaction": "β + L ⇌ γ"
+   },
+   {
+    "T": 676,
+    "type": "peritectic",
+    "x": [
+     37.0,
+     37.7,
+     40
+    ],
+    "reaction": "γ + L ⇌ ε"
+   },
+   {
+    "T": 590,
+    "type": "peritectoid",
+    "x": [
+     31.6,
+     32.4,
+     37.55
+    ],
+    "reaction": "γ + ε ⇌ δ"
+   },
+   {
+    "T": 586,
+    "type": "eutectoid",
+    "x": [
+     15.8,
+     24.6,
+     25.4
+    ],
+    "reaction": "β ⇌ α + γ",
+    "morph": "lamellar",
+    "constituents": [
+     "voreutektoides α",
+     "Eutektoid (α + γ)",
+     "voreutektoides γ"
+    ],
+    "constituents_en": [
+     "proeutectoid α",
+     "eutectoid (α + γ)",
+     "proeutectoid γ"
+    ]
+   },
+   {
+    "T": 520,
+    "type": "eutectoid",
+    "x": [
+     15.8,
+     27.0,
+     32.4
+    ],
+    "reaction": "γ ⇌ α + δ",
+    "morph": "lamellar",
+    "constituents": [
+     "voreutektoides α",
+     "Eutektoid (α + δ)",
+     "voreutektoides δ"
+    ],
+    "constituents_en": [
+     "proeutectoid α",
+     "eutectoid (α + δ)",
+     "proeutectoid δ"
+    ]
+   },
+   {
+    "T": 350,
+    "type": "eutectoid",
+    "x": [
+     11.0,
+     32.4,
+     37.4
+    ],
+    "reaction": "δ ⇌ α + ε",
+    "morph": "lamellar",
+    "constituents": [
+     "voreutektoides α",
+     "Eutektoid (α + ε)",
+     "voreutektoides ε"
+    ],
+    "constituents_en": [
+     "proeutectoid α",
+     "eutectoid (α + ε)",
+     "proeutectoid ε"
+    ]
+   }
+  ]
+ }
+}

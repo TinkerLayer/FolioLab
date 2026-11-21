@@ -88,6 +88,8 @@ class Config:
     equations: list | None = None
     # Werte anderer Umgebungen (Verbindung in der Übersicht), als zusätzliche Variablen der Gleichungen
     ext_values: list | None = None
+    # Messunsicherheit (flps/uncertainty.py): Verfahren, Kraft-/Extensometerklasse, ± an den Eingabefeldern
+    unc: dict | None = None
 
     @classmethod
     def from_dict(cls, d: dict | None) -> "Config":
@@ -118,6 +120,9 @@ class Config:
                 v = [x for x in (v or []) if isinstance(x, dict)][:200 if f.name == "ext_values" else 60] or None
                 kw[f.name] = v
                 continue
+            if f.name == "unc":
+                kw[f.name] = v if isinstance(v, dict) and v else None
+                continue
             if f.name == "elastic_plastic":
                 v = str(v or "").strip().lower()
                 kw[f.name] = v if v in EP_MODES else "auto"
@@ -139,7 +144,10 @@ class Config:
         return cls(**kw)
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        if d.get("unc") is None:          # ohne Unsicherheit wie bisher (Berichtsquelle, Goldens)
+            d.pop("unc", None)
+        return d
 
     def area(self) -> float | None:
         """A0 in mm^2: Direkteingabe vor Rechnung aus der Geometrie."""
@@ -319,6 +327,7 @@ class Result:
     extras: list = field(default_factory=list)          # zusätzlich eingeblendete Werkstoffe (Alloy)
     equations: list = field(default_factory=list)       # ausgewertete eigene Gleichungen (labcalc.formulas)
     variables: dict = field(default_factory=dict)       # Messwerte als Variablen für die Gleichungen
+    unc: dict | None = None                             # Messunsicherheit der Kennwerte (flps/uncertainty.py)
 
     @property
     def shape_info(self) -> dict:
@@ -432,6 +441,14 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
     y = force / a0 if a0 else force.copy()
     tol = cfg.tol_stress_mpa if a0 else cfg.tol_force_n
     resolution = prep.resolution / a0 if a0 else prep.resolution
+    # Eine Toleranz unter der Anzeigeauflösung lässt das Fitfenster auf einer Stufe gleicher Werte wachsen: die
+    # Gerade wird flach und t0 = −q/k unbrauchbar (z. B. dünner Draht: 11 MPa je Anzeigeschritt bei 1 MPa Toleranz).
+    # Mindestens zwei Anzeigeschritte wie bei der Schwelle des Fliessbeginns (4.4).
+    if math.isfinite(resolution) and resolution > 0 and tol < 2 * resolution:
+        _warn(warnings, "4.2", f"Toleranz des Fitfensters ({fmt(tol, 2, unit)}) liegt unter zwei Schritten der "
+                               f"Anzeigeauflösung ({fmt(resolution, 2, unit)} je Schritt); verwendet wird "
+                               f"{fmt(2 * resolution, 2, unit)}.", "info")
+        tol = 2 * resolution
 
     # 4.1 / 4.2
     wp = max(2, int(round(prep.rate_hz * cfg.slope_window_s))) if math.isfinite(prep.rate_hz) else 10
@@ -448,7 +465,12 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
     fit = grow_fit_window(t, y, center, tol, cfg.fit_start_points, search_end - 1 if len(pk_idx) >= 2 else None)
 
     # 4.3
-    t0 = -fit.q / fit.k if fit.k else 0.0
+    if fit.k > 0:
+        t0 = -fit.q / fit.k
+    else:   # keine steigende Gerade: kein Fusspunkt; Dehnungen ab dem ersten Messpunkt
+        t0 = float(t[0]) if len(t) else 0.0
+        _warn(warnings, "4.3", "Kein steigender linearer Abschnitt gefunden: der Fusspunkt t0 ist der erste Messpunkt, "
+                               "Modul und Dehnungen sind nicht aussagekräftig.")
 
     # 4.5
 
@@ -680,14 +702,26 @@ def run(f: FlpsFile, cfg: Config | None = None, alloy_list: list | None = None) 
         if a is not None and a.name not in seen:
             res.extras.append(a)
             seen.add(a.name)
+    if cfg.unc:
+        from . import uncertainty as unc_mod
+        try:
+            res.unc = unc_mod.evaluate_all(res)
+        except ImportError:                                 # SDK fehlt: Auswertung ohne Unsicherheit
+            res.unc = None
     res.variables = equation_variables(res)
     if cfg.ext_values:
         F = _labcalc()
         if F is not None:
             F.merge_ext(res.variables, cfg.ext_values)        # Werte anderer Umgebungen (Verbindung)
     if cfg.equations:
-        res.equations = evaluate_equations(cfg.equations, res.variables)
+        res.equations = evaluate_equations(cfg.equations, res.variables, unc=_unc_opts(res))
     return res
+
+
+def _unc_opts(r: "Result") -> dict | None:
+    """Verfahren der Messunsicherheit für die eigenen Gleichungen (wie für die Kennwerte)."""
+    st = (r.unc or {}).get("settings")
+    return {"method": st["method"], "p": st["p"], "k": st["k"]} if st else None
 
 
 # --- Eigene Gleichungen -----------------------------------------------------------------
@@ -769,6 +803,11 @@ def equation_variables(r: "Result") -> dict:
             put("Rp_ref", ref.rp, "MPa", f"Rp0,2 von {ref.name}")
         put("A_ref", ref.a_pct, "%", f"Bruchdehnung von {ref.name}")
         put("E_ref", ref.e_gpa, "GPa", f"E-Modul von {ref.name}")
+    if r.unc:                                            # Standardunsicherheiten der Kennwerte (gemeinsame Werte, Gleichungen)
+        from . import uncertainty as unc_mod
+        for name, extra in unc_mod.var_u(r).items():
+            if name in v:
+                v[name].update(extra)
     return v
 
 
@@ -827,11 +866,12 @@ def peak_analysis(r: "Result") -> dict:
     return pk
 
 
-def evaluate_equations(defs, variables: dict, lang: str = "de") -> list:
+def evaluate_equations(defs, variables: dict, lang: str = "de", unc: dict | None = None) -> list:
     F = _labcalc()
     if F is None:
         return []
-    return F.evaluate(defs, variables, lang=lang)
+    from .taken import guard                               # Indexwerte: unpassende Einheiten ablehnen
+    return guard(F.evaluate(defs, variables, lang=lang, unc=unc), variables, lang=lang)
 
 
 def material_label(r: Result) -> str:
@@ -885,6 +925,8 @@ def result_to_dict(r: Result, include_series: bool = True) -> dict:
         "equations": list(r.equations),
         "variables": [{"name": k, **v} for k, v in r.variables.items()],
     }
+    if r.unc:
+        d["unc"] = r.unc
     if include_series:
         d["series"] = {
             "t": np.round(r.t, 4), "y": r.y, "F": r.force,

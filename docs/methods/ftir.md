@@ -733,6 +733,48 @@ Validation: `modules/ftir/tests/test_ftir.py::ServerTest::test_reference_from_fi
 "outside the spectrum" error and no report value; the name `area` is refused; the equation, its value and its DOI
 reach the report.
 
+### 13.1 Measurement uncertainty
+
+Opt-in: computed only when the working state carries entries (`state["unc"]` with `nu` and/or `noise`,
+`state["unc_noise"]` with the noise mode, `state["unc_method"]`). Propagation through the shared
+`labcalc.uncertainty` (GUM, JCGM 100:2008; GUM Supplement 1, JCGM 101:2008).
+
+**Noise σᵢ per data point**, on the curve the areas are computed on (absorbance, or log(1/R); T and R converted as
+in section 6):
+
+- *auto*: `quality.effective_noise` (section 3; residual of a 7-point cubic Savitzky–Golay smooth, robust standard
+  deviation, local value where noise dominates), type A;
+- *region*: root mean square of the residuals after a straight-line fit in a user-chosen band-free region,
+  s = √(Σr²/(n−2)), n − 2 degrees of freedom; at least 5 points;
+- *manual*: the stated standard uncertainty per point.
+
+**Linear forms.** Every noise-dependent result is written as Q = Σ cᵢ yᵢ. Band area over a line between the limits
+(trapezoid weights wᵢ, tᵢ the relative position): cᵢ = wᵢ, then c₀ −= Σ wᵢ(1 − tᵢ) and cₙ −= Σ wᵢ tᵢ (exact, the
+endpoint noise included); over zero: cᵢ = wᵢ. Height: the unit vector at the maximum minus the baseline interpolation
+weights. A(ν): the two linear interpolation weights; y(ν) the same, scaled by dy/dA. Peak position (parabola through
+three points, section 5): the derivative of the vertex with respect to the three ordinates, converted to the area
+basis. Then u²(Q) = Σ cᵢ²σᵢ² and cov(Q, Q') = Σ cᵢ c'ᵢ σᵢ².
+
+**Further inputs:** wavenumber accuracy δν̃ (shared by all positions, sensitivity −1; for A(ν) and y(ν) the local
+slope); interpolation between data points for every position (resolution part, d = point spacing, rectangular);
+choice of the limits for areas and heights (half the spread when either limit moves by ±1 point, rectangular).
+Template *Ph. Eur. 2.2.24*: ±1.0 cm⁻¹ (polystyrene band at 1601.2 cm⁻¹), rectangular — details not verified
+against the original; ASTM E1421 (FT-MIR performance tests) is listed as a module source record with the same note.
+
+**Ratios** are evaluated in one model, R = (N + εN + βN)/(D + εD + βD), with the noise inputs εN, εD correlated by
+r = cov/(uN uD). **Own equations:** variables B/H/P/R and every call of A, y, area, area0, height become inputs
+(identical calls share one), with all noise correlations between them; the call arguments are treated as exact and,
+in Monte Carlo, a call returns its value plus the sampled deviation. The Gaussian method ignores correlations
+(as in `labcalc.uncertainty`).
+
+**Report:** `\labval{<id>-pm}`, `-u`, `-U` for `peak<n>`, `band<i>-area|height|pos`, `ratio<i>`, budget tables, a
+summary table `unsicherheit…`, and a methods sentence.
+
+**Validation:** `modules/ftir/tests/test_uncert.py` – linear forms reproduce `peaks.integrate` (also for T),
+noise u against Σw²σ² for an area over zero and linear in σ, ratio u equal to the linearised value with correlation and
+smaller than without, disjoint bands uncorrelated, position u = √(a²/3 + d²/12), equations through `area()` equal to
+`B1/B2`, A(ν) at a grid point, report values.
+
 ## 14. Spectra from datasets
 
 Code: `ftir/dataset.py`, `ftir/server.py::ds_spectra`. Reads a table (`data.table`) shared by the Data Purification

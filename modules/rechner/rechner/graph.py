@@ -28,6 +28,7 @@ import numpy as np
 from labcalc import fitting as F
 
 from . import expr as E
+from labcalc import deriv as D
 from . import plots as P
 from . import render as R
 from . import units as U
@@ -131,6 +132,9 @@ class _Fix(ast.NodeTransformer):
 
     def visit_Call(self, node):
         fn = node.func.id if isinstance(node.func, ast.Name) else ""
+        if fn == "fprime_" and len(node.args) >= 2:
+            node.args = node.args[:2] + [self.visit(a) for a in node.args[2:]]   # f'(x): Name und Ordnung bleiben
+            return node
         bound = None
         if fn in _BINDING and len(node.args) >= 2 and isinstance(node.args[1], ast.Name):
             bound = node.args[1].id                      # integral(f(x), x, 0, 1): x ist hier gebunden
@@ -199,6 +203,61 @@ def _parse(src, callables, known):
     fx = _Fix(known)
     node = fx.visit(node)
     return node, fx.free, fx.used
+
+
+_YPRIME = re.compile(r"(?<![\w'])y('+)(?![\w'(])")
+
+
+def _y_primes(src: str) -> str:
+    """y', y'' einer Kurve y = … als diff(y, x[, n])."""
+    return _YPRIME.sub(lambda m: f"diff(y, x{', ' + str(len(m.group(1))) if len(m.group(1)) > 1 else ''})", src)
+
+
+def _is_curve(stmt) -> bool:
+    """y = … ohne y rechts: die Kurve, auf die sich y' und diff(y, x) beziehen."""
+    return stmt[0] == "y" and not re.search(r"(?<![\w])y(?![\w])", stmt[1])
+
+
+def _bind_curve(nd, curve):
+    """diff(y, x), deriv(y, x, a): y durch den Term der Kurve ersetzen."""
+    node = nd["node"]
+    if isinstance(node, tuple):
+        return
+    hit = False
+    for c in ast.walk(node):
+        if isinstance(c, ast.Call) and isinstance(c.func, ast.Name) and c.func.id in ("diff", "deriv") and len(c.args) >= 2 \
+                and isinstance(c.args[1], ast.Name) and c.args[1].id == "x" \
+                and any(isinstance(m, ast.Name) and m.id == "y" for m in ast.walk(c.args[0])):
+            c.args[0] = D.subst(c.args[0], {"y": curve["node"]})
+            hit = True
+    if not hit:
+        return
+    nd["free"] = (set(nd["free"]) | set(curve["free"])) - ({"y"} if not _uses_y(node) else set())
+    nd["used"] = (set(nd["used"]) | set(curve["used"]) | {"x"}) - ({"y"} if not _uses_y(node) else set())
+
+
+def _uses_y(node) -> bool:
+    return any(isinstance(m, ast.Name) and m.id == "y" for m in ast.walk(node))
+
+
+def _derived(nd, ctx, lang, variables=frozenset()):
+    """Ableitungen (f'(x), diff(…, x)) symbolisch auflösen: schnellerer Ausdruck zum Zeichnen, abgeleiteter Term
+    für Zeile und Legende (auch ein konstanter: f''(x) = 2)."""
+    node = nd["node"]
+    if isinstance(node, tuple) or not D.has_deriv(node):
+        return
+    try:
+        new, _numeric = D.expand(node, ctx.funcs, ctx.angle)
+        new = D.simplify(new)
+    except E.CalcError:
+        return
+    nd["node"] = new
+    if not any(isinstance(n, ast.Name) for n in ast.walk(new)) and not set(nd.get("used") or ()) & set(variables):
+        return                                   # f'(2): Zahl, die Zeile zeigt den Wert ohnehin
+    term = _r(new, lang)
+    if term and nd.get("html"):
+        nd["html"] = f"{nd['html']} = {term}"
+    nd["legend"] = D.text(new).replace("*", "·")
 
 
 def _html(*parts):
@@ -591,7 +650,7 @@ def compute(req: dict, resolve=None) -> dict:
             if len(arrs) >= 2:
                 for k in range(1, len(arrs)):
                     ok = np.isfinite(arrs[0]) & np.isfinite(arrs[k])
-                    series.append({"col": k, "name": names[k], "x": arrs[0][ok].tolist(), "y": arrs[k][ok].tolist()})
+                    series.append({"col": k, "name": names[k], "x": arrs[0][ok].tolist(), "y": arrs[k][ok].tolist(), "line": bool(spec.get("line"))})
             out[rid] = {"type": "table", "columns": names, "series": series}
             if len(arrs) >= 2:
                 data_of[rid] = {"x": (names[0], arrs[0], "", names[0]),
@@ -611,6 +670,21 @@ def compute(req: dict, resolve=None) -> dict:
             stmts[rid] = classify(r.get("src", ""))
         except E.CalcError as e:
             out[rid] = {"type": "error", "error": str(e)}
+    names0 = {s[1] for s in stmts.values() if s[0] in ("def", "func")} | set(ctx.names) | set(ctx.funcs) | set(cols)
+    has_curve = any(_is_curve(s) for s in stmts.values())
+    for r in rows:                                     # d/dx(x^3) und, wenn es eine Kurve y = … gibt, y' und y''
+        rid = str(r["id"])
+        if rid not in stmts or _is_curve(stmts[rid]):
+            continue
+        src = str(r.get("src", ""))
+        new = E.rewrite_ddx(src, names0)
+        new = _y_primes(new) if has_curve else new
+        if new != src:
+            try:
+                stmts[rid] = classify(new)
+            except E.CalcError as e:
+                stmts.pop(rid)
+                out[rid] = {"type": "error", "error": str(e)}
     func_names = {s[1] for s in stmts.values() if s[0] == "func"}
     def_names = [s[1] for s in stmts.values() if s[0] == "def"]
     dup = {n for n in def_names if def_names.count(n) > 1} | (func_names & set(def_names))
@@ -685,6 +759,15 @@ def compute(req: dict, resolve=None) -> dict:
         except E.CalcError as e:
             out[rid] = {"type": "error", "error": str(e)}
 
+    # y', diff(y, x): die nächste Kurve y = … darüber, sonst die erste
+    place = {str(r["id"]): k for k, r in enumerate(rows)}
+    curves = sorted((rid for rid, s in stmts.items() if rid in nodes and _is_curve(s)), key=place.get)
+    for rid, nd in nodes.items():
+        if not curves or rid in curves:
+            continue
+        above = [c for c in curves if place[c] < place[rid]]
+        _bind_curve(nd, nodes[above[-1] if above else curves[0]])
+
     def free_error(rid, free):
         names = sorted(E.plain_name(f) for f in free)
         sug = [n for n in names if n not in LOCALS and n not in ("i", "j") and re.fullmatch(r"[^\W\d]\w*", n)]
@@ -749,6 +832,10 @@ def compute(req: dict, resolve=None) -> dict:
         nd = nodes[rid]
         kind = s[0]
         row = next(r for r in rows if str(r["id"]) == rid)
+        if kind in ("func", "y", "x", "r", "expr"):
+            _derived(nd, ctx, lang, set(s[2]) if kind == "func" else LOCALS)
+            if kind == "func" and nd.get("legend"):
+                ctx.funcs[s[1]] = (ctx.funcs[s[1]][0], nd["node"])
         try:
             if kind == "reg":
                 if out[rid].get("type") != "regression":
@@ -822,6 +909,8 @@ def compute(req: dict, resolve=None) -> dict:
                     out[rid] = {"type": "points", "x": _list(px), "y": _list(py), "html": nd["html"]}
         except _EVAL_ERR as e:
             out[rid] = {"type": "error", "error": str(e), "html": nd.get("html")}
+        if nd.get("legend") and out[rid].get("type") != "error":
+            out[rid]["legend"] = nd["legend"]
 
     res = {"rows": out}
     focus = str(req.get("focus") or "")
@@ -884,7 +973,10 @@ def figure(plot: dict, ctx_req: dict, lang="de", curves=None):
             continue
         o = res.get(str(r.get("id"))) or {}
         col = r.get("color") or P.COLORS[k % len(P.COLORS)]
-        label = (r.get("src") or "").strip().replace("$", r"\$")
+        label = (r.get("src") or "").strip()
+        if o.get("legend"):
+            label = f"{label} = {o['legend']}"                  # abgeleiteter Term in der Legende
+        label = label.replace("$", r"\$")
         t = o.get("type")
         if t == "curve":
             ax.plot(P._nan(o["x"]), P._nan(o["y"]), "-", lw=1.6, color=col, label=label)

@@ -1,0 +1,126 @@
+{
+  "quellen": {
+    "al-cu_murray1985": {
+      "type": "article",
+      "authors": "Murray, J. L.",
+      "title": "The aluminium-copper system",
+      "container": "International Metals Reviews",
+      "year": "1985",
+      "volume": "30",
+      "pages": "211-233",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "al-cu",
+    "name": "Al–Cu (Al-reiche Seite)",
+    "name_en": "Al–Cu (Al-rich side)",
+    "A": "Al",
+    "B": "Cu",
+    "gruppe": "al",
+    "x_label": "Kupfer [Gew.-%]",
+    "x_label_en": "Copper [wt%]",
+    "xlim": [0, 54],
+    "Tlim": [300, 700],
+    "q": ["al-cu_murray1985", "massalski1990"],
+    "hinweis": "Zitiert (Murray 1985): Schmelzpunkt Al 660,3 °C; Eutektikum L ⇌ (Al) + θ bei 548 °C mit L 33,2 Gew.-% Cu, (Al) 5,65 Gew.-% Cu (grösste Löslichkeit) und θ (Al₂Cu) ab 52,5 Gew.-% Cu; obere Grenze von θ 591 °C. Die Punkte zwischen diesen Eckwerten (Liquidus, Solidus, Solvus) sind dem bewerteten Diagramm nachgezeichnet bzw. die Solvuslinie als Arrhenius-Kurve durch die Löslichkeit bei 548 °C gelegt: schematisch, nicht zum genauen Ablesen von Löslichkeiten. Vereinfacht: das Diagramm endet bei θ (Homogenitätsbereich etwa 52,5–53,7 Gew.-% Cu); die kupferreicheren Phasen (η, ζ, ε …) und die Bildung von θ aus L + η₁ bei 591 °C sind nicht dargestellt. Metastabile Ausscheidungen (GP-Zonen, θ″, θ′) der Aushärtung fehlen ebenfalls.",
+    "hinweis_en": "Cited (Murray 1985): melting point of Al 660.3 °C; eutectic L ⇌ (Al) + θ at 548 °C with L 33.2 wt% Cu, (Al) 5.65 wt% Cu (maximum solubility) and θ (Al₂Cu) from 52.5 wt% Cu; upper limit of θ 591 °C. Points between these key values (liquidus, solidus, solvus) are traced from the assessed diagram, the solvus as an Arrhenius curve through the solubility at 548 °C: schematic, not for reading solubilities precisely. Simplified: the diagram ends at θ (homogeneity range about 52.5–53.7 wt% Cu); the Cu-richer phases (η, ζ, ε …) and the formation of θ from L + η₁ at 591 °C are not shown. Metastable precipitates of age hardening (GP zones, θ″, θ′) are not shown either.",
+    "points": [
+      {
+        "x": 0,
+        "T": 660.3,
+        "label": "Al schmilzt",
+        "label_en": "Al melts"
+      },
+      {
+        "x": 5.65,
+        "T": 548,
+        "label": "grösste Löslichkeit von Cu in (Al)",
+        "label_en": "maximum solubility of Cu in (Al)"
+      },
+      {
+        "x": 33.2,
+        "T": 548,
+        "label": "Eutektikum",
+        "label_en": "Eutectic"
+      },
+      {
+        "x": 52.5,
+        "T": 548,
+        "label": "θ (Al₂Cu)"
+      },
+      {
+        "x": 52.5,
+        "T": 591,
+        "label": "Obergrenze von θ (591 °C)",
+        "label_en": "upper limit of θ (591 °C)"
+      }
+    ],
+    "curves": {
+      "liq": {
+        "kind": "liquidus",
+        "pts": [[0, 660.3], [2, 654], [4, 647.5], [6, 641], [8, 634.5], [10, 628], [13, 618], [16, 607.5], [20, 593.5], [24, 579], [27, 568], [30, 558], [33.2, 548]]
+      },
+      "sol": {
+        "kind": "solidus",
+        "pts": [[0, 660.3], [0.75, 647.6], [1.5, 634.2], [2.25, 620.2], [3, 605.4], [3.75, 590.0], [4.5, 574.0], [5.1, 560.6], [5.65, 548]]
+      },
+      "solv": {
+        "kind": "solvus",
+        "pts": [[5.65, 548], [5.01, 530], [4.36, 510], [3.76, 490], [3.22, 470], [2.73, 450], [2.2, 425], [1.74, 400], [1.35, 375], [1.03, 350], [0.766, 325], [0.556, 300]]
+      },
+      "liqTh": {
+        "kind": "liquidus",
+        "pts": [[33.2, 548], [36, 556.5], [39, 564.5], [42, 572], [45, 579], [48, 584.5], [50.5, 588.5], [52.5, 591]]
+      },
+      "thL": {
+        "kind": "solvus",
+        "smooth": false,
+        "pts": [[52.5, 591], [52.5, 548], [52.8, 300]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 700], [54, 700], [54, 591], "-liqTh", "-liq"]
+      },
+      {
+        "label": "(Al) + L",
+        "phases": ["(Al)", "L"],
+        "poly": ["liq", [5.65, 548], "-sol"]
+      },
+      {
+        "label": "L + θ",
+        "phases": ["L", "θ"],
+        "poly": ["liqTh", [52.5, 548]]
+      },
+      {
+        "label": "(Al)",
+        "phases": ["(Al)"],
+        "poly": ["sol", "solv", [0, 300]]
+      },
+      {
+        "label": "(Al) + θ",
+        "phases": ["(Al)", "θ"],
+        "poly": [[5.65, 548], [52.5, 548], [52.8, 300], "-solv"]
+      },
+      {
+        "label": "θ",
+        "phases": ["θ"],
+        "poly": ["thL", [54, 300], [54, 591]]
+      }
+    ],
+    "invariants": [
+      {
+        "T": 548,
+        "type": "eutectic",
+        "x": [5.65, 33.2, 52.5],
+        "reaction": "L ⇌ (Al) + θ",
+        "constituents": ["primäres (Al)", "Eutektikum ((Al) + θ)", "primäres θ"],
+        "constituents_en": ["primary (Al)", "eutectic ((Al) + θ)", "primary θ"],
+        "morph": "lamellar"
+      }
+    ]
+  }
+}

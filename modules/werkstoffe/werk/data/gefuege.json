@@ -1,0 +1,1693 @@
+{
+ "_format": "folio-gefuege/1",
+ "_hinweis": "Struktur-Datensatz je Werkstoff der gemeinsamen Datenbank (labcalc/data/materials.json), Schlüssel = Werkstoff-id. Legierungen: Nennzusammensetzung in Masse-% (Mitte der Normspanne bzw. typischer Wert unter den Höchstwerten, Rest = Basis) und Zustand; die Phasen bei einer Temperatur folgen aus den Regeln in werk/struktur.py. Alle Werte von Hand aus der genannten Quelle übertragen und nicht gegen das Original geprüft.",
+ "werkstoffe": {
+  "en-aw-1050a-weich": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-1xxx",
+   "zus": {
+    "Fe": 0.25,
+    "Si": 0.1
+   },
+   "zustand": "O",
+   "q": "en573-3"
+  },
+  "en-aw-1050a-h14": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-1xxx",
+   "zus": {
+    "Fe": 0.25,
+    "Si": 0.1
+   },
+   "zustand": "H14",
+   "q": "en573-3"
+  },
+  "en-aw-8011a-o-folie": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-1xxx",
+   "zus": {
+    "Fe": 0.75,
+    "Si": 0.65
+   },
+   "zustand": "O",
+   "q": "en573-3"
+  },
+  "en-aw-3003-h14": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-3xxx",
+   "zus": {
+    "Mn": 1.25,
+    "Fe": 0.4,
+    "Cu": 0.12
+   },
+   "zustand": "H14",
+   "q": "en573-3"
+  },
+  "en-aw-5052-h32": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-5xxx",
+   "zus": {
+    "Mg": 2.5,
+    "Cr": 0.25
+   },
+   "zustand": "H32",
+   "q": "en573-3"
+  },
+  "en-aw-5052-h38": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-5xxx",
+   "zus": {
+    "Mg": 2.5,
+    "Cr": 0.25
+   },
+   "zustand": "H38",
+   "q": "en573-3"
+  },
+  "en-aw-5083-o-h111": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-5xxx",
+   "zus": {
+    "Mg": 4.45,
+    "Mn": 0.7,
+    "Cr": 0.15
+   },
+   "zustand": "O",
+   "q": "en573-3"
+  },
+  "en-aw-5086-h116-h32": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-5xxx",
+   "zus": {
+    "Mg": 4.0,
+    "Mn": 0.45,
+    "Cr": 0.15
+   },
+   "zustand": "H32",
+   "q": "en573-3"
+  },
+  "en-aw-5754-o-h111": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-5xxx",
+   "zus": {
+    "Mg": 3.1,
+    "Mn": 0.25
+   },
+   "zustand": "O",
+   "q": "en573-3"
+  },
+  "en-aw-5754-h22": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-5xxx",
+   "zus": {
+    "Mg": 3.1,
+    "Mn": 0.25
+   },
+   "zustand": "H22",
+   "q": "en573-3"
+  },
+  "en-aw-6060-t6": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-6xxx",
+   "zus": {
+    "Mg": 0.48,
+    "Si": 0.45,
+    "Fe": 0.2
+   },
+   "zustand": "T6",
+   "q": "en573-3"
+  },
+  "en-aw-6061-t6": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-6xxx",
+   "zus": {
+    "Mg": 1.0,
+    "Si": 0.6,
+    "Cu": 0.28,
+    "Cr": 0.2
+   },
+   "zustand": "T6",
+   "q": "en573-3"
+  },
+  "en-aw-6082-t6": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-6xxx",
+   "zus": {
+    "Si": 1.0,
+    "Mg": 0.9,
+    "Mn": 0.7
+   },
+   "zustand": "T6",
+   "q": "en573-3"
+  },
+  "en-aw-2017a-t4": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-2xxx",
+   "zus": {
+    "Cu": 4.0,
+    "Mg": 0.7,
+    "Mn": 0.7,
+    "Si": 0.5
+   },
+   "zustand": "T4",
+   "q": "en573-3"
+  },
+  "en-aw-2024-t3": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-2xxx",
+   "zus": {
+    "Cu": 4.35,
+    "Mg": 1.5,
+    "Mn": 0.6
+   },
+   "zustand": "T3",
+   "q": "en573-3"
+  },
+  "en-aw-7020-t6": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-7xxx",
+   "zus": {
+    "Zn": 4.5,
+    "Mg": 1.2
+   },
+   "zustand": "T6",
+   "q": "en573-3",
+   "hinweis": "Zr 0,15 % (Dispersoide) nicht gezeigt",
+   "hinweis_en": "Zr 0.15 % (dispersoids) not shown"
+  },
+  "en-aw-7075-t6": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "al-7xxx",
+   "zus": {
+    "Zn": 5.6,
+    "Mg": 2.5,
+    "Cu": 1.6,
+    "Cr": 0.23
+   },
+   "zustand": "T6",
+   "q": "en573-3"
+  },
+  "s235jr": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.15,
+    "Mn": 0.8
+   },
+   "zustand": "AR",
+   "q": "en10025-2",
+   "zus_hinweis": "typische Werte unter den Höchstwerten C ≤ 0,17 %, Mn ≤ 1,40 %",
+   "zus_hinweis_en": "typical values below the maxima C ≤ 0.17 %, Mn ≤ 1.40 %"
+  },
+  "s275jr": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.18,
+    "Mn": 1.0
+   },
+   "zustand": "AR",
+   "q": "en10025-2"
+  },
+  "s355j2": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.18,
+    "Mn": 1.4,
+    "Si": 0.3
+   },
+   "zustand": "AR",
+   "q": "en10025-2"
+  },
+  "s460n": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.18,
+    "Mn": 1.5,
+    "Si": 0.4,
+    "V": 0.1
+   },
+   "zustand": "N",
+   "q": "en10025-3"
+  },
+  "dc01": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.08,
+    "Mn": 0.4
+   },
+   "zustand": "geglueht",
+   "q": "en10130"
+  },
+  "dc04": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.04,
+    "Mn": 0.25
+   },
+   "zustand": "geglueht",
+   "q": "en10130"
+  },
+  "c45e-n": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.46,
+    "Mn": 0.65,
+    "Si": 0.25
+   },
+   "zustand": "N",
+   "q": "en10083-2"
+  },
+  "c45e-qt": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.46,
+    "Mn": 0.65,
+    "Si": 0.25
+   },
+   "zustand": "QT",
+   "anlassen": {
+    "T": 600,
+    "t_h": 1.0
+   },
+   "q": "en10083-2",
+   "anlass_hinweis": "Anlassen typisch 550–660 °C"
+  },
+  "42crmo4-qt": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.42,
+    "Cr": 1.05,
+    "Mo": 0.22,
+    "Mn": 0.75
+   },
+   "zustand": "QT",
+   "anlassen": {
+    "T": 600,
+    "t_h": 1.0
+   },
+   "q": "en10083-3",
+   "anlass_hinweis": "Anlassen typisch 540–680 °C"
+  },
+  "aisi-1020-warmgewalzt": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.2,
+    "Mn": 0.45
+   },
+   "zustand": "AR",
+   "q": "sae-j403"
+  },
+  "aisi-1040-warmgewalzt": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.4,
+    "Mn": 0.75
+   },
+   "zustand": "AR",
+   "q": "sae-j403"
+  },
+  "aisi-4340-qt260": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.4,
+    "Ni": 1.8,
+    "Cr": 0.8,
+    "Mo": 0.25,
+    "Mn": 0.7
+   },
+   "zustand": "QT",
+   "anlassen": {
+    "T": 260,
+    "t_h": 1.0
+   },
+   "q": "sae-j404"
+  },
+  "aisi-4340-qt425": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.4,
+    "Ni": 1.8,
+    "Cr": 0.8,
+    "Mo": 0.25,
+    "Mn": 0.7
+   },
+   "zustand": "QT",
+   "anlassen": {
+    "T": 425,
+    "t_h": 1.0
+   },
+   "q": "sae-j404"
+  },
+  "aisi-4340-geglueht": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "stahl",
+   "zus": {
+    "C": 0.4,
+    "Ni": 1.8,
+    "Cr": 0.8,
+    "Mo": 0.25,
+    "Mn": 0.7
+   },
+   "zustand": "geglueht",
+   "q": "sae-j404"
+  },
+  "1-4301-x5crni18-10": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "edelstahl-austenit",
+   "zus": {
+    "Cr": 18.25,
+    "Ni": 9.0,
+    "Mn": 1.0,
+    "C": 0.04
+   },
+   "zustand": "loesungsgeglueht",
+   "q": "en10088-2"
+  },
+  "1-4404-x2crnimo17-12-2": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "edelstahl-austenit",
+   "zus": {
+    "Cr": 17.5,
+    "Ni": 11.5,
+    "Mo": 2.25,
+    "C": 0.02
+   },
+   "zustand": "loesungsgeglueht",
+   "q": "en10088-2"
+  },
+  "1-4571-x6crnimoti17-12-2": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "edelstahl-austenit",
+   "zus": {
+    "Cr": 17.5,
+    "Ni": 12.0,
+    "Mo": 2.25,
+    "Ti": 0.4,
+    "C": 0.05
+   },
+   "zustand": "loesungsgeglueht",
+   "q": "en10088-2",
+   "stabilisiert": "TiC"
+  },
+  "1-4016-x6cr17": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "edelstahl-ferrit",
+   "zus": {
+    "Cr": 16.75,
+    "C": 0.05,
+    "Mn": 0.5
+   },
+   "zustand": "geglueht",
+   "q": "en10088-2"
+  },
+  "en-gjl-250": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "gusseisen",
+   "graphit": "lamellen",
+   "matrix": "perlit",
+   "zus": {
+    "C": 3.3,
+    "Si": 2.0,
+    "Mn": 0.6
+   },
+   "zustand": "gegossen",
+   "q": "en1561"
+  },
+  "en-gjs-400-15": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "gusseisen",
+   "graphit": "kugel",
+   "matrix": "ferrit",
+   "zus": {
+    "C": 3.6,
+    "Si": 2.5
+   },
+   "zustand": "gegossen",
+   "q": "en1563",
+   "hinweis": "Mg ≈ 0,04 % (Kugelgraphit) nicht gezeigt",
+   "hinweis_en": "Mg ≈ 0.04 % (spheroidal graphite) not shown"
+  },
+  "cu-etp-r220-weich": {
+   "typ": "metall",
+   "basis": "Cu",
+   "regel": "cu",
+   "zus": {},
+   "zustand": "R220",
+   "kaltverformt": false,
+   "q": "en1652",
+   "hinweis": "Sauerstoff ≈ 0,02 % als Cu₂O-Einschlüsse, nicht gezeigt",
+   "hinweis_en": "oxygen ≈ 0.02 % as Cu₂O inclusions, not shown"
+  },
+  "cu-etp-r290-halbhart": {
+   "typ": "metall",
+   "basis": "Cu",
+   "regel": "cu",
+   "zus": {},
+   "zustand": "R290",
+   "kaltverformt": true,
+   "q": "en1652"
+  },
+  "cuzn37-r300-messing-weich": {
+   "typ": "metall",
+   "basis": "Cu",
+   "regel": "cuzn",
+   "zus": {
+    "Zn": 37.0
+   },
+   "zustand": "R300",
+   "kaltverformt": false,
+   "q": "en1652"
+  },
+  "cuzn37-r410-messing-halbhart": {
+   "typ": "metall",
+   "basis": "Cu",
+   "regel": "cuzn",
+   "zus": {
+    "Zn": 37.0
+   },
+   "zustand": "R410",
+   "kaltverformt": true,
+   "q": "en1652"
+  },
+  "cusn6-r350-bronze-weich": {
+   "typ": "metall",
+   "basis": "Cu",
+   "regel": "cusn",
+   "zus": {
+    "Sn": 6.0
+   },
+   "zustand": "R350",
+   "kaltverformt": false,
+   "q": "en1652",
+   "hinweis": "P 0,01–0,4 % nicht gezeigt",
+   "hinweis_en": "P 0.01–0.4 % not shown"
+  },
+  "cusn6-r550-bronze-hart": {
+   "typ": "metall",
+   "basis": "Cu",
+   "regel": "cusn",
+   "zus": {
+    "Sn": 6.0
+   },
+   "zustand": "R550",
+   "kaltverformt": true,
+   "q": "en1652"
+  },
+  "titan-grade-1": {
+   "typ": "metall",
+   "basis": "Ti",
+   "regel": "ti",
+   "zus": {
+    "O": 0.1,
+    "Fe": 0.1
+   },
+   "zustand": "geglueht",
+   "q": "astm-b265",
+   "zus_hinweis": "typische Werte unter den Höchstwerten O ≤ 0,18 %, Fe ≤ 0,20 %",
+   "zus_hinweis_en": "typical values below the maxima O ≤ 0.18 %, Fe ≤ 0.20 %"
+  },
+  "titan-grade-2": {
+   "typ": "metall",
+   "basis": "Ti",
+   "regel": "ti",
+   "zus": {
+    "O": 0.15,
+    "Fe": 0.15
+   },
+   "zustand": "geglueht",
+   "q": "astm-b265",
+   "zus_hinweis": "Höchstwerte O ≤ 0,25 %, Fe ≤ 0,30 %",
+   "zus_hinweis_en": "maxima O ≤ 0.25 %, Fe ≤ 0.30 %"
+  },
+  "titan-grade-4": {
+   "typ": "metall",
+   "basis": "Ti",
+   "regel": "ti",
+   "zus": {
+    "O": 0.35,
+    "Fe": 0.3
+   },
+   "zustand": "geglueht",
+   "q": "astm-b265",
+   "zus_hinweis": "Höchstwerte O ≤ 0,40 %, Fe ≤ 0,50 %",
+   "zus_hinweis_en": "maxima O ≤ 0.40 %, Fe ≤ 0.50 %"
+  },
+  "ti-6al-4v-grade-5": {
+   "typ": "metall",
+   "basis": "Ti",
+   "regel": "ti-ab",
+   "zus": {
+    "Al": 6.0,
+    "V": 4.0,
+    "O": 0.15,
+    "Fe": 0.2
+   },
+   "zustand": "geglueht",
+   "q": "astm-b265"
+  },
+  "az31b-o": {
+   "typ": "metall",
+   "basis": "Mg",
+   "regel": "mg-az",
+   "zus": {
+    "Al": 3.0,
+    "Zn": 1.0,
+    "Mn": 0.4
+   },
+   "zustand": "O",
+   "kaltverformt": false,
+   "q": "astm-b90"
+  },
+  "az31b-h24": {
+   "typ": "metall",
+   "basis": "Mg",
+   "regel": "mg-az",
+   "zus": {
+    "Al": 3.0,
+    "Zn": 1.0,
+    "Mn": 0.4
+   },
+   "zustand": "H24",
+   "kaltverformt": true,
+   "q": "astm-b90"
+  },
+  "nickel-200": {
+   "typ": "metall",
+   "basis": "Ni",
+   "regel": "ni",
+   "zus": {
+    "Fe": 0.2,
+    "Mn": 0.2,
+    "C": 0.08
+   },
+   "zustand": "geglueht",
+   "q": "astm-b160"
+  },
+  "inconel-625": {
+   "typ": "metall",
+   "basis": "Ni",
+   "regel": "ni-625",
+   "zus": {
+    "Cr": 21.5,
+    "Mo": 9.0,
+    "Nb": 3.6,
+    "Fe": 2.5
+   },
+   "zustand": "geglueht",
+   "q": "astm-b443"
+  },
+  "inconel-718-ausgehaertet": {
+   "typ": "metall",
+   "basis": "Ni",
+   "regel": "ni-718",
+   "zus": {
+    "Cr": 19.0,
+    "Fe": 18.5,
+    "Nb": 5.1,
+    "Mo": 3.05,
+    "Ti": 0.9,
+    "Al": 0.5
+   },
+   "zustand": "ausgehaertet",
+   "q": "astm-b637"
+  },
+  "al-rein": {
+   "typ": "metall",
+   "basis": "Al",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "cu-rein": {
+   "typ": "metall",
+   "basis": "Cu",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "fe-rein": {
+   "typ": "metall",
+   "basis": "Fe",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "ni-rein": {
+   "typ": "metall",
+   "basis": "Ni",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "ti-rein": {
+   "typ": "metall",
+   "basis": "Ti",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "mg-rein": {
+   "typ": "metall",
+   "basis": "Mg",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "zn-rein": {
+   "typ": "metall",
+   "basis": "Zn",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "ag-rein": {
+   "typ": "metall",
+   "basis": "Ag",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "au-rein": {
+   "typ": "metall",
+   "basis": "Au",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "pt-rein": {
+   "typ": "metall",
+   "basis": "Pt",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "w-rein": {
+   "typ": "metall",
+   "basis": "W",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "mo-rein": {
+   "typ": "metall",
+   "basis": "Mo",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "cr-rein": {
+   "typ": "metall",
+   "basis": "Cr",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "pb-rein": {
+   "typ": "metall",
+   "basis": "Pb",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "co-rein": {
+   "typ": "metall",
+   "basis": "Co",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "ta-rein": {
+   "typ": "metall",
+   "basis": "Ta",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "nb-rein": {
+   "typ": "metall",
+   "basis": "Nb",
+   "regel": "rein",
+   "zus": {},
+   "zustand": "rein"
+  },
+  "sn-rein": {
+   "typ": "kristall",
+   "phasen_T": [
+    {
+     "bis": 13.2,
+     "phase": "sn-alpha"
+    },
+    {
+     "bis": 231.9,
+     "phase": "sn-beta"
+    }
+   ],
+   "schmelze": 231.9,
+   "q": "crc97",
+   "hinweis": "Umwandlung β → α unter 13,2 °C sehr langsam (Zinnpest)",
+   "hinweis_en": "the β → α transformation below 13.2 °C is very slow (tin pest)"
+  },
+  "si": {
+   "typ": "kristall",
+   "phase": "si",
+   "schmelze": 1414
+  },
+  "ge": {
+   "typ": "kristall",
+   "phase": "ge",
+   "schmelze": 938
+  },
+  "gaas": {
+   "typ": "kristall",
+   "phase": "gaas",
+   "schmelze": 1238
+  },
+  "al2o3-999": {
+   "typ": "kristall",
+   "phase": "al2o3",
+   "schmelze": 2054,
+   "polyeder": true
+  },
+  "sic-gesintert": {
+   "typ": "kristall",
+   "phase": "sic-6h",
+   "polyeder": true,
+   "zersetzt": 2730,
+   "hinweis": "gesintertes SiC überwiegend α-SiC (6H, 4H)",
+   "hinweis_en": "sintered SiC is mostly α-SiC (6H, 4H)"
+  },
+  "si3n4-heissgepresst": {
+   "typ": "kristall",
+   "phase": "si3n4-beta",
+   "polyeder": true,
+   "zersetzt": 1900,
+   "hinweis": "Korngrenzen-Glasphase aus Sinterhilfen (Y₂O₃, Al₂O₃) nicht gezeigt",
+   "hinweis_en": "grain-boundary glass from sintering aids (Y₂O₃, Al₂O₃) not shown"
+  },
+  "zro2-3y": {
+   "typ": "kristall",
+   "phasen_T": [
+    {
+     "bis": 2370,
+     "phase": "zro2-t"
+    }
+   ],
+   "schmelze": 2715,
+   "polyeder": true,
+   "hinweis": "3 mol% Y₂O₃ halten die tetragonale Phase bei Raumtemperatur metastabil; reines ZrO₂ wäre unter 1170 °C monoklin",
+   "vergleich": "zro2-m",
+   "q": "hannink2000",
+   "hinweis_en": "3 mol% Y₂O₃ keeps the tetragonal phase metastable at room temperature; pure ZrO₂ would be monoclinic below 1170 °C"
+  },
+  "mgo": {
+   "typ": "kristall",
+   "phase": "mgo",
+   "schmelze": 2852,
+   "polyeder": true
+  },
+  "diamant": {
+   "typ": "kristall",
+   "phase": "c-diamond",
+   "hinweis": "metastabil; an Luft Oxidation ab ≈ 700 °C, Graphitisierung unter Luftabschluss ab ≈ 1500 °C",
+   "hinweis_en": "metastable; oxidises in air from ≈ 700 °C, graphitises without air from ≈ 1500 °C"
+  },
+  "pa6-trocken": {
+   "typ": "polymer",
+   "poly": "pa6",
+   "zelle": "pa6-alpha",
+   "xc": [
+    0.35,
+    0.45
+   ],
+   "Tg": 50,
+   "Tm": 220,
+   "q": "ehrenstein2001"
+  },
+  "pa6-konditioniert": {
+   "typ": "polymer",
+   "poly": "pa6",
+   "zelle": "pa6-alpha",
+   "xc": [
+    0.35,
+    0.45
+   ],
+   "Tg": 5,
+   "Tm": 220,
+   "wasser": 2.8,
+   "q": "ehrenstein2001",
+   "hinweis": "≈ 2,5–3 % Wasser in den amorphen Bereichen senkt Tg auf ≈ 0–10 °C",
+   "hinweis_en": "≈ 2.5–3 % water in the amorphous regions lowers Tg to ≈ 0–10 °C"
+  },
+  "pa66-trocken": {
+   "typ": "polymer",
+   "poly": "pa66",
+   "zelle": "pa66-alpha",
+   "xc": [
+    0.4,
+    0.5
+   ],
+   "Tg": 57,
+   "Tm": 265,
+   "q": "ehrenstein2001"
+  },
+  "pa66-konditioniert": {
+   "typ": "polymer",
+   "poly": "pa66",
+   "zelle": "pa66-alpha",
+   "xc": [
+    0.4,
+    0.5
+   ],
+   "Tg": 10,
+   "Tm": 265,
+   "wasser": 2.5,
+   "q": "ehrenstein2001"
+  },
+  "pa12": {
+   "typ": "polymer",
+   "poly": "pa12",
+   "xc": [
+    0.25,
+    0.35
+   ],
+   "Tg": 40,
+   "Tm": 178,
+   "q": "ehrenstein2001"
+  },
+  "pom-copolymer": {
+   "typ": "polymer",
+   "poly": "pom",
+   "zelle": "pom-trigonal",
+   "xc": [
+    0.6,
+    0.75
+   ],
+   "Tg": -60,
+   "Tm": 170,
+   "q": "ehrenstein2001"
+  },
+  "pe-hd": {
+   "typ": "polymer",
+   "poly": "pe",
+   "zelle": "pe-kristall",
+   "xc": [
+    0.6,
+    0.8
+   ],
+   "Tg": -90,
+   "Tm": 137,
+   "q": "ehrenstein2001"
+  },
+  "pe-ld": {
+   "typ": "polymer",
+   "poly": "pe",
+   "zelle": "pe-kristall",
+   "xc": [
+    0.4,
+    0.5
+   ],
+   "Tg": -110,
+   "Tm": 115,
+   "verzweigt": true,
+   "q": "ehrenstein2001"
+  },
+  "pp-h": {
+   "typ": "polymer",
+   "poly": "pp",
+   "zelle": "pp-alpha",
+   "xc": [
+    0.5,
+    0.65
+   ],
+   "Tg": -18,
+   "Tm": 175,
+   "q": "ehrenstein2001"
+  },
+  "ps-standard": {
+   "typ": "polymer",
+   "poly": "ps",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": 100,
+   "ataktisch": true,
+   "q": "ehrenstein2001"
+  },
+  "abs": {
+   "typ": "polymer",
+   "poly": "abs",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": 105,
+   "Tg2": -80,
+   "zweiphasig": "Polybutadien-Kautschukteilchen in SAN",
+   "q": "ehrenstein2001"
+  },
+  "pc": {
+   "typ": "polymer",
+   "poly": "pc",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": 150,
+   "q": "ehrenstein2001"
+  },
+  "pmma": {
+   "typ": "polymer",
+   "poly": "pmma",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": 105,
+   "ataktisch": true,
+   "q": "ehrenstein2001"
+  },
+  "pet": {
+   "typ": "polymer",
+   "poly": "pet",
+   "zelle": "pet-kristall",
+   "xc": [
+    0.3,
+    0.4
+   ],
+   "Tg": 69,
+   "Tm": 265,
+   "q": "ehrenstein2001",
+   "hinweis": "rasch abgekühltes PET ist amorph",
+   "hinweis_en": "PET cooled quickly is amorphous"
+  },
+  "pbt": {
+   "typ": "polymer",
+   "poly": "pbt",
+   "zelle": "pbt-alpha",
+   "xc": [
+    0.3,
+    0.4
+   ],
+   "Tg": 45,
+   "Tm": 223,
+   "q": "ehrenstein2001"
+  },
+  "pvc-u": {
+   "typ": "polymer",
+   "poly": "pvc",
+   "zelle": "pvc-kristall",
+   "xc": [
+    0.05,
+    0.1
+   ],
+   "Tg": 87,
+   "Tm": 212,
+   "q": "ehrenstein2001"
+  },
+  "ptfe": {
+   "typ": "polymer",
+   "poly": "ptfe",
+   "zelle_T": [
+    {
+     "bis": 19,
+     "zelle": "ptfe-ii"
+    },
+    {
+     "bis": 30,
+     "zelle": "ptfe-iv"
+    },
+    {
+     "bis": 327,
+     "zelle": "ptfe-iv",
+     "ungeordnet": true
+    }
+   ],
+   "xc": [
+    0.5,
+    0.7
+   ],
+   "Tg": -97,
+   "Tm": 327,
+   "q": "ehrenstein2001",
+   "hinweis": "Umwandlungen bei 19 °C (13/6 → 15/7-Helix) und 30 °C (Fehlordnung der Helices)",
+   "hinweis_en": "transitions at 19 °C (13/6 → 15/7 helix) and 30 °C (disorder of the helices)"
+  },
+  "peek": {
+   "typ": "polymer",
+   "poly": "peek",
+   "zelle": "peek-kristall",
+   "xc": [
+    0.3,
+    0.35
+   ],
+   "Tg": 143,
+   "Tm": 343,
+   "q": "ehrenstein2001"
+  },
+  "pla": {
+   "typ": "polymer",
+   "poly": "pla",
+   "zelle": "pla-alpha",
+   "xc": [
+    0.1,
+    0.4
+   ],
+   "Tg": 57.5,
+   "Tm": 165,
+   "q": "ehrenstein2001"
+  },
+  "petg": {
+   "typ": "polymer",
+   "poly": "petg",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": 80,
+   "q": "ehrenstein2001",
+   "hinweis": "Cyclohexandimethanol in der Kette verhindert die Kristallisation",
+   "hinweis_en": "cyclohexanedimethanol in the chain prevents crystallisation"
+  },
+  "pet-folie-bopet-laengs": {
+   "typ": "polymer",
+   "poly": "pet",
+   "zelle": "pet-kristall",
+   "xc": [
+    0.4,
+    0.5
+   ],
+   "Tg": 75,
+   "Tm": 255,
+   "orientiert": "biaxial",
+   "q": "ehrenstein2001"
+  },
+  "pp-folie-bopp-laengs": {
+   "typ": "polymer",
+   "poly": "pp",
+   "zelle": "pp-alpha",
+   "xc": [
+    0.6,
+    0.7
+   ],
+   "Tg": -18,
+   "Tm": 165,
+   "orientiert": "biaxial",
+   "q": "ehrenstein2001"
+  },
+  "pe-ld-folie-blasfolie": {
+   "typ": "polymer",
+   "poly": "pe",
+   "zelle": "pe-kristall",
+   "xc": [
+    0.4,
+    0.5
+   ],
+   "Tg": -110,
+   "Tm": 110,
+   "verzweigt": true,
+   "orientiert": "schwach",
+   "q": "ehrenstein2001"
+  },
+  "pi-folie-kapton-hn-25-um": {
+   "typ": "polymer",
+   "poly": "pi",
+   "xc": [
+    0,
+    0.1
+   ],
+   "Tg": 380,
+   "zersetzt": 520,
+   "q": "dupont-kapton",
+   "hinweis": "kein Schmelzpunkt; geringe Fernordnung",
+   "hinweis_en": "no melting point; little long-range order"
+  },
+  "nr-naturkautschuk": {
+   "typ": "elastomer",
+   "poly": "nr",
+   "zelle": "nr-kristall",
+   "xc": [
+    0,
+    0
+   ],
+   "xc_dehnung": 0.25,
+   "Tg": -72,
+   "vernetzt": true,
+   "q": "ehrenstein2001",
+   "hinweis": "kristallisiert bei starker Dehnung (bis ≈ 25 %)",
+   "hinweis_en": "crystallises when strongly stretched (up to ≈ 25 %)"
+  },
+  "epdm": {
+   "typ": "elastomer",
+   "poly": "epdm",
+   "xc": [
+    0,
+    0.1
+   ],
+   "Tg": -55,
+   "vernetzt": true,
+   "q": "ehrenstein2001"
+  },
+  "nbr-70-shore-a": {
+   "typ": "elastomer",
+   "poly": "nbr",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": -25,
+   "vernetzt": true,
+   "q": "ehrenstein2001",
+   "hinweis": "Tg hängt vom Acrylnitrilgehalt ab (≈ −40 bis −10 °C)",
+   "hinweis_en": "Tg depends on the acrylonitrile content (≈ −40 to −10 °C)"
+  },
+  "silikon-vmq": {
+   "typ": "elastomer",
+   "poly": "vmq",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": -125,
+   "vernetzt": true,
+   "q": "ehrenstein2001"
+  },
+  "fkm": {
+   "typ": "elastomer",
+   "poly": "fkm",
+   "xc": [
+    0,
+    0
+   ],
+   "Tg": -20,
+   "vernetzt": true,
+   "q": "ehrenstein2001"
+  },
+  "tpu-90-shore-a": {
+   "typ": "elastomer",
+   "poly": "tpu",
+   "xc": [
+    0.1,
+    0.25
+   ],
+   "Tg": -40,
+   "Tm": 190,
+   "vernetzt": false,
+   "zweiphasig": "Hartsegment-Domänen (MDI-Urethan) in Weichsegment-Matrix (Polyether)",
+   "q": "ehrenstein2001"
+  },
+  "ep": {
+   "typ": "duroplast",
+   "poly": "ep",
+   "Tg": 120,
+   "vernetzt": true,
+   "q": "ehrenstein2001",
+   "hinweis": "Tg 100–150 °C je nach Härter und Aushärtung",
+   "hinweis_en": "Tg 100–150 °C depending on hardener and cure"
+  },
+  "pf": {
+   "typ": "duroplast",
+   "poly": "pf",
+   "Tg": 170,
+   "vernetzt": true,
+   "zersetzt": 300,
+   "q": "ehrenstein2001"
+  },
+  "pa6-gf30-trocken": {
+   "typ": "verbund",
+   "faser": "e-glasfaser",
+   "matrix": "pa6-trocken",
+   "phi": 0.16,
+   "anordnung": "kurz",
+   "q": "ehrenstein2001",
+   "phi_hinweis": "30 Masse-% Glas → ≈ 16 Vol.-% (ρ 2,55 und 1,13 g/cm³)"
+  },
+  "pa66-gf30-trocken": {
+   "typ": "verbund",
+   "faser": "e-glasfaser",
+   "matrix": "pa66-trocken",
+   "phi": 0.16,
+   "anordnung": "kurz",
+   "q": "ehrenstein2001",
+   "phi_hinweis": "30 Masse-% Glas → ≈ 16 Vol.-% (ρ 2,55 und 1,14 g/cm³)"
+  },
+  "cfk-unidirektional-0": {
+   "typ": "verbund",
+   "faser": "cf-standardmodul",
+   "matrix": "ep",
+   "phi": 0.6,
+   "anordnung": "ud",
+   "q": "schuermann2007"
+  },
+  "gfk-unidirektional-0": {
+   "typ": "verbund",
+   "faser": "e-glasfaser",
+   "matrix": "ep",
+   "phi": 0.55,
+   "anordnung": "ud",
+   "q": "schuermann2007"
+  },
+  "gfk-gewebe": {
+   "typ": "verbund",
+   "faser": "e-glasfaser",
+   "matrix": "ep",
+   "phi": 0.45,
+   "anordnung": "gewebe",
+   "q": "schuermann2007"
+  },
+  "as4-3501-6": {
+   "typ": "verbund",
+   "faser": "cf-standardmodul",
+   "matrix": "ep",
+   "phi": 0.62,
+   "anordnung": "ud",
+   "q": "schuermann2007"
+  },
+  "eglas-epoxid-ud": {
+   "typ": "verbund",
+   "faser": "e-glasfaser",
+   "matrix": "ep",
+   "phi": 0.55,
+   "anordnung": "ud",
+   "q": "schuermann2007"
+  },
+  "kevlar49-epoxid-ud": {
+   "typ": "verbund",
+   "faser": "aramidfaser-kevlar49",
+   "matrix": "ep",
+   "phi": 0.6,
+   "anordnung": "ud",
+   "q": "schuermann2007"
+  },
+  "e-glasfaser": {
+   "typ": "glas",
+   "netz": {
+    "SiO2": 54,
+    "CaO": 22,
+    "Al2O3": 14,
+    "B2O3": 7,
+    "MgO": 1
+   },
+   "Tg": 830,
+   "faser": true,
+   "q": "astm-d578"
+  },
+  "cf-standardmodul": {
+   "typ": "kohlenstofffaser",
+   "d002": 3.47,
+   "Lc_nm": 1.5,
+   "ordnung": 0.3,
+   "q": "morgan2005"
+  },
+  "cf-mittelmodul": {
+   "typ": "kohlenstofffaser",
+   "d002": 3.45,
+   "Lc_nm": 2.5,
+   "ordnung": 0.45,
+   "q": "morgan2005"
+  },
+  "cf-hochmodul": {
+   "typ": "kohlenstofffaser",
+   "d002": 3.41,
+   "Lc_nm": 8.0,
+   "ordnung": 0.8,
+   "q": "morgan2005"
+  },
+  "aramidfaser-kevlar49": {
+   "typ": "polymer",
+   "poly": "ppta",
+   "zelle": "ppta-kristall",
+   "xc": [
+    0.8,
+    0.9
+   ],
+   "Tg": 375,
+   "zersetzt": 500,
+   "orientiert": "faser",
+   "q": "morgan2005"
+  },
+  "uhmwpe-faser": {
+   "typ": "polymer",
+   "poly": "pe",
+   "zelle": "pe-kristall",
+   "xc": [
+    0.85,
+    0.95
+   ],
+   "Tg": -90,
+   "Tm": 145,
+   "orientiert": "faser",
+   "q": "morgan2005"
+  },
+  "quarzglas": {
+   "typ": "glas",
+   "netz": {
+    "SiO2": 100
+   },
+   "Tg": 1200,
+   "q": "shelby2005"
+  },
+  "kalk-natron-glas": {
+   "typ": "glas",
+   "netz": {
+    "SiO2": 72,
+    "Na2O": 14,
+    "CaO": 9,
+    "MgO": 4,
+    "Al2O3": 1
+   },
+   "Tg": 560,
+   "q": "shelby2005"
+  },
+  "borosilikatglas": {
+   "typ": "glas",
+   "netz": {
+    "SiO2": 80.6,
+    "B2O3": 13.0,
+    "Na2O": 4.0,
+    "Al2O3": 2.3
+   },
+   "Tg": 525,
+   "q": "shelby2005"
+  },
+  "glaskeramik": {
+   "typ": "glaskeramik",
+   "kristall": "spodumen-beta",
+   "anteil": 0.9,
+   "netz": {
+    "SiO2": 70,
+    "Al2O3": 18,
+    "Li2O": 4,
+    "TiO2": 5,
+    "MgO": 3
+   },
+   "Tg": 750,
+   "q": "holand2012",
+   "hinweis": "angenommen: Pyroceram 9608 (β-Spodumen-Mischkristall); Pyroceram 9606 wäre Cordierit",
+   "hinweis_en": "assumed: Pyroceram 9608 (β-spodumene solid solution); Pyroceram 9606 would be cordierite"
+  },
+  "kopierpapier-80-g-m-laengs": {
+   "typ": "papier",
+   "zellulose": 0.75,
+   "fuellstoff": {
+    "CaCO3": 0.2
+   },
+   "lignin": 0.0,
+   "q": "fengel1984",
+   "fuellstoff_q": "holik2013"
+  },
+  "kraftpapier-laengs": {
+   "typ": "papier",
+   "zellulose": 0.8,
+   "hemicellulose": 0.12,
+   "lignin": 0.05,
+   "q": "fengel1984"
+  },
+  "karton-laengs": {
+   "typ": "papier",
+   "zellulose": 0.7,
+   "hemicellulose": 0.12,
+   "lignin": 0.1,
+   "fuellstoff": {
+    "CaCO3": 0.05
+   },
+   "q": "fengel1984"
+  },
+  "fichte-zug-parallel-zur-faser": {
+   "typ": "holz",
+   "art": "nadelholz",
+   "zellulose": 0.42,
+   "hemicellulose": 0.28,
+   "lignin": 0.28,
+   "mfw_S2": 15,
+   "q": "fengel1984"
+  },
+  "buche-zug-parallel-zur-faser": {
+   "typ": "holz",
+   "art": "laubholz",
+   "zellulose": 0.45,
+   "hemicellulose": 0.33,
+   "lignin": 0.22,
+   "mfw_S2": 12,
+   "q": "fengel1984"
+  },
+  "eiche-zug-parallel-zur-faser": {
+   "typ": "holz",
+   "art": "laubholz",
+   "zellulose": 0.43,
+   "hemicellulose": 0.3,
+   "lignin": 0.25,
+   "mfw_S2": 12,
+   "q": "fengel1984"
+  },
+  "beton": {
+   "typ": "beton",
+   "zuschlag": 0.7,
+   "zuschlag_phase": "quarz",
+   "leim": {
+    "C-S-H": 0.55,
+    "Portlandit": 0.22,
+    "AFt/AFm": 0.13,
+    "Klinkerrest": 0.05,
+    "Poren": 0.05
+   },
+   "q": "taylor1997cem"
+  }
+ },
+ "quellen": {
+  "en573-3": {
+   "type": "standard",
+   "title": "EN 573-3: Aluminium und Aluminiumlegierungen – Chemische Zusammensetzung und Form von Halbzeug – Teil 3: Chemische Zusammensetzung und Erzeugnisformen",
+   "container": "CEN",
+   "year": "2019"
+  },
+  "en10025-2": {
+   "type": "standard",
+   "title": "EN 10025-2: Warmgewalzte Erzeugnisse aus Baustählen – Teil 2: Technische Lieferbedingungen für unlegierte Baustähle",
+   "container": "CEN",
+   "year": "2019"
+  },
+  "en10025-3": {
+   "type": "standard",
+   "title": "EN 10025-3: Warmgewalzte Erzeugnisse aus Baustählen – Teil 3: Normalgeglühte/normalisierend gewalzte schweißgeeignete Feinkornbaustähle",
+   "container": "CEN",
+   "year": "2019"
+  },
+  "en10130": {
+   "type": "standard",
+   "title": "EN 10130: Kaltgewalzte Flacherzeugnisse aus weichen Stählen zum Kaltumformen",
+   "container": "CEN",
+   "year": "2006"
+  },
+  "en10083-2": {
+   "type": "standard",
+   "title": "EN 10083-2: Vergütungsstähle – Teil 2: Technische Lieferbedingungen für unlegierte Stähle",
+   "container": "CEN",
+   "year": "2006"
+  },
+  "en10083-3": {
+   "type": "standard",
+   "title": "EN 10083-3: Vergütungsstähle – Teil 3: Technische Lieferbedingungen für legierte Stähle",
+   "container": "CEN",
+   "year": "2006"
+  },
+  "en10088-2": {
+   "type": "standard",
+   "title": "EN 10088-2: Nichtrostende Stähle – Teil 2: Technische Lieferbedingungen für Blech und Band",
+   "container": "CEN",
+   "year": "2014"
+  },
+  "en1561": {
+   "type": "standard",
+   "title": "EN 1561: Gießereiwesen – Gusseisen mit Lamellengraphit",
+   "container": "CEN",
+   "year": "2011"
+  },
+  "en1563": {
+   "type": "standard",
+   "title": "EN 1563: Gießereiwesen – Gusseisen mit Kugelgraphit",
+   "container": "CEN",
+   "year": "2018"
+  },
+  "en1652": {
+   "type": "standard",
+   "title": "EN 1652: Kupfer und Kupferlegierungen – Platten, Bleche, Bänder, Streifen und Ronden zur allgemeinen Verwendung",
+   "container": "CEN",
+   "year": "1997"
+  },
+  "sae-j403": {
+   "type": "standard",
+   "title": "SAE J403: Chemical Compositions of SAE Carbon Steels",
+   "container": "SAE International",
+   "year": "2014"
+  },
+  "sae-j404": {
+   "type": "standard",
+   "title": "SAE J404: Chemical Compositions of SAE Alloy Steels",
+   "container": "SAE International",
+   "year": "2009"
+  },
+  "astm-b265": {
+   "type": "standard",
+   "title": "ASTM B265: Standard Specification for Titanium and Titanium Alloy Strip, Sheet, and Plate",
+   "container": "ASTM International",
+   "year": "2020"
+  },
+  "astm-b90": {
+   "type": "standard",
+   "title": "ASTM B90/B90M: Standard Specification for Magnesium-Alloy Sheet and Plate",
+   "container": "ASTM International",
+   "year": "2015"
+  },
+  "astm-b160": {
+   "type": "standard",
+   "title": "ASTM B160: Standard Specification for Nickel Rod and Bar",
+   "container": "ASTM International",
+   "year": "2019"
+  },
+  "astm-b443": {
+   "type": "standard",
+   "title": "ASTM B443: Standard Specification for Nickel-Chromium-Molybdenum-Columbium Alloy (UNS N06625) Plate, Sheet, and Strip",
+   "container": "ASTM International",
+   "year": "2019"
+  },
+  "astm-b637": {
+   "type": "standard",
+   "title": "ASTM B637: Standard Specification for Precipitation-Hardening and Cold Worked Nickel Alloy Bars, Forgings, and Forging Stock for Moderate or High Temperature Service",
+   "container": "ASTM International",
+   "year": "2018"
+  },
+  "astm-d578": {
+   "type": "standard",
+   "title": "ASTM D578/D578M: Standard Specification for Glass Fiber Strands",
+   "container": "ASTM International",
+   "year": "2018"
+  },
+  "crc97": {
+   "type": "book",
+   "authors": "Rumble, J. R. (Hrsg.)",
+   "title": "CRC Handbook of Chemistry and Physics, 97th ed.",
+   "container": "CRC Press",
+   "year": "2016"
+  },
+  "hannink2000": {
+   "type": "article",
+   "authors": "Hannink, R. H. J.; Kelly, P. M.; Muddle, B. C.",
+   "title": "Transformation toughening in zirconia-containing ceramics",
+   "container": "Journal of the American Ceramic Society",
+   "year": "2000",
+   "volume": "83",
+   "pages": "461-487",
+   "doi": "10.1111/j.1151-2916.2000.tb01221.x"
+  },
+  "ehrenstein2001": {
+   "type": "book",
+   "authors": "Ehrenstein, G. W.",
+   "title": "Polymeric Materials: Structure, Properties, Applications",
+   "container": "Hanser",
+   "year": "2001"
+  },
+  "dupont-kapton": {
+   "type": "manual",
+   "title": "DuPont Kapton HN polyimide film – technical data sheet",
+   "container": "DuPont"
+  },
+  "schuermann2007": {
+   "type": "book",
+   "authors": "Schürmann, H.",
+   "title": "Konstruieren mit Faser-Kunststoff-Verbunden, 2. Aufl.",
+   "container": "Springer",
+   "year": "2007"
+  },
+  "morgan2005": {
+   "type": "book",
+   "authors": "Morgan, P.",
+   "title": "Carbon Fibers and Their Composites",
+   "container": "CRC Press",
+   "year": "2005"
+  },
+  "shelby2005": {
+   "type": "book",
+   "authors": "Shelby, J. E.",
+   "title": "Introduction to Glass Science and Technology, 2nd ed.",
+   "container": "Royal Society of Chemistry",
+   "year": "2005"
+  },
+  "holand2012": {
+   "type": "book",
+   "authors": "Höland, W.; Beall, G. H.",
+   "title": "Glass-Ceramic Technology, 2nd ed.",
+   "container": "Wiley",
+   "year": "2012"
+  },
+  "fengel1984": {
+   "type": "book",
+   "authors": "Fengel, D.; Wegener, G.",
+   "title": "Wood: Chemistry, Ultrastructure, Reactions",
+   "container": "de Gruyter",
+   "year": "1984"
+  },
+  "holik2013": {
+   "type": "book",
+   "authors": "Holik, H. (Hrsg.)",
+   "title": "Handbook of Paper and Board, 2nd ed.",
+   "container": "Wiley-VCH",
+   "year": "2013"
+  },
+  "taylor1997cem": {
+   "type": "book",
+   "authors": "Taylor, H. F. W.",
+   "title": "Cement Chemistry, 2nd ed.",
+   "container": "Thomas Telford",
+   "year": "1997"
+  }
+ }
+}

@@ -86,9 +86,10 @@ T = {
         "m_cp": "$C_p(T)$ aus NASA-7-Polynomen",
         "m_cp298": "konstantem $C_p$ (Werte bei 298,15\\,K)",
         "teq": "Im $C_p$-Modell wird $\\Delta_\\mathrm{r}G(T) = 0$ bei $T = {T}$\\,K.",
-        "fig_cp": "Freie Reaktionsenthalpie in Abhängigkeit von der Temperatur: durchgezogen mit {model}, gestrichelt "
-                  "Näherung mit konstantem $\\Delta_\\mathrm{r}H^\\circ$ und $\\Delta_\\mathrm{r}S^\\circ$; unter der Nulllinie "
-                  "läuft die Reaktion freiwillig.",
+        "fig_cp": "Freie Reaktionsenthalpie in Abhängigkeit von der Temperatur{parts}; unter der Nulllinie läuft die "
+                  "Reaktion freiwillig.",
+        "fig_cp_solid": "durchgezogen mit {model}",
+        "fig_cp_dash": "gestrichelt Näherung mit konstantem $\\Delta_\\mathrm{r}H^\\circ$ und $\\Delta_\\mathrm{r}S^\\circ$",
         "lg_cp": "mit Cp(T)", "lg_c": "ΔrH°, ΔrS° konstant",
         "v_dGT": "Freie Reaktionsenthalpie bei $T$", "v_lgKT": "$\\lg K$ bei $T$",
         "kc": "Mit $\\Delta n_\\mathrm{Gas} = {dn}$ ist $K_c = K\\,(p^\\circ/(RT c^\\circ))^{\\Delta n} = {Kc}$ "
@@ -161,9 +162,9 @@ T = {
         "m_cp": "$C_p(T)$ from NASA-7 polynomials",
         "m_cp298": "constant $C_p$ (values at 298.15\\,K)",
         "teq": "In the $C_p$ model, $\\Delta_\\mathrm{r}G(T) = 0$ at $T = {T}$\\,K.",
-        "fig_cp": "Gibbs energy of reaction versus temperature: solid with {model}, dashed the approximation with constant "
-                  "$\\Delta_\\mathrm{r}H^\\circ$ and $\\Delta_\\mathrm{r}S^\\circ$; below the zero line the reaction is "
-                  "spontaneous.",
+        "fig_cp": "Gibbs energy of reaction versus temperature{parts}; below the zero line the reaction is spontaneous.",
+        "fig_cp_solid": "solid with {model}",
+        "fig_cp_dash": "dashed the approximation with constant $\\Delta_\\mathrm{r}H^\\circ$ and $\\Delta_\\mathrm{r}S^\\circ$",
         "lg_cp": "with Cp(T)", "lg_c": "ΔrH°, ΔrS° constant",
         "v_dGT": "Gibbs energy of reaction at $T$", "v_lgKT": "$\\lg K$ at $T$",
         "kc": "With $\\Delta n_\\mathrm{gas} = {dn}$, $K_c = K\\,(p^\\circ/(RT c^\\circ))^{\\Delta n} = {Kc}$ "
@@ -310,6 +311,14 @@ def _case_tex(dH: float, dS: float, lang: str) -> str:
                             else "not spontaneous at any temperature; the reverse reaction is")
 
 
+def _part(arts, pid):
+    """Mark artists as one part of the figure (labstyle: what the report can switch off with its caption and sources)."""
+    if pid:
+        for a in arts if isinstance(arts, (list, tuple)) else [arts]:
+            a._labpart = pid
+    return arts
+
+
 def _thermo(b, L, lang, eqr, th, steps, tables, cite, vals):
     rows = [r for r in th["rows"] if "error" not in r]
     sp_tex = {r["i"]: C.parse_species(r["text"]).latex() for r in rows}
@@ -343,9 +352,9 @@ def _thermo(b, L, lang, eqr, th, steps, tables, cite, vals):
                           r"\cite{%s}" % cites_of(r.get("refs") or []) if r.get("refs") else tex_escape(r.get("src", ""))])
         b.add_table("thermochemie", booktabs([L["h_sp"], L["h_nu"], L["h_ph"], L["h_H"], L["h_G"], L["h_S"], L["h_Cp"], L["h_src"]],
                                              trows, "llcrrrrl", small=True, escape_header=False), L["th_cap"],
-                    cites=[cites_of(all_keys)] if all_keys else None)
+                    cites=[cites_of(all_keys)] if all_keys else None, steps=[])
     if th.get("error"):
-        b.add_text("thermochemie", "\n\n".join(parts) + "\n", L["th"])
+        b.add_text("thermochemie", "\n\n".join(parts) + "\n", L["th"], steps=[])
         return
     dH, dS, dG = th.get("dH"), th.get("dS"), th.get("dG")
     if steps and dH is not None:
@@ -417,7 +426,7 @@ def _thermo(b, L, lang, eqr, th, steps, tables, cite, vals):
         parts.append(_fill(L["hv"], lab=lab, f=_m(sp_tex.get(p["i"], tex_escape(p["species"]))), v=_fx(-p["per_kg"] / 1000, 2, lang)))
         vals.append(("hv", L["v_hv"], _m(_fx(-p["per_kg"] / 1000, 2, lang) + r"\,\mathrm{MJ\,kg^{-1}}"),
                      _fxp(-p["per_kg"] / 1000, 2, lang) + " MJ/kg"))
-    b.add_text("thermochemie", "\n\n".join(parts) + "\n", L["th"])
+    b.add_text("thermochemie", "\n\n".join(parts) + "\n", L["th"], steps=[])
     # Werte für \labval
     if dH is not None:
         vals.append(("dH-r", L["v_dH"], _m(_fx(dH, 2, lang) + r"\,\mathrm{kJ\,mol^{-1}}"), _fxp(dH, 2, lang) + " kJ/mol"))
@@ -441,8 +450,8 @@ def _thermo(b, L, lang, eqr, th, steps, tables, cite, vals):
         cpc = th.get("curve_cp")
         cmod = th.get("curve_cp_model")
         if cpc:
-            ax.plot(xs, ys, color="#6d28d9", lw=1.4, ls="--", label=L["lg_c"])
-            ax.plot([p[0] for p in cpc], [p[1] for p in cpc], color="#0e7490", lw=1.8, label=L["lg_cp"])
+            _part(ax.plot(xs, ys, color="#6d28d9", lw=1.4, ls="--", label=L["lg_c"]), "konstant")
+            _part(ax.plot([p[0] for p in cpc], [p[1] for p in cpc], color="#0e7490", lw=1.8, label=L["lg_cp"]), "cp")
             ax.legend(fontsize=8, frameon=False)
         else:
             ax.plot(xs, ys, color="#6d28d9", lw=1.8)
@@ -465,9 +474,14 @@ def _thermo(b, L, lang, eqr, th, steps, tables, cite, vals):
             ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}".replace(".", ",").replace("-", "−")))
             ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}".replace(".", ",")))
         fig.tight_layout()
-        fkeys = all_keys + (["burcat2018", "mcbride2002"] if cpc and cmod == "cp" else [])
-        cap = _fill(L["fig_cp"], model=L["m_" + cmod]) if cpc and cmod in ("cp", "cp298") else L["fig"]
-        b.add_figure(fig, "dg-t", cap, cites=[cites_of(list(dict.fromkeys(fkeys)))] if fkeys else None)
+        if cpc and cmod in ("cp", "cp298"):             # die Cp-Kurve bringt ihre Quellen mit
+            pk = ["burcat2018", "mcbride2002"] if cmod == "cp" else []
+            b.add_figure(fig, "dg-t", L["fig_cp"], cites=[cites_of(all_keys)] if all_keys else None, parts_lead=":",
+                         parts=[{"id": "cp", "label": L["lg_cp"], "caption": _fill(L["fig_cp_solid"], model=L["m_" + cmod]),
+                                 "cites": [cites_of([k for k in pk if k not in all_keys])] if pk else []},
+                                {"id": "konstant", "label": L["lg_c"], "caption": L["fig_cp_dash"]}], steps=[])
+        else:
+            b.add_figure(fig, "dg-t", L["fig"], cites=[cites_of(all_keys)] if all_keys else None, steps=[])
 
 
 # ----------------------------------------------------------------------------- Redox, pH, Titration (Phase 5)
@@ -503,7 +517,7 @@ T["de"].update({
     "ti": "Titration", "ti_text": "Titration von {V0}\\,mL der Lösung {mix} mit {t} ($c = {c}$\\,mol/L); Verdünnung "
     "berücksichtigt, ideal verdünnt.", "ti_eq": "Äquivalenzpunkt{pl} (grösste Steigung): {pts}.",
     "rx_half": "{kind}: {chg}; $n = {n}$ Elektronen.",
-    "ti_fig": "Berechnete Titrationskurve; gestrichelt die Äquivalenzpunkte.", "ax_V": "$V$({t}) in mL",
+    "ti_fig": "Berechnete Titrationskurve{parts}.", "ti_lead": "; gestrichelt", "ti_eq_part": "die Äquivalenzpunkte", "ax_V": "$V$({t}) in mL",
     "v_Veq": "Äquivalenzvolumen {k}",
     "ind_eq": "Geeigneter Indikator am Äquivalenzpunkt{k}: {items}.",
     "ind_item": "{ind} (Umschlag {lo}--{hi}, {ca} nach {cb}; Titrierfehler ${err}$\\,\\%)",
@@ -542,7 +556,7 @@ T["en"].update({
     "ti": "Titration", "ti_text": "Titration of {V0}\\,mL of the solution {mix} with {t} ($c = {c}$\\,mol/L); dilution "
     "included, ideal dilute solution.", "ti_eq": "Equivalence point{pl} (steepest slope): {pts}.",
     "rx_half": "{kind}: {chg}; $n = {n}$ electrons.",
-    "ti_fig": "Calculated titration curve; dashed: equivalence points.", "ax_V": "$V$({t}) in mL",
+    "ti_fig": "Calculated titration curve{parts}.", "ti_lead": "; dashed:", "ti_eq_part": "equivalence points", "ax_V": "$V$({t}) in mL",
     "v_Veq": "Equivalence volume {k}",
     "ind_eq": "Suitable indicator at equivalence point{k}: {items}.",
     "ind_item": "{ind} (transition {lo}--{hi}, {ca} to {cb}; titration error ${err}$\\,\\%)",
@@ -608,7 +622,7 @@ def _redox(b, L, lang, eqr, rx, steps, tables, cite, vals):
                              for e, vs in by.items())
             rows.append([_m(sp_tex[s["i"]]), cell])
         b.add_table("oxidationszahlen", booktabs([L["h_sp"], L["h_ox"]], rows, "ll", escape_header=False), L["rx_cap"],
-                    cites=[ox_cite])
+                    cites=[ox_cite], steps=[])
 
     def chg(els):
         return ", ".join(f"{c['el']} (${_ox_tex(', '.join(c['from']))} \\rightarrow {_ox_tex(', '.join(c['to']))}$)"
@@ -682,7 +696,7 @@ def _redox(b, L, lang, eqr, rx, steps, tables, cite, vals):
                                    m0=_fx(w["m0_g"], 4, lang), y=_fx(100 * w["yield"], 3, lang)))
                 vals.append((f"Y-el{w['i']}", L["v_Yel"], _m(_fx(100 * w["yield"], 3, lang) + r"\,\%"),
                              _fxp(100 * w["yield"], 3, lang) + " %"))
-    b.add_text("redox", "\n\n".join(parts) + "\n", L["rx"])
+    b.add_text("redox", "\n\n".join(parts) + "\n", L["rx"], steps=[])
 
 
 def _ph_section(b, L, lang, state, ph, tables, cite, vals):
@@ -710,7 +724,7 @@ def _ph_section(b, L, lang, state, ph, tables, cite, vals):
             parts.append(r"\textit{%s}" % _ntx(n_))
     for n_ in ph.get("notes") or []:
         parts.append(r"\textit{%s}" % tex_escape(n_))
-    b.add_text("ph", "\n\n".join(parts) + "\n", L["ph"])
+    b.add_text("ph", "\n\n".join(parts) + "\n", L["ph"], steps=[])
     if tables and ph.get("species"):
         rows, seen = [], set()
         for s in ph["species"]:
@@ -732,7 +746,7 @@ def _ph_section(b, L, lang, state, ph, tables, cite, vals):
                              _m(r"\mathrm{%s}" % lab), _m(ntex(100 * f["alpha"], 3, lang)) + r"\,\%", _m(ntex(c, 3, lang))])
         b.add_table("speziesverteilung", booktabs([L["h_sys"], L["h_form"], L["h_alpha"], L["h_c"]], rows, "llrr",
                                                   small=True, escape_header=False), L["ph_cap"],
-                    cites=[",".join(cite(k) for k in src_keys)] if src_keys else None)
+                    cites=[",".join(cite(k) for k in src_keys)] if src_keys else None, steps=[])
     vals.append(("ph", L["v_pH"], _m(_fx(ph["pH"], 2, lang)), _fxp(ph["pH"], 2, lang)))
 
 
@@ -768,15 +782,15 @@ def _titration_section(b, L, lang, state, ti, cite, vals):
     ind_txt = _indicator_text(L, lang, eqs)
     if ind_txt:
         parts.append(_cite_end(ind_txt, cite("harris")))
-    b.add_text("titration", "\n\n".join(parts) + "\n", L["ti"])
+    b.add_text("titration", "\n\n".join(parts) + "\n", L["ti"], steps=[])
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(5.6, 3.4))
     ax.plot([p[0] for p in ti["points"]], [p[1] for p in ti["points"]], color="#6d28d9", lw=1.8)
     for e in eqs:
-        ax.axvline(e["V"], color="#0e7490", ls="--", lw=1)
-        ax.plot([e["V"]], [e["pH"]], "o", color="#0e7490", ms=4)
+        _part(ax.axvline(e["V"], color="#0e7490", ls="--", lw=1), "aequivalenz")
+        _part(ax.plot([e["V"]], [e["pH"]], "o", color="#0e7490", ms=4), "aequivalenz")
     ax.set_ylim(0, 14)
     ax.set_xlabel(_fill(L["ax_V"], t=tex_escape(ti.get("titrant") or "")))
     ax.set_ylabel("pH")
@@ -785,7 +799,9 @@ def _titration_section(b, L, lang, state, ti, cite, vals):
         from matplotlib.ticker import FuncFormatter
         ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}".replace(".", ",")))
     fig.tight_layout()
-    b.add_figure(fig, "titration", L["ti_fig"], cites=[",".join(cite(k) for k in ti.get("refs") or [] if k in REFS)])
+    b.add_figure(fig, "titration", L["ti_fig"], cites=[",".join(cite(k) for k in ti.get("refs") or [] if k in REFS)],
+                 parts_lead=L["ti_lead"],
+                 parts=[{"id": "aequivalenz", "label": L["ti_eq_part"], "caption": L["ti_eq_part"]}] if eqs else [], steps=[])
     for k, e in enumerate(eqs, 1):
         vals.append((f"V-eq{k}", _fill(L["v_Veq"], k=k), _m(_fx(e["V"], 2, lang) + r"\,\mathrm{mL}"), _fxp(e["V"], 2, lang) + " mL"))
 
@@ -938,7 +954,7 @@ def _worksheet(b, P, lang, r, tid, what, cite):
         rows.append([_ptx(s["text"]), frm + src_t, val + (r"\," + _ptx(s.get("unit")) if s.get("unit") else "")])
     if rows:
         b.add_table(tid, booktabs([P["h_step"], P["h_calc"], P["h_res"]], rows, "p{4.2cm}p{6.2cm}r", small=True,
-                                  escape_header=False), _fill(P["ws_cap"], what=what))
+                                  escape_header=False), _fill(P["ws_cap"], what=what), steps=[])
 
 
 def _prep_section(b, lang, res, steps, tables, cite, vals, used):
@@ -993,7 +1009,7 @@ def _prep_section(b, lang, res, steps, tables, cite, vals, used):
                         _m(ntex(x["fill_to_mL"], 4, lang))] for x in rows]
                 b.add_table(f"verduennungsreihe-{k}", booktabs([P["h_lvl"], _fill(P["h_c"], unit=unit_t(r["unit"])),
                                                                P["h_tr"], P["h_fill"]], trs, "rrrr", escape_header=False),
-                            _fill(P["series_cap"], f=_m(ntex(r["factor"], 4, lang))))
+                            _fill(P["series_cap"], f=_m(ntex(r["factor"], 4, lang))), steps=[])
         elif kind == "mixsolve":
             sv = r["solved"]
             what = {"c": P["mixs_c"], "V": P["mixs_V"], "cf": P["mixs_cf"], "Vf": P["mixs_Vf"]}[sv["what"]]
@@ -1068,9 +1084,9 @@ def _prep_section(b, lang, res, steps, tables, cite, vals, used):
         mk = [x for x in plans[0]["result"]["metrics"]["refs"] if x in REFS]
         b.add_table("ansatzvergleich", booktabs([""] + cols, rows, "l" + "p{3.2cm}" * len(cols), small=True,
                                                 escape_header=False), P["cmp_cap"],
-                    cites=[",".join(cite(x) for x in mk)] if mk else None)
+                    cites=[",".join(cite(x) for x in mk)] if mk else None, steps=[])
     if paras:
-        b.add_text("ansetzen", "\n\n".join(paras) + "\n", P["sec"])
+        b.add_text("ansetzen", "\n\n".join(paras) + "\n", P["sec"], steps=[])
 
 
 def _reaction_block(b, P, lang, it, r, k, tables, cite, vals, used, paras):
@@ -1111,7 +1127,7 @@ def _reaction_block(b, P, lang, it, r, k, tables, cite, vals, used, paras):
         lim_note = r"\textsuperscript{*}\," + ("limitierend" if lang == "de" else "limiting")
         b.add_table(f"reaktionsansatz-{k}", booktabs([P["h_sp"], P["h_role"], P["h_nu"], P["h_eq"], P["h_n"], P["h_m"], P["h_V"]],
                                                      rows, "llrrrrr", small=True, escape_header=False),
-                    P["rx_cap"], notes=lim_note, cites=[",".join(cite(x) for x in ["ciaaw2024", "ciaaw2021"] if x in REFS)])
+                    P["rx_cap"], notes=lim_note, cites=[",".join(cite(x) for x in ["ciaaw2024", "ciaaw2021"] if x in REFS)], steps=[])
     m = r.get("metrics")
     if m:
         bd = m["boundary_text"] if lang == "de" else \
@@ -1223,12 +1239,12 @@ def _design_section(b, lang, d, tables, cite, cite_aw, vals, used):
     J = jb.get("values") or {}
     if o.get("logP") is not None or J:
         parts.append(D["est"])
-    b.add_text("molekuel", "\n\n".join(parts) + "\n", D["sec"] + (": " + nm if nm else ""))
+    b.add_text("molekuel", "\n\n".join(parts) + "\n", D["sec"] + (": " + nm if nm else ""), steps=[])
     if d.get("molfile"):
         from . import structure as ST
         try:
             fig = ST.draw(d["molfile"])
-            b.add_figure(fig, "struktur", _fill(D["fig"], n=name_t), width="0.45", cites=[cite("openchemlib")])
+            b.add_figure(fig, "struktur", _fill(D["fig"], n=name_t), width="0.45", cites=[cite("openchemlib")], steps=[])
         except ST.MolfileError:
             pass
     if tables:
@@ -1280,7 +1296,7 @@ def _design_section(b, lang, d, tables, cite, cite_aw, vals, used):
             else:
                 row(D[lab], _m(_fx(x["v"], 1, lang)) + r"\," + u, "est", D["m_job"], jk)
         b.add_table("molekuel-kennwerte", booktabs([D["h_q"], D["h_v"], D["h_k"], D["h_s"]], rows, "llll", small=True,
-                                                  escape_header=False), D["cap"])
+                                                  escape_header=False), D["cap"], steps=[])
     if r.get("M"):
         vals.append((_key("molmasse-struktur", used), _fill(D["v_M"], f=ftex), _m(ntex(r["M"], 6, lang) + r"\ \mathrm{g\,mol^{-1}}"),
                      nplain(r["M"], 6, lang) + " g/mol"))
@@ -1463,7 +1479,7 @@ def _nuclear_section(b, lang, res, tables, cite, vals, used):
             ax.grid(alpha=0.3)
             fig.tight_layout()
             b.add_figure(fig, f"kette-{k}", _fill(P["c_fig"], P=_nuc_tex(mem[0]["key"])),
-                         cites=[",".join(cite(x) for x in ("nubase2020", "bateman1910"))])
+                         cites=[",".join(cite(x) for x in ("nubase2020", "bateman1910"))], steps=[])
         elif kind == "dating":
             m = r["method"]
             if m == "c14":
@@ -1498,7 +1514,7 @@ def _nuclear_section(b, lang, res, tables, cite, vals, used):
             if tables:
                 rows = [[str(p["A"]), _m(ntex(p["mass_u"], 7, lang)), _m(ntex(p["rel"], 4, lang))] for p in r["peaks"]]
                 b.add_table(f"isotopenmuster-{k}", booktabs([P["h_A"], P["h_m"], P["h_rel"]], rows, "rrr", escape_header=False),
-                            _fill(P["pat_cap"], f=ftx), cites=[",".join(cite(x) for x in ("nubase2020", "ame2020"))])
+                            _fill(P["pat_cap"], f=ftx), cites=[",".join(cite(x) for x in ("nubase2020", "ame2020"))], steps=[])
         elif kind == "enriched":
             c = ", ".join(f"{_nuc_tex(kk)} {nplain(100 * v, 4, lang)}\\,\\%" for kk, v in r["fractions"].items())
             paras.append(_fill(P["enr"], c=c, M=ntex(r["M"], 7, lang)))
@@ -1512,7 +1528,7 @@ def _nuclear_section(b, lang, res, tables, cite, vals, used):
             paras[-1] += dsx
         keys, extra, dsx = [], "", ""
     if paras:
-        b.add_text("kernchemie", "\n\n".join(paras) + "\n", P["sec"])
+        b.add_text("kernchemie", "\n\n".join(paras) + "\n", P["sec"], steps=[])
 
 
 # ----------------------------------------------------------------------------- Kinetik (ER-703/704)
@@ -1529,8 +1545,8 @@ KT = {
                   "(grösste Abweichung {dev}).",
            "th": " Halbwertszeit $t_{1/2} = {t}$.", "tb": " Maximum von B bei $t = {t}$.",
            "src": " Quelle von $E_\\mathrm{a}$: {s}.",
-           "f_arr": "Arrhenius-Auftragung mit Regressionsgerade; unten Residuen von $\\ln k$.",
-           "f_ord": "Konzentration gegen Zeit mit angepasstem Gesetz der Ordnung {o}; unten Residuen.",
+           "f_arr": "Arrhenius-Auftragung{parts}.", "f_line": "Regressionsgerade", "f_res_ln": "Residuen von $\\ln k$ (unten)",
+           "f_ord": "Konzentration gegen Zeit{parts}.", "f_law": "angepasstem Gesetz der Ordnung {o}", "f_res": "Residuen (unten)",
            "f_sim": "Simulierter Konzentrationsverlauf: {lab}.",
            "t_cap": "Kinetische Kenngrössen mit Standardfehler (1\\,$\\sigma$).",
            "h_q": "Grösse", "h_v": "Wert", "h_u": "Standardfehler",
@@ -1549,8 +1565,8 @@ KT = {
            "sim": "Simulation {lab} with {par}; analytic solution, checked with fourth-order Runge-Kutta "
                   "(largest deviation {dev}).",
            "th": " Half-life $t_{1/2} = {t}$.", "tb": " B peaks at $t = {t}$.", "src": " Source of $E_\\mathrm{a}$: {s}.",
-           "f_arr": "Arrhenius plot with regression line; below, residuals of $\\ln k$.",
-           "f_ord": "Concentration versus time with the fitted order-{o} law; below, residuals.",
+           "f_arr": "Arrhenius plot{parts}.", "f_line": "regression line", "f_res_ln": "residuals of $\\ln k$ (below)",
+           "f_ord": "Concentration versus time{parts}.", "f_law": "the fitted order-{o} law", "f_res": "residuals (below)",
            "f_sim": "Simulated concentration course: {lab}.",
            "t_cap": "Kinetic parameters with standard errors (1\\,$\\sigma$).",
            "h_q": "Quantity", "h_v": "Value", "h_u": "Standard error",
@@ -1634,12 +1650,12 @@ def _flame_text(b, lang, r, tables, cite, vals, used, j):
     f = _m(C.parse_species(r["fuel"]).latex())
     txt = _fill(P["txt"], f=f, ox=P["ox"][r["oxidant"]], phi=_fx(r["phi"], 2, lang), T0=_fx(r["T0"], 2, lang),
                 T=_fx(r["T_ad"], 0, lang))
-    b.add_text(f"flammentemperatur-{j}", _cite_end(txt, cs) + "\n", P["sec"])
+    b.add_text(f"flammentemperatur-{j}", _cite_end(txt, cs) + "\n", P["sec"], steps=[])
     if tables:
         rows = [[_m(C.parse_species(p["species"]).latex()), _m(ntex(p["n"], 4, lang)), _m(ntex(p["x"], 4, lang))]
                 for p in r["products"]]
         b.add_table(f"flammentemperatur-{j}", booktabs([P["h_p"], P["h_n"], P["h_x"]], rows, "lrr", escape_header=False),
-                    P["cap"], cites=[cs] if cs else None)
+                    P["cap"], cites=[cs] if cs else None, steps=[])
     vals.append((_key(f"Tad-{j}", used), P["v"], _m(_fx(r["T_ad"], 0, lang) + r"\,\mathrm{K}"), _fxp(r["T_ad"], 0, lang) + " K"))
 
 
@@ -1675,7 +1691,7 @@ def _speciation_section(b, lang, r, cite, vals, used):
                f"vorgegeben (gepuffert). Grösster relativer Rest der Massenbilanzen {_m(ntex(r['max_residual'], 2, lang))}; "
                "die Ladungsbilanz gleichen Puffer und Gegenionen aus. Nur einkernige Komplexe; Konstanten bei ihrer "
                "Ionenstärke.")
-    b.add_text("speziation", _cite_end(txt, cs) + "\n", "Speciation" if en else "Speziation")
+    b.add_text("speziation", _cite_end(txt, cs) + "\n", "Speciation" if en else "Speziation", steps=[])
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -1693,7 +1709,7 @@ def _speciation_section(b, lang, r, cite, vals, used):
     ax.legend(fontsize=8, frameon=False, ncol=3)
     fig.tight_layout()
     cap = (f"Species distribution of {mt} with {lt} versus pH." if en else f"Speziesverteilung von {mt} mit {lt} über dem pH.")
-    b.add_figure(fig, "speziation", cap, cites=[cs] if cs else None)
+    b.add_figure(fig, "speziation", cap, cites=[cs] if cs else None, steps=[])
     plt.close(fig)
 
 
@@ -1733,23 +1749,25 @@ def _kinetics_section(b, lang, res, tables, cite, vals, used):
             paras.append(_cite_end(txt, cs) + _ds_note(r, lang))
             if tables:
                 b.add_table(f"kinetik-{j}", booktabs([P["h_q"], P["h_v"], P["h_u"]], trows, "lrr", escape_header=False),
-                            P["t_cap"], cites=[cs] if cs else None)
+                            P["t_cap"], cites=[cs] if cs else None, steps=[])
             plt, fig, ax, ar = _kin_fig(lang)
             xs = [p["x"] * 1000 for p in r["points"]]
             ys = [p["y"] for p in r["points"]]
             ax.plot(xs, ys, "o", color="#6d28d9", ms=4)
             fy = [y - p["res"] for y, p in zip(ys, r["points"])]
-            ax.plot(xs, fy, "-", color="#0e7490", lw=1.4)
-            ar.axhline(0, color="0.3", lw=0.8)
-            ar.plot(xs, [p["res"] for p in r["points"]], "o", color="#6d28d9", ms=3)
+            _part(ax.plot(xs, fy, "-", color="#0e7490", lw=1.4), "anpassung")
+            _part(ar.axhline(0, color="0.3", lw=0.8), "residuen")
+            _part(ar.plot(xs, [p["res"] for p in r["points"]], "o", color="#6d28d9", ms=3), "residuen")
             ax.set_ylabel(r"$\ln k$" if kind == "arrhenius" else r"$\ln(k/T)$")
             ar.set_xlabel(r"$1000/T$ in K$^{-1}$")
             ar.set_ylabel(P["ax_res"])
             for a in (ax, ar):
                 a.grid(alpha=0.3)
             fig.tight_layout()
-            b.add_figure(fig, f"kinetik-{j}", P["f_arr"] if kind == "arrhenius" else P["f_arr"].replace("\\ln k", "\\ln(k/T)"),
-                         cites=[cs] if cs else None)
+            res_cap = P["f_res_ln"] if kind == "arrhenius" else P["f_res_ln"].replace("\\ln k", "\\ln(k/T)")
+            b.add_figure(fig, f"kinetik-{j}", P["f_arr"], cites=[cs] if cs else None,
+                         parts=[{"id": "anpassung", "label": P["f_line"], "caption": P["f_line"]},
+                                {"id": "residuen", "label": P["ax_res"], "caption": res_cap}], steps=[])
             plt.close(fig)
         elif kind == "order":
             best = next(f for f in r["fits"] if f.get("valid") and f["order"] == r["best"])
@@ -1765,16 +1783,18 @@ def _kinetics_section(b, lang, res, tables, cite, vals, used):
             ax.plot(r["t"], r["c"], "o", color="#6d28d9", ms=4)
             t1 = max(r["t"])
             tt = [t1 * i / 100 for i in range(101)]
-            ax.plot(tt, [KN._c_pred(r["best"], best["k"], best["c0"], t) for t in tt], "-", color="#0e7490", lw=1.4)
-            ar.axhline(0, color="0.3", lw=0.8)
-            ar.plot(r["t"], best["residuals_c"], "o", color="#6d28d9", ms=3)
+            _part(ax.plot(tt, [KN._c_pred(r["best"], best["k"], best["c0"], t) for t in tt], "-", color="#0e7490", lw=1.4), "anpassung")
+            _part(ar.axhline(0, color="0.3", lw=0.8), "residuen")
+            _part(ar.plot(r["t"], best["residuals_c"], "o", color="#6d28d9", ms=3), "residuen")
             ax.set_ylabel(P["ax_c"])
             ar.set_xlabel(P["ax_t"])
             ar.set_ylabel(P["ax_res"])
             for a in (ax, ar):
                 a.grid(alpha=0.3)
             fig.tight_layout()
-            b.add_figure(fig, f"kinetik-{j}", _fill(P["f_ord"], o=r["best"]), cites=[cs] if cs else None)
+            b.add_figure(fig, f"kinetik-{j}", P["f_ord"], cites=[cs] if cs else None,
+                         parts=[{"id": "anpassung", "label": _fill(P["f_law"], o=r["best"]), "caption": _fill(P["f_law"], o=r["best"])},
+                                {"id": "residuen", "label": P["ax_res"], "caption": P["f_res"]}], steps=[])
             plt.close(fig)
         elif kind == "sim":
             lab = _ntx((_SIM_EN[r["model"]] if lang == "en" else r["label"]).replace("⇌", "<=>"))
@@ -1802,10 +1822,10 @@ def _kinetics_section(b, lang, res, tables, cite, vals, used):
             ax.set_ylabel(P["ax_c"])
             ax.grid(alpha=0.3)
             fig.tight_layout()
-            b.add_figure(fig, f"kinetik-{j}", _fill(P["f_sim"], lab=lab), cites=[cs] if cs else None)
+            b.add_figure(fig, f"kinetik-{j}", _fill(P["f_sim"], lab=lab), cites=[cs] if cs else None, steps=[])
             plt.close(fig)
     if len(paras) > 1:
-        b.add_text("kinetik", "\n\n".join(paras) + "\n", P["sec"])
+        b.add_text("kinetik", "\n\n".join(paras) + "\n", P["sec"], steps=[])
 
 
 # ----------------------------------------------------------------------------- Aufbau
@@ -1843,7 +1863,7 @@ def _shared_section(b, lang, sh, tables, vals, used):
             r"Measured and theoretical mass loss; shared input ") + who + ". " +
            (r"Theoretisch: $\sum \nu_g M_g / (\nu_E M_{Basis})$, molare Massen aus den Standard-Atomgewichten (CIAAW)."
             if de else r"Theoretical: $\sum \nu_g M_g / (\nu_E M_{basis})$, molar masses from standard atomic weights (CIAAW)."))
-    b.add_table("tga-vergleich", booktabs(head, rows, "lrp{6cm}rr", small=True, escape_header=False), cap)
+    b.add_table("tga-vergleich", booktabs(head, rows, "lrp{6cm}rr", small=True, escape_header=False), cap, steps=[])
 
 
 def _ir_section(b, lang, ir, cite):
@@ -1872,7 +1892,7 @@ def _ir_section(b, lang, ir, cite):
            ("Erwartete Bereiche nach Socrates; ein Hinweis, keine Identifizierung." if de else
             "Expected ranges after Socrates; an indication, not an identification.") + extra +
            r" \cite{%s}" % cite("socrates2001"))
-    b.add_table("ftir-vergleich", booktabs(head, rows, "lllll", small=True, escape_header=False), cap)
+    b.add_table("ftir-vergleich", booktabs(head, rows, "lllll", small=True, escape_header=False), cap, steps=[])
 
 
 def _chain_section(b, lang, ch, tables, cite, vals, used):
@@ -1947,7 +1967,7 @@ def _chain_section(b, lang, ch, tables, cite, vals, used):
                                    "Reagents only; solvents and work-up not included.")))
     for n in r.get("notes") or []:
         parts.append(r"\textit{%s}" % tex_escape(n))
-    b.add_text("reaktionskette", "\n\n".join(parts) + "\n", "Reaktionskette" if de else "Reaction chain")
+    b.add_text("reaktionskette", "\n\n".join(parts) + "\n", "Reaktionskette" if de else "Reaction chain", steps=[])
     if tables and h:
         rows = []
         for s in ok:
@@ -1961,14 +1981,14 @@ def _chain_section(b, lang, ch, tables, cite, vals, used):
                 if de else ["Step", "Equation", r"Yield / \%", "Factor", r"$\Delta_\mathrm{r}H^\circ$ / kJ\,mol$^{-1}$", r"$\Delta_\mathrm{r}G^\circ$ / kJ\,mol$^{-1}$"])
         cap = ("Schritte der Reaktionskette; Summe nach dem Satz von Hess (298,15 K)." if de else
                "Steps of the reaction chain; sum by Hess's law (298.15 K).")
-        b.add_table("kette-schritte", booktabs(head, rows, "llrrrr", small=True, escape_header=False), tex_escape(cap))
+        b.add_table("kette-schritte", booktabs(head, rows, "llrrrr", small=True, escape_header=False), tex_escape(cap), steps=[])
     if tables and a.get("feeds"):
         rows = [[_m(C.parse_species(x["species"]).latex()), str(x["n_step"]),
                  _m(f(x["n"])) if x.get("n") is not None else "--", _m(f(x["m"])) if x.get("m") is not None else "--"] for x in a["feeds"]]
         head = ["Einsatzstoff", "Schritt", r"$n$ / mol", r"$m$ / g"] if de else ["Feed", "Step", r"$n$ / mol", r"$m$ / g"]
         cap = (("Benötigte Einsatzstoffe für die Zielmenge." if a.get("mode") == "target" else "Eingesetzte Mengen der Einsatzstoffe.")
                if de else ("Feeds needed for the target amount." if a.get("mode") == "target" else "Amounts of the feeds charged."))
-        b.add_table("kette-einsatz", booktabs(head, rows, "lrrr", small=True, escape_header=False), tex_escape(cap))
+        b.add_table("kette-einsatz", booktabs(head, rows, "lrrr", small=True, escape_header=False), tex_escape(cap), steps=[])
     return True
 
 
@@ -2026,7 +2046,48 @@ def _values_section(b, lang, values, tables):
            "in die sie eingesetzt wurden." if de else
            "Values copied from the research window into this environment, with source, time of copying and the fields they "
            "were inserted into.")
-    b.add_table("uebernommene-werte", booktabs(head, rows, "llrp{4.5cm}lp{2.5cm}", small=True, escape_header=False), tex_escape(cap))
+    b.add_table("uebernommene-werte", booktabs(head, rows, "llrp{4.5cm}lp{2.5cm}", small=True, escape_header=False), tex_escape(cap), steps=[])
+    return True
+
+
+def _unc_section(b, lang, res, tables) -> bool:
+    """Runde U: Messunsicherheit aller Ergebnisse mit ±-Angaben (labcalc.uncertainty.to_report): Werte <name>-pm,
+    -u, -U, Budgettabellen, Methodensatz; zitiert das Verfahren, die Messmittel und Possolo et al. 2018."""
+    from labcalc import uncertainty as UN
+
+    from . import uncert as UC
+    results = UC.report_results(res)
+    if not results:
+        return False
+    en = lang == "en"
+    at = b.added_mark()
+    out = UN.to_report(b, results, lang, prefix="unc-")
+    b.needs_since(at, [])                                    # kein Methodentext: die Stücke erklären sich selbst
+    parts = [("Every input with a stated uncertainty ($\\pm$ in the Elemental Calculator) was propagated through the model of its "
+              "result. Standard atomic weights given as intervals count as rectangular distributions over the interval "
+              "(Possolo et al. 2018); elements are independent, and an element occurring n times enters as "
+              "n\\,$A_\\mathrm{r}$.") if en else
+             ("Jede Eingangsgrösse mit Unsicherheitsangabe ($\\pm$ im Elementrechner) wurde durch das Modell ihres Ergebnisses "
+              "fortgepflanzt. Standardatomgewichte in Intervallform gelten als Rechteckverteilung über das Intervall "
+              "(Possolo et al. 2018); Elemente sind unabhängig, ein Element, das n-mal vorkommt, geht als "
+              "n\\,$A_\\mathrm{r}$ ein."), out["latex"]]
+    notes = list(dict.fromkeys(n for r in results for n in (r.get("note_texts") or [])))
+    if notes:
+        parts.append(" ".join(tex_escape(n) + ("" if n.endswith(".") else ".") for n in notes))
+    for it in res.get("prep") or []:                         # Verdünnungsreihe: Korrelation der Stufen
+        cr = ((it.get("result") or {}).get("unc") or {}).get("corr")
+        if tables and cr and cr.get("r") and len(cr["r"]) > 1:
+            n = len(cr["r"])
+            rows = [[str(i + 1)] + [f"${ntex(x, 3, lang)}$" for x in row] for i, row in enumerate(cr["r"])]
+            b.add_table("unc-reihe-korrelation", booktabs([("Step" if en else "Stufe")] + [str(i + 1) for i in range(n)], rows,
+                                                         "l" + "r" * n, escape_header=False),
+                        ("Correlation coefficients of the dilution steps (GUM linear): they share the stock and the "
+                         "earlier transfers." if en else
+                         "Korrelationskoeffizienten der Verdünnungsstufen (GUM linear): sie teilen die Ausgangslösung und "
+                         "die früheren Überträge."), steps=[])
+            break
+    b.add_text("messunsicherheit", "\n\n".join(p for p in parts if p) + "\n",
+               "Measurement uncertainty" if en else "Messunsicherheit", steps=[])
     return True
 
 
@@ -2038,7 +2099,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
     steps = bool(inc.get("steps"))
     tables = bool(inc.get("tables"))
     title = title or request.get("title") or L["title"]
-    res = AN.run(state)
+    res = AN.run({**state, "lang": lang})                    # lang: Beschriftung der Unsicherheitsergebnisse
 
     eqr = res.get("equation")
     n_species = len(eqr.get("species") or []) if eqr else 0
@@ -2098,7 +2159,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
         hints = [h for h in eqr.get("hints") or [] if h]
         if hints:
             parts.append(r"\textit{%s:} %s" % (L["status"], tex_escape(" ".join(dict.fromkeys(hints)))))
-        b.add_text("gleichung", "\n\n".join(p for p in parts if p is not None) + "\n", L["eq"])
+        b.add_text("gleichung", "\n\n".join(p for p in parts if p is not None) + "\n", L["eq"], steps=[])
         any_content = True
 
         if ok and tables and eqr.get("balance"):
@@ -2107,7 +2168,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
                 name = r["row"]
                 lab = (("Ladung" if lang == "de" else "Charge") if name == "Ladung" else name)
                 brows.append([tex_escape(lab), _m(ntex(r["left"], 6, lang)), _m(ntex(r["right"], 6, lang))])
-            b.add_table("bilanz", booktabs([L["h_row"], L["h_l"], L["h_r"]], brows, "lrr", escape_header=False), L["bal_cap"])
+            b.add_table("bilanz", booktabs([L["h_row"], L["h_l"], L["h_r"]], brows, "lrr", escape_header=False), L["bal_cap"], steps=[])
 
         # ---- Stöchiometrie
         st = eqr.get("stoich")
@@ -2136,7 +2197,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
                 lim_note = r"\textsuperscript{*}\," + ("limitierend" if lang == "de" else "limiting")
                 b.add_table("stoechiometrie", booktabs([heads[c] for c in keep], [[row[c] for c in keep] for row in rows],
                                                        "l" + "r" * (len(keep) - 1), small=len(keep) > 6, escape_header=False),
-                            L["st_cap"], notes=lim_note, cites=[cite_aw()])
+                            L["st_cap"], notes=lim_note, cites=[cite_aw()], steps=[])
             lim = st["limiting"]
             txt = [L["lim"].format(sp=_m(sp_tex[lim]), xi=ntex(st["extent"], 4, lang))]
             gas = []
@@ -2154,7 +2215,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
             if st.get("atom_economy"):
                 aes = ", ".join(f"{_m(sp_tex[a['i']])}: {_m(ntex(a['pct'], 3, lang))}\\,\\%" for a in st["atom_economy"])
                 txt.append(L["ae"] + r"~\cite{%s}: " % cite("trost1991") + aes + ".")
-            b.add_text("stoechiometrie", "\n\n".join(txt) + "\n", L["stoich"])
+            b.add_text("stoechiometrie", "\n\n".join(txt) + "\n", L["stoich"], steps=[])
             vals.append(("umsatz" if lang == "de" else "extent", L["v_xi"], _m(ntex(st["extent"], 4, lang) + r"\,\mathrm{mol}"),
                          nplain(st["extent"], 4, lang) + " mol"))
             vals.append(("limitierend" if lang == "de" else "limiting", L["v_lim"], _m(sp_tex[lim]), eqr["species"][lim]["unicode"]))
@@ -2210,13 +2271,13 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
             parts.append(tex_escape(n_))
         keys = cite_aw() + ("," + cite("ame2020") if any(r.get("isotope") for r in mm["rows"]) else "")
         parts[-1] = _cite_end(parts[-1], keys)
-        b.add_text(f"molmasse-{k}", "\n\n".join(parts) + "\n", f"{L['mm']} {sp.unicode()}")
+        b.add_text(f"molmasse-{k}", "\n\n".join(parts) + "\n", f"{L['mm']} {sp.unicode()}", steps=[])
         if tables:
             rows = [[tex_escape(r["el"]), _m(_frac_tex(r["n"])), _m(ntex(r["Ar"], 6, lang)), _m(ntex(r["mass"], 6, lang)),
                      _m(ntex(100 * r["frac"], 4, lang)) + r"\,\%"] for r in mm["rows"]]
             b.add_table(f"zusammensetzung-{k}", booktabs([L["h_el"], L["h_cnt"], L["h_Ar"], L["h_part"], L["h_w"]], rows,
                                                          "lrrrr", escape_header=False),
-                        L["mm_cap"].format(f=_m(ftex)), cites=[cite_aw()])
+                        L["mm_cap"].format(f=_m(ftex)), cites=[cite_aw()], steps=[])
         vals.append((_key("molmasse-" + sp.formula, used), L["v_M"].format(f=_m(ftex)),
                      _m(mt + r"\ \mathrm{g\,mol^{-1}}"), mp + " g/mol"))
         any_content = True
@@ -2231,7 +2292,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
         s += r"~\cite{%s}." % cite_aw()
         for n_ in emp.get("notes") or []:
             s += "\n\n" + tex_escape(n_)
-        b.add_text("elementaranalyse", s + "\n", L["emp"])
+        b.add_text("elementaranalyse", s + "\n", L["emp"], steps=[])
         any_content = True
 
     # ---- Kernchemie
@@ -2261,7 +2322,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
                 + ("Aktivitäten nach der " + ("Davies-Gleichung" if r["model"] == "davies" else "erweiterten Debye-Hückel-Gleichung") + ". " if r["model"] else "")
                 + "SI $>$ 0 heisst nur, dass Fällung möglich ist; eine Menge wird nicht vorhergesagt."))
         b.add_text("saettigung", _cite_end(txt, ",".join(cite(x) for x in ks)) + "\n",
-                   "Saturation index" if en else "Sättigungsindex")
+                   "Saturation index" if en else "Sättigungsindex", steps=[])
         vals.append(("SI", "SI", _m(_fx(r["SI"], 2, lang)), _fxp(r["SI"], 2, lang)))
         any_content = True
 
@@ -2314,7 +2375,7 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
                           + " und ".join(s) + " (ideal verdünnte Lösung)."))
         ks = [x for x in r.get("refs") or [] if x in REFS]
         b.add_text("dampfdruck", _cite_end(" ".join(parts), ",".join(cite(x) for x in ks)) + "\n",
-                   "Vapour pressure and colligative properties" if en else "Dampfdruck und kolligative Eigenschaften")
+                   "Vapour pressure and colligative properties" if en else "Dampfdruck und kolligative Eigenschaften", steps=[])
         any_content = True
 
     # ---- Speziation (ER-S02)
@@ -2336,6 +2397,9 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
     if res.get("prep") or res.get("plans"):
         _prep_section(b, lang, res, steps, tables, cite, vals, used)
         any_content = True
+
+    if any_content:                                           # Runde U: Messunsicherheit (Angaben im Request)
+        _unc_section(b, lang, res, tables)
 
     sh = state.get("shared")
     if isinstance(sh, dict) and isinstance(sh.get("envelope"), dict):
@@ -2360,5 +2424,6 @@ def build(request: dict, lang: str = "de", include=None, title=None) -> dict:
         raise ValueError(L["nothing"] + (f" ({errs})" if errs else ""))
     if vals:
         b.add_values(vals)
-    b.set_source({"state": state, "slug": b.slug, "lang": lang, "include": inc, "title": title}, {})
+    b.set_source({"state": state, "slug": b.slug, "lang": lang, "include": inc, "title": title,
+                  **{k: request[k] for k in ("styles", "describe_figures") if request.get(k)}}, {})
     return b.to_dict()

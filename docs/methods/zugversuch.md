@@ -6,7 +6,7 @@ it. Code paths are relative to `modules/zugversuch/`. User guide: [modules/zugve
 ## How to cite results from this module
 
 State the Folio Lab version (`version` in `package.json`) and the module version (`version` in
-`modules/zugversuch/module.json`, currently 1.4.0). When a result is sent to a report, Folio Lab writes
+`modules/zugversuch/module.json`, currently 1.4.1). When a result is sent to a report, Folio Lab writes
 `lab/<result>/bundle.json` in the project. Its `provenance` block records the Folio Lab version, the module id, the module version
 and the SHA-256 of every source file stored with the result. "Source files" are the input files kept for *Refresh* (the
 `.flps` file or the converted dataset), not the program code. Also state the evaluation settings that differ from the defaults below; the report's methods text lists them.
@@ -94,10 +94,15 @@ applies.
    the right. A step is kept if the least-squares line (`numpy.polyfit`, degree 1) over the new window has a maximal
    absolute residual strictly below the tolerance. Growth stops when neither side can grow. The tolerance is 1.0 MPa in
    stress mode and 0.20 N in force mode. This is a greedy search; it does not guarantee the longest possible window.
-   The report's methods text describes it this way and states the tolerance (value `tol`).
+   Since 1.4.1 the tolerance is at least two display steps of the evaluated quantity (force resolution, divided by A₀
+   in stress mode), with note 4.2 when it is raised. A smaller tolerance let the window grow along a run of equal
+   readings: on a thin wire (0.1 N per step on 0.0088 mm², i.e. 11.3 MPa) the line came out flat and t₀ meaningless.
+   The report's methods text describes it this way and states the tolerance actually used (value `tol`).
 5. **Fit result.** Slope k, intercept q, R² = 1 − SS_res/SS_tot, maximal residual, number of points.
 6. **Foot point.** t₀ = −q/k, the time where the fitted line crosses zero. Strain and the time to maximum are
-   measured from t₀; this removes the seating phase.
+   measured from t₀; this removes the seating phase. If the line does not rise (k ≤ 0), there is no foot point: since
+   1.4.1 t₀ is the first data point and note 4.3 says that modulus and strains are not meaningful (before, t₀ = −q/k
+   with k ≈ 0 gave strains of about 10¹² %).
 
 ### 3.3 Yield onset
 
@@ -416,7 +421,7 @@ L₀ and 5B b and L₀ are checked by tests.
 
 ## 8. Validation
 
-Run `python -m unittest discover -s tests` in `modules/zugversuch`. The suite has 98 tests (19 of them in `tests/test_science.py`, added in 1.3.0, and 25 in `tests/test_peaks.py`, added in 1.4.0, with known answers on synthetic curves and hand examples).
+Run `python -m unittest discover -s tests` in `modules/zugversuch`. The suite has 83 tests in the public repository (21 of them in `tests/test_science.py`, added in 1.3.0 and 1.4.1, and 25 in `tests/test_peaks.py`, added in 1.4.0, with known answers on synthetic curves and hand examples).
 
 ### 8.1 Synthetic curve (runs in the public repository)
 
@@ -490,6 +495,7 @@ curve 0 → 100 N (t = 10 s) → 97 → 99.5 → 92 → 95 → 83 → 90 (t = 22
 | `tests/test_science.py::RambergOsgood` (3 tests) | EN AW-5052-H38 (Rp 220, Rm 285, A 7 %, E 70 GPa): initial slope = E ± 1 %; σ = Rp ± 0.5 MPa at Rp/E + 0.002; σ = Rm ± 0.5 MPa at ε_u = 0.55·A; n from σ(ε_u) = Rm (9 places); σ(A) = 0.93·Rm |
 | `tests/test_science.py::Ranking` (2 tests) | three made-up materials: ΔRm relative to the material value (9 places); score = \|ΔRm\|/Rm_mat; order status first (the closest Rm with a wrong ratio ranks second); reference ΔRm and ΔRp relative to the reference, ΔRp labelled "nicht gleichartig" |
 | `tests/test_science.py::MaterialData` (5 tests) | Titanium Grade 1 Rp = 138 MPa, Rm = 240 MPa (ASTM B265 minimum); every row has a value type; PC, PA6-GF30, PA66-GF30, BOPET, beech and oak are marked unchecked; wood `basis` names the bending modulus; ISO 527-2 type 1A L₀ = 75 mm (ISO 527-2:2012) |
+| `tests/test_science.py::CoarseResolution` (2 tests, 1.4.1) | F = 0.03 N/s·(t − 20 s) rounded to 0.1 N on A₀ = 0.00882 mm² (11.34 MPa per step, 33 readings per step): tolerance raised to 2 steps with note 4.2; slope 3.40 MPa/s ± 3 %; t₀ = 20 s ± one step; finite positive strain at the maximum (with the old 1 MPa tolerance: slope 0, t₀ ≈ 1.9·10¹⁶ s). A constant load gives no rising line: t₀ = first point and note 4.3 |
 | `tests/test_science.py::OwnImport` (2 tests) | import without a source is marked "keine Quelle angegeben (importiert)"; a non-object cite, a non-text source, non-numeric, negative, NaN or zero values and malformed curve points are rejected |
 
 ### 8.3 Tests on a whole measurement
@@ -545,6 +551,33 @@ changed, not that it is correct.
 | 7.6 | warning / info | ISO 527-2 shape with a thickness below 1 mm; thickness hint exceeded; other ISO 527-2 note; reference category not intended for the specimen |
 | 7.7 | info | always: time uncertainty of one sampling interval |
 | I-03 | info | dataset notes and fixed geometry |
+
+## 10. Measurement uncertainty (`flps/uncertainty.py`, since 1.5.0)
+
+Optional; settings in `Config.unc` (`method`, `p`, `k`, `force_class`, `ext_class`, `specs` per input field). Without
+them the evaluation and all outputs are unchanged. The propagation (GUM linear, Monte Carlo after GUM S1, Gaussian,
+worst case) is done by `labcalc.uncertainty` in the SDK. Models follow ISO 6892-1:2019 Annex J and UNCERT Code of
+Practice 07 (Gabauer 2000); both are cited as module sources with the mark "Angaben nicht am Original geprüft"
+(not checked against the original).
+
+| Value | Model | Contributions |
+|---|---|---|
+| S₀ | b·h, πd²/4, π/4 (D² − (D − 2t)²) or entered | ± of the geometry fields |
+| Fmax | Fmax | force system class (ISO 7500-1: 0.5 / 1 / 2 % of reading, rectangular), display resolution |
+| Rm | Fmax / S₀ | Fmax and S₀ |
+| σ or F at yield onset | Fy / S₀ | as Fmax, plus ±½ force step for the position within the sampling interval; the strain influence of Annex J does not apply (threshold, not Rp0.2) |
+| E | ΔF·L₀ / (S₀·ΔL·v/v₀) / 1000 over the fit window | standard error of the regression slope as type A (n − 2 degrees of freedom), force class, extensometer class (ISO 9513), L₀, S₀, test speed |
+| Agt, At | 100·ΔL·(v/v₀) / L₀ | extensometer class, one sampling interval × v, L₀, test speed |
+| Ag, A | 100·(ΔL − ΔL_el)·(v/v₀) / L₀ | as Agt/At, plus the elastic part with the relative slope uncertainty (type A) |
+
+v/v₀ carries the uncertainty of the test speed only when the path comes from time × speed; with a measured elongation
+it cancels. The foot point t₀ is treated as exact. A result without any uncertain input (u = 0 and U = 0) is not
+shown. Several measurements in one report: mean of the specimens with the scatter as type A (repeats), plus the mean
+single-test uncertainty, treated as fully correlated (conservative). Own equations receive the u of their variables
+(Rm, Fmax, E, A0, L0, v, …) and propagate it with the same method. ReH, ReL and Rp0.2 are not determined by the
+module, so their Annex J budgets are not offered; the report says so. Tests: `tests/test_uncertainty.py` (Rm
+against a hand calculation u(Rm)/Rm = √((u_F/F)² + (2u_d/d)²), class 1 force system, strain models, modulus, series,
+bundle, PDF line and workbook sheet).
 
 ## Known limitations
 

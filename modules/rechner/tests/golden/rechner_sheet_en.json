@@ -93,6 +93,9 @@
    "file": "text-rechenweg.tex",
    "id": "rechenweg",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Worked calculation"
   },
   {
@@ -102,6 +105,12 @@
    "id": "groessen",
    "kind": "table",
    "label": "tab:calculation-groessen",
+   "needs": {
+    "steps": [
+     "daten",
+     "unsicherheit"
+    ]
+   },
    "notes": ""
   },
   {
@@ -111,6 +120,9 @@
    "id": "diagramm1",
    "kind": "figure",
    "label": "fig:calculation-diagramm1",
+   "needs": {
+    "steps": []
+   },
    "preview": "fig/diagramm1.png",
    "width": "0.9"
   },
@@ -137,12 +149,21 @@
    "file": "text-nebenrechnungen.tex",
    "id": "nebenrechnungen",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "daten",
+     "unsicherheit"
+    ]
+   },
    "title": "Side calculations"
   },
   {
    "file": "text-matrizen.tex",
    "id": "matrizen",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Matrices"
   },
   {

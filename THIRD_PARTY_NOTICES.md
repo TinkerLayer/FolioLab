@@ -135,7 +135,17 @@ computed by Folio Lab from those positions. They are labelled "modelled" everywh
 - X-ray tube wavelengths: standard values (Bearden 1967) as used by instrument software.
 - XRD file readers: written from published format descriptions (PANalytical XRDML schema, Bruker documentation, the
   xylib format notes for RAW1.01). No code from xylib or other readers is included.
-- CIF files from the Crystallography Open Database (CC0) can be opened by the user; none are included.
+- `modules/werkstoffe/werk/data/structures.json`: 25 crystal structures (cell, space-group operations, atom sites)
+  converted from CIF files of the Crystallography Open Database by `tools/build_structures.py`. COD data are in the
+  public domain; each phase keeps its COD number and the publication the COD entry names, and reports cite both
+  (Gražulis et al. 2012, Nucleic Acids Res. 40, D420, doi:10.1093/nar/gkr900). The user can also open further CIF files.
+- `modules/werkstoffe/werk/data/structures_lit.json`: 23 unit cells that the COD does not contain (mostly polymer
+  crystals, some precipitates and cement or wood phases), transcribed from the literature named per phase and marked as
+  not checked against the original. Individual numerical facts with citation.
+- `modules/werkstoffe/werk/data/gefuege.json`: a structure record for each of the 136 materials of the shared
+  database (nominal composition, temper, crystallinity, fibre volume fraction, etc.) from the standards and textbooks
+  named per entry, marked as not checked against the original; the rules that turn them into phases are Folio Lab's
+  own (`werk/struktur.py`).
 - No ICDD/PDF reference patterns and no hardness conversion tables (ISO 18265, ASTM E140) are included; the hardness
   tool converts only with a table file the user makes from their own copy.
 - `server/templates/`: report templates and sample images. These are Folio Lab's own work; the images are generated

@@ -1,0 +1,890 @@
+{
+ "quellen": {
+  "asm3_2016": {
+   "type": "book",
+   "authors": "Okamoto, H.; Schlesinger, M. E.; Mueller, E. M. (Hrsg.)",
+   "title": "ASM Handbook, Vol. 3: Alloy Phase Diagrams",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2016",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "fe-cr_andersson1987": {
+   "type": "article",
+   "authors": "Andersson, J.-O.; Sundman, B.",
+   "title": "Thermodynamic properties of the Cr-Fe system",
+   "container": "Calphad",
+   "year": "1987",
+   "volume": "11",
+   "pages": "83-92",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "fe-cr_xiong2010": {
+   "type": "article",
+   "authors": "Xiong, W.; Selleby, M.; Chen, Q.; Odqvist, J.; Du, Y.",
+   "title": "Phase equilibria and thermodynamic properties in the Fe-Cr system",
+   "container": "Critical Reviews in Solid State and Materials Sciences",
+   "year": "2010",
+   "volume": "35",
+   "pages": "125-152",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "fe-cr",
+  "name": "Fe–Cr",
+  "name_en": "Fe–Cr",
+  "A": "Fe",
+  "B": "Cr",
+  "gruppe": "fe",
+  "x_label": "Chrom [Gew.-%]",
+  "x_label_en": "Chromium [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   300,
+   1900
+  ],
+  "q": [
+   "massalski1990",
+   "fe-cr_andersson1987",
+   "fe-cr_xiong2010",
+   "asm3_2016"
+  ],
+  "hinweis": "Grundlage der nichtrostenden Stähle. Literaturwerte (Massalski 1990; Andersson & Sundman 1987; Xiong et al. 2010): Fe schmilzt bei 1538 °C, Cr bei 1863 °C; lückenlose Mischkristallreihe α (krz, oben δ) mit Schmelzpunktminimum ≈ 1507 °C bei ≈ 21 Gew.-% Cr (je nach Bewertung bis ≈ 1516 °C); γ-Schleife mit kongruentem Minimum ≈ 831 °C bei ≈ 7 % Cr, γ bis ≈ 12 % Cr, α + γ bis ≈ 12,7 % Cr (bei ≈ 1000 °C); σ-Phase (≈ 45 % Cr) bildet sich kongruent bei ≈ 821 °C und zerfällt eutektoid bei ≈ 440 °C in α + α′. Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm nachgezeichnet (schematisch). Vereinfacht: die α/α′-Mischungslücke (475-°C-Versprödung) ist unter 440 °C nur angedeutet; α′ ist der Cr-reiche krz-Mischkristall. Die σ-Bildung ist sehr träge.",
+  "hinweis_en": "Basis of stainless steels. Literature values (Massalski 1990; Andersson & Sundman 1987; Xiong et al. 2010): Fe melts at 1538 °C, Cr at 1863 °C; continuous bcc solid solution α (δ at the top) with a melting minimum ≈ 1507 °C at ≈ 21 wt% Cr (up to ≈ 1516 °C depending on the assessment); γ loop with a congruent minimum ≈ 831 °C at ≈ 7 % Cr, γ up to ≈ 12 % Cr, α + γ up to ≈ 12.7 % Cr (at ≈ 1000 °C); σ phase (≈ 45 % Cr) forms congruently at ≈ 821 °C and decomposes eutectoidally at ≈ 440 °C into α + α′. Curve points in between are traced from the assessed diagram (schematic). Simplified: the α/α′ miscibility gap (475 °C embrittlement) is only indicated below 440 °C; α′ is the Cr-rich bcc solid solution. σ formation is very sluggish.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1538,
+    "label": "Fe schmilzt",
+    "label_en": "Fe melts"
+   },
+   {
+    "x": 100,
+    "T": 1863,
+    "label": "Cr schmilzt",
+    "label_en": "Cr melts"
+   },
+   {
+    "x": 21,
+    "T": 1507,
+    "label": "Minimum",
+    "label_en": "Minimum"
+   },
+   {
+    "x": 0,
+    "T": 1394,
+    "label": "δ → γ"
+   },
+   {
+    "x": 0,
+    "T": 912,
+    "label": "γ → α"
+   },
+   {
+    "x": 7,
+    "T": 831,
+    "label": "γ-Schleife, Minimum",
+    "label_en": "γ loop, minimum"
+   },
+   {
+    "x": 11.9,
+    "T": 1000,
+    "label": "γ max. ≈ 12 % Cr",
+    "label_en": "γ max. ≈ 12 % Cr"
+   },
+   {
+    "x": 45,
+    "T": 821,
+    "label": "σ bildet sich",
+    "label_en": "σ forms"
+   },
+   {
+    "x": 45,
+    "T": 440,
+    "label": "σ zerfällt",
+    "label_en": "σ decomposes"
+   }
+  ],
+  "curves": {
+   "liq_l": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1538
+     ],
+     [
+      4,
+      1530
+     ],
+     [
+      8,
+      1523
+     ],
+     [
+      12,
+      1517
+     ],
+     [
+      16,
+      1512
+     ],
+     [
+      19,
+      1508.5
+     ],
+     [
+      21,
+      1507
+     ]
+    ]
+   },
+   "sol_l": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1538
+     ],
+     [
+      4,
+      1527
+     ],
+     [
+      8,
+      1519
+     ],
+     [
+      12,
+      1513
+     ],
+     [
+      16,
+      1509.5
+     ],
+     [
+      19,
+      1507.7
+     ],
+     [
+      21,
+      1507
+     ]
+    ]
+   },
+   "liq_r": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      21,
+      1507
+     ],
+     [
+      23,
+      1508
+     ],
+     [
+      27,
+      1513
+     ],
+     [
+      32,
+      1522
+     ],
+     [
+      40,
+      1543
+     ],
+     [
+      50,
+      1578
+     ],
+     [
+      60,
+      1620
+     ],
+     [
+      70,
+      1666
+     ],
+     [
+      80,
+      1716
+     ],
+     [
+      90,
+      1786
+     ],
+     [
+      100,
+      1863
+     ]
+    ]
+   },
+   "sol_r": {
+    "kind": "solidus",
+    "pts": [
+     [
+      21,
+      1507
+     ],
+     [
+      23,
+      1507.6
+     ],
+     [
+      27,
+      1510
+     ],
+     [
+      32,
+      1516
+     ],
+     [
+      40,
+      1532
+     ],
+     [
+      50,
+      1562
+     ],
+     [
+      60,
+      1601
+     ],
+     [
+      70,
+      1645
+     ],
+     [
+      80,
+      1696
+     ],
+     [
+      90,
+      1768
+     ],
+     [
+      100,
+      1863
+     ]
+    ]
+   },
+   "gi_low": {
+    "kind": "transus",
+    "pts": [
+     [
+      0,
+      912
+     ],
+     [
+      1.5,
+      893
+     ],
+     [
+      3,
+      875
+     ],
+     [
+      4.5,
+      858
+     ],
+     [
+      5.8,
+      842
+     ],
+     [
+      7,
+      831
+     ]
+    ]
+   },
+   "go_low": {
+    "kind": "transus",
+    "pts": [
+     [
+      0,
+      912
+     ],
+     [
+      1.5,
+      888
+     ],
+     [
+      3,
+      866
+     ],
+     [
+      4.5,
+      849
+     ],
+     [
+      5.8,
+      837
+     ],
+     [
+      7,
+      831
+     ]
+    ]
+   },
+   "gi_high": {
+    "kind": "transus",
+    "pts": [
+     [
+      7,
+      831
+     ],
+     [
+      8.3,
+      840
+     ],
+     [
+      9.6,
+      860
+     ],
+     [
+      10.8,
+      895
+     ],
+     [
+      11.6,
+      940
+     ],
+     [
+      11.9,
+      1000
+     ],
+     [
+      11.7,
+      1050
+     ],
+     [
+      11.1,
+      1110
+     ],
+     [
+      10,
+      1175
+     ],
+     [
+      8.2,
+      1250
+     ],
+     [
+      5.8,
+      1315
+     ],
+     [
+      3,
+      1362
+     ],
+     [
+      0,
+      1394
+     ]
+    ]
+   },
+   "go_high": {
+    "kind": "transus",
+    "pts": [
+     [
+      7,
+      831
+     ],
+     [
+      8.5,
+      835
+     ],
+     [
+      10,
+      852
+     ],
+     [
+      11.4,
+      890
+     ],
+     [
+      12.4,
+      945
+     ],
+     [
+      12.7,
+      1000
+     ],
+     [
+      12.5,
+      1060
+     ],
+     [
+      11.9,
+      1125
+     ],
+     [
+      10.6,
+      1195
+     ],
+     [
+      8.6,
+      1265
+     ],
+     [
+      6,
+      1330
+     ],
+     [
+      3,
+      1372
+     ],
+     [
+      0,
+      1394
+     ]
+    ]
+   },
+   "a_as": {
+    "kind": "solvus",
+    "pts": [
+     [
+      45,
+      821
+     ],
+     [
+      41,
+      815
+     ],
+     [
+      36,
+      800
+     ],
+     [
+      32,
+      775
+     ],
+     [
+      28.5,
+      740
+     ],
+     [
+      26,
+      700
+     ],
+     [
+      24,
+      650
+     ],
+     [
+      22.5,
+      600
+     ],
+     [
+      21.3,
+      550
+     ],
+     [
+      20.5,
+      500
+     ],
+     [
+      20,
+      440
+     ]
+    ]
+   },
+   "s_l": {
+    "kind": "solvus",
+    "pts": [
+     [
+      45,
+      821
+     ],
+     [
+      43.6,
+      800
+     ],
+     [
+      42.6,
+      760
+     ],
+     [
+      42.1,
+      700
+     ],
+     [
+      42.2,
+      620
+     ],
+     [
+      42.8,
+      550
+     ],
+     [
+      43.8,
+      490
+     ],
+     [
+      45,
+      440
+     ]
+    ]
+   },
+   "s_r": {
+    "kind": "solvus",
+    "pts": [
+     [
+      45,
+      821
+     ],
+     [
+      46.6,
+      800
+     ],
+     [
+      47.8,
+      760
+     ],
+     [
+      48.6,
+      700
+     ],
+     [
+      48.8,
+      620
+     ],
+     [
+      48.3,
+      550
+     ],
+     [
+      47,
+      490
+     ],
+     [
+      45,
+      440
+     ]
+    ]
+   },
+   "a_sa": {
+    "kind": "solvus",
+    "pts": [
+     [
+      45,
+      821
+     ],
+     [
+      49.5,
+      815
+     ],
+     [
+      55,
+      800
+     ],
+     [
+      60,
+      775
+     ],
+     [
+      65,
+      740
+     ],
+     [
+      69,
+      700
+     ],
+     [
+      72.5,
+      650
+     ],
+     [
+      75.5,
+      600
+     ],
+     [
+      78.5,
+      550
+     ],
+     [
+      81.5,
+      500
+     ],
+     [
+      85,
+      440
+     ]
+    ]
+   },
+   "a_l": {
+    "kind": "solvus",
+    "pts": [
+     [
+      20,
+      440
+     ],
+     [
+      18.5,
+      400
+     ],
+     [
+      16.5,
+      350
+     ],
+     [
+      14.5,
+      300
+     ]
+    ]
+   },
+   "a_r": {
+    "kind": "solvus",
+    "pts": [
+     [
+      85,
+      440
+     ],
+     [
+      87,
+      400
+     ],
+     [
+      89.5,
+      350
+     ],
+     [
+      91.5,
+      300
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1900
+     ],
+     [
+      100,
+      1900
+     ],
+     [
+      100,
+      1863
+     ],
+     "-liq_r",
+     "-liq_l"
+    ]
+   },
+   {
+    "label": "α + L",
+    "phases": [
+     "α",
+     "L"
+    ],
+    "poly": [
+     "liq_l",
+     "-sol_l"
+    ]
+   },
+   {
+    "label": "L + α",
+    "phases": [
+     "L",
+     "α"
+    ],
+    "poly": [
+     "liq_r",
+     "-sol_r"
+    ]
+   },
+   {
+    "label": "γ",
+    "phases": [
+     "γ"
+    ],
+    "poly": [
+     "gi_low",
+     "gi_high"
+    ]
+   },
+   {
+    "label": "α + γ",
+    "phases": [
+     "α",
+     "γ"
+    ],
+    "poly": [
+     "go_low",
+     "-gi_low"
+    ]
+   },
+   {
+    "label": "γ + α",
+    "phases": [
+     "γ",
+     "α"
+    ],
+    "poly": [
+     "gi_high",
+     "-go_high"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     [
+      0,
+      1538
+     ],
+     "sol_l",
+     "sol_r",
+     [
+      100,
+      300
+     ],
+     "-a_r",
+     "-a_sa",
+     "a_as",
+     "a_l",
+     [
+      0,
+      300
+     ],
+     "go_low",
+     "go_high"
+    ]
+   },
+   {
+    "label": "α + σ",
+    "phases": [
+     "α",
+     "σ"
+    ],
+    "poly": [
+     "a_as",
+     [
+      45,
+      440
+     ],
+     "-s_l"
+    ]
+   },
+   {
+    "label": "σ",
+    "phases": [
+     "σ"
+    ],
+    "poly": [
+     "s_l",
+     "-s_r"
+    ]
+   },
+   {
+    "label": "σ + α",
+    "phases": [
+     "σ",
+     "α"
+    ],
+    "poly": [
+     "s_r",
+     [
+      85,
+      440
+     ],
+     "-a_sa"
+    ]
+   },
+   {
+    "label": "α + α′",
+    "phases": [
+     "α",
+     "α′"
+    ],
+    "poly": [
+     [
+      20,
+      440
+     ],
+     [
+      45,
+      440
+     ],
+     [
+      85,
+      440
+     ],
+     "a_r",
+     [
+      14.5,
+      300
+     ],
+     "-a_l"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 1507,
+    "type": "congruent",
+    "x": [
+     21,
+     21,
+     21
+    ],
+    "reaction": "L ⇌ α"
+   },
+   {
+    "T": 831,
+    "type": "congruent",
+    "x": [
+     7,
+     7,
+     7
+    ],
+    "reaction": "γ ⇌ α"
+   },
+   {
+    "T": 821,
+    "type": "congruent",
+    "x": [
+     45,
+     45,
+     45
+    ],
+    "reaction": "α ⇌ σ"
+   },
+   {
+    "T": 440,
+    "type": "eutectoid",
+    "x": [
+     20,
+     45,
+     85
+    ],
+    "reaction": "σ ⇌ α + α′",
+    "morph": "lamellar",
+    "constituents": [
+     "voreutektoides α",
+     "Eutektoid (α + α′)",
+     "voreutektoides α′"
+    ],
+    "constituents_en": [
+     "proeutectoid α",
+     "eutectoid (α + α′)",
+     "proeutectoid α′"
+    ]
+   }
+  ]
+ }
+}

@@ -15,6 +15,7 @@ page says so.
 |---|---|---|
 | Datenaufbereitung (data preparation) | [datenaufbereitung.md](datenaufbereitung.md) | reading tables, units, cleaning steps, outlier tests, smoothing, datasets and versions |
 | Provenance (all modules) | [provenance.md](provenance.md) | how a number in a report is traced to its raw file: dataset versions, hashes, report revisions, what to state in a methods section |
+| Measurement uncertainty (all modules) | [uncertainty.md](uncertainty.md) | input contributions, instrument library, GUM linear, Monte Carlo (GUM S1), Gaussian propagation, worst case, rounding, report output |
 | Rechner (calculator) | [rechner.md](rechner.md) | expression evaluation, units, constants, equation library, solver, fits, graphs |
 | Elementrechner (element calculator) | [elementrechner.md](elementrechner.md) | formulas and balancing, thermochemistry, equilibria, acid–base, speciation, redox, nuclear chemistry, kinetics; data sets used |
 | FTIR | [ftir.md](ftir.md) | readers, processing, bands and areas, assignments, library search, mixtures |

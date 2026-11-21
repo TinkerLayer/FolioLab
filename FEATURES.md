@@ -12,15 +12,15 @@ Legend: **built** = in the app (module features are covered by each module's tes
 | Module | Version | What it is for | Test methods |
 |---|---|---|---|
 | Report editor (Folio) and hub | – | LaTeX reports, projects, module launcher, results in reports with revisions, import from module environments | smoke test (compiles every template), `suite-test.js`, revisions, report-import and Folio-import tests |
-| Shared SDK (`sdk/python`, `sdk/web`) | – | Calculation core, sources, environments, sharing, datasets, index, provenance, page parts, materials database | 138 |
-| Zugversuch (tensile test) | 1.4.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, load peaks of progressive failure, PDF report | 81 |
-| Mikroskopie (microscopy) | 1.3.0 | Micrographs: processing, threshold, watershed, measuring, particle analysis, comparison with a dataset | 58 |
-| Rechner (calculator) | 1.5.0 | Units, sheets, line variables, 365 sourced equations (incl. materials science), sourced materials database (`mat()`), equation and system solver, graph with large datasets and fits, matrices, symbol picker, values with origin | 93 |
-| FTIR | 1.5.0 | IR spectra: processing, bands, groups, library search, mixtures, OPUS, spectra from datasets | 73 |
-| TGA | 0.13.1 | Thermogravimetry: steps, composition, library search, kinetics, DSC, TGA–FTIR, runs from datasets | 84 (1 skipped) |
-| Elementrechner (chemistry) | 0.11.0 | Equations, substances, thermochemistry, designer, redox, pH, lab workflows, nuclear, kinetics (also from datasets), speciation | 261 |
-| Datenaufbereitung (Data Purification) | 0.3.0 | Excel/CSV/typed tables → marked, parsed, cleaned datasets with units, outlier flags, templates, exports, report; used by Rechner, Elementrechner, TGA, FTIR | 83 (1 skipped) + `tools/e2e_datasets.py` |
-| Werkstoffe (materials) | 0.1.0 | Ashby selection with own values, material cards, crystallography, lattice model, XRD files, phase diagrams (schematic and computed), steel, laminates, fatigue, Weibull and fracture, hardness, corrosion, creep | 88 |
+| Shared SDK (`sdk/python`, `sdk/web`) | – | Calculation core, sources, environments, sharing, datasets, index, provenance, page parts, materials database | 270 |
+| Zugversuch (tensile test) | 1.5.0 | IMADA `.flps` force/stress curves, tests from datasets, material comparison, load peaks of progressive failure, PDF report | 109 |
+| Mikroskopie (microscopy) | 1.4.0 | Micrographs: processing, threshold, watershed, measuring, particle analysis, comparison with a dataset | 75 |
+| Rechner (calculator) | 1.8.0 | Units, sheets, line variables, 365 sourced equations (incl. materials science), sourced materials database (`mat()`), equation and system solver, symbolic derivatives, graph with large datasets and fits, matrices, drawn equation templates, values with origin | 210 |
+| FTIR | 1.6.0 | IR spectra: processing, bands, groups, library search, mixtures, OPUS, spectra from datasets | 89 |
+| TGA | 0.14.0 | Thermogravimetry: steps, composition, library search, kinetics, DSC, TGA–FTIR, runs from datasets | 102 (1 skipped) |
+| Elementrechner (chemistry) | 0.12.0 | Equations, substances, thermochemistry, designer, redox, pH, lab workflows, nuclear, kinetics (also from datasets), speciation | 281 |
+| Datenaufbereitung (Data Purification) | 0.4.0 | Excel/CSV/typed tables → marked, parsed, cleaned datasets with units, outlier flags, templates, exports, report; used by Rechner, Elementrechner, TGA, FTIR | 93 (1 skipped) + `tools/e2e_datasets.py` |
+| Werkstoffe (materials) | 0.5.0 | Ashby selection with ranges and selection card, search over the whole module, compendium as a reference work (195 entries, citations at statement level, open statements marked), info board with report export, designation decoder, own values, material cards, crystallography, structure of every material at T and along a heat treatment, lattice model, XRD files, about 30 phase diagrams (schematic and computed), steel, laminates, fatigue, Weibull and fracture, hardness, corrosion, creep | 242 |
 
 Every module (except the Elementrechner, which has its own board) opens on the same **overview**: the project index,
 shares addressed to it, its environments and its own shares; a click opens an environment. **⇄** next to a value
@@ -73,6 +73,31 @@ and floating windows can be resized by dragging an edge; the sizes are kept in p
   methods text (equations, assumptions) as an optional paragraph; the references come along. The import is a result of
   the real module, linked to the environment (live/pinned/copy) with Refresh and Update; an environment changed in its
   module shows "source changed".
+- **built** **Choose what is shown:** the whole result is kept in its folder; pieces not ticked stay in the Lab dialog
+  under "Also in this result". The methods text is split into sentences: **Short** (default, at most three: what was
+  measured, the standard followed, the software with version and citation), **Full** or own ticks, with or without
+  the equations, at import and later via **Steps…**. Every sentence can be reworded; your wording survives Refresh
+  and you are told when the module's sentence changed. **Edit as free text…** makes the selection your own text.
+  A piece cites and describes only what it shows: a plain measurement curve gets one methods sentence and no comparison
+  sources, and an element switched off at import or hidden in Customise (envelope, reference curve, field, fit, markers)
+  loses its caption mention, methods sentence and citation unless another kept piece still needs them.
+- **built** **Customise…** a figure, table or text block: in the Lab dialog, as "then customise" after an import, or
+  from the editor's context menu on a lab figure or table. Figures are redrawn by their module (journal presets,
+  size, font, palettes, series colour/style/name/visibility, axis labels, ranges, log scales, legend, title) with a
+  preview; tables keep chosen columns and round decimals; text takes your wording; the caption can be changed. Saved
+  as a variant beside the original, live (follows the original on Refresh) or snapshot; the context-menu path points
+  the text at the variant and keeps your label. Every drawn element (lines, markers, areas, bars, texts) can be
+  hidden, recoloured, restyled or renamed; frame colours; any installed font or Computer Modern; drag a box on the
+  preview to zoom; crop by numbers or handles; place in the document (width, full width, position, alignment).
+  **All of a kind** changes every axis label, tick label, legend entry, text in the plot, line, marker or area at
+  once (single elements keep their own settings); **select several** elements with Ctrl or Shift in the list or by
+  clicking them in the preview and change them together; **find and replace** across texts, legend names, axis
+  labels and the title. Changes show at once in the preview; the module's exact drawing follows in a fraction of a
+  second, and an earlier state comes back from a cache.
+- **built** **Remove a result as a unit** (Lab dialog, file tree, citation picker): a confirmation lists every place
+  in the text; floats, `\input` lines and the results section go, values and references are frozen and marked † (and
+  highlighted in the editor), citation keys only it provided are dropped; one Undo restores result and text; bin
+  kept 14 days.
 - **built** **Import** button in the editor, further sources below the modules: figures, tables, equations, sections, images, data files and values from
   other reports, whole analysis results, shared data and index values of the active project, or an uploaded ZIP of
   any LaTeX project. Each piece brings its files, `.bib` entries, macros, packages and values. Labels are prefixed and
@@ -107,6 +132,23 @@ and floating windows can be resized by dragging an edge; the sizes are kept in p
   to the report as `\labval` (`eq-<symbol>`), a table and display math with the source.
 - **built** Own references and equations are plain JSON in `outputs/<module>/`, exportable, importable, editable by
   hand.
+- **built** **Measurement uncertainty** (`labcalc/uncertainty.py`, `labunc.js`): a ± button next to an input takes
+  its contributions: standard or expanded uncertainty, limits ±a (rectangular, triangular, U-shaped, normal),
+  resolution, ± % of the value, a manufacturer's spec ±(% + digits), repeat readings (type A), s of n values, a
+  confidence interval, or an instrument. The instrument library (`labcalc/data/instruments.json`) holds calipers,
+  micrometers, balances, volumetric flasks, pipettes, burettes, piston pipettes, Pt100 and thermocouple classes, force
+  and extensometer classes, each with the standard it follows; own instruments live in the suite (`messmittel.json`)
+  and can be exported and imported. Methods: GUM linear (central-difference sensitivities, Welch–Satterthwaite, k from
+  Student t, optional fixed k), Monte Carlo per GUM S1 (adaptive, fixed seed, symmetric and shortest interval,
+  correlated inputs jointly normal), Gaussian propagation, worst case (all corners up to 10 inputs). Result: value ± U
+  rounded per GUM 7.2.6, budget with sensitivity and share, notes, sources, comparison of the four methods; report
+  values `<name>-pm`, `-U`, `-u`, a budget table and a methods sentence citing JCGM 100/101 or DIN 1319-4. Own
+  equations propagate the uncertainty of their inputs, and shared values keep `u`. In every module: Rechner (± in
+  lines, correlation kept along the sheet), Datenaufbereitung (± columns, repeat measurements, `u(name)` formula
+  columns), Elementrechner (molar mass, preparation, dilution series, gas law, yields, pH), FTIR (noise into areas,
+  heights and ratios with their correlation), TGA (steps, residue, characteristic temperatures, composition,
+  replicates), Mikroskopie (scale calibration, sampling, counts), Zugversuch (S0, Fmax, Rm, yield, E, elongations,
+  series) and Werkstoffe (fracture, hardness, steel); details on each module's methods page.
 - **built** **Shared calculation core** (`sdk/python/labcalc`): units and quantity kinds, safe expression evaluator
   (no `eval`), LaTeX/HTML rendering, sourced constants (CODATA 2022, SI Brochure, IUPAC Green Book), chemistry
   (formulas, substances, acid–base, redox, reaction types, structure graph, naming).
@@ -243,6 +285,21 @@ and floating windows can be resized by dragging an edge; the sizes are kept in p
 - **Line variables:** `50/3 = u` or `u = 50/3` defines `u` (with the unit of the expression) for the following
   lines; ⇄ on the line makes it usable on the other sheets ("u ← Blatt 1") or sends it live or as a snapshot to
   another Rechner environment.
+- **Lines in any order:** a sheet is calculated in dependency order (definitions first, circles reported); lines
+  move with ▴/▾ or Alt+↑/↓; the report lists them in calculation order. A name not defined yet stays as a symbol in
+  the result (*z = 5 + x*) and is carried into later lines.
+- **Ranges, lists and sliders:** `t = 0..10 step 0.5`, `count n`, `t = [1; 2; 5]`, `t = 0..5 slider`. Dependent
+  lines give lists with a small curve and a folded value table; slider-dependent lines show their curve over the
+  slider range; *→ Grafik* plots a line as a live curve; the report gets a table, figure and CSV per line.
+- **Solve a formula for any quantity:** a button per quantity on the card or *berechnen:* chips in the library; the
+  card shows the rearranged formula and, while values are missing, the formula with the known values inserted.
+- **Page values in cards:** lines such as `m = 2 kg` feed the matching quantity of a card on the sheet (shown as "from
+  line", can be overridden). Card results and solved quantities are shared with their unit via ⇄.
+- **Symbolic derivatives:** `f'(x)`, `f''(x)`, `diff(expr, x[, n])` with all elementary functions, simplification and
+  units; numerical fallback with a note; plotted in the graph with the derived term in the legend.
+- **Drawn equation templates:** integral, d/dx, sum, product, roots, fraction, power, absolute value and matrix with
+  boxes, Tab navigation and nesting; the line keeps the text form.
+- **Matrix results:** `adj`, `cof`; results are stored as named matrices or values (`D = adj(A)`, `A*B = C`).
 - **Datasets:** "Tabelle aus Datensatz …" in the graph (live or pinned); "Datensatz als Variablen …" binds columns as
   list variables in SI with their unit; `linreg` shows k, d and R² with units; origin line and a Methodik block in the
   report. Large datasets stay on the server: the graph gets only the visible points, thinned to the screen (all
@@ -475,14 +532,48 @@ Detail: `modules/datenaufbereitung/README.md`; methods: `docs/methods/datenaufbe
 Detail: `modules/werkstoffe/README.md`; methods: `docs/methods/werkstoffe.md`.
 
 ### Built
-- **Selection:** Ashby chart of any two properties of the shared materials database (log axes, ranges as bars, class
-  colours), performance index with lines of equal M (draggable), own index from exponents, limits, ranked list with
-  the reason for every excluded material; own values with a free-text source, ranked when the index uses only the
-  two axes and cited in the report; Materials Project points only with the toggle, labelled *berechnet (DFT)*.
+- **Selection:** Ashby chart of any two properties of the shared materials database (log axes, every material as a
+  dot in its class colour; materials known only by a typical range placed at its
+  geometric mean and marked *nur Spanne*; overview with dots only, family outlines on request), performance index with lines of equal M (draggable), own index from
+  exponents, limits, ranked list with the reason for every excluded material; own values with a free-text source,
+  ranked when the index uses only the two axes and cited in the report; Materials Project points only with the
+  toggle, labelled *berechnet (DFT)*. A click selects a material: its range as a pale box, a card with the main
+  values, ranges, sources and decoded designation, and compare / copy / report / share for all or single values.
 - **Cards:** 2–6 materials side by side with value kind and source.
+- **Designation decoder:** EN AW / EN AC (EN 573, EN 515, EN 1706), steel names and numbers (EN 10027-1/-2), copper
+  numbers (EN 1412), plastics codes (ISO 1043), UNS and AISI/SAE explained part by part, with nominal composition
+  and equivalents; on the cards, the selection card, the structure view and the tensile test's reference material.
 - **Crystallography:** 38 built-in phases (Wyckoff) and CIF import (symmetry operators, publication cited); d, plane
   and direction angles, X-ray density, structure factors from Cromer–Mann form factors, LP factor, computed powder
   pattern for Cu/Co/Mo/Fe/Cr/Ag tubes; rotatable unit cell with (hkl) plane and [uvw] direction.
+- **Structure (Struktur):** every material of the shared database (136, including all tensile-test materials) at a
+  temperature, with views that switch when T crosses a transition (slider with marks for Ac1/Ac3, solvus, Tg, Tm,
+  decomposition). Metals: matrix lattice with the dissolved atoms, unit cells of precipitates and second phases
+  (θ′/θ, β″/β, η′/η, S, γ′/γ″, Fe₃C, ε-carbide, Cr₂₃C₆, β-Mg₁₇Al₁₂, …) and a microstructure sketch; martensite with
+  c/a from the carbon content. Polymers: chain (zigzag or helix from the fibre period), crystal cell, amorphous coil or
+  cross-linked network, morphology. Ceramics and glasses: unit cells with coordination polyhedra, a Zachariasen glass
+  network with modifiers. Composites, wood, paper, concrete, glass-ceramics: sketches with their constituents.
+  *Wärmebehandlung*: steel quench and temper (Hollomon–Jaffe stages), Al/Mg/Ni ageing (precipitation sequence with
+  Arrhenius-equivalent time), recrystallisation; presets or own steps, key frames plus in-between frames placed where
+  the change happens (austenite above Ac1, martensite below Ms after Koistinen–Marburger), cross-faded playback at
+  0.5–4×, T(t) inset. Wood and paper react to heat (water loss, hemicellulose, cellulose, char, ash in air, cited); a
+  material with no transformation in the range says so. Steels, Al–Cu alloys and cold-worked metals open on their
+  microstructure; optional etched-micrograph look. Unit cells come from the Crystallography Open Database or the
+  literature; models and sketches are labelled as such in the page and the report.
+- **Search:** one field (`Ctrl+K`) over tools, views, materials with aliases and designations, phase diagrams, crystal
+  phases and the compendium; tools grouped by task, last used first.
+- **Compendium:** a reference work of 195 entries, 136 of them materials (designation, every property with range, unit,
+  source and check status, linked phases, atlas entries and mechanisms). Every statement has a stable id and its own
+  citation or is marked as open; every source shows whether it was checked against the original. It also holds the
+  explanation of every view, 12 animated mechanisms (Bain strain as a
+  3-D cell, pearlite, lath and plate martensite, upper and lower bainite, tempering, precipitation, recrystallisation,
+  dendritic solidification, spheroidising), the atlas of 29 constituents with sketch and fact sheet, usage notes,
+  example data and topics, each with full sources. Every tool view links to its entry.
+- **Info board:** pick one material or a series, walk through the compendium and pin entries, sections, statements,
+  values, figures and the current property chart to a free canvas. Arrange cards, collect them in named frames,
+  annotate, compare materials, undo; several boards per project, saved with the project. A pin keeps a copy and shows
+  when the compendium changed. The report follows the frame order and gives each statement its own citation; pins
+  on unchecked sources raise a warning and, if kept, carry the † mark.
 - **Lattice (Gitter):** a section of a base element's lattice at a temperature: phase and a(T); dissolved atoms on
   interstitial (H, B, C, N, O) or lattice sites in their true number; second phase above the solubility limit (lever
   rule, own limit with source); equilibrium vacancies (true count, optional labelled exaggeration), Debye vibration,
@@ -492,9 +583,12 @@ Detail: `modules/werkstoffe/README.md`; methods: `docs/methods/werkstoffe.md`.
   background, smoothing, Kα2 stripping, pseudo-Voigt Kα-doublet peak fit, cubic indexing, lattice parameter by least
   squares and Nelson–Riley, Scherrer, Williamson–Hall, phase search against built-in and CIF phases, stick overlays,
   semi-quantification from computed intensities.
-- **Phases:** Fe–Fe₃C, Pb–Sn, Al–Si, Cu–Ag, Cu–Ni drawn schematically from cited key points (labelled
-  *schematisch*); ideal and regular-solution diagrams computed by convex hull; click sets the point; lever rule,
-  constituents, cooling path.
+- **Phases:** about 30 binary systems in family groups (steels and irons incl. stable Fe–C, Fe–Cr, Fe–Ni; Al with
+  Cu, Si, Mg, Mn, Zn, Fe; Cu–Zn, Cu–Sn, Cu–Ni, Cu–Ag; Mg, Ti and Ni alloys; solders; teaching systems; ceramics) drawn
+  as smooth boundary lines through cited key points (labelled *schematisch*, with a note on what is cited and what is
+  simplified); every alloy in the module maps to its diagram; ideal and regular-solution diagrams computed by convex
+  hull; click sets the point; lever rule (with the true composition of compounds beyond the axis), constituents,
+  cooling path.
 - **Steel:** CE (IIW), CET, Pcm, preheat (EN 1011-2), Ms, Ac1, Ac3, Hollomon–Jaffe, carburising profile and case
   depth.
 - **Mechanics:** CLT laminate (ABD, engineering constants, ply stresses, max stress / Tsai–Hill / Tsai–Wu / Hashin,
@@ -503,11 +597,20 @@ Detail: `modules/werkstoffe/README.md`; methods: `docs/methods/werkstoffe.md`.
   indents, conversion only with the user's own table file (otherwise only the labelled rule Rm ≈ 3,3·HV), E112 grain
   size, Hall–Petch; Tafel and Butler–Volmer fit, Stern–Geary, G102 corrosion rate; Larson–Miller and
   Norton–Arrhenius.
+- **Measurement uncertainty:** K_Q and the critical crack length (± on P, B, W, a, S, K_Ic, σ, Y), the hardness mean
+  (indent scatter as type A, plus force and length measurement), CE, CET, Pcm, Ms, Ac1, Ac3 and the preheat
+  temperature (± on every element and on thickness, hydrogen and heat input); a result that depends on no uncertain
+  input is left out.
+- **What each view shows:** a one-line explanation per view, the full explanation and the view's own sources in a
+  fold; report figures cite the sources of their view. The structure tool's temperature slider spends its travel on
+  the transition ranges (marked on the track) and compresses the quiet stretches.
 - **Report and sharing:** every tool as a report section (figures, tables, `\labval` values, pgfplots data, methods
   text, a reference for every source and data file), Refresh from the stored request; environments, overview, datasets
   from the Datenaufbereitung, project index.
 
 ### Limits
+- Compendium: many sources are not yet checked against the original; the counts are in `docs/VALIDATION.md`. Info
+  board card previews stay in the language they were pinned in.
 - Cromer–Mann coefficients were transcribed without the original at hand (checked by f(0) = Z and line orders);
   no real instrument files were available, so the readers are tested on synthetic files written to the published
   layouts. Bruker RAW4 is refused.
@@ -516,10 +619,16 @@ Detail: `modules/werkstoffe/README.md`; methods: `docs/methods/werkstoffe.md`.
 - No ICDD data and no hardness conversion tables are included.
 - Lattice model: defect and precipitate geometry is schematic; no short-range order or segregation; a constant α away
   from tabulated points.
+- Structure tool: phases follow simple rules per alloy family, not a thermodynamic calculation; heat-treatment frames
+  are equilibrium-type states along the path (no kinetics of nucleation, no retained austenite amount); microstructure
+  sketches are not to scale; heating and cooling times on the path are assumed.
 
 ## 11. Suite-wide plans
 
 ### Cross-module features – built
+- Values from the project index go into the own equations of Zugversuch, Mikroskopie, FTIR and TGA, the constants of
+  the Datenaufbereitung, and input fields of the Elementrechner and Werkstoffe, with unit conversion and a refusal
+  for a different dimension. Werkstoffe takes the value without its uncertainty.
 - TGA step loss vs the theoretical loss of a decomposition; FTIR peak table vs a drawn structure; Elementrechner values
   in the Rechner with origin; TGA–FTIR evolved-gas spectra into the FTIR search; datasets from the Datenaufbereitung
   in the Rechner, Elementrechner, TGA and FTIR; values between environments in every module.

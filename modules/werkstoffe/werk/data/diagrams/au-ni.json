@@ -1,0 +1,437 @@
+{
+ "quellen": {
+  "asm3_2016": {
+   "type": "book",
+   "authors": "Okamoto, H.; Schlesinger, M. E.; Mueller, E. M. (Hrsg.)",
+   "title": "ASM Handbook, Vol. 3: Alloy Phase Diagrams",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2016",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "okamoto2000": {
+   "type": "book",
+   "authors": "Okamoto, H.",
+   "title": "Phase Diagrams for Binary Alloys: Desk Handbook",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2000",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "au-ni",
+  "name": "Au–Ni",
+  "name_en": "Au–Ni",
+  "A": "Au",
+  "B": "Ni",
+  "gruppe": "lehre",
+  "x_label": "Nickel [Gew.-%]",
+  "x_label_en": "Nickel [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   400,
+   1500
+  ],
+  "q": [
+   "massalski1990",
+   "asm3_2016",
+   "okamoto2000"
+  ],
+  "hinweis": "x = Gew.-% Ni (A = Au, B = Ni). Zitiert: Schmelzpunkte Au 1064,2 °C und Ni 1455 °C; lückenlose Mischkristallreihe mit Schmelzpunktminimum bei 955 °C und 42 At.-% Ni (≈ 17,9 Gew.-% Ni); Mischungslücke im festen Zustand mit kritischem Punkt bei 810 °C und ≈ 70,6 At.-% Ni (≈ 41,8 Gew.-% Ni). Liquidus, Solidus und die Grenze der Mischungslücke zwischen diesen Punkten sind dem bewerteten Diagramm nachgezeichnet (schematisch, die Lücke unter ≈ 600 °C ist experimentell unsicher). Die Entmischung verläuft in der Praxis langsam; abgeschreckte Legierungen bleiben einphasig.",
+  "hinweis_en": "x = wt% Ni (A = Au, B = Ni). Cited: melting points Au 1064.2 °C and Ni 1455 °C; continuous solid solution with a melting minimum at 955 °C and 42 at% Ni (≈ 17.9 wt% Ni); solid-state miscibility gap with critical point at 810 °C and ≈ 70.6 at% Ni (≈ 41.8 wt% Ni). Liquidus, solidus and the gap boundary between these points are traced from the assessed diagram (schematic; the gap below ≈ 600 °C is experimentally uncertain). Decomposition is slow in practice; quenched alloys stay single-phase.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1064.2,
+    "label": "Au schmilzt",
+    "label_en": "Au melts"
+   },
+   {
+    "x": 100,
+    "T": 1455.0,
+    "label": "Ni schmilzt",
+    "label_en": "Ni melts"
+   },
+   {
+    "x": 17.748,
+    "T": 955.0,
+    "label": "Minimum 955 °C",
+    "label_en": "Minimum 955 °C"
+   },
+   {
+    "x": 41.71,
+    "T": 810.3,
+    "label": "kritischer Punkt",
+    "label_en": "critical point"
+   }
+  ],
+  "curves": {
+   "liqAu": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0.0,
+      1064.2
+     ],
+     [
+      1.544,
+      1045.3
+     ],
+     [
+      3.205,
+      1027.6
+     ],
+     [
+      5.371,
+      1008.2
+     ],
+     [
+      7.753,
+      990.9
+     ],
+     [
+      10.385,
+      976.0
+     ],
+     [
+      12.798,
+      965.8
+     ],
+     [
+      14.894,
+      959.5
+     ],
+     [
+      16.573,
+      956.1
+     ],
+     [
+      17.748,
+      955.0
+     ]
+    ]
+   },
+   "liqNi": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      17.748,
+      955.0
+     ],
+     [
+      18.971,
+      958.2
+     ],
+     [
+      20.902,
+      967.7
+     ],
+     [
+      23.673,
+      985.6
+     ],
+     [
+      27.497,
+      1014.3
+     ],
+     [
+      32.714,
+      1056.2
+     ],
+     [
+      38.771,
+      1105.1
+     ],
+     [
+      45.891,
+      1159.9
+     ],
+     [
+      54.378,
+      1220.2
+     ],
+     [
+      64.67,
+      1285.4
+     ],
+     [
+      77.41,
+      1355.2
+     ],
+     [
+      87.732,
+      1404.2
+     ],
+     [
+      100.0,
+      1455.0
+     ]
+    ]
+   },
+   "solAu": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0.0,
+      1064.2
+     ],
+     [
+      1.544,
+      1039.7
+     ],
+     [
+      3.205,
+      1018.4
+     ],
+     [
+      5.371,
+      996.8
+     ],
+     [
+      7.753,
+      979.8
+     ],
+     [
+      10.385,
+      967.1
+     ],
+     [
+      12.798,
+      960.0
+     ],
+     [
+      14.894,
+      956.5
+     ],
+     [
+      16.573,
+      955.2
+     ],
+     [
+      17.748,
+      955.0
+     ]
+    ]
+   },
+   "solNi": {
+    "kind": "solidus",
+    "pts": [
+     [
+      17.748,
+      955.0
+     ],
+     [
+      18.971,
+      955.3
+     ],
+     [
+      20.902,
+      957.3
+     ],
+     [
+      23.673,
+      963.3
+     ],
+     [
+      27.497,
+      976.9
+     ],
+     [
+      32.714,
+      1003.1
+     ],
+     [
+      38.771,
+      1040.6
+     ],
+     [
+      45.891,
+      1090.1
+     ],
+     [
+      54.378,
+      1152.2
+     ],
+     [
+      64.67,
+      1227.3
+     ],
+     [
+      77.41,
+      1315.7
+     ],
+     [
+      87.732,
+      1382.3
+     ],
+     [
+      100.0,
+      1455.0
+     ]
+    ]
+   },
+   "gap": {
+    "kind": "solvus",
+    "pts": [
+     [
+      1.069,
+      400
+     ],
+     [
+      1.867,
+      500
+     ],
+     [
+      3.205,
+      580
+     ],
+     [
+      5.371,
+      650
+     ],
+     [
+      9.035,
+      715
+     ],
+     [
+      14.355,
+      765
+     ],
+     [
+      21.572,
+      795
+     ],
+     [
+      30.89,
+      808
+     ],
+     [
+      41.71,
+      810.3
+     ],
+     [
+      54.378,
+      800
+     ],
+     [
+      66.602,
+      770
+     ],
+     [
+      77.41,
+      720
+     ],
+     [
+      84.989,
+      660
+     ],
+     [
+      90.597,
+      590
+     ],
+     [
+      94.515,
+      500
+     ],
+     [
+      96.721,
+      400
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1500
+     ],
+     [
+      100,
+      1500
+     ],
+     "-liqNi",
+     "-liqAu"
+    ]
+   },
+   {
+    "label": "(Au,Ni) + L",
+    "phases": [
+     "(Au,Ni)",
+     "L"
+    ],
+    "poly": [
+     "liqAu",
+     "-solAu"
+    ]
+   },
+   {
+    "label": "L + (Au,Ni)",
+    "phases": [
+     "L",
+     "(Au,Ni)"
+    ],
+    "poly": [
+     "liqNi",
+     "-solNi"
+    ]
+   },
+   {
+    "label": "(Au,Ni)",
+    "phases": [
+     "(Au,Ni)"
+    ],
+    "poly": [
+     [
+      0,
+      1064.2
+     ],
+     "solAu",
+     "solNi",
+     [
+      100,
+      400
+     ],
+     [
+      96.721,
+      400
+     ],
+     "-gap",
+     [
+      0,
+      400
+     ]
+    ]
+   },
+   {
+    "label": "(Au,Ni)₁ + (Au,Ni)₂",
+    "phases": [
+     "(Au,Ni)₁",
+     "(Au,Ni)₂"
+    ],
+    "poly": [
+     "gap"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 955.0,
+    "type": "congruent",
+    "x": [
+     17.748,
+     17.748,
+     17.748
+    ],
+    "reaction": "L ⇌ (Au,Ni) (Schmelzpunktminimum)"
+   }
+  ]
+ }
+}

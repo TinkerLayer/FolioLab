@@ -16,19 +16,19 @@ if _SDK.is_dir() and str(_SDK) not in sys.path:
     sys.path.insert(0, str(_SDK))
 
 import labcite  # noqa: E402
-from labbundle import _UNI, Bundle, booktabs, num, slugify, tex_escape  # noqa: E402
+from labbundle import _UNI, Bundle, booktabs, num, slugify, step_tag, tex_escape  # noqa: E402
 
 from . import charts as CH  # noqa: E402
 from . import refs as RF  # noqa: E402
 from . import tools as T  # noqa: E402
 
 _EXTRA = {"ε̇": r"$\dot\varepsilon$", "η": r"$\eta$", "κ": r"$\kappa$", "½": r"$\frac{1}{2}$", "⅓": r"$\frac{1}{3}$",
-          "⅔": r"$\frac{2}{3}$", "ϑ": r"$\vartheta$", "Θ": r"$\Theta$", "′": "'", "⁄": "/", "Å": r"\AA{}", "≠": r"$\neq$",
+          "⅔": r"$\frac{2}{3}$", "ϑ": r"$\vartheta$", "Θ": r"$\Theta$", "′": "'", "″": r"\ensuremath{^{\prime\prime}}", "⁄": "/", "Å": r"\AA{}", "≠": r"$\neq$",
           "₁₂": r"$_{12}$"}
 
 NAMES = {
     "auswahl": ("Werkstoffauswahl", "Material selection"), "karten": ("Werkstoffvergleich", "Material comparison"),
-    "kristall": ("Kristallstruktur", "Crystal structure"), "gitter": ("Gittermodell", "Lattice model"), "xrd": ("Röntgenbeugung", "X-ray diffraction"),
+    "kristall": ("Kristallstruktur", "Crystal structure"), "struktur": ("Werkstoffstruktur", "Material structure"), "gitter": ("Gittermodell", "Lattice model"), "xrd": ("Röntgenbeugung", "X-ray diffraction"),
     "phasen": ("Zustandsdiagramm", "Phase diagram"), "stahl": ("Stahl", "Steel"), "laminat": ("Laminat", "Laminate"),
     "ermuedung": ("Ermüdung", "Fatigue"), "weibull": ("Weibull-Statistik", "Weibull statistics"),
     "bruch": ("Bruchmechanik", "Fracture mechanics"), "haerte": ("Härte und Gefüge", "Hardness and microstructure"),
@@ -166,14 +166,14 @@ class Sec:
 
     def fig(self, f, id, caption, cites=None, width="0.8"):
         if self.inc.get("figures", True):
-            self.b.add_figure(f, self.id(id), caption, width=width, dpi=150, cites=self.cite(cites or []))
+            self.b.add_figure(f, self.id(id), caption, width=width, dpi=150, cites=self.cite(cites or []), steps=[self.pid])
         else:
             CH.close(f)
 
     def table(self, id, head, rows, align, caption, cites=None, notes="", small=False):
         if self.inc.get("tables", True) and rows:
             self.b.add_table(self.id(id), booktabs([tx(h) for h in head], rows, align, small=small, escape_header=False),
-                             caption, notes=notes, cites=self.cite(cites or []))
+                             caption, notes=notes, cites=self.cite(cites or []), steps=[self.pid])
 
     def val(self, key, label, v, nd=2, unit="", text=None):
         if v is None:
@@ -181,6 +181,17 @@ class Sec:
         k = re.sub(r"[^A-Za-z0-9-]+", "-", f"{self.pid}-{key}").strip("-")
         self.vals.append((k, tx(label), num(v, nd, self.lang, unit), text if text is not None else f"{v:.{nd}f} {unit}".strip()))
         return f"\\labval{{{self.b.slug}}}{{{k}}}"
+
+    def unc(self, res: dict):
+        """Messunsicherheit (Runde U): Werte ± U, Budgettabellen und ein Methodensatz mit Quellen."""
+        rs = [dict(v, name=self.id("" if k == self.pid else k.lower())) for k, v in (res.get("unc") or {}).items()
+              if isinstance(v, dict) and not v.get("error") and v.get("value") is not None]
+        if not rs:
+            return
+        from labcalc import uncertainty as UN
+        o = UN.to_report(self.b, rs, self.lang)
+        if o["latex"]:
+            self.m.append(o["latex"])
 
     def data(self, id, header, rows, desc, labels=None, plot=None):
         if self.inc.get("data", True) and rows:
@@ -241,11 +252,22 @@ def w_auswahl(s: Sec, res: dict, req: dict):
     lab = f"{tx(iname)} ({form})" if iname else form
     pts = res["points"]
     keys = sorted({q for p in pts for q in p["q"]})
-    mp = any(p["mp"] for p in pts)
-    cap = tx(s.L(f"Werkstoffe im Diagramm {res['y']['label']} über {res['x']['label']} (Werte und Spannen aus der "
-                 f"Werkstoffdatenbank{', Dreiecke: berechnet (DFT), Materials Project' if mp else ''})",
-                 f"Materials in the chart {res['y']['label']} versus {res['x']['label']} (values and ranges from the "
-                 f"materials database{', triangles: computed (DFT), Materials Project' if mp else ''})"))
+    view = req.get("view") or {}
+    groups = bool(view.get("groups"))
+    mp = any(p["mp"] for p in pts) and not groups
+    sel = next((p for p in pts if p["id"] == view.get("sel")), None) if view.get("sel") else None
+    fam = (sel or {}).get("familie") or view.get("fam") if groups else None
+    fname = SL.family_name(fam, s.lang) if fam else ""
+    what = (s.L("Umrisse: Gesamtbereich jeder Werkstofffamilie aus Werten und Spannen der Werkstoffdatenbank",
+                "outlines: overall range of each material family from the values and ranges of the materials database")
+            + (s.L(f"; Punkte: {fname}", f"; points: {fname}") if fam else "")) if groups else \
+        s.L("Werte aus der Werkstoffdatenbank", "values from the materials database")
+    if sel:
+        what += s.L(f"; grün: {sel['name']} mit seiner Spanne", f"; green: {sel['name']} with its range")
+    cap = tx(s.L(f"Werkstoffe im Diagramm {res['y']['label']} über {res['x']['label']} ({what}"
+                 f"{', Dreiecke: berechnet (DFT), Materials Project' if mp else ''})",
+                 f"Materials in the chart {res['y']['label']} versus {res['x']['label']} ({what}"
+                 f"{', triangles: computed (DFT), Materials Project' if mp else ''})"))
     own = res.get("own") or []
     okeys = {p["id"]: s.own_cite(p["name"], p.get("src", "")) for p in own}
     if own:
@@ -255,7 +277,7 @@ def w_auswahl(s: Sec, res: dict, req: dict):
         cap += s.L(f"; Zahlen: Rang nach der Kennzahl {lab}.", f"; numbers: rank by the index {lab}.")
     else:
         cap += "."
-    s.fig(CH.fig_ashby(res, s.lang), "diagramm", cap,
+    s.fig(CH.fig_ashby(res, s.lang, view=view), "diagramm", cap,
           cites=["ashby"] + keys + (["jain2013"] if mp else []) + [k for k in okeys.values() if k])
     if own:
         no_src = s.L("ohne Quellenangabe", "no source given")
@@ -390,6 +412,139 @@ def w_kristall(s: Sec, res: dict, req: dict):
                    f"$B = 0.5$\\,Å$^2$) and the Lorentz-polarisation factor for unfiltered radiation{s.c('cullity')}. "
                    "Intensities are integrated; absorption, texture and extinction are not considered."
                    + (f" Structure after{s.c(pc)}." if pc else "")).replace("Å", r"\AA{}"))
+
+
+# ----------------------------------------------------------------------------- Struktur
+def _vk(tool: str, view: str) -> list[str]:
+    """Feste Quellen einer Ansicht (views.py) für ihre Abbildung."""
+    from . import views as VW
+    return VW.figure_keys(tool, view)
+
+
+def _panel_cites(p: dict) -> list[str]:
+    keys = list(p.get("q") or [])
+    for k in p.get("refs") or []:
+        k = k["key"] if isinstance(k, dict) else k
+        if k not in keys:
+            keys.append(k)
+    if any(str(k).startswith("cod") for k in keys):
+        keys.append("grazulis2012")                         # die Datenbank selbst, neben dem Eintrag
+    return keys
+
+
+def _panel_caption(s: Sec, p: dict, name: str, at: str) -> str:
+    kind = (s.L("Skizze, schematisch, nicht massstäblich", "Sketch, schematic, not to scale") if p.get("kind") == "sketch" else
+            s.L("Elementarzelle aus Strukturdaten", "Unit cell from structure data") if p.get("phase") else
+            s.L("Modell, kein Messbild", "Model, not a micrograph"))
+    ph = p.get("phase") or {}
+    extra = ""
+    if ph:
+        extra = (f" {ph.get('spacegroup')}" if ph.get("spacegroup") else "") + (f", COD {ph['cod']}" if ph.get("cod") else "")
+    parts = [f"{name}, {p['title']}{extra} {at}.", (p.get("caption") or "").strip(), kind + "."]
+    return tx(" ".join(x for x in parts if x).replace("..", "."))
+
+
+def w_struktur(s: Sec, res: dict, req: dict):
+    lang = s.lang
+    mat = res.get("material") or {}
+    name = res.get("name") or mat.get("name") or str(req.get("material", ""))
+    keys = [r["key"] for r in res.get("refs") or []]
+    if res.get("mech"):                                    # Mechanismus: acht Bilder der Folge
+        fr = res["frames"]
+        pick = sorted({round(k * (len(fr) - 1) / 7) for k in range(8)})
+        sel = [{**fr[k], "label": f"{round(100 * fr[k].get('f', 0)):d} %"} for k in pick]
+        s.fig(CH.fig_temper_frames({"frames": sel}, lang, "mech"), "mech",
+              tx(s.L(f"{name}: Bildfolge (schematisch, nach den angegebenen Quellen).",
+                     f"{name}: sequence of frames (schematic, after the sources given).")), cites=keys[:6], width="0.95")
+        s.table("mech", ["#", s.L("Fortschritt", "Progress"), s.L("Was geschieht", "What happens")],
+                [[str(n + 1), tx(sel[n]["label"]),
+                  tx(sel[n].get("caption") or "") if n == 0 or sel[n].get("caption") != sel[n - 1].get("caption") else s.L("(wie oben)", "(as above)")]
+                 for n in range(len(sel))],
+                "rlp{0.62\\linewidth}", tx(s.L(f"{name}: Abschnitte der Bildfolge.", f"{name}: stages of the sequence.")),
+                cites=keys[:6], small=True)
+        s.r.append(tx(" ".join(dict.fromkeys(f.get("caption") or "" for f in sel))))
+        s.m.append(s.L(f"Schematische Bildfolge „{tx(name)}“ nach der Literatur{s.c(keys[:5])}; Geometrie und Ablauf sind angedeutet, nicht berechnet.",
+                       f"Schematic sequence “{tx(name)}” after the literature{s.c(keys[:5])}; geometry and course are indicated, not computed."))
+        return
+    if res.get("atlas"):                                   # Gefügeatlas: Skizze und Steckbrief
+        inf = res.get("info") or {}
+        p = (res.get("panels") or [None])[0]
+        if p:
+            s.fig(CH.fig_panel(p, lang), "atlas", tx(s.L(f"Gefüge {name} (Skizze, schematisch; typischer Bildausschnitt {inf.get('scale', '')}).",
+                                                        f"Microstructure {name} (sketch, schematic; typical field of view {inf.get('scale', '')}).")),
+                  cites=keys[:4], width="0.85")
+        hv = inf.get("hv") or []
+        s.table("atlas", [s.L("Merkmal", "Property"), s.L("Angabe", "Value")],
+                [[tx(s.L("Beschreibung", "Description")), tx(inf.get("what", ""))],
+                 [tx(s.L("Entsteht durch", "Formed by")), tx(inf.get("conditions", ""))],
+                 [tx(s.L("Ätzung", "Etchant")), tx(inf.get("etch", ""))],
+                 [tx(s.L("Härte (typisch)", "Hardness (typical)")), f"{num(hv[0], 0, lang)}–{num(hv[1], 0, lang)} HV" if len(hv) == 2 else "–"]],
+                "lp{0.7\\linewidth}", tx(s.L(f"Steckbrief {name}.", f"Fact sheet {name}.")), cites=keys[:4], small=True)
+        s.r.append(tx(f"{name}: {inf.get('what', '')}"))
+        s.m.append(s.L(f"Gefügeskizze „{tx(name)}“ nach Lehrbüchern und Atlanten{s.c(keys[:4])}, schematisch und nicht massstäblich.",
+                       f"Microstructure sketch “{tx(name)}” after textbooks and atlases{s.c(keys[:4])}, schematic and not to scale."))
+        return
+    if res.get("frames"):                                  # Wärmebehandlung
+        fr = [f for f in res["frames"] if not f.get("inter")]      # Schlüsselbilder; Zwischenbilder nur im Browser
+        steps = res.get("steps") or []
+        s.fig(CH.fig_temper_path(res, lang), "weg",
+              tx(s.L(f"Wärmebehandlung von {name}: Temperaturverlauf mit den Zeitpunkten der Bilder (Heiz- und Abkühlzeiten angenommen).",
+                     f"Heat treatment of {name}: temperature path with the times of the frames (heating and cooling times assumed).")),
+              cites=_vk("struktur", "weg"), width="0.8")
+        view = str(req.get("show") or "")
+        s.fig(CH.fig_temper_frames(res, lang, view), "bilder",
+              tx(s.L(f"{name} entlang der Wärmebehandlung, je Bild dieselbe Ansicht (Modell bzw. Skizze, schematisch).",
+                     f"{name} along the heat treatment, the same view in each frame (model or sketch, schematic).")),
+              cites=keys[:6], width="0.95")
+        s.table("schritte", [s.L("Schritt", "Step"), "T [°C]", s.L("Halten [h]", "Hold [h]"), s.L("Abkühlen", "Cooling")],
+                [[tx(x.get("name") or str(n + 1)), num(x.get("T", 0), 0, lang), num(x.get("t", 0) or 0, 2, lang),
+                  tx(s.L("abgeschreckt", "quenched") if x.get("quench") else s.L("an Luft", "in air"))] for n, x in enumerate(steps)],
+                "lrrl", tx(s.L(f"Schritte der Wärmebehandlung von {name}.", f"Heat-treatment steps of {name}.")))
+        s.table("bilder", ["#", s.L("Bild", "Frame"), "t [h]", "T [°C]", s.L("Zustand", "State")],
+                [[str(n + 1), tx(f["label"]), num(f["t"], 2, lang), num(f["T"], 0, lang), tx(" ".join(f.get("statements") or [])[:220])]
+                 for n, f in enumerate(fr)],
+                "rlrrp{0.45\\linewidth}", tx(s.L(f"Zustände von {name} entlang der Wärmebehandlung.", f"States of {name} along the heat treatment.")),
+                cites=keys[:6], small=True)
+        last = fr[-1]
+        s.r.append(tx(s.L(f"{name} nach der Wärmebehandlung ({last['label']}, {last['T']:.0f} °C): ",
+                          f"{name} after the heat treatment ({last['label']}, {last['T']:.0f} °C): ")) + tx(" ".join(last.get("statements") or [])))
+        s.m.append(s.L("Zustände entlang des Wärmebehandlungswegs aus Regeln der Literatur: Anlassstufen des Martensits über den "
+                       f"Hollomon–Jaffe-Parameter, Ausscheidungsfolgen aushärtbarer Legierungen mit Arrhenius-gleichwertigen Zeiten{s.c(keys[:4])}. "
+                       "Die Bilder sind Modelle bzw. Skizzen; Heiz- und Abkühlzeiten sind angenommen.",
+                       "States along the heat-treatment path from rules in the literature: tempering stages of martensite via the "
+                       f"Hollomon-Jaffe parameter, precipitation sequences of age-hardening alloys with Arrhenius-equivalent times{s.c(keys[:4])}. "
+                       "The frames are models or sketches; heating and cooling times are assumed."))
+        return
+    T = res["T"]
+    at = s.L("bei", "at") + f" {T:.0f} °C"
+    shown = str(req.get("show") or "")
+    panels = sorted(res.get("panels") or [], key=lambda p: p["id"] != shown)
+    for p in panels:
+        try:
+            f = CH.fig_panel(p, lang)
+        except Exception:  # noqa: BLE001 - eine Ansicht darf den Bericht nicht verhindern
+            continue
+        s.fig(f, "a-" + re.sub(r"[^a-z0-9]+", "-", p["id"].lower()).strip("-"), _panel_caption(s, p, name, at),
+              cites=_panel_cites(p) or keys[:3], width="0.85" if p.get("kind") == "sketch" else "0.75")
+    cells = [p for p in panels if p.get("phase")]
+    if cells:
+        rows = []
+        for p in cells:
+            ph = p["phase"]
+            c = ph.get("cell") or {}
+            rows.append([tx(ph.get("name") or ""), tx(ph.get("formula") or ""), tx(ph.get("spacegroup") or "–"),
+                         ", ".join(num(c[k], 3, lang) for k in ("a", "b", "c") if c.get(k)) or "–",
+                         tx(f"COD {ph['cod']}" if ph.get("cod") else s.L("Literatur", "literature") if ph.get("art") == "lit" else s.L("eingebaut", "built-in"))])
+        s.table("phasen", [s.L("Phase", "Phase"), s.L("Formel", "Formula"), s.L("Raumgruppe", "Space group"), "a, b, c [Å]", s.L("Daten", "Data")],
+                rows, "lllll", tx(s.L(f"Phasen und Elementarzellen von {name} {at}.", f"Phases and unit cells of {name} {at}.")),
+                cites=[k for p in cells for k in _panel_cites(p)])
+    s.r.append(tx(s.L(f"{name} {at}: ", f"{name} {at}: ")) + tx(" ".join(res.get("statements") or [])))
+    s.m.append(s.L(f"Strukturansichten von {tx(name)} {tx(at)}: Phasen nach Zustandsdiagramm bzw. Werkstoffregeln, Elementarzellen aus "
+                   f"Strukturdaten (Crystallography Open Database bzw. Literatur), Ketten und Netzwerke als Modelle mit "
+                   f"Standardbindungslängen, Gefüge als Skizzen{s.c(keys[:5])}.",
+                   f"Structure views of {tx(name)} {tx(at)}: phases from the phase diagram or material rules, unit cells from "
+                   f"structure data (Crystallography Open Database or literature), chains and networks as models with standard "
+                   f"bond lengths, microstructures as sketches{s.c(keys[:5])}.") + (" " + tx(" ".join(res.get("notes") or [])) if res.get("notes") else ""))
 
 
 # ----------------------------------------------------------------------------- Gitter
@@ -586,7 +741,7 @@ def w_xrd(s: Sec, res: dict, req: dict):
                  + (" sowie berechneten Linien der Vergleichsphasen." if sticks else "."),
                  f"Diffraction pattern {name} with background and detected peaks"
                  + (" and computed lines of the reference phases." if sticks else "."))) + fc,
-          cites=(["cullity"] + pcs) if sticks else [])
+          cites=(["cullity"] + pcs) if sticks else _vk("xrd", "pattern"))
     hk = {q["peak"]: q["hkl"] for q in (res.get("ref_match") or {}).get("pairs", [])}
     rows = []
     for i, p in enumerate(pk):
@@ -729,13 +884,13 @@ def w_phasen(s: Sec, res: dict, req: dict):
     d = res["diagram"]
     q = list(d.get("q") or [])
     s.fig(CH.fig_diagram(res, s.lang), "diagramm",
-          tx(s.L(f"Zustandsdiagramm {d['name']}, schematisch: Geraden zwischen Eckpunkten aus der Literatur.",
-                 f"Phase diagram {d['name']}, schematic: straight lines between key points from the literature.")), cites=q)
+          tx(s.L(f"Zustandsdiagramm {d['name']}, schematisch: geglättete Linien durch Eckpunkte aus der Literatur.",
+                 f"Phase diagram {d['name']}, schematic: smoothed lines through key points from the literature.")), cites=q)
     s.m.append(s.L(f"Das Zustandsdiagramm {tx(d['name'])} ist schematisch: Die invarianten Punkte (Temperatur und Zusammensetzung) "
-                   f"stammen aus der Literatur{s.c(q)}, die Linien dazwischen sind gerade gezogen. Phasenanteile nach dem Hebelgesetz "
+                   f"stammen aus der Literatur{s.c(q)}, die Linien dazwischen sind nachgezeichnet und geglättet (Catmull-Rom-Spline). Phasenanteile nach dem Hebelgesetz "
                    f"auf der Konode{s.c('callister')}; Gefügebestandteile aus dem Hebelgesetz knapp oberhalb der invarianten Reaktion.",
                    f"The phase diagram {tx(d['name'])} is schematic: the invariant points (temperature and composition) are taken "
-                   f"from the literature{s.c(q)} and joined by straight lines. Phase fractions by the lever rule on the tie line"
+                   f"from the literature{s.c(q)}; the lines between them are traced and smoothed (Catmull-Rom spline). Phase fractions by the lever rule on the tie line"
                    f"{s.c('callister')}; microconstituents from the lever rule just above the invariant reaction."))
     lv = res.get("lever")
     if lv:
@@ -752,6 +907,16 @@ def w_phasen(s: Sec, res: dict, req: dict):
                            + ", ".join(f"{num(100 * ph['frac'], 1, s.lang)}\\,\\% {tx(ph['name'])}" for ph in lv["phases"]) + "."))
         elif lv.get("note"):
             s.r.append(tx(lv["note"]))
+    mic = res.get("micro")
+    if mic and lv:
+        try:
+            p = {"kind": "sketch", "id": "gefuege", "title": mic.get("name") or "", "sketch": mic["sketch"]}
+            s.fig(CH.fig_panel(p, s.lang), "gefuege-punkt",
+                  tx(s.L(f"Gefüge bei {lv['T']:g} °C und x = {lv['x']:g} nach langsamer Abkühlung (Skizze, schematisch). {mic.get('caption', '')}",
+                         f"Microstructure at {lv['T']:g} °C and x = {lv['x']:g} after slow cooling (sketch, schematic). {mic.get('caption', '')}")),
+                  cites=list(mic.get("refs") or [])[:4], width="0.75")
+        except Exception:  # noqa: BLE001 - die Skizze darf den Bericht nicht verhindern
+            pass
     for k, cst in enumerate(res.get("constituents") or []):
         rows = [[tx(pt["name"]), num(100 * pt["frac"], 1, s.lang)] for pt in cst["parts"]]
         s.table(f"gefuege{k + 1}" if k else "gefuege", [s.L("Gefügebestandteil", "Microconstituent"), s.L("Anteil [%]", "Fraction [%]")],
@@ -771,6 +936,7 @@ def w_phasen(s: Sec, res: dict, req: dict):
 
 # ----------------------------------------------------------------------------- Stahl
 def w_stahl(s: Sec, res: dict, req: dict):
+    s.unc(res)
     rows = []
     cmap = [("CE", "CE (IIW)", 2, "%", "en1011_2"), ("CET", "CET", 2, "%", "en1011_2"), ("Pcm", "Pcm", 3, "%", "ito1968"),
             ("Ms", "Ms", 0, "°C", "andrews1965"), ("Ac1", "Ac1", 0, "°C", "andrews1965"), ("Ac3", "Ac3", 0, "°C", "andrews1965")]
@@ -989,6 +1155,7 @@ def w_weibull(s: Sec, res: dict, req: dict):
 
 
 def w_bruch(s: Sec, res: dict, req: dict):
+    s.unc(res)
     kq = res.get("kq")
     if kq:
         geom = {"senb": "SE(B)", "ct": "C(T)"}.get((req.get("kq") or {}).get("geom", "senb"), "")
@@ -1018,6 +1185,7 @@ def w_bruch(s: Sec, res: dict, req: dict):
 
 # ----------------------------------------------------------------------------- Härte
 def w_haerte(s: Sec, res: dict, req: dict):
+    s.unc(res)
     meth = res["method"]
     q = {"HV": "iso6507", "HBW": "iso6506", "HK": "iso4545"}[meth]
     ok = [r for r in res["rows"] if "value" in r]
@@ -1152,12 +1320,15 @@ def w_kriechen(s: Sec, res: dict, req: dict):
         s.r.append(s.L(f"Norton: n = {vn}" + (f", Q = {vq}." if vq else "."), f"Norton: n = {vn}" + (f", Q = {vq}." if vq else ".")))
 
 
-WRITERS = {"auswahl": w_auswahl, "karten": w_karten, "kristall": w_kristall, "gitter": w_gitter, "xrd": w_xrd, "phasen": w_phasen,
+WRITERS = {"auswahl": w_auswahl, "karten": w_karten, "kristall": w_kristall, "struktur": w_struktur, "gitter": w_gitter, "xrd": w_xrd, "phasen": w_phasen,
            "stahl": w_stahl, "laminat": w_laminat, "ermuedung": w_ermuedung, "weibull": w_weibull, "bruch": w_bruch,
            "haerte": w_haerte, "korrosion": w_korrosion, "kriechen": w_kriechen}
 
 
 def build(request: dict, ctx: T.Ctx, files: dict[str, bytes]) -> dict:
+    if any(x.get("tool") == "infotafel" for x in request.get("sections") or []):     # Infotafel: aus den Pin-Datensätzen
+        from . import infoboard as IB
+        return IB.build_bundle(request)
     lang = request.get("lang") if request.get("lang") in ("de", "en") else "de"
     inc = {"figures": True, "tables": True, "values": True, "data": True, "citations": True, "text": True,
            **(request.get("include") or {})}
@@ -1171,7 +1342,7 @@ def build(request: dict, ctx: T.Ctx, files: dict[str, bytes]) -> dict:
     b = Bundle(module="werkstoffe", module_name="Werkstoffe" if lang == "de" else "Materials", title=title, lang=lang,
                slug=request.get("slug") or None, summary=" · ".join(dict.fromkeys(labels)))
     count: dict[str, int] = {}
-    methods, results = [], []
+    methods, results, pids = [], [], []
     for x in secs:
         tool = x["tool"]
         count[tool] = count.get(tool, 0) + 1
@@ -1179,17 +1350,20 @@ def build(request: dict, ctx: T.Ctx, files: dict[str, bytes]) -> dict:
         req = {**(x.get("req") or {}), "lang": lang}
         res = T.run(tool, req, ctx)
         s = Sec(b, lang, inc, pid, ctx)
+        mark = b.added_mark()
         WRITERS[tool](s, res, req)
         s.finish()
+        b.needs_since(mark, [pid])                     # Tabellen und Werte gehören zum Methodentext ihres Werkzeugs
+        pids.append(pid)
         head = NAMES[tool][0 if lang == "de" else 1]
         if s.m:
-            methods.append(f"\\paragraph{{{tex_escape(head)}}} " + " ".join(s.m) + _unchecked(s, res))
+            methods.append(step_tag(pid) + f"\\paragraph{{{tex_escape(head)}}} " + " ".join(s.m) + _unchecked(s, res))
         if s.r:
             results.append(f"\\paragraph{{{tex_escape(head)}}} " + " ".join(s.r))
     if inc["text"]:
         if methods:
-            b.add_text("methodik", "\n\n".join(methods) + "\n", "Methodik" if lang == "de" else "Methods")
+            b.add_methods(methods, "Methodik" if lang == "de" else "Methods")
         if results:
-            b.add_text("ergebnisse", "\n\n".join(results) + "\n", "Ergebnisse" if lang == "de" else "Results")
+            b.add_text("ergebnisse", "\n\n".join(results) + "\n", "Ergebnisse" if lang == "de" else "Results", steps=pids)
     b.set_source({**request, "slug": b.slug}, files)
     return b.to_dict()

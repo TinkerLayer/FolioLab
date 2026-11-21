@@ -9,7 +9,7 @@
   "color": "#b45309",
   "status": "ready",
   "order": 25,
-  "version": "0.13.1",
+  "version": "0.14.0",
   "accepts": [".txt", ".csv", ".tsv", ".asc", ".dat", ".xlsx"],
   "produces": ["figure", "table", "values", "data", "citation", "text"],
   "runtime": {

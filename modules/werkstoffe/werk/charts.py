@@ -12,6 +12,7 @@ from matplotlib.patches import Polygon  # noqa: E402
 
 COLORS = ["#007b83", "#c2410c", "#4338ca", "#15803d", "#a21caf", "#b45309", "#0369a1", "#be123c"]
 INK, MUTED, GRIDC = "#1f1d24", "#625d6b", "#e4e1ea"
+SEL_COLOR = "#2f9e5b"          # gewählter Werkstoff (wie auf der Seite)
 CLASS_COLORS = {"metall": "#0369a1", "keramik": "#b45309", "polymer": "#15803d", "elastomer": "#65a30d",
                 "verbund": "#a21caf", "glas": "#0891b2", "faser": "#be123c", "naturstoff": "#854d0e",
                 "schaum": "#64748b", "halbleiter": "#4338ca", "element": "#475569"}
@@ -54,27 +55,85 @@ def _tag(fig, text):
 
 
 # ----------------------------------------------------------------------------- Auswahl
-def fig_ashby(res: dict, lang: str = "de", label_top: int = 12, show_mp: bool = True):
+def _ok(p):
+    return p["x"] is not None and p["y"] is not None and p["x"] > 0 and p["y"] > 0
+
+
+def _corners(p):
+    xs = [p["xmin"], p["xmax"]] if p.get("xmin") and p.get("xmax") else [p["x"]]
+    ys = [p["ymin"], p["ymax"]] if p.get("ymin") and p.get("ymax") else [p["y"]]
+    return [(p["x"], p["y"])] + [(x, y) for x in xs for y in ys if x > 0 and y > 0]
+
+
+def _family_outline(ax, members, col, label, strong):
+    """Umriss einer Familie: konvexe Hülle der Spannen-Ecken aller Mitglieder in log-Koordinaten, leicht gepolstert."""
+    P = np.log10(np.array([c for p in members for c in _corners(p)], float))
+    k = np.linspace(0, 2 * np.pi, 13)[:-1]
+    P = (P[:, None, :] + 0.06 * np.stack([np.cos(k), np.sin(k)], 1)[None]).reshape(-1, 2)      # Polster 0,06 Dekaden
+    P = P[np.lexsort((P[:, 1], P[:, 0]))]
+    cr = lambda o, a, b: (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for q in P:
+        while len(lo) >= 2 and cr(lo[-2], lo[-1], q) <= 0:
+            lo.pop()
+        lo.append(q)
+    for q in P[::-1]:
+        while len(hi) >= 2 and cr(hi[-2], hi[-1], q) <= 0:
+            hi.pop()
+        hi.append(q)
+    H = 10 ** np.array(lo[:-1] + hi[:-1])
+    ax.fill(H[:, 0], H[:, 1], color=col, alpha=0.18 if strong else 0.09, lw=0, zorder=1)
+    ax.plot(np.r_[H[:, 0], H[0, 0]], np.r_[H[:, 1], H[0, 1]], color=col, lw=1.2 if strong else 0.7,
+            ls="-" if strong else "--", alpha=0.85, zorder=1)
+    top = H[np.argmax(H[:, 1])]
+    ax.annotate(label, (top[0], top[1]), xytext=(0, 2), textcoords="offset points", ha="center", va="bottom",
+                fontsize=6, color=col, style="italic", zorder=2)
+
+
+def fig_ashby(res: dict, lang: str = "de", label_top: int = 12, show_mp: bool = True, view: dict | None = None):
+    """Ashby-Diagramm wie auf der Seite: Übersicht nur Punkte; gewählter Werkstoff mit Ring und seiner Spanne;
+    mit Familien (view.groups) die Familienumrisse und nur die Punkte der gewählten Familie bzw. des Werkstoffs."""
+    view = view or {}
     fig, ax = plt.subplots(figsize=(6.6, 4.8))
     pts = res["points"]
     ranked = {r["id"]: r["rank"] for r in (res.get("rank") or {}).get("ranked", [])}
+    sel = next((p for p in pts if p["id"] == view.get("sel")), None) if view.get("sel") else None
+    groups = bool(view.get("groups"))
+    fam = (sel or {}).get("familie") or view.get("fam") if groups else None
+    if groups:
+        fams: dict[str, list] = {}
+        for p in pts:
+            if not p["mp"] and p.get("familie") and _ok(p):
+                fams.setdefault(p["familie"], []).append(p)
+        names = res.get("families") or {}
+        for f, members in fams.items():
+            col = CLASS_COLORS.get(members[0]["klasse"], MUTED)
+            _family_outline(ax, members, col, names.get(f, f), f == fam)
+        # Achsen wie in der Übersicht: alle Punkte unsichtbar mitnehmen
+        ax.scatter([p["x"] for p in pts if _ok(p) and not p["mp"]], [p["y"] for p in pts if _ok(p) and not p["mp"]], s=0)
     seen = set()
     for p in pts:
-        if p["x"] is None or p["y"] is None or p["x"] <= 0 or p["y"] <= 0:
+        if not _ok(p):
             continue
-        if p["mp"] and not show_mp:
+        if p["mp"] and (not show_mp or groups):
+            continue
+        if groups and not (p.get("familie") == fam or p is sel):
             continue
         col = CLASS_COLORS.get(p["klasse"], MUTED)
         lab = None
         key = ("mp" if p["mp"] else p["klasse"])
-        if key not in seen:
+        if key not in seen and not groups:
             seen.add(key)
             lab = (("berechnet (DFT)" if _de(lang) else "computed (DFT)") if p["mp"]
                    else res["classes"].get(p["klasse"], p["klasse"]))
-        xe = [[p["x"] - p["xmin"]], [p["xmax"] - p["x"]]] if p.get("xmin") and p.get("xmax") else None
-        ye = [[p["y"] - p["ymin"]], [p["ymax"] - p["y"]]] if p.get("ymin") and p.get("ymax") else None
-        if xe or ye:
-            ax.errorbar(p["x"], p["y"], xerr=xe, yerr=ye, fmt="none", ecolor=col, alpha=0.35, lw=2.2)
+        if p is sel:
+            x0, x1 = (p["xmin"], p["xmax"]) if p.get("xmin") and p.get("xmax") else (p["x"], p["x"])
+            y0, y1 = (p["ymin"], p["ymax"]) if p.get("ymin") and p.get("ymax") else (p["y"], p["y"])
+            ax.add_patch(plt.Rectangle((x0, y0), (x1 - x0) or p["x"] * 0.02, (y1 - y0) or p["y"] * 0.02,
+                                       facecolor=SEL_COLOR, alpha=0.2, edgecolor=SEL_COLOR, lw=1.2, zorder=2))
+            ax.scatter([p["x"]], [p["y"]], s=90, facecolors="none", edgecolors=SEL_COLOR, lw=1.8, zorder=4)
+            ax.annotate(p["name"], (p["x"], p["y"]), xytext=(7, -10), textcoords="offset points", fontsize=7,
+                        color=INK, zorder=5)
         if p["mp"]:
             ax.scatter([p["x"]], [p["y"]], marker="^", facecolors="none", edgecolors=col if col != MUTED else "#334155",
                        s=22, lw=0.9, label=lab, zorder=3)
@@ -107,7 +166,8 @@ def fig_ashby(res: dict, lang: str = "de", label_top: int = 12, show_mp: bool = 
                     + _fmt(sl, lang, 2), transform=ax.transAxes, fontsize=7, color=MUTED)
     _ax(ax, _lab(res["x"]), _lab(res["y"]))
     ax.grid(True, which="minor", color=GRIDC, lw=0.3)
-    ax.legend(fontsize=7, frameon=False, loc="upper left", ncol=2)
+    if ax.get_legend_handles_labels()[1]:
+        ax.legend(fontsize=7, frameon=False, loc="upper left", ncol=2)
     fig.tight_layout()
     return fig
 
@@ -400,12 +460,22 @@ def fig_nr(nr: dict, lang: str = "de"):
 def fig_diagram(res: dict, lang: str = "de"):
     d = res["diagram"]
     fig, ax = plt.subplots(figsize=(6.4, 4.6))
+    lines = d.get("lines") or []
     for k, rg in enumerate(d["regions"]):
         P = np.asarray(rg["poly"], float)
         two = "+" in rg["label"]
-        ax.add_patch(Polygon(P, closed=True, facecolor=("#f1f5f9" if two else "#e0f2f1"), edgecolor=INK, lw=0.8))
+        # mit eigenen Grenzlinien: Gebiete nur blass gefüllt, die Linien darüber tragen die Grenzen
+        ax.add_patch(Polygon(P, closed=True, facecolor=("#f1f5f9" if two else "#e0f2f1"), edgecolor=(MUTED if lines else INK),
+                             lw=(0.3 if lines else 0.8)))
         cx, cy = P[:, 0].mean(), P[:, 1].mean()
         ax.text(cx, cy, rg["label"], ha="center", va="center", fontsize=7.5, color=INK)
+    for ln in lines:
+        L_ = np.asarray(ln["pts"], float)
+        if len(L_) < 2:
+            continue
+        kind = ln.get("kind", "")
+        ax.plot(L_[:, 0], L_[:, 1], color=INK, lw=(1.0 if kind in ("solvus", "hilfslinie", "magnetisch") else 1.4),
+                ls=("--" if kind in ("hilfslinie", "magnetisch") else "-"), zorder=3)
     for inv in d["invariants"]:
         ax.hlines(inv["T"], inv["x"][0], inv["x"][-1], color=INK, lw=1.0)
         ax.text(inv["x"][-1], inv["T"], f" {inv['T']:g} °C", fontsize=6.5, va="center", color=MUTED)
@@ -636,3 +706,252 @@ def fig_norton(nt: dict, lang: str = "de"):
 
 def close(fig):
     plt.close(fig)
+
+
+# ----------------------------------------------------------------------------- Struktur (Szenen, Skizzen, Wärmebehandlung)
+def _scene_proj(sc: dict, rx: float = -0.3, ry: float = 0.55):
+    """Projektion wie auf der Seite: x rechts, z oben, y in die Tiefe. Gibt (Q[n, 3], Mittelpunkt) zurück."""
+    A = np.asarray(sc.get("atoms") or np.zeros((0, 4)), float).reshape(-1, 4)
+    cen = np.asarray(sc.get("center") or (A[:, :3].mean(0) if len(A) else [0, 0, 0]), float)
+
+    def P(X):
+        X = np.asarray(X, float).reshape(-1, 3)
+        x, y, z = X[:, 0] - cen[0], X[:, 2] - cen[2], X[:, 1] - cen[1]
+        cx, sx, cy, sy = math.cos(rx), math.sin(rx), math.cos(ry), math.sin(ry)
+        x1, z1 = cy * x + sy * z, -sy * x + cy * z
+        return np.stack([x1, cx * y - sx * z1, sx * y + cx * z1], 1)
+    return A, P
+
+
+def _mix(c: str, w: str, f: float) -> str:
+    try:
+        a = [int(c[k:k + 2], 16) for k in (1, 3, 5)]
+        b = [int(w[k:k + 2], 16) for k in (1, 3, 5)]
+    except (ValueError, TypeError, IndexError):
+        return c
+    return "#" + "".join(f"{round(x + (y - x) * f):02x}" for x, y in zip(a, b))
+
+
+def draw_scene(ax, sc: dict, lang: str = "de", legend: bool = True, rx: float = -0.3, ry: float = 0.55):
+    """Atome, Bindungen, Polyeder und Zelle einer Szene (struktur bzw. gitter) in 2D-Achsen, nach Tiefe sortiert."""
+    from matplotlib.patches import Circle
+    de = _de(lang)
+    A, P = _scene_proj(sc, rx, ry)
+    kinds = sc.get("kinds") or []
+    shrink = 0.45 if sc.get("frame") else 1.0
+    Q = P(A[:, :3]) if len(A) else np.zeros((0, 3))
+    K = A[:, 3].astype(int) if len(A) else np.zeros(0, int)
+    dz = max(1.0, float(np.abs(Q[:, 2]).max()) if len(Q) else 1.0)
+    items = [(Q[n, 2], 0, n) for n in range(len(Q))]
+    for i, j in sc.get("bonds") or []:
+        items.append(((Q[i, 2] + Q[j, 2]) / 2 - 0.4, 1, (i, j)))
+    for pz in sc.get("polys") or []:
+        for f in pz.get("faces") or []:
+            idx = [pz["v"][k] for k in f]
+            items.append((float(Q[idx, 2].mean()) - 0.2, 2, (idx, pz.get("color", MUTED))))
+    vac = np.asarray(sc.get("vacancies") or np.zeros((0, 3)), float).reshape(-1, 3)
+    QV = P(vac) if len(vac) else np.zeros((0, 3))
+    for n in range(len(QV)):
+        items.append((QV[n, 2], 3, n))
+    items.sort(key=lambda x: x[0])
+    span = float(np.ptp(Q[:, :2], 0).max()) if len(Q) > 1 else 4.0
+    bw = max(0.6, min(2.6, 70.0 / max(span, 1)))
+    shade = len(Q) < 1500
+    host_r = next((k["r"] for k in kinds if k.get("role") == "host"), kinds[0]["r"] if kinds else 1.0)
+    for z, (_, typ, d) in enumerate(items):
+        zo = 2 + z * 1e-3
+        if typ == 2:
+            idx, col = d
+            ax.add_patch(Polygon(Q[idx, :2], closed=True, facecolor=col, edgecolor=col, alpha=0.2, lw=0.5, zorder=zo))
+        elif typ == 1:
+            i, j = d
+            m = (Q[i, :2] + Q[j, :2]) / 2
+            for a, b, k in ((Q[i, :2], m, kinds[K[i]]), (m, Q[j, :2], kinds[K[j]])):
+                ax.plot([a[0], b[0]], [a[1], b[1]], color=_mix(k["color"], "#7a7a7a", 0.45), lw=bw, solid_capstyle="round",
+                        alpha=0.4 if k.get("role") == "out" else 0.95, zorder=zo)
+        elif typ == 3:
+            ax.add_patch(Circle(QV[d, :2], host_r * shrink, facecolor="none", edgecolor=INK, lw=0.7, ls="--", zorder=zo))
+        else:
+            k = kinds[K[d]]
+            r = k["r"] * shrink * (0.88 + 0.12 * Q[d, 2] / dz)
+            out, occ = k.get("role") == "out", k.get("role") == "occ"
+            ax.add_patch(Circle(Q[d, :2], r, facecolor=k["color"], edgecolor=INK if occ else _mix(k["color"], "#000000", 0.45),
+                                lw=0.35, ls="--" if occ else "-", alpha=0.4 if out else 0.8 if occ else 1, zorder=zo))
+            if shade and not out:
+                ax.add_patch(Circle(Q[d, :2] + np.array([-0.3, 0.3]) * r, 0.38 * r, facecolor="white", edgecolor="none",
+                                    alpha=0.35, zorder=zo + 1e-4))
+    cell = sc.get("cell")
+    if cell:
+        C = P(cell["corners"])
+        for a, b in cell["edges"]:
+            ax.plot(*np.stack([C[a, :2], C[b, :2]], 1), color=COLORS[1], lw=1.3, zorder=50)
+    for lb in sc.get("labels") or []:
+        q = P([lb["p"]])[0]
+        ax.text(q[0], q[1], lb["text"], ha="center", va="center", fontsize=7, color=INK, zorder=51,
+                bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.75))
+    pts = [Q[:, :2]] + ([P(cell["corners"])[:, :2]] if cell else [])
+    allp = np.concatenate(pts) if len(Q) or cell else np.zeros((1, 2))
+    pad = 1.0 + (max(k["r"] for k in kinds) * shrink if kinds else 0)
+    ax.set_xlim(allp[:, 0].min() - pad, allp[:, 0].max() + pad)
+    ax.set_ylim(allp[:, 1].min() - pad, allp[:, 1].max() + pad)
+    ax.set_aspect("equal")
+    ax.set_axis_off()
+    if legend:
+        from matplotlib.lines import Line2D
+        cnt: dict = {}
+        for k in K:
+            nm = kinds[k]["name"]
+            cnt.setdefault(nm, [kinds[k]["color"], 0])[1] += 1
+        h = [Line2D([], [], ls="", marker="o", ms=6, mfc=c, mec=_mix(c, "#000000", 0.45), mew=0.4, label=f"{nm} · {n}")
+             for nm, (c, n) in cnt.items()]
+        if len(vac):
+            h.append(Line2D([], [], ls="", marker="o", ms=6, mfc="none", mec=INK, label=("Leerstelle" if de else "Vacancy")))
+        if sc.get("polys"):
+            h.append(Line2D([], [], ls="", marker="^", ms=6, mfc=MUTED, alpha=0.4, mec=MUTED,
+                            label=("Koordinationspolyeder" if de else "Coordination polyhedra")))
+        if cell:
+            h.append(Line2D([], [], color=COLORS[1], lw=1.3, label=("Elementarzelle" if de else "Unit cell")))
+        ax.legend(handles=h[:14], fontsize=6.5, frameon=False, loc="upper left", bbox_to_anchor=(1.0, 1.0))
+
+
+def draw_sketch(ax, sk: dict, lang: str = "de", legend: bool = True, lw_scale: float = 0.5):
+    """Gefügeskizze im Einheitsquadrat (Elemente wie auf der Seite)."""
+    from matplotlib.collections import LineCollection, PatchCollection
+    from matplotlib.patches import Circle, Patch, Rectangle
+
+    def clip_patch(poly):
+        cp = Polygon(np.asarray(poly, float), closed=True, transform=ax.transData)
+        return cp
+
+    def draw(it, clip=None):
+        arts = []
+        sw = float(it.get("sw", 1)) * lw_scale
+        op = it.get("op")
+        t = it.get("t")
+        if t == "poly":
+            st = it.get("stroke")
+            arts.append(ax.add_patch(Polygon(np.asarray(it["p"], float), closed=True, facecolor=it.get("fill") or "none",
+                                             edgecolor=st if st and st != "none" else "none", lw=sw, alpha=op, joinstyle="round")))
+        elif t == "circle":
+            arts.append(ax.add_patch(Circle(it["c"], it["r"], facecolor=it.get("fill") or "none",
+                                            edgecolor=it.get("stroke") or "none", lw=sw, alpha=op)))
+        elif t in ("line", "pline"):
+            p = np.asarray(it["p"], float)
+            arts += ax.plot(p[:, 0], p[:, 1], color=it.get("stroke") or INK, lw=sw, alpha=op, solid_capstyle="round")
+        elif t == "dots":
+            p = np.asarray(it["p"], float)
+            arts.append(ax.add_collection(PatchCollection([Circle(q[:2], it["r"]) for q in p], facecolor=it.get("fill"),
+                                                          edgecolor="none", alpha=op)))
+        elif t == "dashes":
+            h = it["len"] / 2
+            segs = [[(q[0] - math.cos(q[2]) * h, q[1] - math.sin(q[2]) * h), (q[0] + math.cos(q[2]) * h, q[1] + math.sin(q[2]) * h)]
+                    for q in it["p"]]
+            arts.append(ax.add_collection(LineCollection(segs, colors=it.get("stroke"), linewidths=sw, alpha=op, capstyle="round")))
+        elif t == "hatch":
+            from . import struktur as SK
+            lc = ax.add_collection(LineCollection(SK.hatch_lines(it), colors=it.get("stroke"), linewidths=sw, alpha=op))
+            lc.set_clip_path(clip_patch(it["poly"]))
+            arts.append(lc)
+            if clip is not None:
+                pass                                  # Schraffur ist schon auf das Korn begrenzt
+            return arts
+        elif t == "clip":
+            cp = clip_patch(it["poly"])
+            for x in it.get("items") or []:
+                for a in draw(x):
+                    a.set_clip_path(cp)
+            return arts
+        elif t == "text":
+            arts.append(ax.text(it["p"][0], it["p"][1], it.get("text", ""), ha="center", va="center", fontsize=7,
+                                color=it.get("fill") or INK))
+        if clip is not None:
+            for a in arts:
+                a.set_clip_path(clip)
+        return arts
+
+    ax.add_patch(Rectangle((0, 0), 1, 1, facecolor="white", edgecolor="none", zorder=0))
+    for it in sk.get("items") or []:
+        draw(it)
+    ax.add_patch(Rectangle((0, 0), 1, 1, facecolor="none", edgecolor=MUTED, lw=0.8, zorder=60, clip_on=False))
+    sc = sk.get("scale")
+    if sc:
+        ax.add_patch(Rectangle((0.02, 0.02), max(sc["len"], 0.1) + 0.04, 0.085, facecolor="white", alpha=0.85, edgecolor="none", zorder=61))
+        ax.plot([0.04, 0.04 + sc["len"]], [0.04, 0.04], color=INK, lw=2.2, zorder=62, solid_capstyle="butt")
+        ax.text(0.04, 0.06, sc["label"], fontsize=6.5, color=INK, va="bottom", zorder=62)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.set_aspect("equal")
+    ax.set_axis_off()
+    if legend and sk.get("legend"):
+        h = [Patch(facecolor=e["color"], edgecolor=MUTED, lw=0.4, label=e["label"]) for e in sk["legend"] if e.get("label")]
+        ax.legend(handles=h, fontsize=6.5, frameon=False, loc="upper left", bbox_to_anchor=(1.02, 1.0))
+
+
+def _panel_tag(p: dict, de: bool) -> str:
+    if p.get("kind") == "sketch":
+        return "Skizze, schematisch, nicht massstäblich" if de else "Sketch, schematic, not to scale"
+    if p.get("phase"):
+        return "Elementarzelle aus Strukturdaten" if de else "Unit cell from structure data"
+    return "Modell" if de else "Model"
+
+
+def fig_panel(p: dict, lang: str = "de", note: str = ""):
+    """Eine Ansicht des Werkzeugs struktur als Abbildung."""
+    de = _de(lang)
+    if p.get("kind") == "sketch":
+        fig, ax = plt.subplots(figsize=(6.0, 3.9))
+        fig.subplots_adjust(left=0.02, right=0.6, top=0.97, bottom=0.05)
+        draw_sketch(ax, p["sketch"], lang)
+    else:
+        fig, ax = plt.subplots(figsize=(6.0, 4.4))
+        fig.subplots_adjust(left=0.01, right=0.66, top=0.98, bottom=0.04)
+        draw_scene(ax, p["scene"], lang)
+    _tag(fig, _panel_tag(p, de) + (f" · {note}" if note else ""))
+    return fig
+
+
+def fig_temper_path(res: dict, lang: str = "de"):
+    de = _de(lang)
+    fig, ax = plt.subplots(figsize=(6.2, 3.0))
+    prof = np.asarray(res["profile"], float)
+    ax.plot(prof[:, 0], prof[:, 1], color=COLORS[0], lw=1.6)
+    keys = [f for f in res["frames"] if not f.get("inter")]            # Zwischenbilder nur als kleine Punkte
+    for f in res["frames"]:
+        if f.get("inter"):
+            ax.plot(f["t"], f["T"], ".", color=COLORS[1], ms=2.5, alpha=0.6, zorder=4)
+    for n, f in enumerate(keys):
+        ax.plot(f["t"], f["T"], "o", color=COLORS[1], ms=5, zorder=5)
+        ax.annotate(str(n + 1), (f["t"], f["T"]), textcoords="offset points", xytext=(4, 5), fontsize=7, color=INK)
+    _ax(ax, "t [h]", "T [°C]")
+    fig.tight_layout()
+    _tag(fig, "Heiz- und Abkühlzeiten angenommen" if de else "heating and cooling times assumed")
+    return fig
+
+
+def fig_temper_frames(res: dict, lang: str = "de", view: str = ""):
+    """Kleine Vielfache: je Bild der Wärmebehandlung dieselbe Ansicht (gewählte, sonst die erste)."""
+    de = _de(lang)
+    fr = [f for f in res["frames"] if not f.get("inter")]               # im Bericht nur die Schlüsselbilder
+    n = len(fr)
+    cols = min(4, n)
+    rows = int(math.ceil(n / cols))
+    fig, axs = plt.subplots(rows, cols, figsize=(1.75 * cols, 2.2 * rows), squeeze=False)
+    sub = None
+    for k, f in enumerate(fr):
+        ax = axs[k // cols][k % cols]
+        ps = f.get("panels") or []
+        p = next((q for q in ps if q["id"] == view), None) or next((q for q in ps if q.get("kind") == sub), None) or (ps[0] if ps else None)
+        if p is None:
+            ax.set_axis_off()
+            continue
+        sub = sub or p.get("kind")
+        if p.get("kind") == "sketch":
+            draw_sketch(ax, p["sketch"], lang, legend=False, lw_scale=0.25)
+        else:
+            draw_scene(ax, p["scene"], lang, legend=False)
+        ax.set_title(f"{k + 1}. {f['label']}" + (f"\n{f['T']:.0f} °C" if f.get("T") is not None else ""), fontsize=6.5, color=INK)
+    for k in range(n, rows * cols):
+        axs[k // cols][k % cols].set_axis_off()
+    fig.tight_layout(pad=0.4)
+    _tag(fig, "Modell bzw. Skizze, schematisch" if de else "model or sketch, schematic")
+    return fig

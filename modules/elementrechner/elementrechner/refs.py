@@ -62,6 +62,21 @@ REFS: dict[str, dict] = {
     "socrates2001": {"type": "book", "authors": "Socrates, George",
                      "title": "Infrared and Raman Characteristic Group Frequencies: Tables and Charts",
                      "container": "Wiley, Chichester", "year": "2001", "note": "3. Auflage"},
+    # Runde U: Unsicherheit der Standardatomgewichte (Intervall als Rechteckverteilung) und Prüfbeispiel Ansetzen
+    "possolo2018": {"type": "article", "authors": "Possolo, Antonio; van der Veen, Adriaan M. H.; Meija, Juris; "
+                    "Hibbert, D. Brynn",
+                    "title": "Interpreting and propagating the uncertainty of the standard atomic weights "
+                             "(IUPAC Technical Report)",
+                    "container": "Pure and Applied Chemistry", "year": "2018", "volume": "90", "issue": "2",
+                    "pages": "395-424", "doi": "10.1515/pac-2016-0402",
+                    "note": "Rechteckverteilung für Intervalle laut Kurzfassung geprüft; Einzelwerte mit Klammer-"
+                            "Unsicherheit als Rechteck ±U ist eine Annahme des Moduls (Angaben nicht am Original geprüft)"},
+    "quam2012a1": {"type": "book", "authors": "Ellison, S. L. R.; Williams, A.", "year": "2012", "edition": "3. Auflage",
+                   "title": "EURACHEM/CITAC Guide CG 4: Quantifying Uncertainty in Analytical Measurement, Beispiel A1: "
+                            "Herstellung eines Kalibrierstandards",
+                   "container": "Eurachem", "url": "https://www.eurachem.org/index.php/publications/guides/quam",
+                   "note": "Prüfwerte c(Cd) = 1002,7 mg/L, u = 0,9 mg/L, U = 1,8 mg/L (k = 2); Angaben nicht am Original "
+                           "geprüft"},
 }
 for _k in ("pubchem2025", "pubchem_pt", "wikidata", "iupac_pka", "zheng2026", "perrin1965", "serjeant1979", "srd46",
            "hsdb", "icsc", "niosh", "osha", "doepac", "bandura2006", "purplebook",

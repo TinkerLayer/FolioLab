@@ -13,7 +13,7 @@ The module keeps three kinds of values apart and labels each one:
 * **estimated** values from group-contribution methods (Benson, Joback) and other increment schemes. These are used
   only when no tabulated value exists.
 
-Module version: see `module.json` (currently 0.11.0). Feature list: [FEATURES.md](FEATURES.md). Methods, formulas,
+Module version: see `module.json` (currently 0.12.0). Feature list: [FEATURES.md](FEATURES.md). Methods, formulas,
 defaults, limits and test references: [docs/methods/elementrechner.md](../../docs/methods/elementrechner.md).
 
 ## Starting
@@ -163,6 +163,20 @@ Task **Nuclear chemistry (Kernchemie)**, or the **Nuclear (Kern)** tab. The tab 
 
   The structure can be saved as an own substance.
 
+### Measurement uncertainty
+
+* A small **±** next to an input states its uncertainty (value, limits, % of value, repeats, or glassware and balances
+  from the instrument library). Without one the value is exact.
+* **± GUM** in the header picks the method once for the page (GUM, Monte Carlo, Gauss, worst case) and opens your own
+  instruments.
+* Uncertainties are given for the molar mass (always: CIAAW intervals as rectangular distributions, Possolo et al.
+  2018), the concentration of a solution from a solid ("weighed g") or from stock ("measured"), every step of a
+  dilution series (with the correlation of the steps), the unknown of the gas law, the yield (equation and reaction
+  set-up) and the pH (from ± on c and pKa, in the fold under the pH result).
+* Each result shows "value ± U". The budget and the method comparison sit in folds. The values go to the value drawer
+  and the project index with `u`, and to the report with budget tables. Details: `docs/methods/elementrechner.md`,
+  section 19.
+
 ## Sending results on
 
 * **To report … (Zum Bericht …)** creates a report section with:
@@ -174,6 +188,9 @@ Task **Nuclear chemistry (Kernchemie)**, or the **Nuclear (Kern)** tab. The tab 
   In the editor, **Refresh** rebuilds the section from the saved inputs.
 * **Values … (Werte …)** sends results to the Rechner (calculator) module, or to the project index with
   **To project index … (In den Projektindex …)**. Each hand-over is a new version.
+* **Project index … (Projektindex …):** *Use* (*Übernehmen*) adds a value to the taken values with its unit,
+  uncertainty and origin; from there it goes into an input field. A field that declares a unit converts the value
+  and refuses a different dimension.
 * **Connections ▾ (Verbindungen ▾)** shares values between environments, either live or as a snapshot.
 * **Shared input … (Geteilte Eingabe …)**, under **Module ▾**, compares:
   * a TGA step table with the theoretical mass loss of a balanced decomposition;

@@ -1,0 +1,652 @@
+{
+ "quellen": {
+  "mgo-al2o3_hallstedt1992": {
+   "type": "article",
+   "authors": "Hallstedt, B.",
+   "title": "Thermodynamic assessment of the system MgO–Al₂O₃",
+   "container": "Journal of the American Ceramic Society",
+   "year": "1992",
+   "volume": "75",
+   "pages": "1497–1507",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "mgo-al2o3_alper1962": {
+   "type": "article",
+   "authors": "Alper, A. M.; McNally, R. N.; Ribbe, P. H.; Doman, R. C.",
+   "title": "The system MgO–MgAl₂O₄",
+   "container": "Journal of the American Ceramic Society",
+   "year": "1962",
+   "volume": "45",
+   "pages": "263–268",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "mgo-al2o3",
+  "name": "MgO–Al₂O₃",
+  "name_en": "MgO–Al₂O₃",
+  "A": "MgO",
+  "B": "Al₂O₃",
+  "gruppe": "keramik",
+  "x_label": "Al₂O₃ [Gew.-%]",
+  "x_label_en": "Al₂O₃ [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   1400,
+   2900
+  ],
+  "q": [
+   "mgo-al2o3_hallstedt1992",
+   "mgo-al2o3_alper1962",
+   "callister",
+   "crc97"
+  ],
+  "hinweis": "x = Gew.-% Al₂O₃ (A = MgO, B = Al₂O₃). Zitiert: Schmelzpunkte MgO ≈ 2825 °C und Al₂O₃ 2054 °C; Spinell MgAl₂O₄ (71,7 Gew.-% Al₂O₃) schmilzt kongruent bei ≈ 2105 °C; Eutektikum Periklas + Spinell bei ≈ 1995 °C, Eutektikum Spinell + Korund bei ≈ 1925 °C. Die Zusammensetzungen an den Eutektika (≈ 55 bzw. ≈ 92 Gew.-%), die Grenzen der Mischkristalle (MgO bis ≈ 15 Gew.-% Al₂O₃, Spinell ≈ 64–85 Gew.-% bei hoher Temperatur, zur Stöchiometrie hin enger werdend) und alle Kurvenpunkte sind aus den bewerteten Diagrammen abgelesen und gerundet (schematisch; die Literaturwerte streuen, die Spinell-Schmelztemperatur wird zwischen 2105 und 2135 °C angegeben). Vereinfacht: Löslichkeit von MgO in Korund vernachlässigt.",
+  "hinweis_en": "x = wt% Al₂O₃ (A = MgO, B = Al₂O₃). Cited: melting points MgO ≈ 2825 °C and Al₂O₃ 2054 °C; spinel MgAl₂O₄ (71.7 wt% Al₂O₃) melts congruently at ≈ 2105 °C; eutectic periclase + spinel at ≈ 1995 °C, eutectic spinel + corundum at ≈ 1925 °C. Eutectic compositions (≈ 55 and ≈ 92 wt%), solid-solution limits (MgO up to ≈ 15 wt% Al₂O₃, spinel ≈ 64–85 wt% at high temperature, narrowing towards stoichiometry) and all curve points are read from the assessed diagrams and rounded (schematic; literature values scatter, the spinel melting point is given between 2105 and 2135 °C). Simplified: solubility of MgO in corundum neglected.",
+  "points": [
+   {
+    "x": 0,
+    "T": 2825,
+    "label": "MgO schmilzt",
+    "label_en": "MgO melts"
+   },
+   {
+    "x": 100,
+    "T": 2054,
+    "label": "Al₂O₃ schmilzt",
+    "label_en": "Al₂O₃ melts"
+   },
+   {
+    "x": 71.7,
+    "T": 2105,
+    "label": "Spinell schmilzt",
+    "label_en": "Spinel melts"
+   },
+   {
+    "x": 55,
+    "T": 1995,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 92,
+    "T": 1925,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 15,
+    "T": 1995
+   },
+   {
+    "x": 64,
+    "T": 1995
+   },
+   {
+    "x": 85,
+    "T": 1925
+   }
+  ],
+  "curves": {
+   "liqMg": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      2825
+     ],
+     [
+      5,
+      2745
+     ],
+     [
+      10,
+      2662
+     ],
+     [
+      15,
+      2577
+     ],
+     [
+      20,
+      2492
+     ],
+     [
+      25,
+      2407
+     ],
+     [
+      30,
+      2324
+     ],
+     [
+      35,
+      2243
+     ],
+     [
+      40,
+      2165
+     ],
+     [
+      45,
+      2093
+     ],
+     [
+      50,
+      2034
+     ],
+     [
+      55,
+      1995
+     ]
+    ]
+   },
+   "solMg": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      2825
+     ],
+     [
+      2,
+      2700
+     ],
+     [
+      4,
+      2580
+     ],
+     [
+      6,
+      2465
+     ],
+     [
+      8,
+      2355
+     ],
+     [
+      10,
+      2250
+     ],
+     [
+      12,
+      2150
+     ],
+     [
+      13.5,
+      2070
+     ],
+     [
+      15,
+      1995
+     ]
+    ]
+   },
+   "solvMg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      15,
+      1995
+     ],
+     [
+      13,
+      1900
+     ],
+     [
+      11,
+      1800
+     ],
+     [
+      9,
+      1700
+     ],
+     [
+      7.2,
+      1600
+     ],
+     [
+      5.6,
+      1500
+     ],
+     [
+      4.2,
+      1400
+     ]
+    ]
+   },
+   "liqS1": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      55,
+      1995
+     ],
+     [
+      58,
+      2030
+     ],
+     [
+      61,
+      2058
+     ],
+     [
+      64,
+      2079
+     ],
+     [
+      67,
+      2094
+     ],
+     [
+      69.5,
+      2102
+     ],
+     [
+      71.7,
+      2105
+     ]
+    ]
+   },
+   "solS1": {
+    "kind": "solidus",
+    "pts": [
+     [
+      64,
+      1995
+     ],
+     [
+      65.5,
+      2040
+     ],
+     [
+      67.5,
+      2075
+     ],
+     [
+      69.5,
+      2096
+     ],
+     [
+      71.7,
+      2105
+     ]
+    ]
+   },
+   "liqS2": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      71.7,
+      2105
+     ],
+     [
+      74,
+      2102
+     ],
+     [
+      77,
+      2093
+     ],
+     [
+      80,
+      2077
+     ],
+     [
+      83,
+      2055
+     ],
+     [
+      86,
+      2026
+     ],
+     [
+      89,
+      1980
+     ],
+     [
+      92,
+      1925
+     ]
+    ]
+   },
+   "solS2": {
+    "kind": "solidus",
+    "pts": [
+     [
+      71.7,
+      2105
+     ],
+     [
+      74,
+      2098
+     ],
+     [
+      76.5,
+      2080
+     ],
+     [
+      79,
+      2053
+     ],
+     [
+      81.5,
+      2015
+     ],
+     [
+      83.5,
+      1970
+     ],
+     [
+      85,
+      1925
+     ]
+    ]
+   },
+   "solvS1": {
+    "kind": "solvus",
+    "pts": [
+     [
+      64,
+      1995
+     ],
+     [
+      65.5,
+      1900
+     ],
+     [
+      67,
+      1800
+     ],
+     [
+      68.3,
+      1700
+     ],
+     [
+      69.5,
+      1600
+     ],
+     [
+      70.5,
+      1500
+     ],
+     [
+      71.2,
+      1400
+     ]
+    ]
+   },
+   "solvS2": {
+    "kind": "solvus",
+    "pts": [
+     [
+      85,
+      1925
+     ],
+     [
+      83.5,
+      1850
+     ],
+     [
+      81.5,
+      1750
+     ],
+     [
+      79.5,
+      1650
+     ],
+     [
+      77.5,
+      1550
+     ],
+     [
+      75.8,
+      1470
+     ],
+     [
+      74.8,
+      1400
+     ]
+    ]
+   },
+   "liqAl": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      92,
+      1925
+     ],
+     [
+      93.5,
+      1952
+     ],
+     [
+      95,
+      1980
+     ],
+     [
+      96.5,
+      2006
+     ],
+     [
+      98,
+      2030
+     ],
+     [
+      100,
+      2054
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      2900
+     ],
+     [
+      100,
+      2900
+     ],
+     "-liqAl",
+     "-liqS2",
+     "-liqS1",
+     "-liqMg"
+    ]
+   },
+   {
+    "label": "MgO (ss) + L",
+    "phases": [
+     "MgO (ss)",
+     "L"
+    ],
+    "poly": [
+     "liqMg",
+     [
+      15,
+      1995
+     ],
+     "-solMg"
+    ]
+   },
+   {
+    "label": "MgO (ss)",
+    "phases": [
+     "MgO (ss)"
+    ],
+    "poly": [
+     "solMg",
+     "solvMg",
+     [
+      0,
+      1400
+     ]
+    ]
+   },
+   {
+    "label": "MgO (ss) + Spinell (ss)",
+    "phases": [
+     "MgO (ss)",
+     "Spinell (ss)"
+    ],
+    "poly": [
+     [
+      15,
+      1995
+     ],
+     [
+      64,
+      1995
+     ],
+     "solvS1",
+     [
+      4.2,
+      1400
+     ],
+     "-solvMg"
+    ]
+   },
+   {
+    "label": "L + Spinell (ss)",
+    "phases": [
+     "L",
+     "Spinell (ss)"
+    ],
+    "poly": [
+     "liqS1",
+     "-solS1"
+    ]
+   },
+   {
+    "label": "Spinell (ss)",
+    "phases": [
+     "Spinell (ss)"
+    ],
+    "poly": [
+     "solS1",
+     "solS2",
+     "solvS2",
+     [
+      71.2,
+      1400
+     ],
+     "-solvS1"
+    ]
+   },
+   {
+    "label": "Spinell (ss) + L",
+    "phases": [
+     "Spinell (ss)",
+     "L"
+    ],
+    "poly": [
+     "liqS2",
+     [
+      85,
+      1925
+     ],
+     "-solS2"
+    ]
+   },
+   {
+    "label": "Spinell (ss) + Korund",
+    "phases": [
+     "Spinell (ss)",
+     "Korund"
+    ],
+    "poly": [
+     [
+      85,
+      1925
+     ],
+     [
+      100,
+      1925
+     ],
+     [
+      100,
+      1400
+     ],
+     "-solvS2"
+    ]
+   },
+   {
+    "label": "L + Korund",
+    "phases": [
+     "L",
+     "Korund"
+    ],
+    "poly": [
+     "liqAl",
+     [
+      100,
+      1925
+     ]
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 2105,
+    "type": "congruent",
+    "x": [
+     71.7,
+     71.7,
+     71.7
+    ],
+    "reaction": "L ⇌ MgAl₂O₄"
+   },
+   {
+    "T": 1995,
+    "type": "eutectic",
+    "x": [
+     15,
+     55,
+     64
+    ],
+    "reaction": "L ⇌ MgO (ss) + Spinell (ss)",
+    "constituents": [
+     "primärer Periklas",
+     "Eutektikum",
+     "primärer Spinell"
+    ],
+    "constituents_en": [
+     "primary periclase",
+     "eutectic",
+     "primary spinel"
+    ],
+    "morph": "faceted"
+   },
+   {
+    "T": 1925,
+    "type": "eutectic",
+    "x": [
+     85,
+     92,
+     100
+    ],
+    "reaction": "L ⇌ Spinell (ss) + Korund",
+    "constituents": [
+     "primärer Spinell",
+     "Eutektikum",
+     "primärer Korund"
+    ],
+    "constituents_en": [
+     "primary spinel",
+     "eutectic",
+     "primary corundum"
+    ],
+    "morph": "faceted"
+   }
+  ]
+ }
+}

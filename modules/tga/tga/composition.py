@@ -136,6 +136,11 @@ def compose(run: Run, preset: str = "e1131", params: dict | None = None, switch:
         if p.get("t_switch") not in (None, ""):
             switch = int(np.searchsorted(run.time(), float(p["t_switch"])))
     rows = []
+    # Ablesungen und Terme je Zeile für die Messunsicherheit (uncert.py): Name -> {pct, T (Temperaturgrenze), i}
+    read = {"S": {"pct": start, "T": None, "i": None}}
+
+    def terms(plus, minus=None, basis="ref"):
+        rows[-1]["_terms"] = {"plus": plus, "minus": minus, "basis": basis}
 
     def row(name, a_m, b_m, frm, to, note=""):
         v = a_m - b_m
@@ -159,17 +164,25 @@ def compose(run: Run, preset: str = "e1131", params: dict | None = None, switch:
                 warn.append(f"{T2:g} °C nicht erreicht; Ende des Laufs verwendet")
             to2 = f"{T2:g} °C"
         end = float(np.median(m[-3:]))
+        read["M1"] = {"pct": m1, "T": T1, "i": j1}
+        read["M2"] = {"pct": m2, "T": (T2 if (not switch and j2 != n - 1) else None), "i": j2}
+        read["E"] = {"pct": end, "T": None, "i": None}
         if preset == "e1131":
             row("Feuchte / leichtflüchtige Anteile", start, m1, "Start", f"{T1:g} °C")
+            terms("S", "M1")
             row("Mittelflüchtige Anteile (Polymer)", m1, m2, f"{T1:g} °C", to2)
+            terms("M1", "M2")
             if switch:
                 row("Brennbares (Russ / Kohlenstoff)", m2, end, to2, "Ende")
+                terms("M2", "E")
                 rows.append({"name": "Asche / Füllstoff (Rückstand)", "from": "Ende", "to": "", "pct": end,
                              "mg": float(end / 100 * run.m0) if run.m0 else None, "note": ""})
+                terms("E")
             else:
                 rows.append({"name": "Rückstand (Füllstoff, Asche, Russ)", "from": to2, "to": "", "pct": m2,
                              "mg": float(m2 / 100 * run.m0) if run.m0 else None,
                              "note": "ohne Gaswechsel nicht getrennt"})
+                terms("M2")
                 warn.append("Kein Gaswechsel erkannt: Russ und Asche lassen sich nicht trennen (Zeit des Wechsels von Hand angeben).")
         else:
             # ASTM D7582: alle Werte auf die Analysenprobe wie eingewogen ("as-determined"): Bezug = Masse am Start
@@ -191,14 +204,18 @@ def compose(run: Run, preset: str = "e1131", params: dict | None = None, switch:
             moist = (start - m1) * s
             vol = (m1 - m2) * s
             prow("Feuchte", moist, "Start", f"{T1:g} °C")
+            terms("S", "M1", "S")
             prow("Flüchtige Bestandteile", vol, f"{T1:g} °C", to2)
+            terms("M1", "M2", "S")
             ash = end * s if switch else None
             if ash is None:
                 warn.append("Asche braucht den Wechsel auf Luft/O₂; ohne Wechsel kein fixer Kohlenstoff.")
             else:
                 fixed = 100.0 - moist - vol - ash
                 prow("Fixer Kohlenstoff (Differenz)", fixed, "", "", "100 − Feuchte − Flüchtige − Asche")
+                terms("M2", "E", "S")                    # 100 − Feuchte − Flüchtige − Asche = (m₂ − m_E)/m_S
                 prow("Asche", ash, "Ende", "")
+                terms("E", None, "S")
             dry = 100.0 - moist
             for r in rows:
                 if r["name"] != "Feuchte" and dry > 0:
@@ -209,21 +226,26 @@ def compose(run: Run, preset: str = "e1131", params: dict | None = None, switch:
                            "X·100/(100 − moisture)"}
     else:
         bounds = sorted(float(b) for b in p.get("bounds") or [])
-        prev_m, prev_lab = start, "Start"
-        for b in bounds:
-            mb, _ = _m_at_T(run, m, b)
+        prev_m, prev_lab, prev_key = start, "Start", "S"
+        for k, b in enumerate(bounds, 1):
+            mb, jb = _m_at_T(run, m, b)
             if mb is None:
                 warn.append(f"{b:g} °C nicht erreicht")
                 break
+            read[f"B{k}"] = {"pct": mb, "T": b, "i": jb}
             row(f"{prev_lab} – {b:g} °C", prev_m, mb, prev_lab, f"{b:g} °C")
-            prev_m, prev_lab = mb, f"{b:g} °C"
+            terms(prev_key, f"B{k}")
+            prev_m, prev_lab, prev_key = mb, f"{b:g} °C", f"B{k}"
         end = float(np.median(m[-3:]))
+        read["E"] = {"pct": end, "T": None, "i": None}
         row(f"{prev_lab} – Ende", prev_m, end, prev_lab, "Ende")
+        terms(prev_key, "E")
         rows.append({"name": "Rückstand", "from": "Ende", "to": "", "pct": end,
                      "mg": float(end / 100 * run.m0) if run.m0 else None, "note": ""})
+        terms("E")
     return {"preset": preset, "label": PRESETS.get(preset, {}).get("de", preset), "rows": rows, "warnings": warn,
             "switch": switch, "switch_T": float(run.T[switch]) if switch and run.has_T else None,
-            "ref": PRESETS.get(preset, {}).get("ref"), "params": p, "basis": basis}
+            "ref": PRESETS.get(preset, {}).get("ref"), "params": p, "basis": basis, "_read": read}
 
 
 # ----------------------------------------------------------------------------- Kalibrierung

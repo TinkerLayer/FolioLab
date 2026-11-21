@@ -42,6 +42,7 @@ from . import process as PR  # noqa: E402
 from . import search as SR  # noqa: E402
 from . import steps as ST  # noqa: E402
 from . import synth as SY  # noqa: E402
+from . import uncert as UC  # noqa: E402
 from .analysis import run as analyse  # noqa: E402
 from .library import GRID, MODEL_ID, Libraries  # noqa: E402
 from .readers import ROLE_LABEL, ReadError, Run, load_bytes, to_csv  # noqa: E402
@@ -207,6 +208,10 @@ def env_bundle(stored, report: dict, lang: str) -> dict:
         raise EnvError("Kein Lauf dieser Umgebung im Berichtsstand")
     request = {"items": req_items, "lang": lang, "include": report.get("include") or {},
                "title": report.get("title") or None, "slug": None, "kinetics": report.get("kinetics")}
+    if report.get("unc_replicates"):
+        request["unc_replicates"] = True
+    if any(UC.active(x[3]) for x in labelled):
+        own_instruments()
     return B.build(labelled, request, lang=lang, include=request["include"], title=request["title"])
 
 
@@ -242,19 +247,30 @@ def share_steps(req) -> dict:
     from labshare import Sharebox
     iid = req.get("id")
     it = item(iid)
+    if UC.active(req.get("state") or {}):
+        own_instruments()
     a = analyse(it.run, req.get("state") or {}, "de")
     if not a.steps:
         raise ValueError("Keine Stufen gefunden – nichts zu teilen.")
     meta = it.run.meta or {}
     cond0 = {k: meta[k] for k in ("rate", "atmosphere", "gas") if isinstance(meta.get(k), (int, float, str))}
+    uq = UC.plain(a.unc)                               # Messunsicherheit reist mit (quantity.u, Standardunsicherheit)
+
+    def q(value, key):
+        out = {"value": round(float(value), 3), "unit": "%"}
+        x = uq.get(key)
+        if x and x.get("u"):
+            out["u"] = float(f"{x['u']:.3g}")
+            out["unc"] = {"method": x.get("method"), "U": x.get("U")}
+        return out
     outs = []
     for i, s in enumerate(a.steps, 1):
         c = dict(cond0, **{k: round(float(s[k]), 2) for k in ("T_onset", "T_peak", "T_endset") if s.get(k) is not None})
-        outs.append({"key": f"step{i}-loss", "label": f"Stufe {i}: Massenverlust", "quantity": {"value": round(float(s["loss"]), 3), "unit": "%"},
+        outs.append({"key": f"step{i}-loss", "label": f"Stufe {i}: Massenverlust", "quantity": q(s["loss"], f"step{s['no']}-loss"),
                      "conditions": c})
     res = (a.st.get("residue") or {}).get("end")
     if isinstance(res, (int, float)):
-        outs.append({"key": "residue", "label": "Rückstand am Ende", "quantity": {"value": round(float(res), 3), "unit": "%"}, "conditions": cond0})
+        outs.append({"key": "residue", "label": "Rückstand am Ende", "quantity": q(res, "residue"), "conditions": cond0})
     envs = STATE.envs
     envs.ensure()
     box = Sharebox(envs.suite, envs.project)
@@ -354,9 +370,29 @@ def ds_refresh(req) -> dict:
     return {"run": describe(iid), "changed": True}
 
 
-def run_payload(iid, state) -> dict:
+def own_instruments():
+    """Eigene Messmittel der Suite für labcalc.uncertainty bekannt machen (vor jeder Auswertung mit Unsicherheit)."""
+    try:
+        import labunc
+        labunc.load_own(STATE.envs)
+    except Exception:  # noqa: BLE001 – ohne Projekt nur die eingebauten Messmittel
+        pass
+
+
+def replicates_payload(req) -> dict:
+    """Mittelwert ± U aus Läufen derselben Probe (Typ A aus der Streuung, Typ B aus den Einzelbudgets)."""
+    own_instruments()
+    lang = req.get("lang") if req.get("lang") in ("de", "en") else "de"
+    analyses = [analyse(item(x.get("id")).run, x.get("state") or {}, lang) for x in req.get("items") or []]
+    st = (req.get("items") or [{}])[0].get("state") or {}
+    return UC.replicates(analyses, st, lang)
+
+
+def run_payload(iid, state, lang="de") -> dict:
     it = item(iid)
-    a = analyse(it.run, state or {}, "de")
+    if UC.active(state or {}):
+        own_instruments()
+    a = analyse(it.run, state or {}, lang if lang in ("de", "en") else "de")
     r = a.run
     d = a.st["dtg"]
     step = max(1, len(r.m) // 4000)
@@ -372,7 +408,7 @@ def run_payload(iid, state) -> dict:
         "steps": steps, "loss_T": a.st["loss_T"], "residue": a.st["residue"], "segments": a.st["segments"], "iso": a.st["iso"],
         "dtg_points": d["points"], "comp": a.comp, "reactions": a.reactions, "calib": a.calib, "deconv": a.deconv, "dsc": a.dsc,
         "equations": a.equations, "variables": [{"name": k, **v} for k, v in a.variables.items()],
-        "decim": step,
+        "decim": step, "unc": a.unc,
     }
 
 
@@ -520,7 +556,7 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path in ("/", "/index.html"):
             return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
-        if url.path in ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js"):   # UI-06, I-02
+        if url.path in ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js", "/labunc.js"):   # gemeinsame Seitenskripte
             return self._send(200, labcite.web_asset(url.path[1:]), "text/javascript; charset=utf-8")
         if url.path == "/api/meta":
             return self._json(meta_payload())
@@ -530,6 +566,9 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         origin = self.headers.get("Origin")
         if origin and not ORIGIN_OK.match(origin):
+            n = int(self.headers.get("Content-Length") or 0)
+            if 0 < n <= 1 << 20:
+                self.rfile.read(n)                       # read the small body so the answer arrives cleanly
             return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)
         try:
             return self._route(url)
@@ -583,6 +622,11 @@ class Handler(BaseHTTPRequestHandler):
         if p.startswith("/api/prov/"):                 # A8: Herkunftskette, Abhängigkeiten
             import labprov
             return self._json(labprov.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
+        if p.startswith("/api/unc/"):                  # Messunsicherheit: Messmittel, Vorschau, Verfahren (labunc)
+            import labunc
+            return self._json(labunc.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
+        if p == "/api/uncert/replicates":              # Wiederholungen derselben Probe: Typ A (+ Typ B)
+            return self._json(replicates_payload(self._req()))
         if p == "/api/share/steps":
             return self._json(share_steps(self._req()))
         if p == "/api/dataset":                        # DP-13: Lauf aus einem Datensatz der Datenaufbereitung
@@ -600,7 +644,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": True, "name": it.run.name})
         if p == "/api/run":
             req = self._req()
-            return self._json(run_payload(req.get("id"), req.get("state") or {}))
+            return self._json(run_payload(req.get("id"), req.get("state") or {}, req.get("lang") or "de"))
         if p == "/api/derive":
             return self._json({"runs": derive(self._req())})
         if p == "/api/search":
@@ -623,7 +667,9 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/api/kinetics":
             req = self._req()
             runs = [processed(i, (req.get("pipelines") or {}).get(i) or []) for i in req.get("ids") or []]
-            return self._json(KI.run_all(runs, float(req.get("T_lo")), float(req.get("T_hi")), req.get("opts")))
+            res = KI.run_all(runs, float(req.get("T_lo")), float(req.get("T_hi")), req.get("opts"))
+            res["unc"] = UC.kinetics(res, {"unc_method": req.get("unc_method")}, req.get("lang") or "de")
+            return self._json(res)
         if p == "/api/deconv_guess":
             req = self._req()
             a = analyse(item(req.get("id")).run, req.get("state") or {}, "de")
@@ -788,6 +834,14 @@ class Handler(BaseHTTPRequestHandler):
             labelled.append((raw, fname, mp, st))
         request = {"items": req_items, "lang": req.get("lang", "de"), "include": req.get("include") or {},
                    "title": req.get("title") or None, "slug": req.get("slug") or None, "kinetics": req.get("kinetics")}
+        if req.get("unc_replicates"):                  # Läufe sind Wiederholungen derselben Probe (Typ A)
+            request["unc_replicates"] = True
+        if any(UC.active(st) for (_r, _f, _m, st) in items):
+            own_instruments()
+        # the hub's figure styles and the describe request for its editing window pass through (labbundle)
+        for k in ("styles", "describe_figures", "preview"):
+            if k in req:
+                request[k] = req[k]
         return self._json(B.build(labelled, request, lang=request["lang"], include=request["include"], title=request["title"]))
 
 

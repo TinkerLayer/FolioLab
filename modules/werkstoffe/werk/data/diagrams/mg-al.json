@@ -1,0 +1,129 @@
+{
+  "quellen": {
+    "al-mg_murray1982": {
+      "type": "article",
+      "authors": "Murray, J. L.",
+      "title": "The Al-Mg (Aluminum-Magnesium) System",
+      "container": "Bulletin of Alloy Phase Diagrams",
+      "year": "1982",
+      "volume": "3",
+      "pages": "60-74",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "mg-al",
+    "name": "Mg–Al (Mg-reiche Seite)",
+    "name_en": "Mg–Al (Mg-rich side)",
+    "A": "Mg",
+    "B": "Al",
+    "gruppe": "mg",
+    "x_label": "Aluminium [Gew.-%]",
+    "x_label_en": "Aluminium [wt%]",
+    "xlim": [0, 50],
+    "Tlim": [100, 700],
+    "q": ["al-mg_murray1982", "massalski1990"],
+    "hinweis": "Zitiert (Murray 1982): Schmelzpunkt Mg 650 °C; Eutektikum L ⇌ (Mg) + γ bei 437 °C mit L ≈ 32,3 Gew.-% Al, (Mg) 12,7 Gew.-% Al (grösste Löslichkeit) und γ (Mg₁₇Al₁₂) ab ≈ 42 Gew.-% Al; γ schmilzt kongruent bei 462 °C. Liquidus, Solidus und Solvus zwischen diesen Eckwerten sind dem bewerteten Diagramm nachgezeichnet bzw. die Solvuslinie als Arrhenius-Kurve gelegt: schematisch, nicht zum genauen Ablesen von Löslichkeiten. Vereinfacht: das nur wenige K hohe Gebiet L + γ rechts vom Schmelzmaximum von γ ist weggelassen (γ grenzt dort direkt an L); die Al-reichere Seite (β, Eutektikum L ⇌ γ + β) siehe Al–Mg.",
+    "hinweis_en": "Cited (Murray 1982): melting point of Mg 650 °C; eutectic L ⇌ (Mg) + γ at 437 °C with L ≈ 32.3 wt% Al, (Mg) 12.7 wt% Al (maximum solubility) and γ (Mg₁₇Al₁₂) from ≈ 42 wt% Al; γ melts congruently at 462 °C. Liquidus, solidus and solvus between these key values are traced from the assessed diagram, the solvus as an Arrhenius curve: schematic, not for reading solubilities precisely. Simplified: the L + γ field only a few K high to the right of the melting maximum of γ is omitted (γ borders directly on L there); for the Al-richer side (β, eutectic L ⇌ γ + β) see Al–Mg.",
+    "points": [
+      {
+        "x": 0,
+        "T": 650,
+        "label": "Mg schmilzt",
+        "label_en": "Mg melts"
+      },
+      {
+        "x": 12.7,
+        "T": 437,
+        "label": "grösste Löslichkeit von Al in (Mg)",
+        "label_en": "maximum solubility of Al in (Mg)"
+      },
+      {
+        "x": 32.3,
+        "T": 437,
+        "label": "Eutektikum",
+        "label_en": "Eutectic"
+      },
+      {
+        "x": 42.0,
+        "T": 437,
+        "label": "γ (Mg₁₇Al₁₂)"
+      },
+      {
+        "x": 44,
+        "T": 462,
+        "label": "γ schmilzt (kongruent)",
+        "label_en": "γ melts (congruently)"
+      }
+    ],
+    "curves": {
+      "liq": {
+        "kind": "liquidus",
+        "pts": [[0, 650], [3, 635], [6, 619], [9, 603], [12, 585], [15, 566], [18, 546], [21, 525], [24, 503], [27, 480], [30, 455], [32.3, 437]]
+      },
+      "sol": {
+        "kind": "solidus",
+        "pts": [[0, 650.0], [1.5, 627.2], [3, 603.8], [4.5, 579.7], [6, 555.0], [7.5, 529.7], [9, 503.7], [10.5, 477.1], [12, 449.9], [12.7, 437]]
+      },
+      "solv": {
+        "kind": "solvus",
+        "pts": [[12.7, 437], [11.33, 410], [9.87, 380], [8.49, 350], [7.19, 320], [5.98, 290], [4.87, 260], [3.87, 230], [2.99, 200], [2.23, 170], [1.59, 140], [1.24, 120], [0.937, 100]]
+      },
+      "liqG": {
+        "kind": "liquidus",
+        "pts": [[32.3, 437], [34.5, 444.5], [37, 451], [39.5, 456], [42, 460], [44, 462]]
+      },
+      "solG": {
+        "kind": "solidus",
+        "pts": [[42.0, 437], [42.6, 446], [43.3, 455], [44, 462]]
+      },
+      "topG": {
+        "kind": "liquidus",
+        "pts": [[44, 462], [46, 461.6], [48, 460.8], [50, 460]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 700], [50, 700], [50, 460], "-topG", "-liqG", "-liq"]
+      },
+      {
+        "label": "(Mg) + L",
+        "phases": ["(Mg)", "L"],
+        "poly": ["liq", [12.7, 437], "-sol"]
+      },
+      {
+        "label": "L + γ",
+        "phases": ["L", "γ"],
+        "poly": ["liqG", "-solG"]
+      },
+      {
+        "label": "(Mg)",
+        "phases": ["(Mg)"],
+        "poly": ["sol", "solv", [0, 100]]
+      },
+      {
+        "label": "(Mg) + γ",
+        "phases": ["(Mg)", "γ"],
+        "poly": [[12.7, 437], [42.0, 437], [42.5, 100], "-solv"]
+      },
+      {
+        "label": "γ",
+        "phases": ["γ"],
+        "poly": ["solG", "topG", [50, 100], [42.5, 100]]
+      }
+    ],
+    "invariants": [
+      {
+        "T": 437,
+        "type": "eutectic",
+        "x": [12.7, 32.3, 42.0],
+        "reaction": "L ⇌ (Mg) + γ",
+        "constituents": ["primäres (Mg)", "Eutektikum ((Mg) + γ)", "primäres γ"],
+        "constituents_en": ["primary (Mg)", "eutectic ((Mg) + γ)", "primary γ"],
+        "morph": "divorced"
+      }
+    ]
+  }
+}

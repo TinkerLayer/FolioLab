@@ -36,6 +36,8 @@ class Analysis:
     equations: list = field(default_factory=list)     # ausgewertete eigene Gleichungen (labcalc.formulas)
     variables: dict = field(default_factory=dict)
     assign_context: dict = field(default_factory=dict)  # Gruppe -> Rang aus der Gruppenbewertung (Zuordnungen)
+    unc: dict | None = None                             # Messunsicherheit (uncert.evaluate), nur mit Angaben
+    unc_ctx: object = None                              # Linearformen für eigene Gleichungen (nicht ausgegeben)
 
     @property
     def sp(self) -> Spectrum:
@@ -74,13 +76,23 @@ def run(sp: Spectrum, state: dict | None, lang: str = "de") -> Analysis:
         a.ratios.append({"name": r.get("name") or f"{r.get('num')}/{r.get('den')}", "num": r.get("num"),
                          "den": r.get("den"), "kind": kind, "value": val})
     a.variables = equation_variables(a)
+    from . import uncert as UC
+    a.unc = UC.evaluate(a, state, lang)                     # Messunsicherheit, nur mit Angaben (state["unc"], unc_noise)
+    UC.variables_u(a)
     if state.get("equations") or state.get("ext_values"):
         F = _formulas()
         if F is not None:
             funcs = equation_functions(a)
             F.merge_ext(a.variables, state.get("ext_values"), funcs)     # Werte anderer Umgebungen (Verbindung)
             if state.get("equations"):
-                a.equations = F.evaluate(state["equations"], a.variables, funcs, lang)
+                from .taken import guard                       # Indexwerte: unpassende Einheiten ablehnen
+                if a.unc is not None:      # eigene Fortpflanzung: Funktionsaufrufe und korreliertes Rauschen (uncert.py)
+                    a.equations = guard(F.evaluate(state["equations"], a.variables, funcs, lang, unc={"method": "off"}),
+                                        a.variables, funcs, lang)
+                    UC.equations(a, funcs, lang)
+                else:
+                    a.equations = guard(F.evaluate(state["equations"], a.variables, funcs, lang, unc=UC.method(state)),
+                                        a.variables, funcs, lang)
     return a
 
 

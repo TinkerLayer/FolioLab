@@ -1,0 +1,717 @@
+{
+ "quellen": {
+  "fe-c_okamoto1992": {
+   "type": "article",
+   "authors": "Okamoto, H.",
+   "title": "The C-Fe (carbon-iron) system",
+   "container": "Journal of Phase Equilibria",
+   "year": "1992",
+   "volume": "13",
+   "pages": "543-565",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "fe-c-stabil",
+  "name": "Fe–C (stabil, Graphit)",
+  "name_en": "Fe–C (stable, graphite)",
+  "A": "Fe",
+  "B": "C (Graphit)",
+  "gruppe": "fe",
+  "x_label": "Kohlenstoff [Gew.-%]",
+  "x_label_en": "Carbon [wt%]",
+  "xlim": [
+   0,
+   6.67
+  ],
+  "Tlim": [
+   400,
+   1600
+  ],
+  "q": [
+   "fe-c_okamoto1992",
+   "massalski1990"
+  ],
+  "hinweis": "Stabiles System Eisen–Graphit (Gusseisen EN-GJL, EN-GJS). Literaturwerte (Okamoto 1992; Massalski 1990): Eutektikum L ⇌ γ + Graphit bei 1153 °C und 4,26 Gew.-% C (γ 2,08 %); Eutektoid γ ⇌ α + Graphit bei 738 °C und 0,68 % C (α ≈ 0,02 %); Peritektikum und reines Fe wie im metastabilen System. Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm nachgezeichnet (schematisch). Graphit (100 % C) liegt weit rechts ausserhalb des Ausschnitts: das Hebelgesetz rechnet in den Feldern mit Graphit mit 100 % C, nicht mit dem Rand des Ausschnitts. Der Gefügeanteil am Eutektoid ist nicht angegeben. Lamellengraphit (EN-GJL) entsteht ohne, Kugelgraphit (EN-GJS) mit Mg-Behandlung.",
+  "hinweis_en": "Stable iron–graphite system (cast irons EN-GJL, EN-GJS). Literature values (Okamoto 1992; Massalski 1990): eutectic L ⇌ γ + graphite at 1153 °C and 4.26 wt% C (γ 2.08 %); eutectoid γ ⇌ α + graphite at 738 °C and 0.68 % C (α ≈ 0.02 %); peritectic and pure Fe as in the metastable system. Curve points in between are traced from the assessed diagram (schematic). Graphite (100 % C) lies far to the right outside the section: in the graphite fields the lever rule uses 100 % C, not the edge of the section. The eutectoid constituent split is not given. Flake graphite (EN-GJL) forms without, spheroidal graphite (EN-GJS) with Mg treatment.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1538,
+    "label": "Fe schmilzt",
+    "label_en": "Fe melts"
+   },
+   {
+    "x": 0,
+    "T": 1394,
+    "label": "δ → γ"
+   },
+   {
+    "x": 0,
+    "T": 912,
+    "label": "γ → α"
+   },
+   {
+    "x": 0.17,
+    "T": 1495,
+    "label": "Peritektikum",
+    "label_en": "Peritectic"
+   },
+   {
+    "x": 2.08,
+    "T": 1153,
+    "label": "max. Löslichkeit in γ",
+    "label_en": "max. solubility in γ"
+   },
+   {
+    "x": 4.26,
+    "T": 1153,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 0.021,
+    "T": 738
+   },
+   {
+    "x": 0.68,
+    "T": 738,
+    "label": "Eutektoid",
+    "label_en": "Eutectoid"
+   }
+  ],
+  "curves": {
+   "liq_d": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1538
+     ],
+     [
+      0.1,
+      1530
+     ],
+     [
+      0.2,
+      1522
+     ],
+     [
+      0.3,
+      1514
+     ],
+     [
+      0.4,
+      1506
+     ],
+     [
+      0.53,
+      1495
+     ]
+    ]
+   },
+   "liq_g": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0.53,
+      1495
+     ],
+     [
+      0.8,
+      1478
+     ],
+     [
+      1.0,
+      1465
+     ],
+     [
+      1.5,
+      1430
+     ],
+     [
+      2.0,
+      1388
+     ],
+     [
+      2.5,
+      1342
+     ],
+     [
+      3.0,
+      1294
+     ],
+     [
+      3.5,
+      1240
+     ],
+     [
+      4.0,
+      1183
+     ],
+     [
+      4.26,
+      1153
+     ]
+    ]
+   },
+   "liq_gr": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      4.26,
+      1153
+     ],
+     [
+      4.39,
+      1200
+     ],
+     [
+      4.52,
+      1250
+     ],
+     [
+      4.65,
+      1300
+     ],
+     [
+      4.78,
+      1350
+     ],
+     [
+      4.9,
+      1400
+     ],
+     [
+      5.03,
+      1450
+     ],
+     [
+      5.15,
+      1500
+     ],
+     [
+      5.28,
+      1550
+     ],
+     [
+      5.4,
+      1600
+     ]
+    ]
+   },
+   "sol_d": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1538
+     ],
+     [
+      0.03,
+      1524
+     ],
+     [
+      0.06,
+      1510
+     ],
+     [
+      0.09,
+      1495
+     ]
+    ]
+   },
+   "d_dg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0.09,
+      1495
+     ],
+     [
+      0.07,
+      1470
+     ],
+     [
+      0.05,
+      1445
+     ],
+     [
+      0.025,
+      1420
+     ],
+     [
+      0,
+      1394
+     ]
+    ]
+   },
+   "g_dg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0.17,
+      1495
+     ],
+     [
+      0.13,
+      1470
+     ],
+     [
+      0.09,
+      1445
+     ],
+     [
+      0.045,
+      1420
+     ],
+     [
+      0,
+      1394
+     ]
+    ]
+   },
+   "sol_g": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0.17,
+      1495
+     ],
+     [
+      0.42,
+      1450
+     ],
+     [
+      0.68,
+      1400
+     ],
+     [
+      0.94,
+      1350
+     ],
+     [
+      1.22,
+      1300
+     ],
+     [
+      1.5,
+      1250
+     ],
+     [
+      1.79,
+      1200
+     ],
+     [
+      2.08,
+      1153
+     ]
+    ]
+   },
+   "acm": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0.68,
+      738.0
+     ],
+     [
+      0.80395,
+      784.111
+     ],
+     [
+      0.9358,
+      830.222
+     ],
+     [
+      1.07556,
+      876.333
+     ],
+     [
+      1.22321,
+      922.444
+     ],
+     [
+      1.37877,
+      968.556
+     ],
+     [
+      1.54222,
+      1014.667
+     ],
+     [
+      1.71358,
+      1060.778
+     ],
+     [
+      1.89284,
+      1106.889
+     ],
+     [
+      2.08,
+      1153.0
+     ]
+    ]
+   },
+   "a3": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0,
+      912
+     ],
+     [
+      0.05,
+      895
+     ],
+     [
+      0.1,
+      879
+     ],
+     [
+      0.2,
+      851
+     ],
+     [
+      0.3,
+      826
+     ],
+     [
+      0.4,
+      804
+     ],
+     [
+      0.5,
+      782
+     ],
+     [
+      0.6,
+      758
+     ],
+     [
+      0.68,
+      738
+     ]
+    ]
+   },
+   "a_ag": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0,
+      912
+     ],
+     [
+      0.005,
+      876
+     ],
+     [
+      0.01,
+      838
+     ],
+     [
+      0.015,
+      797
+     ],
+     [
+      0.021,
+      738
+     ]
+    ]
+   },
+   "a_solv": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0.021,
+      738
+     ],
+     [
+      0.016,
+      700
+     ],
+     [
+      0.0095,
+      650
+     ],
+     [
+      0.0055,
+      600
+     ],
+     [
+      0.003,
+      550
+     ],
+     [
+      0.0015,
+      500
+     ],
+     [
+      0.0006,
+      450
+     ],
+     [
+      0.0002,
+      400
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1600
+     ],
+     [
+      5.4,
+      1600
+     ],
+     "-liq_gr",
+     "-liq_g",
+     "-liq_d"
+    ]
+   },
+   {
+    "label": "δ",
+    "phases": [
+     "δ"
+    ],
+    "poly": [
+     "sol_d",
+     "d_dg"
+    ]
+   },
+   {
+    "label": "δ + L",
+    "phases": [
+     "δ",
+     "L"
+    ],
+    "poly": [
+     "liq_d",
+     [
+      0.09,
+      1495
+     ],
+     "-sol_d"
+    ]
+   },
+   {
+    "label": "δ + γ",
+    "phases": [
+     "δ",
+     "γ"
+    ],
+    "poly": [
+     [
+      0.09,
+      1495
+     ],
+     [
+      0.17,
+      1495
+     ],
+     "g_dg",
+     "-d_dg"
+    ]
+   },
+   {
+    "label": "γ + L",
+    "phases": [
+     "γ",
+     "L"
+    ],
+    "poly": [
+     [
+      0.17,
+      1495
+     ],
+     [
+      0.53,
+      1495
+     ],
+     "liq_g",
+     [
+      2.08,
+      1153
+     ],
+     "-sol_g"
+    ]
+   },
+   {
+    "label": "γ",
+    "phases": [
+     "γ"
+    ],
+    "poly": [
+     [
+      0,
+      1394
+     ],
+     "-g_dg",
+     "sol_g",
+     "-acm",
+     "-a3"
+    ]
+   },
+   {
+    "label": "L + Graphit",
+    "phases": [
+     "L",
+     "Graphit"
+    ],
+    "poly": [
+     "liq_gr",
+     [
+      6.67,
+      1600
+     ],
+     [
+      6.67,
+      1153
+     ]
+    ],
+    "phase_x": {
+     "Graphit": 100
+    }
+   },
+   {
+    "label": "γ + Graphit",
+    "phases": [
+     "γ",
+     "Graphit"
+    ],
+    "poly": [
+     [
+      2.08,
+      1153
+     ],
+     [
+      6.67,
+      1153
+     ],
+     [
+      6.67,
+      738
+     ],
+     [
+      0.68,
+      738
+     ],
+     "acm"
+    ],
+    "phase_x": {
+     "Graphit": 100
+    }
+   },
+   {
+    "label": "α + γ",
+    "phases": [
+     "α",
+     "γ"
+    ],
+    "poly": [
+     "a3",
+     [
+      0.021,
+      738
+     ],
+     "-a_ag"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     "a_ag",
+     "a_solv",
+     [
+      0,
+      400
+     ]
+    ]
+   },
+   {
+    "label": "α + Graphit",
+    "phases": [
+     "α",
+     "Graphit"
+    ],
+    "poly": [
+     [
+      0.021,
+      738
+     ],
+     [
+      6.67,
+      738
+     ],
+     [
+      6.67,
+      400
+     ],
+     [
+      0.0002,
+      400
+     ],
+     "-a_solv"
+    ],
+    "phase_x": {
+     "Graphit": 100
+    }
+   }
+  ],
+  "invariants": [
+   {
+    "T": 1495,
+    "type": "peritectic",
+    "x": [
+     0.09,
+     0.17,
+     0.53
+    ],
+    "reaction": "δ + L ⇌ γ"
+   },
+   {
+    "T": 1153,
+    "type": "eutectic",
+    "x": [
+     2.08,
+     4.26,
+     6.67
+    ],
+    "reaction": "L ⇌ γ + Graphit",
+    "morph": "lamellar",
+    "constituents": [
+     "primärer Austenit",
+     "Graphiteutektikum",
+     "primärer Graphit"
+    ],
+    "constituents_en": [
+     "primary austenite",
+     "graphite eutectic",
+     "primary graphite"
+    ]
+   },
+   {
+    "T": 738,
+    "type": "eutectoid",
+    "x": [
+     0.021,
+     0.68,
+     6.67
+    ],
+    "reaction": "γ ⇌ α + Graphit",
+    "morph": "divorced"
+   }
+  ]
+ }
+}

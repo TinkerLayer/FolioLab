@@ -30,20 +30,170 @@ class DiagramError(ValueError):
     pass
 
 
+GROUPS = {"lehre": ("Lehrsysteme", "Teaching systems"), "al": ("Aluminium", "Aluminium"),
+          "cu": ("Kupfer", "Copper"), "fe": ("Eisen und Stahl", "Iron and steel"), "ni": ("Nickel", "Nickel"),
+          "ti": ("Titan", "Titanium"), "mg": ("Magnesium", "Magnesium"), "lot": ("Lote", "Solders"),
+          "keramik": ("Keramik", "Ceramics")}
+
+
+def _catmull(pts, n=8):
+    """Centripetale Catmull-Rom-Kurve durch alle Punkte (läuft durch jeden zitierten Punkt, ohne Schleifen)."""
+    P = [tuple(map(float, p)) for p in pts]
+    if len(P) < 3:
+        return [list(p) for p in P]
+    ext = [(2 * P[0][0] - P[1][0], 2 * P[0][1] - P[1][1]), *P, (2 * P[-1][0] - P[-2][0], 2 * P[-1][1] - P[-2][1])]
+    out = [list(P[0])]
+
+    def tj(ti, a, b, sx, sy):
+        d = math.hypot((b[0] - a[0]) / sx, (b[1] - a[1]) / sy)
+        return ti + max(d, 1e-9) ** 0.5
+
+    xs = [p[0] for p in P]
+    ys = [p[1] for p in P]
+    sx = (max(xs) - min(xs)) or 1.0
+    sy = (max(ys) - min(ys)) or 1.0
+    for i in range(1, len(ext) - 2):
+        p0, p1, p2, p3 = ext[i - 1], ext[i], ext[i + 1], ext[i + 2]
+        t0 = 0.0
+        t1 = tj(t0, p0, p1, sx, sy)
+        t2 = tj(t1, p1, p2, sx, sy)
+        t3 = tj(t2, p2, p3, sx, sy)
+        for k in range(1, n + 1):
+            t = t1 + (t2 - t1) * k / n
+            def lerp(a, b, ta, tb):
+                return [(tb - t) / (tb - ta) * a[j] + (t - ta) / (tb - ta) * b[j] for j in (0, 1)]
+            a1 = lerp(p0, p1, t0, t1)
+            a2 = lerp(p1, p2, t1, t2)
+            a3 = lerp(p2, p3, t2, t3)
+            b1 = lerp(a1, a2, t0, t2)
+            b2 = lerp(a2, a3, t1, t3)
+            out.append(lerp(b1, b2, t1, t2))
+    out[-1] = list(P[-1])
+    return [[round(x, 5), round(y, 4)] for x, y in out]
+
+
+def _expand(s: dict) -> dict:
+    """Format 2: benannte Linien ("curves": {id: {"pts": [[x, T], …], "kind": "liquidus"|…, "smooth": true}}) werden zu
+    dichten Kurven; Gebiete nennen sie in "poly" als "id" oder "-id" (umgekehrt) zwischen einzelnen Punkten. So
+    stimmen Flächen, Hebelgesetz und gezeichnete Linien überein."""
+    curves = s.get("curves") or {}
+    dense = {}
+    for cid, c in curves.items():
+        pts = c["pts"] if isinstance(c, dict) else c
+        smooth = c.get("smooth", True) if isinstance(c, dict) else True
+        dense[cid] = _catmull(pts) if smooth else [list(map(float, p)) for p in pts]
+    if not dense:
+        return s
+    out = dict(s)
+    regs = []
+    for r in s["regions"]:
+        poly = []
+        for item in r["poly"]:
+            if isinstance(item, str):
+                rev = item.startswith("-")
+                seg = dense[item[1:] if rev else item]
+                seg = seg[::-1] if rev else seg
+                for p in seg:
+                    if not poly or abs(poly[-1][0] - p[0]) > 1e-9 or abs(poly[-1][1] - p[1]) > 1e-9:
+                        poly.append(list(p))
+            else:
+                if not poly or poly[-1] != list(item):
+                    poly.append(list(item))
+        if len(poly) > 2 and poly[0] == poly[-1]:
+            poly.pop()
+        regs.append({**r, "poly": poly})
+    out["regions"] = regs
+    out["lines"] = [{"id": cid, "kind": (c.get("kind") if isinstance(c, dict) else "") or "", "pts": dense[cid],
+                     "label": (c.get("label") if isinstance(c, dict) else None)} for cid, c in curves.items()]
+    return out
+
+
 @lru_cache(maxsize=None)
 def _data() -> dict:
-    return json.loads((DATA / "diagrams.json").read_text(encoding="utf-8"))
+    d = json.loads((DATA / "diagrams.json").read_text(encoding="utf-8"))
+    d = {**d, "systeme": list(d["systeme"]), "quellen": dict(d.get("quellen") or {})}
+    folder = DATA / "diagrams"
+    for p in sorted(folder.glob("*.json")) if folder.is_dir() else []:
+        f = json.loads(p.read_text(encoding="utf-8"))
+        d["quellen"].update(f.get("quellen") or {})
+        for s in f.get("systeme") or ([f["system"]] if f.get("system") else []):
+            d["systeme"] = [x for x in d["systeme"] if x["id"] != s["id"]] + [s]   # a file replaces a built-in system
+    d["systeme"] = [_expand(s) for s in d["systeme"]]
+    return d
+
+
+def sources() -> dict:
+    """Quellen, die mit den Diagrammdateien kommen (für refs.rec)."""
+    return _data()["quellen"]
 
 
 def systems(lang: str = "de") -> list[dict]:
     out = []
     for s in _data()["systeme"]:
+        g = GROUPS.get(s.get("gruppe") or "lehre", GROUPS["lehre"])
         out.append({"id": s["id"], "name": s.get("name_en") if lang == "en" else s["name"], "kind": "schematic",
-                    "q": s["q"]})
+                    "q": s["q"], "group": g[1] if lang == "en" else g[0], "melt": True})
     for s in _data()["berechnet"]:
         out.append({"id": s["id"], "name": s.get("name_en") if lang == "en" else s["name"], "kind": "computed",
-                    "q": s["q"]})
+                    "q": s["q"], "group": "Modell" if lang != "en" else "Model"})
     return out
+
+
+def validate(s: dict, n: int = 90) -> list[str]:
+    """Prüft ein (expandiertes) schematisches Diagramm: Gebiete innerhalb der Grenzen, jeder Punkt des Rasters in genau
+    einem Gebiet (Punkte nahe einer Grenze ausgenommen), Zweiphasengebiete mit zwei Phasen, Quellen bekannt.
+    Gibt eine Liste von Problemen zurück (leer = in Ordnung)."""
+    probs = []
+    (x0, x1), (T0, T1) = s["xlim"], s["Tlim"]
+    sx, sy = (x1 - x0), (T1 - T0)
+    labels = [r["label"] for r in s["regions"]]
+    if len(set(labels)) != len(labels):
+        probs.append("doppelte Gebietsnamen")
+    edges = []
+    for r in s["regions"]:
+        P = r["poly"]
+        if len(P) < 3:
+            probs.append(f"{r['label']}: weniger als 3 Punkte")
+        for x, T in P:
+            if not (x0 - 1e-6 * sx <= x <= x1 + 1e-6 * sx and T0 - 1e-6 * sy <= T <= T1 + 1e-6 * sy):
+                probs.append(f"{r['label']}: Punkt ({x}, {T}) ausserhalb")
+                break
+        if not 1 <= len(r["phases"]) <= 2:
+            probs.append(f"{r['label']}: {len(r['phases'])} Phasen")
+        edges += [(P[i], P[(i + 1) % len(P)]) for i in range(len(P))]
+    E = np.array([[a[0], a[1], b[0], b[1]] for a, b in edges], float)
+    E[:, [0, 2]] = (E[:, [0, 2]] - x0) / sx
+    E[:, [1, 3]] = (E[:, [1, 3]] - T0) / sy
+    bad = {"gap": [], "overlap": []}
+    for i in range(n):
+        for j in range(n):
+            u, v = (i + 0.5) / n, (j + 0.5) / n
+            # Abstand zu allen Kanten (normiert)
+            ax, ay, bx, by = E[:, 0], E[:, 1], E[:, 2], E[:, 3]
+            dx, dy = bx - ax, by - ay
+            L = dx * dx + dy * dy
+            t = np.clip(((u - ax) * dx + (v - ay) * dy) / np.where(L > 0, L, 1), 0, 1)
+            d = np.hypot(ax + t * dx - u, ay + t * dy - v).min()
+            if d < 0.004:
+                continue
+            x, T = x0 + u * sx, T0 + v * sy
+            hits = [r["label"] for r in s["regions"] if _inside(r["poly"], x, T)]
+            if not hits:
+                bad["gap"].append((round(x, 3), round(T, 1)))
+            elif len(hits) > 1:
+                bad["overlap"].append((round(x, 3), round(T, 1), tuple(hits)))
+    if bad["gap"]:
+        probs.append(f"{len(bad['gap'])} Rasterpunkte in keinem Gebiet, z. B. {bad['gap'][:3]}")
+    if bad["overlap"]:
+        probs.append(f"{len(bad['overlap'])} Rasterpunkte in mehreren Gebieten, z. B. {bad['overlap'][:3]}")
+    from . import refs as RF
+    for k in s.get("q") or []:
+        if not RF.known(k):
+            probs.append(f"Quelle {k} unbekannt")
+    for inv in s.get("invariants") or []:
+        if not (len(inv.get("x") or []) == 3 and inv["x"][0] <= inv["x"][1] <= inv["x"][2]):
+            probs.append(f"invariante Reaktion bei {inv.get('T')}: x nicht [links, Mitte, rechts]")
+    return probs
 
 
 def system(sid: str) -> dict:
@@ -121,6 +271,13 @@ def lever(s: dict, x: float, T: float, lang: str = "de") -> dict:
         return {"region": r["label"], "phases": [{"name": r["phases"][0], "x": x, "frac": 1.0}], "T": T, "x": x}
     cuts = _cuts(r["poly"], T)
     xl, xr = min(cuts), max(cuts)
+    # Verbindung ausserhalb des gezeichneten Bereichs (z. B. Al₆Mn bei 25,3 Gew.-% in einem Diagramm bis 10 %):
+    # ihre wahre Zusammensetzung statt des Diagrammrands
+    px = r.get("phase_x") or {}
+    if r["phases"][0] in px:
+        xl = float(px[r["phases"][0]])
+    if r["phases"][1] in px:
+        xr = float(px[r["phases"][1]])
     if xr - xl < 1e-12:
         return {"region": r["label"], "phases": [{"name": r["phases"][0], "x": x, "frac": 1.0}], "T": T, "x": x}
     wl = (xr - x) / (xr - xl)

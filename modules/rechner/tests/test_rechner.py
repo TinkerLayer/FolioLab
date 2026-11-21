@@ -560,7 +560,9 @@ class Workspace(unittest.TestCase):
         e1, e2 = o["envs"]["e1"], o["envs"]["e2"]
         self.assertAlmostEqual(e1["lines"]["c1"]["result"]["value"], 2.5)
         self.assertEqual(e1["lines"]["c3"]["result"]["text"], "72")
-        self.assertIn("error", e2["lines"]["c4"])                   # t gilt nur in e1
+        c4 = e2["lines"]["c4"]                                       # t gilt nur in e1: Ergebnis mit t
+        self.assertEqual((c4["kind"], c4["free"]), ("symbolic", ["t"]))
+        self.assertIn("20", c4["partial_tex"])
         card = e2["cards"][0]
         self.assertEqual(card["status"], "ok")
         self.assertAlmostEqual(card["result"]["si"], 0.5 * 1200 * 20 ** 2)
@@ -911,7 +913,7 @@ class BundleEnvs(unittest.TestCase):
         self.assertIn(r"\subsubsection*{Energie}", work)
         side = f("text-nebenrechnungen.tex")
         self.assertIn(r"\textit{Bremsen}", side)
-        self.assertEqual(side.count(r"\["), 3)                       # Zeile c4 (v/t in Energie) ist ein Fehler
+        self.assertEqual(side.count(r"\["), 4)                       # c4 (v/t in Energie) steht mit t da
         self.assertIn("Regression", f("text-diagramm1-anpassung.tex"))
         self.assertIn("u1-k1-m", json.dumps(d["items"]))
         self.assertTrue(any(k.startswith("data/diagramm1-kurve1") for k in d["files"]), list(d["files"]))
@@ -1043,7 +1045,7 @@ class DatasetVariables(unittest.TestCase):
         self.publish([31.0, 61.0, 91.0, 999.0, None], share=sid)
         req = self.DV.attach(self.req({"share": sid, "mode": "live", "keys": ["eps", "sigma"]}), self.server.ENVS)
         d = B.build(req, lang="de", include={"plots": False})
-        self.assertEqual(d["items"][0]["id"], "methodik")
+        self.assertEqual([i.get("id") for i in d["items"] if i.get("kind") == "text"][0], "methodik")
         text = base64.b64decode(d["files"]["text-methodik.tex"]).decode("utf-8")
         self.assertIn(f"Freigabe {sid}, Version 2", text)
         self.assertIn("3 von 5 Zeilen", text)
@@ -1063,6 +1065,100 @@ class DatasetVariables(unittest.TestCase):
         plain = self.DV.attach({**self.req({"share": sid, "mode": "live", "keys": ["eps"]}),
                                 "envs": [{"id": "e1", "items": [{"id": "a", "type": "calc", "src": "1+1"}]}]}, self.server.ENVS)
         self.assertNotIn("text-methodik.tex", B.build(plain, lang="de", include={"plots": False})["files"])
+
+
+class FreeOrderAndRanges(unittest.TestCase):
+    """Lines in any order (definition before use), results with names not defined yet, ranges, lists and sliders."""
+
+    @staticmethod
+    def run_lines(*srcs, **extra):
+        items = [{"id": f"l{i}", "type": "calc", "src": s, **extra.get(f"l{i}", {})} for i, s in enumerate(srcs)]
+        return W.evaluate({"values": [], "envs": [{"id": "e", "items": items}], "lang": "de"})["envs"]["e"]
+
+    def test_free_order(self):
+        o = self.run_lines("z = y + x", "y = 5", "x = f(t) = t^5 - 3", "t = 3")
+        self.assertAlmostEqual(o["lines"]["l0"]["result"]["value"], 245)          # 5 + (3^5 - 3)
+        self.assertAlmostEqual(o["lines"]["l2"]["result"]["value"], 240)
+        order = o["order"]
+        self.assertLess(order.index("l3"), order.index("l2"))
+        self.assertLess(order.index("l2"), order.index("l0"))
+        self.assertLess(order.index("l1"), order.index("l0"))
+
+    def test_redefinition_stays_sequential(self):
+        o = self.run_lines("x = 1", "x = 2*x", "y = x + 1")
+        self.assertAlmostEqual(o["lines"]["l2"]["result"]["value"], 3)
+
+    def test_cycle_is_reported(self):
+        o = self.run_lines("a = b + 1", "b = a + 1")
+        self.assertIn("Zirkelbezug", o["lines"]["l0"]["error"])
+
+    def test_missing_name_gives_partial_result(self):
+        o = self.run_lines("z = y + x", "y = 5", "w = 2*z")
+        z, w = o["lines"]["l0"], o["lines"]["l2"]
+        self.assertEqual((z["kind"], z["free"]), ("symbolic", ["x"]))
+        self.assertIn("5", z["partial_tex"])
+        self.assertIn("x", z["partial_tex"])
+        self.assertEqual(w["kind"], "symbolic")                                   # z is carried along with x in it
+        self.assertIn("x", w["partial_tex"])
+        bare = self.run_lines("q")["lines"]["l0"]                                 # nothing to simplify: still an error
+        self.assertIn("error", bare)
+        same = self.run_lines("h = 2*k + 3")["lines"]["l0"]
+        self.assertTrue(same["same"])
+
+    def test_ranges_lists_and_slider(self):
+        o = self.run_lines("z = t^2", "t = 0..10 step 2")
+        z = o["lines"]["l0"]
+        self.assertEqual(z["result"]["value"], [0, 4, 16, 36, 64, 100])
+        self.assertEqual((z["range"]["var"], len(z["range"]["x"]), z["range"]["list"]), ("t", 6, False))
+        n = self.run_lines("t = 0..1 count 5", "y = 2*t")["lines"]["l1"]
+        self.assertEqual(len(n["result"]["value"]), 5)
+        li = self.run_lines("t = [1; 2; 5; 7.5]", "y = t + 1")["lines"]["l1"]
+        self.assertEqual(li["result"]["value"], [2, 3, 6, 8.5])
+        self.assertTrue(li["range"]["list"])
+        s = self.run_lines("s = 0..5 slider", "w = 3*s + 1", l0={"cur": 2})
+        self.assertAlmostEqual(s["lines"]["l1"]["result"]["value"], 7)
+        self.assertEqual(s["lines"]["l0"]["slider"]["cur"], 2)
+        sw = s["lines"]["l1"]["sweep"]
+        self.assertEqual((sw["var"], len(sw["x"]), sw["cur"]), ("s", 61, 2))
+        self.assertAlmostEqual(sw["y"][-1], 16)
+        clamp = self.run_lines("s = 0..5 slider", l0={"cur": 9})["lines"]["l0"]
+        self.assertEqual(clamp["slider"]["cur"], 5)
+        lin = self.run_lines("t = linspace(0, 1, 11)", "y = 2*t")["lines"]["l1"]   # any list assignment is a range too
+        self.assertEqual((lin["range"]["var"], len(lin["range"]["x"]), lin["range"]["list"]), ("t", 11, False))
+
+    def test_card_with_missing_value_shows_rearranged_partial(self):
+        req = {"values": [{"id": "m", "sym": "m", "kind": "mass", "value": "2", "unit": "kg"}],
+               "envs": [{"id": "e", "items": [{"id": "k", "type": "card", "eq": "en_kin", "target": "m",
+                                                "vars": {"v": {"value": "3", "unit": "m/s"}}},
+                                               {"id": "k2", "type": "card", "eq": "en_kin", "target": "E_kin", "vars": {}}]}],
+               "lang": "de"}
+        cards = {c["id"]: c for c in W.evaluate(req)["envs"]["e"]["cards"]}
+        a, b2 = cards["k"], cards["k2"]
+        self.assertEqual((a["status"], a["target"]), ("missing", "m"))
+        self.assertIn("4{,}5", a["partial_tex"])                                 # 0.5 * (3 m/s)^2 folded
+        self.assertIn("E_{", a["partial_tex"])
+        self.assertTrue(a["sol_tex"].startswith("m ="))
+        self.assertIn(r"1\,\mathrm{kg}", b2["partial_tex"])                     # E_kin = 1 kg · v²
+        self.assertIn("v", b2["partial_tex"])
+
+    def test_report_order_and_range_items(self):
+        req = {"values": [], "envs": [{"id": "e", "name": "Blatt", "items": [
+            {"id": "a", "type": "calc", "src": "z = t^2"}, {"id": "b", "type": "calc", "src": "t = 0..40 step 1"},
+            {"id": "c", "type": "calc", "src": "w = 3*s + 1"}, {"id": "d", "type": "calc", "src": "s = 0..5 slider", "cur": 2}]}],
+            "lang": "de"}
+        d = B.build(req, lang="de")
+        side = base64.b64decode(d["files"]["text-nebenrechnungen.tex"]).decode()
+        self.assertLess(side.index("t = 0"), side.index("z = "))                 # defined before use
+        self.assertLess(side.index("s = 2"), side.index("w = "))
+        self.assertIn("Schieberegler", side)
+        kinds = [(i["kind"], i.get("id")) for i in d["items"]]
+        for want in [("table", "zeile1-werte"), ("figure", "zeile1"), ("data", "zeile1"), ("figure", "zeile2")]:
+            self.assertIn(want, kinds)
+        tab = base64.b64decode(d["files"]["zeile1-werte.tex"]).decode()
+        self.assertLessEqual(tab.count(r"\\"), B.RANGE_TABLE_ROWS + 2)           # thinned table, all values in the CSV
+        self.assertIn("jede 3. von 41", json.dumps(d["items"], ensure_ascii=False))
+        self.assertIn("$t$ & $z$", tab)                                         # header is math, not escaped
+        self.assertEqual(base64.b64decode(d["files"]["data/zeile1.csv"]).decode().count("\n"), 42)
 
 
 if __name__ == "__main__":

@@ -827,6 +827,50 @@ T ≥ the argument) by the shared `labcalc` formula engine. The engine itself is
 from L1 of the synthetic oxalate gives n = 1.0 ± 0.05 (golden value 0.9851);
 `tests/test_tga.py::AnalysisTest::test_equation_error_is_reported_not_raised`.
 
+## 20 Measurement uncertainty
+
+Opt-in: nothing is computed unless the working state carries entries (`state["unc"]`, keys `m0`, `bal`, `drift`,
+`T_cal`, `T_tc`, `beta`; method in `state["unc_method"]`). Propagation, coverage factor and Monte Carlo use the
+shared `labcalc.uncertainty` (GUM, JCGM 100:2008; GUM Supplement 1, JCGM 101:2008). One model per result, so that
+correlated inputs (m₀ in numerator and denominator, the same balance reading in two results' terms) are treated in
+one evaluation:
+
+| Result | Model | Inputs |
+|---|---|---|
+| Mass loss step i | `L = 100 (m_a − m_b + δ_drift) / m₀` | m₀ (or the TGA reference mass if the file sets one, then with `bal`), `m_a`, `m_b` with `bal`, `δ_drift` with `drift` |
+| Residue | `R = 100 (m_E + δ_drift) / m₀` | as above |
+| Onset, endset | `T = T_reading + δT_cal + δT_eval` | `T_tc` on the reading, `T_cal`, δT_eval: half the range of onsets from tangents at every point with \|dm/dT\| ≥ 0.9·max (rectangular), baseline mass u divided by the slope difference, sampling (point spacing, resolution) |
+| DTG peak | same | δT_eval: sampling (point spacing) |
+| T at x % loss | same | δT_eval: interpolation (point spacing) and the mass uncertainty at that level divided by the local slope |
+| Composition | `X = 100 (m_P − m_Q + δ_drift) / B`, `m_i ← m_i + s_i (T_i − T_i,nom)` | masses at the limits with `bal`; at a temperature limit the temperature uncertainty (`T_cal`, `T_tc`) enters through the local slope s_i; B = m₀, or the mass at the start for D7582 |
+| Content from stoichiometry | `X = 100 L / L_theor` | the step's loss model |
+
+The worst-case method has no standard uncertainty; for passing values on, the Gaussian u of the same model is used.
+Calibration button: the residual standard deviation of the ITS-90 calibration line, `s = √(Σr²/(n−2))` with n − 2
+degrees of freedom (n ≥ 3), as the u of `T_cal`.
+
+**Replicates** (Compare tab, report option `unc_replicates`): for every value all runs have, the mean with a type A
+part (repeats, s/√n, n − 1 degrees of freedom) and, where all runs have a budget, a type B part equal to the mean of
+their standard uncertainties (systematic, not reduced by averaging).
+
+**Kinetics:** Kissinger and the isoconversional E at α ≈ 0.5 are given as E ± the 95 % confidence interval of the
+regression (u = CI/t₉₅, n − 2 degrees of freedom). Temperature and mass uncertainties are not added on top: their
+effect on the fit is already in the scatter about the line, so adding them would count them twice.
+
+**Passing on:** variables of own equations carry `u` (and the result `unc`), so equations get `text_pm` via the
+formula engine; shared step tables carry `u`. The functions `m(T)`, `dtg(T)` and `loss(T1, T2)` are still exact.
+
+**Report:** `\labval{<run>-<id>-pm}`, `-u`, `-U` per result (ids `step<i>-loss|onset|endset|peak`, `t<x>`, `residue`,
+`comp<n>`, `content<n>`, `rep-…`, `ea-…`), one budget table per result, a summary table and a methods sentence
+citing the method and ASTM E1582 (temperature) / ASTM E2040 (mass) when those inputs are used.
+
+**Limitations:** the temperature limits of neighbouring composition rows are independent inputs per row; the
+tangent spread is a heuristic for the evaluation contribution, not a standard procedure.
+
+**Validation:** `tests/test_uncert.py` – loss and residue u against the hand formula, equation u through L1,
+stoichiometric content, labelled temperature contributions, D7582 composition, replicates type A (and A + B),
+Kissinger U equal to the regression CI, report values.
+
 ## References as recorded in the code
 
 Reproduced from `tga/refs.py` as they stand; missing fields are missing in the code.

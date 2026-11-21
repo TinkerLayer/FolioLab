@@ -406,6 +406,9 @@
    "file": "text-gleichung.tex",
    "id": "gleichung",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Reaktionsgleichung"
   },
   {
@@ -415,6 +418,9 @@
    "id": "bilanz",
    "kind": "table",
    "label": "tab:reaktionsgleichung-bilanz",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -437,6 +443,9 @@
    "id": "stoechiometrie",
    "kind": "table",
    "label": "tab:reaktionsgleichung-stoechiometrie",
+   "needs": {
+    "steps": []
+   },
    "notes": "\\textsuperscript{*}\\,limitierend"
   },
   {
@@ -448,6 +457,9 @@
    "file": "text-stoechiometrie.tex",
    "id": "stoechiometrie",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Stöchiometrie"
   },
   {
@@ -476,6 +488,9 @@
    "id": "thermochemie",
    "kind": "table",
    "label": "tab:reaktionsgleichung-thermochemie",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -487,10 +502,13 @@
    "file": "text-thermochemie.tex",
    "id": "thermochemie",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Thermochemie"
   },
   {
-   "caption": "Freie Reaktionsenthalpie in Abhängigkeit von der Temperatur: durchgezogen mit konstantem $C_p$ (Werte bei 298,15\\,K), gestrichelt Näherung mit konstantem $\\Delta_\\mathrm{r}H^\\circ$ und $\\Delta_\\mathrm{r}S^\\circ$; unter der Nulllinie läuft die Reaktion freiwillig~\\cite{er-cox1989,er-wagman1982,er-reed2020}.",
+   "caption": "Freie Reaktionsenthalpie in Abhängigkeit von der Temperatur: durchgezogen mit konstantem $C_p$ (Werte bei 298,15\\,K) und gestrichelt Näherung mit konstantem $\\Delta_\\mathrm{r}H^\\circ$ und $\\Delta_\\mathrm{r}S^\\circ$; unter der Nulllinie läuft die Reaktion freiwillig~\\cite{er-cox1989,er-wagman1982,er-reed2020}.",
    "cites": [
     "er-cox1989",
     "er-wagman1982",
@@ -500,6 +518,23 @@
    "id": "dg-t",
    "kind": "figure",
    "label": "fig:reaktionsgleichung-dg-t",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "cp",
+     "label": "mit Cp(T)",
+     "steps": []
+    },
+    {
+     "cites": [],
+     "id": "konstant",
+     "label": "ΔrH°, ΔrS° konstant",
+     "steps": []
+    }
+   ],
    "preview": "fig/dg-t.png",
    "width": "0.9"
   },
@@ -529,6 +564,9 @@
    "id": "oxidationszahlen",
    "kind": "table",
    "label": "tab:reaktionsgleichung-oxidationszahlen",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -545,6 +583,9 @@
    "file": "text-redox.tex",
    "id": "redox",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Redoxreaktion"
   },
   {
@@ -566,6 +607,9 @@
    "file": "text-ph.tex",
    "id": "ph",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "pH-Wert"
   },
   {
@@ -577,12 +621,18 @@
    "id": "speziesverteilung",
    "kind": "table",
    "label": "tab:reaktionsgleichung-speziesverteilung",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
    "file": "text-titration.tex",
    "id": "titration",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Titration"
   },
   {
@@ -596,6 +646,17 @@
    "id": "titration",
    "kind": "figure",
    "label": "fig:reaktionsgleichung-titration",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "aequivalenz",
+     "label": "die Äquivalenzpunkte",
+     "steps": []
+    }
+   ],
    "preview": "fig/titration.png",
    "width": "0.9"
   },
@@ -603,6 +664,9 @@
    "file": "text-molmasse-1.tex",
    "id": "molmasse-1",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Molare Masse NaCl"
   },
   {
@@ -615,6 +679,9 @@
    "id": "zusammensetzung-1",
    "kind": "table",
    "label": "tab:reaktionsgleichung-zusammensetzung-1",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {

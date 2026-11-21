@@ -109,9 +109,15 @@ function bundle(value, src = 'x;y\n1;2\n') {
     assert.strictEqual(m1.provenance.source_kind, 'files');
     ok++;
 
-    // removing a result: never issued -> deleted; issued -> kept under lab/_removed/ and still listed as a dependency
+    // removing a result: never issued -> to the bin (undo handle); issued -> also kept under lab/_removed/ and still
+    // listed as a dependency; bin: false deletes for good
     const plain = await lab.save(id, bundle(4), 'new');
-    assert.deepStrictEqual(await lab.remove(id, plain.slug), { kept: null });
+    const gone = await lab.remove(id, plain.slug);
+    assert.strictEqual(gone.kept, null);
+    assert.match(gone.undo, new RegExp(`^${plain.slug}-\\d{4}-`));
+    assert.ok(!fs.existsSync(path.join(P.filesDir(id), 'lab', plain.slug)));
+    const plain2 = await lab.save(id, bundle(4), 'new');
+    assert.deepStrictEqual(await lab.remove(id, plain2.slug, { bin: false }), { kept: null });
     assert.ok(!fs.existsSync(path.join(P.filesDir(id), 'lab', plain.slug)));
     await lab.issue(id, 'ds');
     const rm = await lab.remove(id, 'ds');

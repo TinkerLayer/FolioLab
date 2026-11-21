@@ -9,7 +9,7 @@
   "color": "#455a64",
   "status": "ready",
   "order": 45,
-  "version": "0.1.0",
+  "version": "0.5.0",
   "accepts": [".xy", ".xye", ".xrdml", ".brml", ".raw", ".uxd", ".ras", ".asc", ".dat", ".cif", ".csv", ".txt"],
   "produces": ["figure", "table", "values", "data", "citation", "text"],
   "runtime": {

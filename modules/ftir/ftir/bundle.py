@@ -8,16 +8,17 @@ from pathlib import Path
 import numpy as np
 
 try:
-    from labbundle import Bundle, booktabs, cite, cite_keys, num, slugify, tex_escape
+    from labbundle import Bundle, booktabs, cite, cite_keys, num, slugify, step_tag, tex_escape
 except ImportError:  # Modul ausserhalb von Folio Lab gestartet
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "sdk" / "python"))
-    from labbundle import Bundle, booktabs, cite, cite_keys, num, slugify, tex_escape
+    from labbundle import Bundle, booktabs, cite, cite_keys, num, slugify, step_tag, tex_escape
 import labcite  # noqa: E402
 
 from . import charts as C
 from . import peaks as PK
 from . import quality as QA
 from . import search as SR
+from . import uncert as UC
 from .analysis import Analysis, arr, run
 from .library import GRID, MODEL_ID
 from .readers import load_bytes, ylabel
@@ -362,14 +363,25 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
     pid = prefix
     if inc.get("figures", True):
         fig = C.fig_spectra([{"name": _label(a, lang), "x": sp.x, "y": sp.y}], sp.yunit, lang, peaks=a.peaks, regions=_regions(a))
-        b.add_figure(fig, f"spektrum{pid}", L["fig_spec"].format(n=n, pk=L["fig_spec_pk"] if a.peaks else ""), width="0.9", dpi=150,
-                     cites=rk.get("self"))
+        # was abschaltbar ist: Banden, Bandenflächen, je Treffer und Komponente die eigene Referenz mit ihrer Quelle
+        sparts = []
+        if a.peaks:
+            sparts.append({"id": "banden", "label": "Banden" if lang == "de" else "Bands", "steps": ["banden", "rauschen"],
+                           "caption": L["fig_spec_pk"].split(" ", 2)[2]})
+        if _regions(a):
+            sparts.append({"id": "flaechen", "label": "Bandenflächen" if lang == "de" else "Band areas", "steps": ["flaechen"]})
+        b.add_figure(fig, f"spektrum{pid}", L["fig_spec"].format(n=n, pk="{parts}"), width="0.9", dpi=150,
+                     cites=rk.get("self"), steps=[], parts=sparts)
         if hits and q is not None and drawn:
+            hparts = [{"id": f"treffer{i}", "label": h.get("name") or f"{i}", "cites": ref_keys(b, [h], lang) if rk else []}
+                      for i, h in enumerate(drawn, 1)]
             b.add_figure(C.fig_search(GRID, q, hits, lang, a.name), f"suche{pid}", L["fig_search"].format(n=n, a=tex_escape(algo)),
-                         width="0.9", dpi=150, cites=rk.get("drawn"))
+                         width="0.9", dpi=150, steps=["suche", "rauschen"], parts=hparts)
         if mix and mix["query"] is not None:
+            mparts = [{"id": f"komponente{i}", "label": c.get("name") or f"{i}", "cites": ref_keys(b, [c], lang) if rk else []}
+                      for i, c in enumerate(mix["components"], 1)]
             b.add_figure(C.fig_mixture(GRID, mix["query"], mix, lang, a.name), f"mischung{pid}", L["fig_mix"].format(n=n),
-                         width="0.9", dpi=150, cites=rk.get("mix"))
+                         width="0.9", dpi=150, steps=["mischung"], parts=mparts)
     if inc.get("tables", True):
         if a.peaks:
             head = [h.replace("{y}", tx(yl)) for h in L["h_peaks"]]
@@ -383,23 +395,24 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
                          if lang == "de" else
                          "FWHM from the curve converted to " + tx(ylabel(PK.AREA_BASIS[sp.yunit], lang)).lower() + ".")
             b.add_table(f"peaks{pid}", booktabs(head, rows, align="rrrlrl", small=True, escape_header=False),
-                        L["tab_peaks"].format(n=n), notes=pnote)
+                        L["tab_peaks"].format(n=n), notes=pnote, steps=["banden", "rauschen"])
         if a.groups and a.groups.get("classes"):
             rows = [[tx(c["name"]), L["verdict"][c["verdict"]], f"{c['found']}/{c['needed']}"]
                     for c in a.groups["classes"] if c["verdict"] != "unwahrscheinlich"]
             if rows:
                 notes = " ".join(tx(x["text"]) for x in a.groups.get("absent", []))
-                b.add_table(f"gruppen{pid}", booktabs(L["h_groups"], rows, align="llr", small=True), L["tab_groups"].format(n=n), notes=notes)
+                b.add_table(f"gruppen{pid}", booktabs(L["h_groups"], rows, align="llr", small=True), L["tab_groups"].format(n=n), notes=notes,
+                            steps=["banden", "rauschen"])
         cell = (lambda h: tx(C.ref_tag(h, lang)) + (cite(ref_keys(b, [h], lang)) if rk else ""))  # noqa: E731
         if hits:
             rows = [[str(h.get("rank", i + 1)), tx(h["name"]), cell(h), num(h["hqi"], 1, lang)]
                     for i, h in enumerate(hits[:10])]
             b.add_table(f"treffer{pid}", booktabs(L["h_hits"], rows, align="rllr", small=True), L["tab_hits"].format(n=n, a=tex_escape(algo)),
-                        cites=rk.get("hits"))
+                        cites=rk.get("hits"), steps=["suche", "rauschen"])
         if mix:
             rows = [[tx(c["name"]), cell(c), num(100 * c["frac"], 0, lang)] for c in mix["components"]]
             b.add_table(f"mischung{pid}", booktabs(L["h_mix"], rows, align="llr", small=True, escape_header=False),
-                        L["tab_mix"].format(n=n, h=num(mix["hqi"], 1, lang)), cites=rk.get("mix"))
+                        L["tab_mix"].format(n=n, h=num(mix["hqi"], 1, lang)), cites=rk.get("mix"), steps=["mischung"])
         if a.bands:
             rows = [[tx(r["name"]), f"{num(r['hi'], 0, lang)}--{num(r['lo'], 0, lang)}", _n(r["area"], 3, lang),
                      _n(r["height"], 3, lang), _n(r["pos"], 0, lang)] for r in a.bands]
@@ -410,7 +423,8 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
                     u_b, f_b = u_b[:1].lower() + u_b[1:], f_b[:1].lower() + f_b[1:]
                 basis = L["bands_basis"].format(u=u_b, f=f_b)
                 notes = (notes + ". " if notes else "") + basis
-            b.add_table(f"flaechen{pid}", booktabs(L["h_bands"], rows, align="lrrrr", small=True, escape_header=False), L["tab_bands"].format(n=n), notes=notes)
+            b.add_table(f"flaechen{pid}", booktabs(L["h_bands"], rows, align="lrrrr", small=True, escape_header=False), L["tab_bands"].format(n=n), notes=notes,
+                        steps=["flaechen"])
     if inc.get("values", True):
         vals = []
         k = (prefix + "-") if prefix else ""
@@ -430,11 +444,26 @@ def _single(b: Bundle, a: Analysis, fname: str, raw_len: int, lang: str, inc: di
             if r["value"] is not None:
                 vals.append((f"{k}ratio{i}", f"{L['ratio']} {tex_escape(r['name'])}", num(r["value"], 3, lang), f"{r['value']:.4g}"))
         if vals:
-            b.add_values(vals)
+            need = {f"{k}npeaks": ["banden"], f"{k}peak1": ["banden"], f"{k}hit1": ["suche"], f"{k}hqi1": ["suche"],
+                    f"{k}mixhqi": ["mischung"]}
+            need.update({v[0]: ["flaechen"] for v in vals if re.fullmatch(re.escape(k) + r"(band|ratio)\d+", v[0])})
+            b.add_values(vals, needs=need)
         if a.equations:     # eigene Gleichungen: Werte, Tabelle, abgesetzte Formeln (mit Quelle) für den Methodentext
             from labcalc import formulas as Fm
+            at = b.added_mark()
             rep = Fm.to_report(b, a.equations, lang, prefix=(prefix + "-") if prefix else "", cite_prefix="eq")
             a.eq_latex = rep.get("latex", "")
+            # ein Spektrum: Gleichungsblock im Methodentext; mehrere: die Formeln stehen in den Ergebnissen (build)
+            for it in b.items[at[0]:]:
+                if it.get("kind") == "table":
+                    it["needs"] = {"steps": [] if prefix else ["gleichungen"]}
+            b.needs_since(at, [] if prefix else ["gleichungen"])
+    a.unc_report = None
+    if a.unc and a.unc.get("results") and (inc.get("values", True) or inc.get("tables", True)):
+        # \labval <id>-pm/-u/-U, Budgettabellen, Übersicht; Quellen der Angaben (z. B. Ph. Eur.) kommen über die Beiträge
+        at = b.added_mark()
+        a.unc_report = UC.report(b, a.unc, lang, prefix=(prefix + "-") if prefix else "")
+        b.needs_since(at, ["unsicherheit"])
     if inc.get("data", True):
         step = max(1, len(sp.x) // 4000)
         yname = {"A": "A", "T": "T_pct", "R": "R_pct", "KM": "KM"}.get(sp.yunit, "y")
@@ -514,6 +543,7 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
                   "Dispersion und Zahl der Reflexionen gehen nicht ein (einfache ATR-Korrektur).")
         if warn_t:
             t += " Hinweis: " + warn_t
+        t += step_tag("banden")
         if a.peaks:
             p = (a.state.get("peaks") or {}).get("params") or {}
             t += (f" Banden wurden als lokale Maxima mit einer Prominenz von mindestens {num(p.get('prominence', 2), 1, lang)}~\\% "
@@ -522,10 +552,11 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
                   f" gesucht und anhand einer Korrelationstabelle der Gruppenfrequenzen zugeordnet{c('tab')}; unter den "
                   "passenden Tabelleneinträgen stehen solche voran, deren Form zur Bande passt und deren Gruppe die "
                   "Gruppenbewertung des ganzen Spektrums stützt. Die Zuordnungen sind Vorschläge.")
+        t += step_tag("flaechen")
         if t_basis:
             t += (" Flächen, Höhen und Halbwertsbreiten wurden auf dem in " + tx(ylabel(PK.AREA_BASIS[sp.yunit], lang))
                   + " umgerechneten Spektrum bestimmt.")
-        t += noise_t
+        t += step_tag("rauschen") + noise_t + step_tag("suche")
         if hits:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
             t += (f" Die Bibliothekssuche ({tex_escape(algo)}) verglich das Spektrum mit {libs}; Probe und Referenzen "
@@ -543,6 +574,7 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
                       + (f" (ursprünglich{c('origins')})" if "origins" in cites else "") + ".")
             if "own" in cites:
                 t += f" Eigene Referenzen:{c('own')}."
+        t += step_tag("mischung")
         if mix:
             t += (" Für die Mischungsanalyse wurde für jede Kombination der Kandidaten (bis zur gewählten Zahl von "
                   "Komponenten) das Problem der nicht-negativen kleinsten Quadrate (NNLS"
@@ -575,6 +607,7 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
                   "refractive indices, dispersion and the number of reflections are not used (simple ATR correction).")
         if warn_t:
             t += " Note: " + warn_t
+        t += step_tag("banden")
         if a.peaks:
             p = (a.state.get("peaks") or {}).get("params") or {}
             t += (f" Bands were picked as local maxima with a prominence of at least {num(p.get('prominence', 2), 1, lang)}~\\% "
@@ -583,10 +616,11 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
                   f", and assigned using a correlation table of group frequencies{c('tab')}; among the matching table "
                   "entries, those whose shape fits the band and whose group is supported by the functional-group rating "
                   "of the whole spectrum come first. The assignments are suggestions.")
+        t += step_tag("flaechen")
         if t_basis:
             t += (" Areas, heights and band widths were determined on the spectrum converted to "
                   + tx(ylabel(PK.AREA_BASIS[sp.yunit], lang)).lower() + ".")
-        t += noise_t
+        t += step_tag("rauschen") + noise_t + step_tag("suche")
         if hits:
             libs = ", ".join(sorted({tx(h.get('lib_name', '')) for h in hits}))
             t += (f" The library search ({tex_escape(algo)}) compared the spectrum with {libs}; sample and references were "
@@ -604,12 +638,19 @@ def _methods(a: Analysis, cites: dict, s: dict, hits, mix, algo: str, lang: str)
                       + (f" (originally{c('origins')})" if "origins" in cites else "") + ".")
             if "own" in cites:
                 t += f" Own references:{c('own')}."
+        t += step_tag("mischung")
         if mix:
             t += (" For the mixture analysis, the non-negative least-squares problem (NNLS"
                   f"{c('nnls')}) with a free intercept was solved exactly for every combination of candidates (up to the "
                   "chosen number of components) by enumerating all subsets. The shares given are area "
                   "shares of the fitted, normalised absorbance spectrum (spectral contribution), not mass or volume fractions.")
+    ut = UC.methods_text(a.unc, getattr(a, "unc_report", None), lambda ks: cite(ks) if ks else "", lang)
+    if ut:                                             # Messunsicherheit: Verfahren, Rauschen, Modelle
+        t += step_tag("unsicherheit") + " " + ut
     return t + "\n"
+
+
+_RESULT_STEPS = ["banden", "flaechen", "rauschen", "suche", "mischung", "unsicherheit"]
 
 
 def _results(a: Analysis, hits, mix, lang: str, slug: str, prefix: str) -> str:
@@ -671,21 +712,29 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
             (f", {hits[0]['name']} (HQI {hits[0]['hqi']:.1f})" if hits else "")
         if inc.get("text", True):
             eq = getattr(a, "eq_latex", "")
-            b.add_text("methodik", _methods(a, cites, s, hits, mix, algo, lang) + ("\n" + eq if eq else ""), L["methods"])
+            mt = _methods(a, cites, s, hits, mix, algo, lang)
+            b.add_methods([mt], L["methods"], eq=eq or "", brief=b.brief_from(mt, evaluated=True))
             res = _results(a, hits, mix, lang, b.slug, "")
             if res:
-                b.add_text("ergebnisse", res, L["results"])
+                b.add_text("ergebnisse", res, L["results"], steps=_RESULT_STEPS)
     else:
         rows, meth, res = [], [], []
+        any_hits = False
         if inc.get("figures", True):
             series = [{"name": _label(a, lang), "x": a.sp.x, "y": a.sp.y} for a, _, _ in analyses]
             units = {a.sp.yunit for a, _, _ in analyses}
             refs = [h for a, _, _ in analyses for h in a.orig.meta.get("refs") or []]
+            for i, se in enumerate(series, 1):
+                se["part"] = f"probe{i}"
+            cparts = [{"id": f"probe{i}", "label": a.name, "caption": tx(a.name),
+                       "cites": ref_keys(b, a.orig.meta.get("refs") or [], lang) if inc.get("citations", True) else []}
+                      for i, (a, _, _) in enumerate(analyses, 1)]
             b.add_figure(C.fig_spectra(series, units.pop() if len(units) == 1 else "au", lang, stacked=True), "vergleich",
-                         L["fig_cmp"].format(n=", ".join(tx(a.name) for a, _, _ in analyses)), width="0.9", dpi=150,
-                         cites=ref_keys(b, refs, lang) if inc.get("citations", True) else None)
+                         L["fig_cmp"].format(n="").replace(": .", "{parts}."), width="0.9", dpi=150, steps=[], parts=cparts,
+                         parts_lead=":")
         for i, (a, fname, rl) in enumerate(analyses, 1):
             cites, s, hits, mix, algo = _single(b, a, fname, rl, lang, inc, prefix=f"p{i}")
+            any_hits = any_hits or bool(hits)
             top = max(a.peaks, key=lambda p: p["prom"]) if a.peaks else None
             rows.append([tx(a.name), tx(hits[0]["name"]) if hits else "--", num(hits[0]["hqi"], 1, lang) if hits else "--",
                          num(top["x"], 0, lang) if top else "--", str(len(a.peaks))])
@@ -697,12 +746,13 @@ def build(items, request: dict, lang: str = "de", include: dict | None = None, t
             if getattr(a, "eq_latex", ""):
                 res.append(f"{tx(a.name)}: " + a.eq_latex)
         if inc.get("tables", True):
-            b.add_table("vergleich", booktabs(L["h_cmp"], rows, align="llrrr", small=True, escape_header=False), L["tab_cmp"])
+            b.add_table("vergleich", booktabs(L["h_cmp"], rows, align="llrrr", small=True, escape_header=False), L["tab_cmp"],
+                        steps=["banden", "rauschen"] + (["suche"] if any_hits else []))
         if inc.get("text", True):
-            b.add_text("methodik", "".join(meth), L["methods"])
+            b.add_methods(meth, L["methods"], sep="", brief=b.brief_from(meth[0], evaluated=True))
             r = "\n".join(x for x in res if x)
             if r:
-                b.add_text("ergebnisse", r, L["results"])
+                b.add_text("ergebnisse", r, L["results"], steps=_RESULT_STEPS)
         b.summary = ", ".join(a.name for a, _, _ in analyses)
     files = {}
     for (a, fname, _), (raw, _, _, _) in zip(analyses, items):

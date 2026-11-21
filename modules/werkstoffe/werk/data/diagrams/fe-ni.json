@@ -1,0 +1,651 @@
+{
+ "quellen": {
+  "asm3_2016": {
+   "type": "book",
+   "authors": "Okamoto, H.; Schlesinger, M. E.; Mueller, E. M. (Hrsg.)",
+   "title": "ASM Handbook, Vol. 3: Alloy Phase Diagrams",
+   "container": "ASM International, Materials Park (OH)",
+   "year": "2016",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "fe-ni_swartzendruber1991": {
+   "type": "article",
+   "authors": "Swartzendruber, L. J.; Itkin, V. P.; Alcock, C. B.",
+   "title": "The Fe-Ni (iron-nickel) system",
+   "container": "Journal of Phase Equilibria",
+   "year": "1991",
+   "volume": "12",
+   "pages": "288-312",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "fe-ni",
+  "name": "Fe–Ni",
+  "name_en": "Fe–Ni",
+  "A": "Fe",
+  "B": "Ni",
+  "gruppe": "fe",
+  "x_label": "Nickel [Gew.-%]",
+  "x_label_en": "Nickel [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   400,
+   1600
+  ],
+  "q": [
+   "fe-ni_swartzendruber1991",
+   "massalski1990",
+   "asm3_2016"
+  ],
+  "hinweis": "Literaturwerte (Swartzendruber et al. 1991; Massalski 1990): Fe schmilzt bei 1538 °C, Ni bei 1455 °C; Peritektikum δ + L ⇌ γ bei 1514 °C (δ ≈ 3,5 / γ ≈ 4,0 / L ≈ 4,4 Gew.-% Ni); γ (kfz) lückenlos bis Ni mit flachem Schmelzminimum ≈ 1436 °C bei ≈ 68 % Ni; Ordnung FeNi₃ unterhalb 517 °C (≈ 76 % Ni). Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm nachgezeichnet (schematisch). Vereinfacht: die FeNi₃-Ordnung ist als einfache Grenzlinie ohne die schmalen Zweiphasengebiete gezeichnet; das Eutektoid γ ⇌ α + FeNi₃ (≈ 345 °C) liegt unter dem Ausschnitt. Das Gleichgewicht α + γ stellt sich unter ≈ 500 °C praktisch nicht ein (Martensit, Meteoriten).",
+  "hinweis_en": "Literature values (Swartzendruber et al. 1991; Massalski 1990): Fe melts at 1538 °C, Ni at 1455 °C; peritectic δ + L ⇌ γ at 1514 °C (δ ≈ 3.5 / γ ≈ 4.0 / L ≈ 4.4 wt% Ni); fcc γ continuous to Ni with a shallow melting minimum ≈ 1436 °C at ≈ 68 % Ni; FeNi₃ ordering below 517 °C (≈ 76 % Ni). Curve points in between are traced from the assessed diagram (schematic). Simplified: FeNi₃ ordering is drawn as a single boundary without the narrow two-phase fields; the eutectoid γ ⇌ α + FeNi₃ (≈ 345 °C) lies below the section. The α + γ equilibrium is practically not reached below ≈ 500 °C (martensite, meteorites).",
+  "points": [
+   {
+    "x": 0,
+    "T": 1538,
+    "label": "Fe schmilzt",
+    "label_en": "Fe melts"
+   },
+   {
+    "x": 100,
+    "T": 1455,
+    "label": "Ni schmilzt",
+    "label_en": "Ni melts"
+   },
+   {
+    "x": 4.0,
+    "T": 1514,
+    "label": "Peritektikum",
+    "label_en": "Peritectic"
+   },
+   {
+    "x": 68,
+    "T": 1436,
+    "label": "Minimum",
+    "label_en": "Minimum"
+   },
+   {
+    "x": 0,
+    "T": 1394,
+    "label": "δ → γ"
+   },
+   {
+    "x": 0,
+    "T": 912,
+    "label": "γ → α"
+   },
+   {
+    "x": 75.9,
+    "T": 517,
+    "label": "FeNi₃ (Ordnung)",
+    "label_en": "FeNi₃ (ordering)"
+   }
+  ],
+  "curves": {
+   "liq_d": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1538
+     ],
+     [
+      1,
+      1533
+     ],
+     [
+      2,
+      1528
+     ],
+     [
+      3,
+      1522
+     ],
+     [
+      4.4,
+      1514
+     ]
+    ]
+   },
+   "sol_d": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1538
+     ],
+     [
+      1,
+      1531
+     ],
+     [
+      2,
+      1525
+     ],
+     [
+      2.8,
+      1520
+     ],
+     [
+      3.5,
+      1514
+     ]
+    ]
+   },
+   "d_dg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      3.5,
+      1514
+     ],
+     [
+      3.0,
+      1490
+     ],
+     [
+      2.3,
+      1460
+     ],
+     [
+      1.2,
+      1425
+     ],
+     [
+      0,
+      1394
+     ]
+    ]
+   },
+   "g_dg": {
+    "kind": "solvus",
+    "pts": [
+     [
+      4.0,
+      1514
+     ],
+     [
+      3.5,
+      1490
+     ],
+     [
+      2.8,
+      1460
+     ],
+     [
+      1.5,
+      1425
+     ],
+     [
+      0,
+      1394
+     ]
+    ]
+   },
+   "liq_g": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      4.4,
+      1514
+     ],
+     [
+      10,
+      1501
+     ],
+     [
+      20,
+      1482
+     ],
+     [
+      30,
+      1467
+     ],
+     [
+      40,
+      1455
+     ],
+     [
+      50,
+      1446
+     ],
+     [
+      60,
+      1439.5
+     ],
+     [
+      68,
+      1436
+     ]
+    ]
+   },
+   "sol_g": {
+    "kind": "solidus",
+    "pts": [
+     [
+      4.0,
+      1514
+     ],
+     [
+      10,
+      1496
+     ],
+     [
+      20,
+      1475
+     ],
+     [
+      30,
+      1461
+     ],
+     [
+      40,
+      1450
+     ],
+     [
+      50,
+      1442.5
+     ],
+     [
+      60,
+      1438
+     ],
+     [
+      68,
+      1436
+     ]
+    ]
+   },
+   "liq_r": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      68,
+      1436
+     ],
+     [
+      75,
+      1437.5
+     ],
+     [
+      82,
+      1440.5
+     ],
+     [
+      90,
+      1446
+     ],
+     [
+      95,
+      1450
+     ],
+     [
+      100,
+      1455
+     ]
+    ]
+   },
+   "sol_r": {
+    "kind": "solidus",
+    "pts": [
+     [
+      68,
+      1436
+     ],
+     [
+      75,
+      1437
+     ],
+     [
+      82,
+      1439.5
+     ],
+     [
+      90,
+      1444.5
+     ],
+     [
+      95,
+      1449
+     ],
+     [
+      100,
+      1455
+     ]
+    ]
+   },
+   "a_ag": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0,
+      912
+     ],
+     [
+      1,
+      870
+     ],
+     [
+      2,
+      820
+     ],
+     [
+      3,
+      760
+     ],
+     [
+      4,
+      690
+     ],
+     [
+      4.7,
+      620
+     ],
+     [
+      5.2,
+      550
+     ],
+     [
+      5.6,
+      480
+     ],
+     [
+      5.9,
+      400
+     ]
+    ]
+   },
+   "g_ag": {
+    "kind": "solvus",
+    "pts": [
+     [
+      0,
+      912
+     ],
+     [
+      3,
+      862
+     ],
+     [
+      6,
+      815
+     ],
+     [
+      9,
+      771
+     ],
+     [
+      13,
+      718
+     ],
+     [
+      18,
+      658
+     ],
+     [
+      24,
+      596
+     ],
+     [
+      30,
+      540
+     ],
+     [
+      37,
+      482
+     ],
+     [
+      44,
+      430
+     ],
+     [
+      48,
+      400
+     ]
+    ]
+   },
+   "ord": {
+    "kind": "transus",
+    "pts": [
+     [
+      63,
+      400
+     ],
+     [
+      66,
+      450
+     ],
+     [
+      69.5,
+      490
+     ],
+     [
+      72.5,
+      510
+     ],
+     [
+      75.9,
+      517
+     ],
+     [
+      79,
+      510
+     ],
+     [
+      82,
+      490
+     ],
+     [
+      85,
+      450
+     ],
+     [
+      87,
+      400
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1600
+     ],
+     [
+      100,
+      1600
+     ],
+     [
+      100,
+      1455
+     ],
+     "-liq_r",
+     "-liq_g",
+     "-liq_d"
+    ]
+   },
+   {
+    "label": "δ",
+    "phases": [
+     "δ"
+    ],
+    "poly": [
+     "sol_d",
+     "d_dg"
+    ]
+   },
+   {
+    "label": "δ + L",
+    "phases": [
+     "δ",
+     "L"
+    ],
+    "poly": [
+     "liq_d",
+     [
+      3.5,
+      1514
+     ],
+     "-sol_d"
+    ]
+   },
+   {
+    "label": "δ + γ",
+    "phases": [
+     "δ",
+     "γ"
+    ],
+    "poly": [
+     [
+      3.5,
+      1514
+     ],
+     [
+      4.0,
+      1514
+     ],
+     "g_dg",
+     "-d_dg"
+    ]
+   },
+   {
+    "label": "γ + L",
+    "phases": [
+     "γ",
+     "L"
+    ],
+    "poly": [
+     [
+      4.0,
+      1514
+     ],
+     [
+      4.4,
+      1514
+     ],
+     "liq_g",
+     "-sol_g"
+    ]
+   },
+   {
+    "label": "L + γ",
+    "phases": [
+     "L",
+     "γ"
+    ],
+    "poly": [
+     "liq_r",
+     "-sol_r"
+    ]
+   },
+   {
+    "label": "γ",
+    "phases": [
+     "γ"
+    ],
+    "poly": [
+     [
+      0,
+      1394
+     ],
+     "-g_dg",
+     "sol_g",
+     "sol_r",
+     [
+      100,
+      400
+     ],
+     [
+      87,
+      400
+     ],
+     "-ord",
+     [
+      48,
+      400
+     ],
+     "-g_ag"
+    ]
+   },
+   {
+    "label": "FeNi₃",
+    "phases": [
+     "FeNi₃"
+    ],
+    "poly": [
+     "ord"
+    ]
+   },
+   {
+    "label": "α + γ",
+    "phases": [
+     "α",
+     "γ"
+    ],
+    "poly": [
+     "a_ag",
+     [
+      48,
+      400
+     ],
+     "-g_ag"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     "a_ag",
+     [
+      0,
+      400
+     ]
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 1514,
+    "type": "peritectic",
+    "x": [
+     3.5,
+     4.0,
+     4.4
+    ],
+    "reaction": "δ + L ⇌ γ"
+   },
+   {
+    "T": 1436,
+    "type": "congruent",
+    "x": [
+     68,
+     68,
+     68
+    ],
+    "reaction": "L ⇌ γ"
+   },
+   {
+    "T": 517,
+    "type": "congruent",
+    "x": [
+     75.9,
+     75.9,
+     75.9
+    ],
+    "reaction": "γ ⇌ FeNi₃"
+   }
+  ]
+ }
+}

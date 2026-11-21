@@ -109,6 +109,29 @@ class ReportTest(unittest.TestCase):
         keys = [v[0] if isinstance(v, (list, tuple)) else v.get("key") for v in (d.get("values") or [])]
         self.assertTrue(any("kette" in str(k) for k in keys) or "kette-dh" in str(d))
 
+    def test_index_value_in_report_keeps_u_and_origin(self):
+        from elementrechner import bundle as B
+        state = {"values": [{"sym": "Rref", "label": "Zugfestigkeit", "value": "412.5 ± 3", "unit": "MPa",
+                             "source": {"short": "Projektindex g-1", "text": "Projektindex g-1 · rechner · Standard"},
+                             "copied": "2026-11-21T10:00:00", "used": [{"where": "Stöchiometrie: Menge"}]}]}
+        vt = self._tex(B.build({"state": state}, lang="de"), "uebernommene-werte.tex")
+        vt.encode("latin-1")
+        self.assertIn("412.5", vt)
+        self.assertIn("Projektindex g-1", vt)
+        self.assertTrue("±" in vt or r"\pm" in vt)
+
+    def test_unit_fit_for_index_values(self):
+        from elementrechner.server import unit_fit
+        self.assertTrue(unit_fit("g", "g")["same"])
+        r = unit_fit("mg", "g")
+        self.assertTrue(r["compatible"])
+        self.assertFalse(r["same"])                                          # gleiche Dimension: trotzdem nicht still
+        r = unit_fit("MPa", "g")
+        self.assertTrue(r["known"])
+        self.assertFalse(r["compatible"])
+        self.assertFalse(unit_fit("°C", "K")["same"])                        # anderer Nullpunkt
+        self.assertFalse(unit_fit("Quatsch", "g")["known"])
+
     def test_single_step_chain_is_ignored(self):
         from elementrechner import bundle as B
         d = B.build({"state": {"equation": "H2 + O2 -> H2O", "chain": {"steps": LIME[:1]}}}, lang="en")

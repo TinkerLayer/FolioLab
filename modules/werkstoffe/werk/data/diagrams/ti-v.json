@@ -1,0 +1,148 @@
+{
+  "quellen": {
+    "ti-v_murray1981": {
+      "type": "article",
+      "authors": "Murray, J. L.",
+      "title": "The Ti-V (Titanium-Vanadium) System",
+      "container": "Bulletin of Alloy Phase Diagrams",
+      "year": "1981",
+      "volume": "2",
+      "pages": "48-55",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "ti-v",
+    "name": "Ti–V",
+    "name_en": "Ti–V",
+    "A": "Ti",
+    "B": "V",
+    "gruppe": "ti",
+    "x_label": "Vanadium [Gew.-%]",
+    "x_label_en": "Vanadium [wt%]",
+    "xlim": [0, 100],
+    "Tlim": [500, 2000],
+    "q": ["ti-v_murray1981", "massalski1990"],
+    "hinweis": "Zitiert (Murray 1981): Schmelzpunkte Ti 1670 °C und V 1910 °C; lückenlose Mischkristallreihe β (krz) mit Schmelzminimum bei ≈ 1605 °C und ≈ 31 Gew.-% V (≈ 30 At.-%); β → α in reinem Ti bei 882 °C; V stabilisiert β, die β-Transus-Linie fällt bis zum Monotektoid β₁ ⇌ α + β₂ bei 675 °C. Die Mischungslücke β₁ + β₂ ist in der Bewertung nur unsicher belegt (gestrichelt); ihre Form, der kritische Punkt und die Zusammensetzungen am Monotektoid (α ≈ 3,5, β₁ ≈ 16, β₂ ≈ 50 Gew.-% V) sind hier schematisch. Alle Linien zwischen den Eckwerten sind dem bewerteten Diagramm genähert nachgezeichnet: schematisch, nicht zum Ablesen. β₁ und β₂ sind derselbe krz-Mischkristall mit verschiedenem V-Gehalt. Metastabile Phasen (α′, α″, ω) fehlen.",
+    "hinweis_en": "Cited (Murray 1981): melting points Ti 1670 °C and V 1910 °C; complete β (bcc) solid solution with a melting minimum at ≈ 1605 °C and ≈ 31 wt% V (≈ 30 at%); β → α in pure Ti at 882 °C; V stabilises β, the β transus falls to the monotectoid β₁ ⇌ α + β₂ at 675 °C. The miscibility gap β₁ + β₂ is only tentatively established in the assessment (dashed); its shape, the critical point and the compositions at the monotectoid (α ≈ 3.5, β₁ ≈ 16, β₂ ≈ 50 wt% V) are schematic here. All lines between the key values are approximately traced from the assessed diagram: schematic, not for reading values. β₁ and β₂ are the same bcc solid solution with different V contents. Metastable phases (α′, α″, ω) are not shown.",
+    "points": [
+      {
+        "x": 0,
+        "T": 1670,
+        "label": "Ti schmilzt",
+        "label_en": "Ti melts"
+      },
+      {
+        "x": 100,
+        "T": 1910,
+        "label": "V schmilzt",
+        "label_en": "V melts"
+      },
+      {
+        "x": 31,
+        "T": 1605,
+        "label": "Schmelzminimum",
+        "label_en": "melting minimum"
+      },
+      {
+        "x": 0,
+        "T": 882,
+        "label": "β → α (Ti)"
+      },
+      {
+        "x": 16,
+        "T": 675,
+        "label": "Monotektoid (schematisch)",
+        "label_en": "Monotectoid (schematic)"
+      }
+    ],
+    "curves": {
+      "liqL": {
+        "kind": "liquidus",
+        "pts": [[0, 1670], [4, 1652], [8, 1637], [12, 1625], [16, 1616], [20, 1610], [24, 1606.5], [28, 1605.2], [31, 1605]]
+      },
+      "solL": {
+        "kind": "solidus",
+        "pts": [[0, 1670], [4, 1643], [8, 1627], [12, 1617], [16, 1611], [20, 1607.5], [24, 1605.8], [31, 1605]]
+      },
+      "liqR": {
+        "kind": "liquidus",
+        "pts": [[31, 1605], [36, 1607], [42, 1615], [50, 1634], [58, 1662], [66, 1697], [74, 1739], [82, 1786], [90, 1836], [95, 1871], [100, 1910]]
+      },
+      "solR": {
+        "kind": "solidus",
+        "pts": [[31, 1605], [36, 1606], [42, 1610], [50, 1622], [58, 1643], [66, 1672], [74, 1708], [82, 1752], [90, 1803], [95, 1847], [100, 1910]]
+      },
+      "betaT": {
+        "kind": "transus",
+        "pts": [[0, 882], [2, 856], [4, 830], [6, 804], [8, 778], [10, 752], [12, 727], [14, 701], [16, 675]]
+      },
+      "alphaB": {
+        "kind": "transus",
+        "pts": [[0, 882], [0.8, 845], [1.5, 805], [2.2, 765], [2.8, 725], [3.5, 675]]
+      },
+      "aLow": {
+        "kind": "solvus",
+        "pts": [[3.5, 675], [3.0, 640], [2.5, 600], [2.1, 550], [1.8, 500]]
+      },
+      "dome": {
+        "kind": "solvus",
+        "pts": [[16, 675], [17.5, 720], [20, 770], [24, 815], [29, 842], [34, 850], [39, 843], [43, 822], [46, 790], [48.2, 750], [49.3, 715], [50, 675]]
+      },
+      "domeLow": {
+        "kind": "solvus",
+        "pts": [[50, 675], [51.2, 640], [52.8, 600], [54.8, 550], [57, 500]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 2000], [100, 2000], [100, 1910], "-liqR", "-liqL"]
+      },
+      {
+        "label": "β + L",
+        "phases": ["β", "L"],
+        "poly": ["liqL", "-solL"]
+      },
+      {
+        "label": "L + β",
+        "phases": ["L", "β"],
+        "poly": ["liqR", "-solR"]
+      },
+      {
+        "label": "β",
+        "phases": ["β"],
+        "poly": [[0, 882], "solL", "solR", [100, 500], "-domeLow", "-dome", "-betaT"]
+      },
+      {
+        "label": "α + β",
+        "phases": ["α", "β"],
+        "poly": ["alphaB", [16, 675], "-betaT"]
+      },
+      {
+        "label": "α",
+        "phases": ["α"],
+        "poly": [[0, 500], [0, 882], "alphaB", "aLow"]
+      },
+      {
+        "label": "β₁ + β₂",
+        "phases": ["β₁", "β₂"],
+        "poly": ["dome"]
+      },
+      {
+        "label": "α + β₂",
+        "phases": ["α", "β₂"],
+        "poly": [[3.5, 675], [50, 675], "domeLow", "-aLow"]
+      }
+    ],
+    "invariants": [
+      {
+        "T": 675,
+        "type": "monotectoid",
+        "x": [3.5, 16, 50],
+        "reaction": "β₁ ⇌ α + β₂"
+      }
+    ]
+  }
+}

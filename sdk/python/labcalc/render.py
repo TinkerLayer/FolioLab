@@ -160,6 +160,7 @@ def unit_tex(u: str) -> str:
     if not u or u == "1":
         return ""
     s = str(u).replace("μ", "µ").replace("²", "^2").replace("³", "^3").replace("⁻¹", "^-1")
+    s = re.sub(r"(?<=[A-Za-zµ0-9)])√", "·√", s)            # MPa√m -> MPa·√m (sonst ein Wort „MPam“)
     s = re.sub(r"√\(([^)]*)\)", r"(\1)^0.5", s)
     s = re.sub(r"√([A-Za-zµ]+)", r"\1^0.5", s)
     out = []
@@ -364,11 +365,43 @@ class Renderer:
             return r"\log_{%s}\left(%s\right)" % (args[1][0], args[0][0]), f"log<sub>{args[1][1]}</sub>({args[0][1]})", P_ATOM
         if n == "integral" and len(args) == 4:
             return r"\int_{%s}^{%s} %s \,\mathrm{d}%s" % (args[2][0], args[3][0], args[0][0], args[1][0]), \
-                f"∫<sub>{args[2][1]}</sub><sup>{args[3][1]}</sup> {args[0][1]} d{args[1][1]}", P_MUL
+                (f'<span class="bigop int"><span class="bo">∫</span><span class="lims"><sup>{args[3][1]}</sup>'
+                 f'<sub>{args[2][1]}</sub></span></span>{args[0][1]}&#8201;d{args[1][1]}'), P_MUL
         if n in ("sum", "prod") and len(args) == 4:
             big = r"\sum" if n == "sum" else r"\prod"
             return r"%s_{%s=%s}^{%s} %s" % (big, args[1][0], args[2][0], args[3][0], self._paren(args[0], P_MUL)[0]), \
-                f"{'Σ' if n == 'sum' else 'Π'}<sub>{args[1][1]}={args[2][1]}</sub><sup>{args[3][1]}</sup> {args[0][1]}", P_MUL
+                (f'<span class="bigop sum"><sup>{args[3][1]}</sup><span class="bo">{"Σ" if n == "sum" else "Π"}</span>'
+                 f'<sub>{args[1][1]}={args[2][1]}</sub></span>{self._paren(args[0], P_MUL)[1]}'), P_MUL
+        if n == "fprime_" and len(node.args) >= 3 and isinstance(node.args[0], ast.Name):
+            k = _const_value(node.args[1])
+            k = int(k) if k is not None else 1
+            fname = node.args[0].id
+            ft = fname if len(fname) == 1 else r"\mathrm{%s}" % fname.replace("_", r"\_")
+            fh = f"<i>{fname}</i>" if len(fname) == 1 else fname
+            pt = "'" * k if k <= 3 else "^{(%d)}" % k
+            ph = {1: "′", 2: "″", 3: "‴"}.get(k, f"<sup>({k})</sup>")
+            rest = args[2:]
+            return ft + pt + r"\left(" + ", ".join(a[0] for a in rest) + r"\right)", \
+                fh + ph + "(" + ", ".join(a[1] for a in rest) + ")", P_ATOM
+        if n in ("diff", "dnum_") and len(node.args) in (2, 3) and isinstance(node.args[1], ast.Name):
+            k = _const_value(node.args[2]) if len(node.args) == 3 else 1
+            k = int(k) if k is not None else 1
+            v_t, v_h = args[1][0], args[1][1]
+            dt = r"\frac{\mathrm{d}%s}{\mathrm{d}%s%s}" % ("^{%d}" % k if k > 1 else "", v_t, "^{%d}" % k if k > 1 else "")
+            dh = (f'<span class="frac"><span>d{f"<sup>{k}</sup>" if k > 1 else ""}</span>'
+                  f'<span>d{v_h}{f"<sup>{k}</sup>" if k > 1 else ""}</span></span>')
+            body = args[0] if args[0][2] == P_ATOM and isinstance(node.args[0], ast.Name) else \
+                (r"\left(" + args[0][0] + r"\right)", "(" + args[0][1] + ")", P_ATOM)
+            return dt + " " + body[0], dh + body[1], P_MUL
+        if n == "deriv" and len(node.args) in (3, 4) and isinstance(node.args[1], ast.Name):
+            k = _const_value(node.args[3]) if len(node.args) == 4 else 1
+            k = int(k) if k is not None else 1
+            v_t, v_h = args[1][0], args[1][1]
+            sup_t, sup_h = ("^{%d}" % k, f"<sup>{k}</sup>") if k > 1 else ("", "")
+            return r"\left.\frac{\mathrm{d}%s}{\mathrm{d}%s%s}\left(%s\right)\right|_{%s=%s}" % (
+                sup_t, v_t, sup_t, args[0][0], v_t, args[2][0]), \
+                (f'<span class="frac"><span>d{sup_h}</span><span>d{v_h}{sup_h}</span></span>({args[0][1]})'
+                 f'<span class="evalbar">|<sub>{v_h}={args[2][1]}</sub></span>'), P_MUL
         if n == "binom" and len(args) == 2:
             return r"{%s \choose %s}" % (args[0][0], args[1][0]), f"C({args[0][1]}, {args[1][1]})", P_ATOM
         ft = FUNC_TEX.get(n, r"\mathrm{%s}" % n.rstrip("_").replace("_", r"\_"))

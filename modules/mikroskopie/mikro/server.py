@@ -56,9 +56,37 @@ class State:
         self.lock = threading.Lock()
         self.out_root = out_root
         self.envs = ModuleEnvs(out_root, "mikroskopie")   # A2: Umgebungen im aktiven Projekt
+        # Eigene Gleichungen: lesbare JSON-Datei im Ausgabeordner (teilbar, von Hand editierbar)
+        from labuser import JsonStore
+        self.eqs = JsonStore(out_root / "eigene_gleichungen.json", kind="folio-gleichungen/1")
 
 
 STATE: State | None = None
+
+
+def _unc_ready():
+    """Eigene Messmittel der Suite für die Unsicherheitsrechnung bekannt machen (vor jeder Auswertung)."""
+    try:
+        import labunc
+        labunc.load_own(STATE.envs)
+    except ImportError:
+        pass
+
+
+def unc_payload(a, lang: str = "de") -> dict:
+    """Messunsicherheit und eigene Gleichungen eines Arbeitsstands (leer ohne Einstellung bzw. Gleichungen)."""
+    from . import uncertainty as UNC
+    out = {}
+    unc = UNC.evaluate_all(a, (a.state.get("unc") or {}).get("lang") or lang) if a.state.get("unc") else None
+    if unc:
+        out["unc"] = unc
+    defs = a.state.get("equations")
+    if a.part is not None:
+        variables, eqs = UNC.evaluate_equations(a, unc, defs, lang)
+        out["variables"] = [{"name": k, **v} for k, v in variables.items()]
+        if eqs:
+            out["equations"] = eqs
+    return out
 
 
 def add_image(st, data: bytes, name: str, iid: str | None = None) -> dict:
@@ -80,6 +108,7 @@ def env_bundle(stored, report: dict, lang: str) -> dict:
     from . import bundle as B
     by_id = {iid: (raw, fname) for iid, raw, fname, _i, _n, _x in stored}
     items, req_items = [], []
+    _unc_ready()
     for it in report.get("items") or []:
         got = by_id.get(it.get("id"))
         if got is None:
@@ -166,7 +195,11 @@ def calib_of(req, stack) -> Calib:
 
 def state_of(req) -> dict:
     """Arbeitsstand aus einer Anfrage (gleiche Form wie im Bericht gespeichert)."""
-    return {k: req.get(k) for k in ("pipeline", "slice", "display", "calib", "rois", "particles", "region", "scalebar", "compare")}
+    st = {k: req.get(k) for k in ("pipeline", "slice", "display", "calib", "rois", "particles", "region", "scalebar", "compare")}
+    for k in ("unc", "equations", "ext_values"):      # Messunsicherheit, eigene Gleichungen, Indexwerte nur, wenn gesetzt
+        if req.get(k):
+            st[k] = req[k]
+    return st
 
 
 def png_bytes(rgb_or_rgba: np.ndarray) -> bytes:
@@ -183,7 +216,15 @@ def meta_payload() -> dict:
         "particle_defaults": M.DEFAULT_PARTICLE,
         "out_root": str(STATE.out_root),
         "version": __import__("mikro").__version__,
+        "equations": _eq_items(),
     }
+
+
+def _eq_items() -> list:
+    try:
+        return STATE.eqs.items()
+    except (OSError, ValueError):
+        return []
 
 
 def particle_payload(a) -> dict:
@@ -259,6 +300,7 @@ def export(iid, req) -> dict:
     import matplotlib.pyplot as plt
     st = get_image(iid)
     state = state_of(req)
+    _unc_ready()
     a = run(st, state, "de")
     stem = re.sub(r"[^\w\-]+", "_", Path(st.name).stem).strip("_") or "Bild"
     folder = STATE.out_root / stem
@@ -308,6 +350,18 @@ def export(iid, req) -> dict:
                        [{"Grösse": names.get(k, k), "Partikel": ov["s_img"][k], "Datensatz": ov["s_ds"][k]}
                         for k in ("n", "D10", "D50", "D90", "Dv10", "Dv50", "Dv90", "mean", "sd")])
             files.append("vergleichsverteilung.csv")
+        extra = unc_payload(a, "de")
+        if extra.get("unc"):                            # Messunsicherheit: Ergebnis je Kennwert (Budgets im Bericht)
+            _write_csv(folder / "messunsicherheit.csv",
+                       [{"Kennwert": r.get("label") or k, "Ergebnis": r.get("error") or r.get("text"), "u": r.get("u"),
+                         "U": r.get("U"), "k": r.get("k"), "Verfahren": r.get("method_name"), "Modell": r.get("model")}
+                        for k, r in extra["unc"]["results"].items()])
+            files.append("messunsicherheit.csv")
+        if extra.get("equations"):
+            _write_csv(folder / "gleichungen.csv",
+                       [{"Symbol": e.get("sym"), "Ausdruck": e.get("expr"), "Wert": e.get("value"), "Einheit": e.get("unit"),
+                         "Ergebnis": e.get("text_pm") or e.get("text") or e.get("error")} for e in extra["equations"]])
+            files.append("gleichungen.csv")
     if a.intensity.ndim == 2:
         fig(C.fig_hist(a.intensity, "de", a.proc.thr), "histogramm.png")
     lines = [f"Bild: {st.name}  ({st.width}×{st.height} px, {st.type_label()}, {st.slices} Ebene(n))",
@@ -359,7 +413,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
         if url.path == "/api/meta":
             return self._json(meta_payload())
-        if url.path in ("/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js"):   # UI-07, I-02
+        if url.path in ("/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js",
+                        "/labunc.js", "/labref.js"):
             return self._send(200, labcite.web_asset(url.path[1:]), "text/javascript; charset=utf-8")
         self._send(404, b"nicht gefunden", "text/plain")
 
@@ -367,6 +422,9 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         origin = self.headers.get("Origin")
         if origin and not ORIGIN_OK.match(origin):
+            n = int(self.headers.get("Content-Length") or 0)
+            if 0 < n <= 1 << 20:
+                self.rfile.read(n)                       # read the small body so the answer arrives cleanly
             return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)
         try:
             return self._route(url)
@@ -460,10 +518,30 @@ class Handler(BaseHTTPRequestHandler):
             state = state_of(req)
             state["particles"] = req.get("params") or {}
             state["rois"] = []
+            _unc_ready()
             a = run(st, state, "de")
             out = particle_payload(a)
             out["unit"] = a.calib.unit if a.calib.calibrated else "px"
+            out.update(unc_payload(a, req.get("lang") or "de"))
             return self._json(out)
+        if p == "/api/unccompare":                     # alle vier Verfahren für einen Kennwert
+            from . import uncertainty as UNC
+            req = self._req()
+            st = get_image(req.get("id"))
+            state = state_of(req)
+            state["particles"] = req.get("params") or {}
+            state["rois"] = []
+            _unc_ready()
+            a = run(st, state, "de")
+            try:
+                return self._json(UNC.compare(a, str(req.get("name") or "D50"), req.get("lang")))
+            except ValueError as e:
+                return self._json({"error": str(e)}, 400)
+        if p.startswith("/api/unc/"):                  # Messunsicherheit: Messmittel, Vorschau, Verfahren (labunc)
+            import labunc
+            return self._json(labunc.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
+        if p.startswith("/api/equations/"):
+            return self._equations(p.rsplit("/", 1)[1])
         if p == "/api/export":
             req = self._req()
             return self._json(export(req.get("id"), req))
@@ -478,10 +556,44 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(dataset_route(p.rsplit("/", 1)[1], self._req()))
         return self._send(404, b"nicht gefunden", "text/plain")
 
+    def _equations(self, action):
+        """Eigene Gleichungen (labcalc.formulas): Liste, Speichern, Löschen, Export, Import."""
+        from labcalc import formulas as F
+        S = STATE.eqs
+        if action == "list":
+            return self._json({"items": S.items()})
+        req = self._req()
+        if action == "save":
+            d = F.clean_defs([req.get("item") or {}])
+            if not d:
+                raise ops.OpError("Gleichung leer")
+            x = d[0]
+            err = F.check_name(x["sym"])
+            if err:
+                raise ops.OpError(err)
+            if x.get("source"):
+                e = labcite.errors(x["source"])
+                if e:
+                    raise ops.OpError("Quelle: " + "; ".join(e))
+                x["source"] = labcite.clean(x["source"])
+            x["id"] = (req.get("item") or {}).get("id")
+            return self._json({"item": S.put(x), "items": S.items()})
+        if action == "delete":
+            S.delete(req.get("id"))
+            return self._json({"items": S.items()})
+        if action == "export":
+            return self._json({"text": json.dumps(S.export(), ensure_ascii=False, indent=1),
+                               "filename": "eigene_gleichungen.json", "mime": "application/json"})
+        if action == "import":
+            n = S.import_(req.get("data") or {}, bool(req.get("replace")))
+            return self._json({"added": n, "items": S.items()})
+        return self._send(404, b"nicht gefunden", "text/plain")
+
     def _bundle(self, p):
         from . import bundle as B
         req = self._req()
         items, req_items = [], []
+        _unc_ready()
         if p == "/api/bundle":
             for it in req.get("items", []):
                 st = get_image(it.get("id"))
@@ -503,6 +615,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "Kein Bild gewählt."}, 400)
         request = {"items": req_items, "lang": req.get("lang", "de"), "include": req.get("include") or {},
                    "title": req.get("title") or None, "slug": req.get("slug") or None}
+        # the hub's figure styles and the describe request for its editing window pass through (labbundle)
+        for k in ("styles", "describe_figures", "preview"):
+            if k in req:
+                request[k] = req[k]
         try:
             b = B.build(items, request, lang=request["lang"], include=request["include"], title=request["title"])
         except ValueError as e:

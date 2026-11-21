@@ -37,6 +37,31 @@ INDICES = {
 }
 
 
+# Anzeigenamen der Familien (Datenbankfeld „familie“) für die Familienumrisse im Diagramm: (DE, EN)
+FAMILY_NAMES = {
+    "Kunststoff": ("Thermoplaste", "Thermoplastics"), "Reinmetall": ("Reinmetalle", "Pure metals"),
+    "Aluminium": ("Aluminiumlegierungen", "Aluminium alloys"), "Stahl": ("Stähle", "Steels"),
+    "Kupfer": ("Kupferlegierungen", "Copper alloys"), "Elastomer": ("Elastomere", "Elastomers"),
+    "Edelstahl": ("Nichtrostende Stähle", "Stainless steels"), "Titan": ("Titanlegierungen", "Titanium alloys"),
+    "Folie": ("Folien", "Films"), "Nickel": ("Nickellegierungen", "Nickel alloys"), "Papier": ("Papier", "Paper"),
+    "Holz": ("Holz", "Wood"), "Faserverbund": ("Faserverbunde", "Fibre composites"),
+    "Halbleiter": ("Halbleiter", "Semiconductors"), "Oxidkeramik": ("Oxidkeramik", "Oxide ceramics"),
+    "Glas": ("Gläser", "Glasses"), "Kohlenstofffaser": ("Kohlenstofffasern", "Carbon fibres"),
+    "UD-Schicht": ("UD-Schichten", "UD plies"), "Gusseisen": ("Gusseisen", "Cast irons"),
+    "Magnesium": ("Magnesiumlegierungen", "Magnesium alloys"),
+    "Kunststoff verstärkt": ("Verstärkte Kunststoffe", "Reinforced plastics"), "Duroplast": ("Duroplaste", "Thermosets"),
+    "Nichtoxidkeramik": ("Nichtoxidkeramik", "Non-oxide ceramics"), "Kohlenstoff": ("Kohlenstoff", "Carbon"),
+    "Glaskeramik": ("Glaskeramik", "Glass ceramics"), "Baustoff": ("Baustoffe", "Building materials"),
+    "Glasfaser": ("Glasfasern", "Glass fibres"), "Aramidfaser": ("Aramidfasern", "Aramid fibres"),
+    "Polymerfaser": ("Polymerfasern", "Polymer fibres"),
+}
+
+
+def family_name(fam: str, lang: str = "de") -> str:
+    n = FAMILY_NAMES.get(fam)
+    return (n[0] if lang == "de" else n[1]) if n else fam
+
+
 class SelError(ValueError):
     pass
 
@@ -62,10 +87,15 @@ def _val(r: dict, prop: str):
     try:
         v = M.value(r, prop)
     except M.MatError:
-        return None
-    if v.get("si") is None:
-        return None
-    return v
+        v = None
+    if v and v.get("si") is not None:
+        return v
+    # kein Einzelwert, aber eine zitierte Spanne: Punkt in der (geometrischen) Mitte, als „nur Spanne“ markiert
+    rg = M.range_of(r, prop) if hasattr(M, "range_of") else None
+    if rg and rg["min_si"] > 0 and rg["max_si"] > 0:
+        return {"si": (rg["min_si"] * rg["max_si"]) ** 0.5, "min_si": rg["min_si"], "max_si": rg["max_si"],
+                "art": "spanne", "key": rg.get("range_key"), "range_only": True, "nicht_geprueft": True}
+    return None
 
 
 def point(r: dict, px: str, py: str, lang: str = "de") -> dict | None:
@@ -78,6 +108,7 @@ def point(r: dict, px: str, py: str, lang: str = "de") -> dict | None:
             "y": disp(vy["si"], py), "ymin": disp(vy.get("min_si"), py), "ymax": disp(vy.get("max_si"), py),
             "art_x": vx.get("art", ""), "art_y": vy.get("art", ""),
             "unchecked": bool(vx.get("nicht_geprueft") or vy.get("nicht_geprueft")),
+            "range_only": bool(vx.get("range_only") or vy.get("range_only")),
             "mp": s.get("teil") == "materials_mp", "q": [k for k in (vx.get("key"), vy.get("key")) if k]}
 
 
@@ -99,7 +130,8 @@ def chart(px: str, py: str, classes: list[str] | None = None, include_mp: bool =
     ky, uy, dy, ey = M.PROPS[py]
     return {"points": pts, "x": {"key": px, "label": dx if lang == "de" else ex, "unit": ux},
             "y": {"key": py, "label": dy if lang == "de" else ey, "unit": uy},
-            "classes": {k: (v[0] if lang == "de" else v[1]) for k, v in M.CLASSES.items()}}
+            "classes": {k: (v[0] if lang == "de" else v[1]) for k, v in M.CLASSES.items()},
+            "families": {f: family_name(f, lang) for f in sorted({p["familie"] for p in pts if p["familie"]})}}
 
 
 def index_value(r: dict, expo: dict) -> tuple[float | None, str | None]:

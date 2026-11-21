@@ -1,0 +1,143 @@
+{
+  "quellen": {
+    "al-mn_mcalister1987": {
+      "type": "article",
+      "authors": "McAlister, A. J.; Murray, J. L.",
+      "title": "The Al-Mn (Aluminum-Manganese) System",
+      "container": "Bulletin of Alloy Phase Diagrams",
+      "year": "1987",
+      "volume": "8",
+      "pages": "438-447",
+      "note": "Angaben nicht am Original geprüft"
+    },
+    "al-mg2si_mondolfo1976": {
+      "type": "book",
+      "authors": "Mondolfo, L. F.",
+      "title": "Aluminum Alloys: Structure and Properties",
+      "container": "Butterworths, London",
+      "year": "1976",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "al-mn",
+    "name": "Al–Mn (Al-reiche Seite)",
+    "name_en": "Al–Mn (Al-rich side)",
+    "A": "Al",
+    "B": "Mn",
+    "gruppe": "al",
+    "x_label": "Mangan [Gew.-%]",
+    "x_label_en": "Manganese [wt%]",
+    "xlim": [0, 10],
+    "Tlim": [400, 900],
+    "q": ["al-mn_mcalister1987", "al-mg2si_mondolfo1976"],
+    "hinweis": "Zitiert (McAlister und Murray 1987; Mondolfo 1976): Schmelzpunkt Al 660,3 °C; Eutektikum L ⇌ (Al) + Al₆Mn bei 658 °C mit L ≈ 1,95 Gew.-% Mn; grösste Löslichkeit von Mn in (Al) 1,82 Gew.-% (Mondolfo; neuere Bewertungen geben teils weniger an); Peritektikum L + Al₄Mn ⇌ Al₆Mn bei 705 °C mit L ≈ 4 Gew.-% Mn. Liquidus, Solidus und Solvus zwischen diesen Eckwerten schematisch (Solvus als Arrhenius-Kurve); nicht zum genauen Ablesen. Vereinfacht: oberhalb 705 °C nur Al₄Mn als Primärphase (λ/μ-Modifikationen und die weiteren Peritektika zu höheren Temperaturen nicht unterschieden). Al₆Mn (25,3 Gew.-% Mn) und Al₄Mn liegen ausserhalb des gezeigten Bereichs: in den Feldern mit diesen Phasen endet die Konode am Diagrammrand. Das Zweiphasengebiet (Al) + L ist nur etwa 0,1 Gew.-% breit.",
+    "hinweis_en": "Cited (McAlister and Murray 1987; Mondolfo 1976): melting point of Al 660.3 °C; eutectic L ⇌ (Al) + Al₆Mn at 658 °C with L ≈ 1.95 wt% Mn; maximum solubility of Mn in (Al) 1.82 wt% (Mondolfo; newer assessments partly give less); peritectic L + Al₄Mn ⇌ Al₆Mn at 705 °C with L ≈ 4 wt% Mn. Liquidus, solidus and solvus between these key values are schematic (solvus as an Arrhenius curve); not for precise reading. Simplified: above 705 °C only Al₄Mn as primary phase (λ/μ modifications and the further peritectics at higher temperatures not distinguished). Al₆Mn (25.3 wt% Mn) and Al₄Mn lie outside the range shown: in the fields with these phases the tie line ends at the diagram edge. The two-phase field (Al) + L is only about 0.1 wt% wide.",
+    "points": [
+      {
+        "x": 0,
+        "T": 660.3,
+        "label": "Al schmilzt",
+        "label_en": "Al melts"
+      },
+      {
+        "x": 1.82,
+        "T": 658,
+        "label": "grösste Löslichkeit von Mn in (Al)",
+        "label_en": "maximum solubility of Mn in (Al)"
+      },
+      {
+        "x": 1.95,
+        "T": 658,
+        "label": "Eutektikum",
+        "label_en": "Eutectic"
+      },
+      {
+        "x": 4.0,
+        "T": 705,
+        "label": "Peritektikum L + Al₄Mn ⇌ Al₆Mn",
+        "label_en": "Peritectic L + Al₄Mn ⇌ Al₆Mn"
+      }
+    ],
+    "curves": {
+      "liqA": {
+        "kind": "liquidus",
+        "pts": [[0, 660.3], [0.5, 659.85], [1.0, 659.3], [1.5, 658.75], [1.95, 658]]
+      },
+      "solA": {
+        "kind": "solidus",
+        "pts": [[0, 660.3], [0.5, 659.6], [1.0, 659.0], [1.5, 658.45], [1.82, 658]]
+      },
+      "liqM6": {
+        "kind": "liquidus",
+        "pts": [[1.95, 658], [2.3, 668], [2.7, 678.5], [3.1, 688], [3.5, 696.5], [4.0, 705]]
+      },
+      "liqM4": {
+        "kind": "liquidus",
+        "pts": [[4.0, 705], [5, 737], [6, 767], [7, 794], [8, 819], [9, 842], [10, 863]]
+      },
+      "solv": {
+        "kind": "solvus",
+        "pts": [[1.82, 658], [1.55, 640], [1.29, 620], [1.07, 600], [0.871, 580], [0.706, 560], [0.566, 540], [0.448, 520], [0.351, 500], [0.254, 475], [0.179, 450], [0.124, 425], [0.083, 400]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 900], [10, 900], [10, 863], "-liqM4", "-liqM6", "-liqA"]
+      },
+      {
+        "label": "(Al) + L",
+        "phases": ["(Al)", "L"],
+        "poly": ["liqA", [1.82, 658], "-solA"]
+      },
+      {
+        "label": "L + Al₆Mn",
+        "phases": ["L", "Al₆Mn"],
+        "poly": ["liqM6", [10, 705], [10, 658]],
+        "phase_x": {
+          "Al₆Mn": 25.3
+        }
+      },
+      {
+        "label": "L + Al₄Mn",
+        "phases": ["L", "Al₄Mn"],
+        "poly": ["liqM4", [10, 705]],
+        "phase_x": {
+          "Al₄Mn": 33.7
+        }
+      },
+      {
+        "label": "(Al)",
+        "phases": ["(Al)"],
+        "poly": ["solA", "solv", [0, 400]]
+      },
+      {
+        "label": "(Al) + Al₆Mn",
+        "phases": ["(Al)", "Al₆Mn"],
+        "poly": [[1.82, 658], [10, 658], [10, 400], "-solv"],
+        "phase_x": {
+          "Al₆Mn": 25.3
+        }
+      }
+    ],
+    "invariants": [
+      {
+        "T": 705,
+        "type": "peritectic",
+        "x": [4.0, 25.3, 33.7],
+        "reaction": "L + Al₄Mn ⇌ Al₆Mn"
+      },
+      {
+        "T": 658,
+        "type": "eutectic",
+        "x": [1.82, 1.95, 25.3],
+        "reaction": "L ⇌ (Al) + Al₆Mn",
+        "constituents": ["primäres (Al)", "Eutektikum ((Al) + Al₆Mn)", "primäres Al₆Mn"],
+        "constituents_en": ["primary (Al)", "eutectic ((Al) + Al₆Mn)", "primary Al₆Mn"],
+        "morph": "rod"
+      }
+    ]
+  }
+}

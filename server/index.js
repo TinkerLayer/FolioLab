@@ -261,15 +261,20 @@ route('POST', '/api/modules/:id/stop', async (req, res, p) => json(res, { stoppe
 route('GET', '/api/projects/:id/lab', async (req, res, p) => json(res, await lab.list(p.id)));
 route('POST', '/api/projects/:id/lab', async (req, res, p, q) => json(res, await lab.save(p.id, await readJson(req), q.get('mode') || undefined), 201));
 route('POST', '/api/projects/:id/lab/:slug/refresh', async (req, res, p) => json(res, await lab.refresh(p.id, p.slug, await readJson(req))));
+route('POST', '/api/projects/:id/lab/:slug/pick', async (req, res, p) => json(res, await lab.repick(p.id, p.slug, await readJson(req))));
+route('POST', '/api/projects/:id/lab/:slug/fork', async (req, res, p) => json(res, await lab.fork(p.id, p.slug, await readJson(req))));
+route('POST', '/api/projects/:id/lab/:slug/preview', async (req, res, p) => json(res, await lab.preview(p.id, p.slug, await readJson(req))));
+route('GET', '/api/projects/:id/lab/:slug/forks', async (req, res, p) => json(res, await lab.forksOf(p.id, p.slug)));
 route('GET', '/api/projects/:id/lab/:slug/revisions', async (req, res, p) => json(res, await lab.revisions(p.id, p.slug)));
 route('GET', '/api/projects/:id/lab/:slug/history', async (req, res, p) => json(res, await lab.history(p.id, p.slug))); // UI-09
 route('GET', '/api/projects/:id/lab/:slug/compare', async (req, res, p, q) => json(res, await lab.compare(p.id, p.slug, q.get('a'), q.get('b'))));
 route('POST', '/api/projects/:id/lab/:slug/restore', async (req, res, p) => json(res, await lab.restore(p.id, p.slug, (await readJson(req)).revision)));
 route('POST', '/api/projects/:id/lab/:slug/issue', async (req, res, p) => json(res, await lab.issue(p.id, p.slug, 'manual')));
-route('DELETE', '/api/projects/:id/lab/:slug', async (req, res, p) => {
-  await lab.remove(p.id, p.slug);
-  json(res, { ok: true });
+route('DELETE', '/api/projects/:id/lab/:slug', async (req, res, p, q) => {
+  json(res, { ok: true, ...(await lab.remove(p.id, p.slug, { section: q.get('section') === '1' })) });
 });
+route('GET', '/api/projects/:id/lab/:slug/uses-info', async (req, res, p) => json(res, await lab.usesInfo(p.id, p.slug)));
+route('POST', '/api/projects/:id/lab-undo', async (req, res, p) => json(res, await lab.restoreRemoved(p.id, (await readJson(req)).undo)));
 
 // ---------------------------------------------------------------- import into reports (server/importer.js)
 const srcDesc = (q) => ({ type: q.get('type'), project: q.get('project'), stage: q.get('stage') });

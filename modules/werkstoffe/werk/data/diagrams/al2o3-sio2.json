@@ -1,0 +1,523 @@
+{
+ "quellen": {
+  "al2o3-sio2_aramaki1962": {
+   "type": "article",
+   "authors": "Aramaki, S.; Roy, R.",
+   "title": "Revised phase diagram for the system Al₂O₃–SiO₂",
+   "container": "Journal of the American Ceramic Society",
+   "year": "1962",
+   "volume": "45",
+   "pages": "229–242",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "al2o3-sio2_klug1987": {
+   "type": "article",
+   "authors": "Klug, F. J.; Prochazka, S.; Doremus, R. H.",
+   "title": "Alumina–silica phase diagram in the mullite region",
+   "container": "Journal of the American Ceramic Society",
+   "year": "1987",
+   "volume": "70",
+   "pages": "750–759",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "al2o3-sio2",
+  "name": "SiO₂–Al₂O₃",
+  "name_en": "SiO₂–Al₂O₃",
+  "A": "SiO₂",
+  "B": "Al₂O₃",
+  "gruppe": "keramik",
+  "x_label": "Al₂O₃ [Gew.-%]",
+  "x_label_en": "Al₂O₃ [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   1400,
+   2100
+  ],
+  "q": [
+   "al2o3-sio2_aramaki1962",
+   "al2o3-sio2_klug1987",
+   "callister"
+  ],
+  "hinweis": "x = Gew.-% Al₂O₃ (A = SiO₂, B = Al₂O₃). Gezeichnet nach Aramaki & Roy (1962): SiO₂ (Cristobalit) schmilzt bei 1723 °C, Al₂O₃ bei 2054 °C; Eutektikum Cristobalit + Mullit bei 1595 °C und 5,5 Gew.-% Al₂O₃; Mullit-Mischkristall 71,8–74,3 Gew.-% Al₂O₃ (3Al₂O₃·2SiO₂ = 71,8 Gew.-%), kongruentes Schmelzen bei 1850 °C; Eutektikum Mullit + Korund bei 1840 °C (≈ 77,5 Gew.-%). Klug, Prochazka & Doremus (1987) finden dagegen das Eutektikum bei 1587 °C und inkongruentes Schmelzen des Mullits bei ≈ 1890 °C (peritektisch); diese Frage ist nicht endgültig geklärt. Kurvenpunkte zwischen den Stützstellen sind schematisch. Vereinfacht: SiO₂ ist durchgehend als Cristobalit gezeichnet (Tridymit unter 1470 °C weggelassen), Löslichkeiten in SiO₂ und Al₂O₃ vernachlässigt, metastabile Mullite (bis 2:1) nicht gezeigt.",
+  "hinweis_en": "x = wt% Al₂O₃ (A = SiO₂, B = Al₂O₃). Drawn after Aramaki & Roy (1962): SiO₂ (cristobalite) melts at 1723 °C, Al₂O₃ at 2054 °C; eutectic cristobalite + mullite at 1595 °C and 5.5 wt% Al₂O₃; mullite solid solution 71.8–74.3 wt% Al₂O₃ (3Al₂O₃·2SiO₂ = 71.8 wt%), congruent melting at 1850 °C; eutectic mullite + corundum at 1840 °C (≈ 77.5 wt%). Klug, Prochazka & Doremus (1987) instead report the eutectic at 1587 °C and incongruent (peritectic) melting of mullite at ≈ 1890 °C; the question is not fully settled. Curve points between these values are schematic. Simplified: SiO₂ is drawn as cristobalite throughout (tridymite below 1470 °C omitted), solubilities in SiO₂ and Al₂O₃ neglected, metastable mullites (up to 2:1) not shown.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1723,
+    "label": "SiO₂ schmilzt",
+    "label_en": "SiO₂ melts"
+   },
+   {
+    "x": 100,
+    "T": 2054,
+    "label": "Al₂O₃ schmilzt",
+    "label_en": "Al₂O₃ melts"
+   },
+   {
+    "x": 5.5,
+    "T": 1595,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 73.0,
+    "T": 1850,
+    "label": "Mullit schmilzt",
+    "label_en": "Mullite melts"
+   },
+   {
+    "x": 77.5,
+    "T": 1840,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 71.8,
+    "T": 1595
+   },
+   {
+    "x": 74.3,
+    "T": 1840
+   }
+  ],
+  "curves": {
+   "liqSi": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1723
+     ],
+     [
+      1,
+      1702
+     ],
+     [
+      2,
+      1680
+     ],
+     [
+      3,
+      1657
+     ],
+     [
+      4,
+      1632
+     ],
+     [
+      5,
+      1608
+     ],
+     [
+      5.5,
+      1595
+     ]
+    ]
+   },
+   "liqM1": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      5.5,
+      1595
+     ],
+     [
+      8,
+      1620
+     ],
+     [
+      11,
+      1648
+     ],
+     [
+      15,
+      1680
+     ],
+     [
+      20,
+      1712
+     ],
+     [
+      26,
+      1742
+     ],
+     [
+      33,
+      1768
+     ],
+     [
+      40,
+      1789
+     ],
+     [
+      47,
+      1806
+     ],
+     [
+      54,
+      1820
+     ],
+     [
+      60,
+      1831
+     ],
+     [
+      65,
+      1840
+     ],
+     [
+      69,
+      1846
+     ],
+     [
+      73.0,
+      1850
+     ]
+    ]
+   },
+   "liqM2": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      73.0,
+      1850
+     ],
+     [
+      74.5,
+      1848.5
+     ],
+     [
+      76,
+      1845
+     ],
+     [
+      77.5,
+      1840
+     ]
+    ]
+   },
+   "liqAl": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      77.5,
+      1840
+     ],
+     [
+      80,
+      1866
+     ],
+     [
+      83,
+      1897
+     ],
+     [
+      86,
+      1927
+     ],
+     [
+      89,
+      1956
+     ],
+     [
+      92,
+      1984
+     ],
+     [
+      95,
+      2009
+     ],
+     [
+      97.5,
+      2032
+     ],
+     [
+      100,
+      2054
+     ]
+    ]
+   },
+   "solM1": {
+    "kind": "solidus",
+    "pts": [
+     [
+      71.8,
+      1595
+     ],
+     [
+      71.8,
+      1680
+     ],
+     [
+      71.9,
+      1760
+     ],
+     [
+      72.2,
+      1815
+     ],
+     [
+      72.6,
+      1840
+     ],
+     [
+      73.0,
+      1850
+     ]
+    ]
+   },
+   "solM2": {
+    "kind": "solidus",
+    "pts": [
+     [
+      73.0,
+      1850
+     ],
+     [
+      73.6,
+      1848
+     ],
+     [
+      74.3,
+      1840
+     ]
+    ]
+   },
+   "mulL": {
+    "kind": "solvus",
+    "pts": [
+     [
+      71.8,
+      1400
+     ],
+     [
+      71.8,
+      1595
+     ]
+    ],
+    "smooth": false
+   },
+   "mulR": {
+    "kind": "solvus",
+    "pts": [
+     [
+      74.3,
+      1400
+     ],
+     [
+      74.3,
+      1840
+     ]
+    ],
+    "smooth": false
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      2100
+     ],
+     [
+      100,
+      2100
+     ],
+     "-liqAl",
+     "-liqM2",
+     "-liqM1",
+     "-liqSi"
+    ]
+   },
+   {
+    "label": "Cristobalit + L",
+    "phases": [
+     "Cristobalit",
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1723
+     ],
+     "liqSi",
+     [
+      0,
+      1595
+     ]
+    ]
+   },
+   {
+    "label": "Cristobalit + Mullit",
+    "phases": [
+     "Cristobalit",
+     "Mullit (ss)"
+    ],
+    "poly": [
+     [
+      0,
+      1595
+     ],
+     [
+      71.8,
+      1595
+     ],
+     [
+      71.8,
+      1400
+     ],
+     [
+      0,
+      1400
+     ]
+    ]
+   },
+   {
+    "label": "L + Mullit",
+    "phases": [
+     "L",
+     "Mullit (ss)"
+    ],
+    "poly": [
+     "liqM1",
+     "-solM1"
+    ]
+   },
+   {
+    "label": "Mullit (ss)",
+    "phases": [
+     "Mullit (ss)"
+    ],
+    "poly": [
+     "solM1",
+     "solM2",
+     [
+      74.3,
+      1400
+     ],
+     [
+      71.8,
+      1400
+     ]
+    ]
+   },
+   {
+    "label": "Mullit + L",
+    "phases": [
+     "Mullit (ss)",
+     "L"
+    ],
+    "poly": [
+     "liqM2",
+     [
+      74.3,
+      1840
+     ],
+     "-solM2"
+    ]
+   },
+   {
+    "label": "Mullit + Korund",
+    "phases": [
+     "Mullit (ss)",
+     "Korund"
+    ],
+    "poly": [
+     [
+      74.3,
+      1840
+     ],
+     [
+      100,
+      1840
+     ],
+     [
+      100,
+      1400
+     ],
+     [
+      74.3,
+      1400
+     ]
+    ]
+   },
+   {
+    "label": "L + Korund",
+    "phases": [
+     "L",
+     "Korund"
+    ],
+    "poly": [
+     "liqAl",
+     [
+      100,
+      1840
+     ]
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 1595,
+    "type": "eutectic",
+    "x": [
+     0,
+     5.5,
+     71.8
+    ],
+    "reaction": "L ⇌ Cristobalit + Mullit",
+    "constituents": [
+     "primärer Cristobalit",
+     "Eutektikum",
+     "primärer Mullit"
+    ],
+    "constituents_en": [
+     "primary cristobalite",
+     "eutectic",
+     "primary mullite"
+    ],
+    "morph": "faceted"
+   },
+   {
+    "T": 1850,
+    "type": "congruent",
+    "x": [
+     73.0,
+     73.0,
+     73.0
+    ],
+    "reaction": "L ⇌ Mullit"
+   },
+   {
+    "T": 1840,
+    "type": "eutectic",
+    "x": [
+     74.3,
+     77.5,
+     100
+    ],
+    "reaction": "L ⇌ Mullit + Korund",
+    "constituents": [
+     "primärer Mullit",
+     "Eutektikum",
+     "primärer Korund"
+    ],
+    "constituents_en": [
+     "primary mullite",
+     "eutectic",
+     "primary corundum"
+    ],
+    "morph": "faceted"
+   }
+  ]
+ }
+}

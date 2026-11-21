@@ -208,10 +208,10 @@ def at_of(host: str, el: str, w: float) -> float:
 
 # ============================================================================ Löslichkeit und Phasenzustand
 def _diagram_for(host: str, el: str):
-    for s in PD._data()["systeme"]:
-        if {s["A"], s["B"]} == {host, el}:
-            return s
-    return None
+    """Diagramm des Paares; gibt es zwei (z. B. Al–Mg und Mg–Al), das mit dem Wirt als Basis A."""
+    hits = [s for s in PD._data()["systeme"] if {s.get("A"), s.get("B")} == {host, el}]
+    plain = f"{host}-{el}".lower()                     # fe-c vor fe-c-stabil: das metastabile System ist das übliche
+    return next((s for s in hits if s["id"] == plain), None) or next((s for s in hits if s["A"] == host), hits[0] if hits else None)
 
 
 def _complete(host: str, el: str) -> bool:
@@ -247,6 +247,11 @@ def phase_state(host: str, sols: list[dict], T: float, own_limits: dict | None =
         phases = []
         for p in lv["phases"]:
             info = dict(mp.get(p["name"], {"name": p["name"]}))
+            if info.get("host"):
+                # Mischkristall über das ganze Diagramm: Matrix ist der Wirt, in seiner Form mit dem genannten Gitter
+                fm = next((f for f in _data()["elemente"].get(host, {}).get("formen", []) if f.get("gitter") == info.get("gitter")), None)
+                info = {**info, "el": host if fm else None, "form": fm["name"] if fm else None,
+                        "name": info.get("name") or (fm["name"] if fm else p["name"])}
             # x im Diagramm → Gew.-% des gelösten Elements in dieser Phase
             xs = p["x"] if dg["A"] == host else 100 - p["x"]
             phases.append({"name": info.get("name") or p["name"], "label": p["name"], "frac": p["frac"],
@@ -420,6 +425,13 @@ def build(req: dict, lang: str = "de") -> dict:
 
     # ---------------------------------------------------------------- Phasen
     st = phase_state(host, sols, T, own, lang)
+    forced = req.get("form")
+    if forced and T <= d["elemente"][host]["Tm"]:
+        # vorgegebene Kristallform (z. B. γ-Fe im austenitischen Stahl, durch Legierungselemente stabilisiert)
+        f_forced = form_named(host, str(forced))
+        st = {**st, "diagram": None, "notes": [], "refs": [],
+              "phases": [{"name": f_forced["name"], "label": f_forced["name"], "frac": 1.0, "x_wt": None, "el": host,
+                          "form": f_forced["name"], "fluessig": False}]}
     notes += st["notes"]
     refs += st["refs"]
     phases = st["phases"]

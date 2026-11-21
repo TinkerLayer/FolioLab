@@ -206,6 +206,14 @@ class ServerOwnTest(unittest.TestCase):
         bib = base64.b64decode(b2["files"]["refs.bib"]).decode("utf-8")
         self.assertIn("10.1234/zug.5678", bib)
         self.assertIn("Werkstoffprüfung", bib)     # Quelle der Gleichung
+        # the hub's editing window: styles and describe_figures reach labbundle on a rebuild
+        src = {**b["source"], "request": {**b["source"]["request"], "describe_figures": True,
+                                          "styles": {"verlauf": {"title": "Neu"}}}}
+        b3 = self.call("/api/bundle/rebuild", {"source": src, "lang": "de"})
+        fig = next(i for i in b3["items"] if i.get("id") == "verlauf")
+        self.assertIn("elements", fig.get("describe") or {})
+        self.assertIn("axes", fig["describe"].get("now") or {})
+        self.assertEqual((fig.get("style") or {}).get("title"), "Neu")
         # Export / Import
         ex = self.call("/api/own/export", {})
         self.assertEqual(json.loads(ex["text"])["items"], [])

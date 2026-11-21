@@ -38,7 +38,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ORIGIN_OK = re.compile(r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$")
 MAX_FILE = 200 * 1024 * 1024
 MAX_WINDOW = (1000, 200)                 # rows × columns per /api/cells request
-WEB = ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js")
+WEB = ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labunc.js")
 
 
 class Item:
@@ -496,6 +496,36 @@ def stats(sh, ranges) -> dict:
             **({"sum": float(x.sum()), "mean": float(x.mean()), "min": float(x.min()), "max": float(x.max())} if x.size else {})}
 
 
+def repeat_values(sh, ranges) -> list[float]:
+    """Numbers of a selection, row by row (a column or a range of repeated readings)."""
+    from .sheet import NUM
+    out = []
+    for g in list(ranges)[:50]:
+        try:
+            r0, c0, r1, c1 = (int(g[k]) for k in ("r0", "c0", "r1", "c1"))
+        except (KeyError, TypeError, ValueError):
+            raise ValueError("Bereich ungültig") from None
+        r0, r1 = sorted((max(r0, 0), max(r1, 0)))
+        c0, c1 = sorted((max(c0, 0), max(c1, 0)))
+        typ, num = sh.typ[r0:r1 + 1, c0:c1 + 1], sh.num[r0:r1 + 1, c0:c1 + 1]
+        out += [float(x) for x in num[(typ == NUM) & np.isfinite(num)].ravel().tolist()]
+        if len(out) > 10000:
+            raise ValueError("Wiederholmessung: höchstens 10 000 Werte")
+    return out
+
+
+def repeat_route(req: dict) -> dict:
+    """Wiederholmessung: mean, s, u = s/√n, ν = n − 1 of the numbers in a selection (type A)."""
+    from . import uncert as UC
+    sh = sheet_of(req.get("id"), req.get("sheet"))
+    try:
+        r = UC.repeats(repeat_values(sh, req.get("ranges") or []))
+    except UC.UncColError as e:
+        raise ValueError(str(e)) from None
+    r.pop("values")
+    return r
+
+
 def recipe_route(action: str, req: dict) -> dict:
     """DP-05: first guess, preview of the extracted long table, check as a dataset."""
     from . import recipe as RC
@@ -688,12 +718,23 @@ class Handler(BaseHTTPRequestHandler):
         if p.startswith("/api/manual/"):
             return self._json(manual_route(p.rsplit("/", 1)[1], self._req()))
         if p.startswith("/api/ds/"):
-            return self._json(ds_route(p.rsplit("/", 1)[1], self._req()))
+            action = p.rsplit("/", 1)[1]
+            if action in ("preview", "derive", "refresh", "publish"):    # own instruments of the suite for "unc" steps
+                import labunc
+                labunc.load_own(STATE.envs)
+            return self._json(ds_route(action, self._req()))
+        if p == "/api/repeat":
+            return self._json(repeat_route(self._req()))
+        if p.startswith("/api/unc/"):                       # measurement uncertainty: instruments, preview, methods
+            import labunc
+            return self._json(labunc.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
         if p.startswith("/api/recipe/"):
             return self._json(recipe_route(p.rsplit("/", 1)[1], self._req()))
         if p.startswith("/api/tpl/"):
             return self._json(tpl_route(p.rsplit("/", 1)[1], self._req()))
         if p in ("/api/bundle", "/api/bundle/rebuild"):
+            import labunc
+            labunc.load_own(STATE.envs)
             return self._json(bundle_route("rebuild" if p.endswith("rebuild") else "build", self._req()))
         if p == "/api/stats":
             req = self._req()

@@ -42,6 +42,7 @@ from . import process as PR
 from . import quality as QA
 from . import samples as SM
 from . import search as SR
+from . import uncert as UC
 from .analysis import FUNCTIONS_DOC, arr, run
 from .library import GRID, MODEL_ID, Libraries, prep
 from .readers import XUNIT_CHOICES, YUNIT_CHOICES, YUNITS, ReadError, Spectrum, load_bytes, to_csv, to_jcamp
@@ -291,6 +292,8 @@ def env_bundle(stored, report: dict, lang: str) -> dict:
         raise EnvError("Kein Spektrum dieser Umgebung im Berichtsstand")
     request = {"items": req_items, "lang": lang, "include": report.get("include") or {},
                "title": report.get("title") or None, "slug": None}
+    if any(UC.active(s) for _r, _f, _i, s in labelled):
+        own_instruments()
     return B.build(labelled, request, lang=lang, include=request["include"], title=request["title"])
 
 
@@ -301,7 +304,16 @@ def load_file(data: bytes, name: str, opts: dict | None = None) -> list[dict]:
 
 def state_of(req) -> dict:
     return {k: req.get(k) for k in ("pipeline", "peaks", "bands", "ratios", "groups", "search", "mixture", "equations",
-                                    "ext_values")}
+                                    "ext_values", "unc", "unc_noise", "unc_method")}
+
+
+def own_instruments():
+    """Eigene Messmittel der Suite für labcalc.uncertainty bekannt machen (vor jeder Auswertung mit Unsicherheit)."""
+    try:
+        import labunc
+        labunc.load_own(STATE.envs)
+    except Exception:  # noqa: BLE001 – ohne Projekt nur die eingebauten Messmittel
+        pass
 
 
 def share_peaks(req) -> dict:
@@ -315,11 +327,17 @@ def share_peaks(req) -> dict:
     st["groups"] = True
     st["mixture"] = None
     st["search"] = None
+    if UC.active(st):
+        own_instruments()
     a = run(it.sp, st, "de")
+    pu = UC.plain(a.unc)
     outs = []
     for i, p in enumerate(sorted(a.peaks or [], key=lambda p: -p["x"]), 1):
+        n = next((k for k, q in enumerate(a.peaks, 1) if q is p), None)
+        uu = pu.get(f"peak{n}") or {}
         outs.append({"key": f"peak{i}", "label": f"Bande {i}: " + ", ".join((p.get("assign") or [])[:2]),
-                     "quantity": {"value": round(float(p["x"]), 1), "unit": "cm-1"},
+                     "quantity": {"value": round(float(p["x"]), 1), "unit": "cm-1",
+                                  **({"u": round(float(uu["u"]), 3), "unc": uu} if uu.get("u") else {})},
                      "conditions": {"strength": p.get("strength") or "", "rel": round(float(p.get("prom_rel") or 0), 3),
                                     "fwhm": round(float(p.get("fwhm") or 0), 1)}})
     for c in (a.groups or {}).get("classes", []):
@@ -386,6 +404,7 @@ def meta_payload() -> dict:
         "own_refs": STATE.libs.OWN_REFS,
         "eq_functions": FUNCTIONS_DOC,
         "read_units": {"x": XUNIT_CHOICES, "y": YUNIT_CHOICES},
+        "unc_presets": {k: {"label": v["label"], "spec": v["spec"]} for k, v in UC.PRESETS.items()},
     }
 
 
@@ -607,7 +626,7 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path in ("/", "/index.html"):
             return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
-        if url.path in ("/labref.js", "/labindex.js", "/labenv.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js"):   # UI-05, I-02
+        if url.path in ("/labref.js", "/labindex.js", "/labenv.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js", "/labunc.js"):   # gemeinsame Seitenskripte
             return self._send(200, labcite.web_asset(url.path[1:]), "text/javascript; charset=utf-8")
         if url.path == "/api/meta":
             return self._json(meta_payload())
@@ -617,6 +636,9 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         origin = self.headers.get("Origin")
         if origin and not ORIGIN_OK.match(origin):
+            n = int(self.headers.get("Content-Length") or 0)
+            if 0 < n <= 1 << 20:
+                self.rfile.read(n)                       # read the small body so the answer arrives cleanly
             return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)
         try:
             return self._route(url)
@@ -659,6 +681,9 @@ class Handler(BaseHTTPRequestHandler):
         if p.startswith("/api/prov/"):                 # A8: Herkunftskette, Abhängigkeiten
             import labprov
             return self._json(labprov.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
+        if p.startswith("/api/unc/"):                  # Messunsicherheit: Messmittel, Vorschau (labunc.js)
+            import labunc
+            return self._json(labunc.route(STATE.envs, p.rsplit("/", 1)[1], self._req()))
         if p == "/api/share/peaks":
             return self._json(share_peaks(self._req()))
         if p == "/api/dataset":                        # DP-13: Spektren aus einem Datensatz der Datenaufbereitung
@@ -686,8 +711,10 @@ class Handler(BaseHTTPRequestHandler):
             st = state_of(req)
             st["mixture"] = None
             st["search"] = {"hits": ((req.get("search") or {}).get("hits") or [])[:1]}   # nur für hqi1
-            a = run(it.sp, st, "de")
-            return self._json({"peaks": a.peaks, "groups": a.groups, "bands": a.bands, "ratios": a.ratios,
+            if UC.active(st):
+                own_instruments()
+            a = run(it.sp, st, req.get("lang") if req.get("lang") in ("de", "en") else "de")
+            return self._json({"peaks": a.peaks, "groups": a.groups, "bands": a.bands, "ratios": a.ratios, "unc": a.unc,
                                "yunit": a.sp.yunit, "equations": a.equations, "assign_context": a.assign_context,
                                "variables": [{"name": k, **v} for k, v in a.variables.items()]})
         if p == "/api/assign":
@@ -901,6 +928,12 @@ class Handler(BaseHTTPRequestHandler):
             labelled.append((raw, fname, idx, st))
         request = {"items": req_items, "lang": req.get("lang", "de"), "include": req.get("include") or {},
                    "title": req.get("title") or None, "slug": req.get("slug") or None}
+        # the hub's figure styles and the describe request for its editing window pass through (labbundle)
+        for k in ("styles", "describe_figures", "preview"):
+            if k in req:
+                request[k] = req[k]
+        if any(UC.active(s) for _r, _f, _i, s in labelled):
+            own_instruments()
         b = B.build(labelled, request, lang=request["lang"], include=request["include"], title=request["title"])
         return self._json(b)
 

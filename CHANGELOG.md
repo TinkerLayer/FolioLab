@@ -8,6 +8,213 @@ follows [Semantic Versioning](https://semver.org/). Each analysis module also ha
 Versions below 1.0.0 mean that the methods are tested by the project's own test suites (see `docs/VALIDATION.md`)
 but have not yet been validated independently.
 
+## [0.5.0] – 2026-11-21
+
+Changes since 0.4.0:
+- measurement uncertainty in every module, with budgets in the report;
+- the Werkstoffe compendium as a reference work with citations at statement level, and an info board that collects its
+  content and exports it to a report with the individual sources;
+- report pieces that cite and describe only what they show, and figures, tables and texts that can be customised;
+- a Rechner with drawn equations, symbolic derivatives, stored matrix results and lines in any order;
+- values from the project index usable in every module.
+
+Numbers change in the cases listed under *Changed results*. Every module gets a new version because its report output
+changes.
+
+| Component | Version | Since 0.4.0 |
+|---|---|---|
+| Report editor and hub | 0.5.0 | choose what an import shows, Customise, remove a result as a unit, source triage |
+| Zugversuch (tensile test) | 1.5.0 | was 1.4.0: uncertainty, fit on coarse display resolution (below), index values in own equations |
+| Mikroskopie (microscopy) | 1.4.0 | was 1.3.0: uncertainty, index values in own equations |
+| Rechner (calculator) | 1.8.0 | was 1.5.0: lines in any order, ranges, uncertainty, derivatives, drawn equations, matrix results, complex eigenvalues (below) |
+| FTIR | 1.6.0 | was 1.5.0: uncertainty, index values in own equations |
+| TGA | 0.14.0 | was 0.13.1: uncertainty, index values in own equations |
+| Elementrechner (chemistry) | 0.12.0 | was 0.11.0: uncertainty, index values in input fields |
+| Datenaufbereitung (data purification) | 0.4.0 | was 0.3.0: uncertainty columns, index values as constants |
+| Werkstoffe (materials) | 0.5.0 | was 0.1.0: structure tool, microstructure atlas, compendium, info board, uncertainty, reworked selection |
+
+### Changed results
+- **Rechner, complex eigenvalues:** `L = eig(R)` showed the right complex values, but the stored `L` held zeros, so
+  every later line using `L` calculated with 0. Results that used a stored complex eigenvalue or eigenvector were wrong
+  and change.
+- **Zugversuch, coarse display resolution:** on curves such as a thin wire (0.1 N per step on 0.0088 mm², i.e. 11.3 MPa
+  per step) the linear-section fit grew along a run of equal readings and came out flat. The foot point t₀ = −q/k then
+  lay near 10¹⁶ s, so the apparent modulus was about 0, every strain about −10¹² %, and the load-peak strains and their
+  envelope fits were meaningless. The fit tolerance is now at least two display steps (note 4.2 says when it is raised),
+  and a fit line that does not rise gives no foot point (note 4.3). Results change only for curves whose tolerance was
+  below two display steps.
+
+### Added
+- **Werkstoffe, info board:** select one material or a series, walk through the compendium and pin entries, sections,
+  single values, statements, figures and the current property chart to a free canvas. Cards can be arranged, collected
+  in named frames, annotated and compared, with undo and several boards per project. The export follows the frame
+  order, gives each statement its own citation, warns about pins on unchecked sources and keeps those it is told to
+  keep with the † mark.
+- **Werkstoffe, compendium as a reference work:** 195 entries, 136 of them materials, with values, ranges, designation,
+  linked mechanisms and microstructures. Every statement shows its own source or is marked as open, and every source
+  shows whether it was checked against the original.
+- **Values across modules:** Zugversuch, FTIR, TGA, Mikroskopie, Datenaufbereitung, Elementrechner and Werkstoffe can
+  take a value from the project index into their equations or fields, with unit conversion and a refusal for the wrong
+  dimension. Where the target can use it, the uncertainty and origin come along.
+- **Report pieces cite and describe only what they show:** a plain measurement curve brings no comparison or reference
+  sources and a one-sentence methods text (measurement, standard, software). Methods steps follow the imported pieces.
+  An envelope, reference curve, field, fit, marker group or other element switched off at import or hidden in Customise
+  loses its caption mention, methods sentence and citation, unless another kept piece still needs them. Edited
+  sentences survive Refresh. When a hidden part was the only reason for an axis range, the axis closes in on what is
+  still shown. Figures follow this in all modules with optional figure elements, and the pieces of Elementrechner,
+  Zugversuch, TGA, FTIR and Mikroskopie declare which steps they need.
+- **Rechner, matrices and input:** `AB = C`, `inv(A) = Q`, `adj(A) = Q`, `eig(A) = Q`, `rref(A) = Q`, `A*X = B` and
+  `X*A = B` store into a free name. All symbol keys are drawn with boxes, including systems with a brace, conditions
+  and `d/dx(...)`. The graph accepts `y'` and `diff(y, x)`.
+- **Rechner 1.8.0, equations and derivatives:**
+  - **Drawn templates:** the ∫Σπ button opens integral, d/dx, sum, product, roots, fraction, power, absolute value and
+    matrix as boxes to fill in, drawn in the input line, with Tab between boxes and nesting. Enter applies, Esc restores.
+    The line keeps the text form.
+  - **Results to other modules:** ⇄ also puts a value into the project index, with its unit and uncertainty. Every
+    module can read it there; the Rechner can use it as a variable.
+  - **Symbolic derivatives:** `f'(x)`, `f''(x)`, `diff(expr, x)` and `diff(expr, x, n)` with sum, product, quotient and
+    chain rule, simplified results and units. Where no rule exists, a numerical value with a visible note. The graph
+    plots them with the derived term in the legend.
+  - **Formula cards:** the list of quantities became buttons; the clicked one is calculated. The drop-down is gone.
+  - **Page values:** lines such as `m = 2 kg` feed the cards of the sheet and can be overridden in the card.
+  - **Sharing:** card results and solved quantities go to other sheets, environments and modules with their unit.
+  - **Matrices:** `adj`, `cof`; results are stored as named matrices or values, `D = adj(A)` and `A*B = C` store directly.
+- **Werkstoffe 0.5.0, tools reworked:**
+  - **Property chart:** the overview shows dots only and a selected material shows its range. *Show families* draws
+    family outlines; a family's points appear after a click on the family.
+  - **Heating:** wood and paper now react to temperature: water loss at 100 °C, no melting, hemicellulose 220–315 °C,
+    cellulose 315–400 °C (levoglucosan, char), ash at 525 °C in air, each with its source. Glasses and the glass-ceramic
+    show Tg. A material with no transformation in the range says so in one line.
+  - **Search:** one field (`Ctrl+K`) over tools, views, materials with aliases and designations, phase diagrams,
+    crystal phases and the compendium. Tools are grouped by task, last used first.
+  - **Compendium:** view explanations, mechanism animations, the microstructure atlas, usage notes, example data and
+    decoder explanations moved into one searchable window with full sources. The tools show results first, with one
+    link into the matching entry. Report figures keep their citations.
+- **Werkstoffe 0.3.0, materials:**
+  - **Ashby charts:** a click on a material no longer copies it straight away. It selects the material: its range
+    is outlined in green over its family's outline, and a card shows the main values with range and source. From
+    the card you can compare, copy, add to the report or share all values or a single one. Every material is drawn
+    as a pale ellipse over its range; typical ranges from handbooks fill in materials that had no value
+    (*nur Spanne*).
+  - **Designation decoder:** EN AW-1050A H14, 42CrMo4+QT, X5CrNi18-10, 1.4301, CW614N, PA6-GF30, UNS and AISI/SAE
+    are explained part by part, with nominal composition and equivalents. It appears on the cards, the selection
+    card, the structure view and the tensile test's reference material.
+  - **Phase diagrams:** about 30 binary systems in family groups, drawn as smooth boundary lines: steels and irons,
+    Al, Cu, Mg, Ti and Ni alloys, solders, teaching systems and ceramics. Every alloy of the module now has a
+    diagram. A note per diagram says what is cited and what is simplified. A clicked point shows the
+    microstructure there.
+  - **Microstructure:** a library of 29 constituents (*Gefügeatlas*, with fact sheets) and 12 animated
+    mechanisms. The mechanisms include the Bain strain as a 3-D cell, pearlite, bainite, martensite, tempering,
+    precipitation and recrystallisation. Heat treatments get in-between frames placed where the change happens,
+    with cross-faded playback. Steels, Al–Cu alloys and cold-worked metals open on their microstructure. An
+    optional etched-micrograph look is available.
+  - **Martensite cells:** tetragonal cells for 0.45 and 1 % C show the split (101)/(110) and (002)/(200) peaks.
+- **Werkstoffe 0.2.0, structure tool (*Struktur*):** every material of the shared database, including all tensile-test
+  materials, at a temperature you choose. The views change when T crosses a transition: matrix lattice with solutes,
+  unit cells of precipitates and second phases, martensite, polymer chains and crystal cells, amorphous coils and
+  networks, ceramic cells with coordination polyhedra, glass networks, and microstructure sketches. A heat-treatment
+  mode steps through steel quench and temper, Al/Mg/Ni ageing and recrystallisation along a T(t) path. 25 phase
+  structures come from the Crystallography Open Database (public domain), 23 more cells from the literature. Report
+  section with all views, a phase table and, for a heat treatment, the path, the frames and the steps. In the hub,
+  the tensile test's reference material has a link *Struktur ansehen* that opens this view for it.
+- **Choose what an import shows:** importing pieces of a module keeps the whole result in its folder; what you did not
+  pick stays available in the Lab dialog under *Also in this result*. The methods text comes in sentences: *Short*
+  (the essential sentences, the default), *Full*, or your own ticks, with or without the equations, in the import
+  dialog and later in the Lab dialog (*Steps…*). All modules with a methods text write it this way.
+- **Customise figures, tables and text (*Customise…*):** in the Lab dialog, after an import (*then customise*), or
+  from the editor's context menu on a lab figure or table. For a figure the module redraws it with a journal layout
+  (Elsevier, Springer, IEEE, ACS, Nature, thesis, slides), size, font, colour-blind safe palettes, per-series colour,
+  line style, name and visibility, axis labels, ranges and log scales, legend and title, with a live preview. Tables:
+  columns to keep and decimals. Text: your own wording. Each is saved as a variant beside the original, *live*
+  (follows the original on Refresh) or a *snapshot*; from the context menu the text then points at the variant.
+- **Customise every part of a figure:** every drawn line, marker, area, bar and text can be hidden, recoloured,
+  restyled or renamed (*Lines, labels and areas*); frame colours (background, plot area, axes, ticks, grid, text);
+  any installed font or Computer Modern; drag a box on the preview to zoom into a data range (*Reset zoom* undoes it);
+  crop the figure with numbers or handles on the preview; and its place in the document: width, full text width
+  (`figure*`), position (here, top, bottom, own page, exactly here) and alignment, applied to every place the figure
+  is used.
+- **Edit many parts of a figure at once:** *All of a kind* sets colour, size, weight, width, line style, opacity or
+  visibility for every axis label, tick label, legend entry, text in the plot, line, marker or area together; single
+  elements keep their own settings. Select several elements with Ctrl or Shift in the list, or click them in the
+  preview, and change them together. *Find and replace in labels* searches texts, legend names, axis labels and the
+  title and replaces all matches (with Undo).
+- **Faster figure editing:** the preview changes at once while you edit (colour, visibility, width, line style,
+  size, plain texts); the module's exact drawing follows after a short pause. A redraw now draws only the edited
+  figure, without PDFs (Zugversuch: about 0.25 s instead of 4–5 s), an earlier state comes back from a cache, and an
+  outdated redraw is cancelled.
+- **Shorter, editable methods text:** *Short* is now at most three sentences: what was measured, the standard
+  followed and the software used. Every module's methods text ends with a sentence naming Folio Lab, the module and
+  its version, with a citation. Any sentence can be reworded (pencil next to the step) in the import dialog and in
+  *Steps…*; your wording is kept on Refresh, and you are told when the module's own sentence changed. *Edit as free
+  text…* turns the whole selection into your own text.
+- **Remove a result as a unit:** removing a result (Lab dialog *Remove*, deleting its `lab/` folder in the file tree,
+  or *Remove result…* in the citation picker, where a result's references are grouped under it) lists every place
+  of your text that uses it. Its figures, tables, `\input` lines and results section go; values and references to it
+  keep the text they print, marked with † and highlighted in the editor; citation keys only it provided are dropped.
+  One *Undo* brings back the result and the text. Removed results stay in the project's bin for 14 days.
+- **Rechner 1.6.0, calculation lines in any order:** a sheet is evaluated in dependency order, so a result can stand
+  above the lines that define its inputs (`z = y + x`, `y = 5`, `x = f(t) = t^5 - 3`, `t = 3` gives 245); circular
+  definitions are reported; ▴/▾ and Alt+↑/↓ move lines; the report lists the lines with every name defined before
+  it is used. A name that nothing defines yet stays as a symbol (*z = 5 + x*) instead of an error.
+- **Rechner 1.6.0, ranges, lists and sliders:** `t = 0..10 step 0.5`, `t = 0..1 count 5`, `t = [1; 2; 5; 7.5]` and
+  `t = 0..5 slider`. Lines that use them give a list with a small curve and a folded value table; with a slider, the
+  value at the slider position and a curve over its range. *→ Grafik* draws such a line in the graph and keeps it
+  connected. In the report each gets a value table, a figure and a CSV.
+- **Rechner 1.6.0, solve a formula for any quantity:** pick the quantity on the card or click it under the formula in
+  the library; the card shows the formula rearranged for it, and while values are missing, the rearranged formula
+  with the known values inserted.
+- **Measurement uncertainty, across the suite:** a small **±** button next to an input sets its uncertainty: a
+  standard or expanded uncertainty (calibration certificate), limits ±a with a distribution, a resolution, ± % of the
+  value, a manufacturer's spec ±(% + digits), repeat readings (type A), a standard deviation of n values, a confidence
+  interval, or an instrument from the library. Several contributions add in quadrature. The library has calipers,
+  micrometers, balances, volumetric glassware, pipettes, burettes, Pt100 and thermocouple classes, and force and
+  extensometer classes, each with its standard; your own instruments are kept for the whole suite and can be shared
+  as a file. Pick the method once: **GUM linear** (sensitivities, Welch–Satterthwaite, k from Student t), **Monte
+  Carlo** after GUM Supplement 1 (adaptive, fixed seed), **Gaussian propagation** or **worst case**. Each result shows
+  value ± U rounded per GUM 7.2.6, a folded budget (contribution of every input), notes such as a strongly non-linear
+  model, the sources, and a comparison of all four methods. Inputs can be correlated. Own equations carry the
+  uncertainty of their inputs along. Values shared with other modules and the project index keep their standard
+  uncertainty. In the report: *value ± U*, a budget table per result and a methods sentence citing JCGM 100/101 or
+  DIN 1319-4.
+- **Werkstoffe 0.4.0:**
+  - **Uncertainty** for K_Q and the critical crack length, for the hardness mean (indent scatter as type A plus force
+    and length measurement) and for CE, CET, Pcm, Ms, Ac1, Ac3 and the preheat temperature.
+  - **What a view shows and its sources:** every view of every tool has one line saying what it shows, a fold *What
+    happens here?* with the explanation, and the sources of that view first. Figures in the report cite the sources
+    of the view they show.
+  - **Temperature slider of the structure tool:** the slider only spends travel where something happens. Stretches
+    without a transition are compressed to a short step and the transition ranges are marked on the track. The arrow
+    keys still move by exactly 1 °C (10 °C with Shift), and the marks under the track jump to a transition.
+- **Uncertainty in the other modules:**
+  - **Rechner 1.7.0:** `x = 5,0 ± 0,1 mm`, `± 0,2 (k=2)` and `± a rect` in a line; the uncertainty follows every line
+    that uses it, with correlation kept (x + x gives 2u, a difference of a value with itself gives 0); method per sheet
+    with optional correlations; ± buttons on value lines; results with budget and method comparison.
+  - **Datenaufbereitung 0.4.0:** ± columns (U and k, s, standard error, confidence interval) used as standard
+    uncertainties; *Wiederholmessung …* gives mean, s, u = s/√n and ν = n − 1; formula columns get a `u(name)` column;
+    instrument and other type B uncertainty per column in *Convert and clean*; report table and ±u error bars.
+  - **Elementrechner 0.12.0:** molar masses with the CIAAW intervals; preparation from a solid or a stock, dilution
+    series (with the correlation between the steps), gas law, reaction set-up and yields, and pH with ±.
+  - **FTIR 1.6.0:** noise per point (automatic, from a band-free region, or stated) carried exactly into areas,
+    heights and A(ν), with the correlation between bands, so ratios and own indices are right; wavenumber accuracy and
+    limit placement as type B.
+  - **TGA 0.14.0:** budgets for step losses, residue, onset, endset, DTG peak, T at x % loss, composition and
+    stoichiometric content; replicates as type A; kinetics with the regression confidence interval.
+  - **Mikroskopie 1.4.0:** scale calibration (stage micrometer, edge reading or pixel size) carried into sizes,
+    D10/D50/D90 and areas; sampling by bootstrap with a fixed seed, counts by √N, several images by mean ± t·s/√n
+    (ASTM E562); own equations.
+  - **Zugversuch 1.5.0:** budgets for S0, Fmax, Rm, yield force or stress, E (slope scatter, force and extensometer
+    class, L0, S0, test speed), Agt/At and Ag/A; a series as mean ± type A; ± line in the PDF and a sheet in the
+    workbook.
+
+### Fixed
+- **Werkstoffe, own crystal cell:** the fields b, c, α, β and γ were shown for every crystal system, although most
+  systems ignore some of them. Only the free parameters of the chosen system are now shown and sent.
+- **Werkstoffe, invalid input:** an empty field, text, NaN or a value outside a formula's domain ended in an internal
+  error, and some XRD and Weibull settings could hang. Each now gives a clear input error.
+- **Servers:** a refused request from a foreign origin could abort the connection before its answer arrived.
+- **Values with a unit in text:** results of own equations and uncertainty values printed with `\labval` inside a
+  sentence no longer stop LaTeX (they were written as bare math). `MPa√m` is now set as MPa·m^½ instead of "MPam^½".
+
 ## [0.4.0] – 2026-11-19
 
 Changes since 0.3.0:

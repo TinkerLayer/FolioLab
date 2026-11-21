@@ -3,7 +3,7 @@ import { api, fileUrl, esc, h, icon, modal, prompt, confirmBox, toast, contextMe
 import { registerLatex, languageFor, outline } from './latex-lang.js';
 import { PdfViewer } from './pdfviewer.js';
 import { FileTree, IMAGE_RE, BINARY_RE } from './filetree.js';
-import { initLab, openLab } from './lab.js';
+import { initLab, openLab, customiseAtCursor, removeResult } from './lab.js';
 import { initImport, openImport } from './import.js';
 
 const $ = (s) => document.querySelector(s);
@@ -220,6 +220,12 @@ function createEditor() {
     keybindings: [K.CtrlCmd | K.Alt | C.RightArrow],
     contextMenuGroupId: 'navigation',
     run: () => syncForward(),
+  });
+  editor.addAction({
+    id: 'folio.customiseLab',
+    label: 'Customise lab figure, table or text…',
+    contextMenuGroupId: 'navigation',
+    run: () => customiseAtCursor(),
   });
   editor.addAction({
     id: 'folio.compile',
@@ -441,21 +447,32 @@ async function renameFile(from, to) {
 }
 
 async function deleteFile(path, isDir) {
+  // a Folio Lab result (lab/<result> or a file in it) leaves the report as a unit: its uses in the text go with it
+  const res = /^lab\/([a-z0-9][a-z0-9-]{0,59})(\/|$)/.exec(path);
+  if (res && (isDir || path.length > res[0].length) && files.some((f) => f.path === `lab/${res[1]}/bundle.json`)) {
+    await removeResult(res[1], { file: path === `lab/${res[1]}` ? null : path }).catch((e) => toast(e.message, 'error', 8000));
+    return;
+  }
   const ok = await confirmBox('Delete', `Delete <b>${esc(path)}</b>${isDir ? ' and everything in it' : ''}?`, { okLabel: 'Delete', danger: true });
   if (!ok) return;
   try {
     await api('DELETE', `/api/projects/${projectId}/file?path=${encodeURIComponent(path)}`);
-    for (const p of [...tabs]) if (p === path || p.startsWith(path + '/')) closeTab(p, true);
-    for (const [p, e] of [...models]) {
-      if (p === path || p.startsWith(path + '/')) {
-        clearTimeout(e.timer);
-        e.model.dispose();
-        models.delete(p);
-      }
-    }
+    forget(path);
     await refreshFiles();
   } catch (e) {
     toast(e.message, 'error');
+  }
+}
+
+/** Close the tabs and drop the models of a removed file or folder. */
+function forget(path) {
+  for (const p of [...tabs]) if (p === path || p.startsWith(path + '/')) closeTab(p, true);
+  for (const [p, e] of [...models]) {
+    if (p === path || p.startsWith(path + '/')) {
+      clearTimeout(e.timer);
+      e.model.dispose();
+      models.delete(p);
+    }
   }
 }
 
@@ -1202,7 +1219,23 @@ async function plotDialog() {
 
 async function citeDialog() {
   symbols = await api('GET', `/api/projects/${projectId}/symbols`).catch(() => symbols);
-  const cites = symbols.cites;
+  // Folio Lab results bring their own references (lab/<slug>/refs.bib, merged into lab/references.bib): show them under
+  // their result, once, with a way to take the whole result out of the report.
+  const fromLab = (c) => /^lab\/([^/]+)\/refs\.bib$/i.exec(c.file)?.[1] || null;
+  const labKeys = new Set(symbols.cites.filter(fromLab).map((c) => c.key));
+  const seenKeys = new Set();
+  let cites = symbols.cites.filter((c) => {
+    if (/^lab\/references\.bib$/i.test(c.file) && labKeys.has(c.key)) return false;
+    const id = `${fromLab(c) || ''}|${c.key}`;
+    if (seenKeys.has(id)) return false;
+    seenKeys.add(id);
+    return true;
+  });
+  const results = new Map();
+  if (labKeys.size) {
+    const list = await api('GET', `/api/projects/${projectId}/lab`).catch(() => []);
+    for (const b of Array.isArray(list) ? list : list.results || []) results.set(b.slug, b.title || b.slug);
+  }
   const main = (await getModel(project.mainFile).catch(() => null))?.model.getValue() || '';
   const defCmd = /\{biblatex\}/.test(main) ? 'autocite' : /\{natbib\}/.test(main) ? 'citep' : 'cite';
   const chosen = new Set();
@@ -1214,17 +1247,37 @@ async function citeDialog() {
   const listEl = body.querySelector('#cd-list');
   const render = () => {
     const q = body.querySelector('#cd-q').value.toLowerCase();
-    listEl.replaceChildren(
-      ...cites
-        .filter((c) => !q || `${c.key} ${c.title} ${c.author}`.toLowerCase().includes(q))
-        .map((c) => {
-          const row = h(`<label class="cite-row"><input type="checkbox" ${chosen.has(c.key) ? 'checked' : ''}><div>
-            <div class="k">${esc(c.key)}</div><div class="t">${esc(c.title || '(no title)')}</div>
-            <div class="a">${esc([c.author, c.year].filter(Boolean).join(' · '))}</div></div></label>`);
-          row.querySelector('input').onchange = (e) => (e.target.checked ? chosen.add(c.key) : chosen.delete(c.key));
-          return row;
-        })
-    );
+    const shown = cites.filter((c) => !q || `${c.key} ${c.title} ${c.author} ${results.get(fromLab(c)) || ''}`.toLowerCase().includes(q));
+    const row = (c) => {
+      const el = h(`<label class="cite-row"><input type="checkbox" ${chosen.has(c.key) ? 'checked' : ''}><div>
+        <div class="k">${esc(c.key)}</div><div class="t">${esc(c.title || '(no title)')}</div>
+        <div class="a">${esc([c.author, c.year].filter(Boolean).join(' · '))}</div></div></label>`);
+      el.querySelector('input').onchange = (e) => (e.target.checked ? chosen.add(c.key) : chosen.delete(c.key));
+      return el;
+    };
+    const own = shown.filter((c) => !fromLab(c));
+    const groups = new Map();
+    for (const c of shown.filter(fromLab)) {
+      if (!groups.has(fromLab(c))) groups.set(fromLab(c), []);
+      groups.get(fromLab(c)).push(c);
+    }
+    const out = own.map(row);
+    for (const [s, list] of groups) {
+      const head = h(`<div class="cite-group"><span><i>Folio Lab result</i> ${esc(results.get(s) || s)}</span>
+        <button class="btn sm ghost" title="Take this result out of the report, with every place of the text that uses it">Remove result…</button></div>`);
+      head.querySelector('button').onclick = async () => {
+        try {
+          if (!(await removeResult(s))) return;
+          cites = cites.filter((c) => fromLab(c) !== s);
+          for (const c of list) chosen.delete(c.key);
+          render();
+        } catch (e) {
+          toast(e.message, 'error', 8000);
+        }
+      };
+      out.push(head, ...list.map(row));
+    }
+    listEl.replaceChildren(...out);
   };
   body.querySelector('#cd-q').oninput = render;
   render();
@@ -1296,6 +1349,9 @@ initLab({
   getModel,
   refreshFiles,
   reloadFromDisk,
+  texFiles: () => files.filter((f) => f.type === 'file' && /\.tex$/i.test(f.path)).map((f) => f.path),
+  save,
+  forget,
 });
 initImport({ projectId, refreshFiles, openLab });
 

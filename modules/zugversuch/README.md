@@ -29,7 +29,7 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
 - Header: *Open file*, measurement chips, **⋯** (Manage environments … / Umgebungen verwalten …, Project index … /
   Projektindex …, Values → index … / Kennwerte → Index … with Fmax and Rm), DE|EN, light/dark. Tabs *Curve*
   (Verlauf) and *Linear section* (Linearer Abschnitt); the *Material field* (Werkstofffeld) is under **More ▾**
-  (Mehr ▾).
+  (Mehr ▾). In *Project index …*, *Use* (*Übernehmen*) in that list makes a value a named variable of your own equations, with its unit, uncertainty and origin.
 - Collapsed (the state is remembered), with the current choice in the title: Reference and comparison (Referenz und
   Vergleich: reference, own materials, comparison group, additionally shown materials), Operator and remark (Prüfer
   und Bemerkung), the less common evaluation parameters (Window, tolerance, break and hold thresholds / Fenster,
@@ -91,7 +91,19 @@ In the commands below, `python` stands for the Python interpreter that runs Foli
   equations that used them change their result. `Wbreak` is ∫F dL over the measured elongation when the dataset has
   one, otherwise over the crosshead path. Results appear in the input panel,
   on the key-value page of the PDF report and in the Folio Lab report (`\labval` `eq-<symbol>`, table, formula in the
-  methods text with its source). Stored in `outputs/zugversuch/eigene_gleichungen.json`.
+  methods text with its source). Stored in `outputs/zugversuch/eigene_gleichungen.json`. With the measurement
+  uncertainty switched on, the variables carry their u and the results show value ± U.
+- **Measurement uncertainty** (Messunsicherheit, fold in the input panel, since 1.5.0): switch on, pick the method
+  (GUM, Monte Carlo, Gauss, worst case; coverage p or fixed k), the force system class (ISO 7500-1) and the
+  extensometer class (ISO 9513). Small ± buttons next to the geometry fields (b, h, d, D, t, S₀ entered), L₀ and the
+  test speed take their own uncertainty (instrument, resolution, repeats …). Budgets per value in folds, with *Compare
+  methods*: S₀, Fmax, Rm = Fmax/S₀, Fy or σ at the yield onset, E (type A from the standard error of the regression
+  slope, n − 2 degrees of freedom, plus force class, extensometer class, S₀ and L₀), Agt, Ag, At, A (extensometer
+  class, one sampling interval, L₀, test speed). ReH, ReL and Rp0.2 are not determined by the module; the report says
+  so. Several measurements in one report: mean ± type A over the specimens plus the mean single-test uncertainty
+  (fully correlated, conservative). Report: values `<name>-pm` / `-u` / `-U`, budget tables, methods paragraph citing
+  ISO 6892-1 Annex J and UNCERT CoP 07 (marked "Angaben nicht am Original geprüft"); the PDF report gets a line with
+  ± U on page 4, the workbook a sheet *Messunsicherheit*. Without the switch nothing changes.
   - Each comparison row of the materials database names a specific source (standard, data sheet of a named grade, or institute
     publication), optionally with `url`, `jahr` (year) and `abgerufen` (accessed). These appear in the bibliography
     entry of the Folio Lab report and on the source pages. Property values that the source does not give (for example

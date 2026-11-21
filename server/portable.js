@@ -40,7 +40,11 @@ const EXCLUDED_RE = /^lab\/(?:[^/]+\/(?:source|history)\/|_removed\/)/;
 
 // \labval / \labset as in lab/labdata.tex (server/lab.js); \providecommand keeps a host's own copy.
 const LABVAL_DEFS = String.raw`\providecommand\labset[3]{\expandafter\gdef\csname labv@#1@#2\endcsname{#3}}
-\providecommand\labval[2]{\@ifundefined{labv@#1@#2}{\textbf{??}\PackageWarning{folio-lab}{Value #1/#2 undefined}}{\csname labv@#1@#2\endcsname}}`;
+\providecommand\labval[2]{\@ifundefined{labv@#1@#2}{\textbf{??}\PackageWarning{folio-lab}{Value #1/#2 undefined}}{\csname labv@#1@#2\endcsname}}
+% \labstale[<result>]{<value>}: a value or reference of a result removed from the report, frozen as it was and
+% marked with \labstalemark (a dagger); \renewcommand\labstalemark{} hides the mark.
+\providecommand\labstalemark{\textsuperscript{\dag}}
+\providecommand\labstale[2][]{#2\labstalemark}`;
 
 // Commands a host may lack; defined at \begin{document} only when still undefined.
 const FALLBACKS = [

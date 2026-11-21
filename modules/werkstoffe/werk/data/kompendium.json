@@ -1,0 +1,47 @@
+{
+ "about": "Kompendium des Werkstoffe-Moduls: Werkzeugnamen und Aufgabengruppen, Ansichtstitel und Beispieldaten. Der Text steht Aussage für Aussage in kompendium_text.json, Mechanismen und Gefügeatlas in werk/gefuege.py.",
+ "groups": [
+  {"id": "auswahl", "de": "Auswahl & Kennwerte", "en": "Selection & properties", "rail": ["Auswahl", "Selection"], "tools": ["auswahl", "karten", "laminat"], "main": ["auswahl", "karten", "laminat"]},
+  {"id": "struktur", "de": "Struktur & Gefüge", "en": "Structure & microstructure", "rail": ["Struktur", "Structure"], "tools": ["struktur", "phasen", "gitter", "kristall", "stahl"], "main": ["struktur", "phasen", "gitter", "kristall"]},
+  {"id": "pruefen", "de": "Prüfen & Auswerten", "en": "Testing & evaluation", "rail": ["Prüfen", "Testing"], "tools": ["xrd", "haerte", "ermuedung", "weibull", "bruch", "korrosion", "kriechen"], "main": ["xrd", "haerte", "ermuedung", "weibull"]}
+ ],
+ "tools": {
+  "auswahl": ["Auswahl", "Selection", "Ashby-Diagramm, Kennzahl, Rangliste", "Ashby chart, index, ranking"],
+  "karten": ["Karten", "Cards", "Kennwerte vergleichen, mit Quellen; Bezeichnungen entschlüsseln", "Compare properties, with sources; decode designations"],
+  "laminat": ["Laminat", "Laminate", "Klassische Laminattheorie, Erstversagen", "Classical laminate theory, first-ply failure"],
+  "struktur": ["Struktur", "Structure", "Werkstoff bei T: Gitter, Zelle, Kette, Gefüge; Wärmebehandlung", "Material at T: lattice, cell, chain, microstructure; heat treatment"],
+  "phasen": ["Diagramm", "Diagram", "Zustandsdiagramm, Hebelgesetz, Abkühlung", "Phase diagram, lever rule, cooling"],
+  "gitter": ["Gitter", "Lattice", "Atome bei T: Zelle, Fremdatome, Leerstellen, Fehler", "Atoms at T: cell, solutes, vacancies, defects"],
+  "kristall": ["Kristall", "Crystal", "Zelle, Netzebenen, berechnetes Pulvermuster", "Cell, planes, computed powder pattern"],
+  "stahl": ["Stahl", "Steel", "CE, Ms, Ac1/Ac3, Vorwärmen, Anlassen, Aufkohlen", "CE, Ms, Ac1/Ac3, preheat, tempering, carburising"],
+  "xrd": ["XRD", "XRD", "Diffraktogramm auswerten", "Evaluate a diffractogram"],
+  "haerte": ["Härte", "Hardness", "HV, HBW, HK, Korngrösse, Hall–Petch", "HV, HBW, HK, grain size, Hall–Petch"],
+  "ermuedung": ["Ermüdung", "Fatigue", "Wöhlerlinie, Mittelspannung, Rainflow, Miner", "S–N curve, mean stress, rainflow, Miner"],
+  "weibull": ["Weibull", "Weibull", "Festigkeitsstreuung, Vertrauensbereich, Grösseneffekt", "Strength scatter, confidence, size effect"],
+  "bruch": ["Bruch", "Fracture", "K_Q nach ASTM E399, kritische Risslänge", "K_Q per ASTM E399, critical crack length"],
+  "korrosion": ["Korrosion", "Corrosion", "Tafel-Auswertung, Korrosionsrate", "Tafel analysis, corrosion rate"],
+  "kriechen": ["Kriechen", "Creep", "Larson–Miller, Norton", "Larson–Miller, Norton"]
+ },
+ "views": {
+  "kristall": {"lines": ["Linien", "Lines"], "cell": ["Zelle", "Cell"]},
+  "gitter": {"3d": ["Gitter", "Lattice"], "cell": ["Elementarzelle", "Unit cell"], "slice": ["Schnitt", "Slice"]},
+  "xrd": {"pattern": ["Diffraktogramm", "Pattern"], "wh": ["Williamson–Hall", "Williamson–Hall"], "nr": ["Nelson–Riley", "Nelson–Riley"]},
+  "phasen": {"diagram": ["Diagramm", "Diagram"], "cooling": ["Abkühlung", "Cooling"]},
+  "laminat": {"s1": ["σ₁ längs der Faser", "σ₁ along the fibre"], "s2": ["σ₂ quer zur Faser", "σ₂ across the fibre"], "t12": ["Schub τ₁₂", "Shear τ₁₂"]},
+  "ermuedung": {"sn": ["Wöhlerlinie", "S–N curve"], "haigh": ["Haigh-Diagramm", "Haigh diagram"], "rf": ["Rainflow und Miner", "Rainflow and Miner"]},
+  "haerte": {"ind": ["Eindrücke", "Indents"], "hp": ["Hall–Petch", "Hall–Petch"]},
+  "kriechen": {"lmp": ["Larson–Miller", "Larson–Miller"], "norton": ["Norton", "Norton"]},
+  "struktur": {"gefuege": ["Gefüge (Skizze)", "Microstructure (sketch)"], "gitter": ["Gitter des Hauptbestandteils", "Lattice of the main constituent"],
+               "zelle": ["Kristallzelle", "Crystal cell"], "polymer": ["Kette, Knäuel, Morphologie", "Chain, coil, morphology"],
+               "zustand": ["Zustand der Wärmebehandlung", "Heat-treatment state"], "weg": ["Weg T(t)", "Path T(t)"],
+               "mech": ["Mechanismen (Bildfolgen)", "Mechanisms (sequences)"], "atlas": ["Gefügeatlas", "Microstructure atlas"]}
+ },
+ "examples": {
+  "ermuedung": [{"id": "ermuedung", "de": "Beispiel laden: Wöhlerversuch (synthetisch, keine Messung)", "en": "Load example: S–N test (synthetic, not a measurement)"}],
+  "weibull": [{"id": "weibull", "de": "Beispiel laden: 14 Festigkeiten (synthetisch)", "en": "Load example: 14 strengths (synthetic)"}],
+  "haerte": [{"id": "haerte", "de": "Beispiel laden: drei Vickers-Eindrücke (synthetisch)", "en": "Load example: three Vickers indents (synthetic)"},
+             {"id": "hp", "de": "Beispiel laden: Hall–Petch-Reihe (synthetisch)", "en": "Load example: Hall–Petch series (synthetic)"}],
+  "kriechen": [{"id": "kriechen", "de": "Beispiel laden: Zeitstand- und Kriechratenversuche (synthetisch)", "en": "Load example: creep-rupture and creep-rate tests (synthetic)"}],
+  "gitter": [{"id": "gitter", "de": "Beispiele aus der Liste der Legierungen (Grundelement, Temperatur und Fremdatome)", "en": "Examples from the alloy list (base element, temperature and solutes)"}]
+ }
+}

@@ -69,6 +69,114 @@
    ],
    "type": "tex"
   },
+  "methods.json": {
+   "lines": [
+    "{",
+    " \"id\": \"methodik\",",
+    " \"title\": \"Methodik\",",
+    " \"steps\": [",
+    "  {",
+    "   \"id\": \"kurz\",",
+    "   \"title\": \"Ein Satz\",",
+    "   \"short\": false,",
+    "   \"par\": -1,",
+    "   \"file\": \"methods/kurz.tex\",",
+    "   \"brief\": true",
+    "  },",
+    "  {",
+    "   \"id\": \"s1\",",
+    "   \"title\": \"Der Lauf Calciumoxalat-Monohydrat (synthetisch) (Einwaage 10,000 mg, …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s1.tex\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s2\",",
+    "   \"title\": \"Die DTG wurde mit einem Savitzky-Golay-Filter über …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s2.tex\",",
+    "   \"of\": \"dtg\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s3\",",
+    "   \"title\": \"Stufen wurden aus den Spitzen der Massenverlustrate …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s3.tex\",",
+    "   \"of\": \"stufen\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s4\",",
+    "   \"title\": \"Gehalte aus Stufen wurden über die theoretischen …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s4.tex\",",
+    "   \"of\": \"stoechiometrie\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s5\",",
+    "   \"title\": \"Zusätzlich wurden folgende eigene Gleichungen ausgewertet: [ …\",",
+    "   \"short\": false,",
+    "   \"par\": 1,",
+    "   \"file\": \"methods/s5.tex\",",
+    "   \"of\": \"gleichungen\"",
+    "  },",
+    "  {",
+    "   \"id\": \"software\",",
+    "   \"title\": \"Software\",",
+    "   \"short\": true,",
+    "   \"par\": 2,",
+    "   \"file\": \"methods/software.tex\"",
+    "  }",
+    " ]",
+    "}"
+   ],
+   "type": "json"
+  },
+  "methods/kurz.tex": {
+   "lines": [
+    "Der Lauf Calciumoxalat-Monohydrat (synthetisch)~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch} (Einwaage 10,000~mg, Heizrate 10,0~K/min, Atmosphäre N$_2$, Tiegel Al2O3) wurde nach ISO~11358-1~\\cite{tga-iso11358-1} ausgewertet mit Folio Lab, Modul TGA, Version <version>~\\cite{folio-lab-tga}."
+   ],
+   "type": "tex"
+  },
+  "methods/s1.tex": {
+   "lines": [
+    "Der Lauf Calciumoxalat-Monohydrat (synthetisch)~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch} (Einwaage 10,000~mg, Heizrate 10,0~K/min, Atmosphäre N$_2$, Tiegel Al2O3) wurde nach ISO~11358-1~\\cite{tga-iso11358-1} ausgewertet."
+   ],
+   "type": "tex"
+  },
+  "methods/s2.tex": {
+   "lines": [
+    "Die DTG wurde mit einem Savitzky-Golay-Filter~\\cite{tga-savgol} über etwa 4~K berechnet."
+   ],
+   "type": "tex"
+  },
+  "methods/s3.tex": {
+   "lines": [
+    "Stufen wurden aus den Spitzen der Massenverlustrate bestimmt; die extrapolierte Onset- und Endtemperatur ist der Schnittpunkt der Tangente im Wendepunkt der TG-Kurve über der Temperatur (örtliche Steigung dm/dT) mit der verlängerten Basislinie vor bzw. nach der Stufe."
+   ],
+   "type": "tex"
+  },
+  "methods/s4.tex": {
+   "lines": [
+    "Gehalte aus Stufen wurden über die theoretischen Massenverluste der Zersetzung berechnet (Atomgewichte nach IUPAC~\\cite{tga-ciaaw2021,tga-brown2001})."
+   ],
+   "type": "tex"
+  },
+  "methods/s5.tex": {
+   "lines": [
+    "Zusätzlich wurden folgende eigene Gleichungen ausgewertet:",
+    "\\[ n = \\frac{\\frac{L_{1}}{100} \\cdot 146{,}11}{18{,}015} = 0{,}9851 \\] \\cite{eq-brown-2001-69f95}"
+   ],
+   "type": "tex"
+  },
+  "methods/software.tex": {
+   "lines": [
+    "Ausgewertet wurde mit Folio Lab, Modul TGA, Version <version>~\\cite{folio-lab-tga}."
+   ],
+   "type": "tex"
+  },
   "refs.bib": {
    "lines": [
     "@misc{data-tga-calciumoxalat-monohydrat-synthetisch,",
@@ -118,6 +226,13 @@
     "  author = {Brown, M.E.},",
     "  title = {Introduction to Thermal Analysis},",
     "  year = {2001}",
+    "}",
+    "",
+    "@misc{folio-lab-tga,",
+    "  author = {{Folio Lab}},",
+    "  title = {Folio Lab: TGA},",
+    "  version = {<version>},",
+    "  note = {Analysemodul}",
     "}"
    ],
    "type": "bib"
@@ -161,7 +276,10 @@
     "Der Lauf Calciumoxalat-Monohydrat (synthetisch)~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch} (Einwaage 10,000~mg, Heizrate 10,0~K/min, Atmosphäre N$_2$, Tiegel Al2O3) wurde nach ISO~11358-1~\\cite{tga-iso11358-1} ausgewertet. Die DTG wurde mit einem Savitzky-Golay-Filter~\\cite{tga-savgol} über etwa 4~K berechnet. Stufen wurden aus den Spitzen der Massenverlustrate bestimmt; die extrapolierte Onset- und Endtemperatur ist der Schnittpunkt der Tangente im Wendepunkt der TG-Kurve über der Temperatur (örtliche Steigung dm/dT) mit der verlängerten Basislinie vor bzw. nach der Stufe. Gehalte aus Stufen wurden über die theoretischen Massenverluste der Zersetzung berechnet (Atomgewichte nach IUPAC~\\cite{tga-ciaaw2021,tga-brown2001}).",
     "",
     "Zusätzlich wurden folgende eigene Gleichungen ausgewertet:",
-    "\\[ n = \\frac{\\frac{L_{1}}{100} \\cdot 146{,}11}{18{,}015} = 0{,}9851 \\] \\cite{eq-brown-2001-69f95}"
+    "\\[ n = \\frac{\\frac{L_{1}}{100} \\cdot 146{,}11}{18{,}015} = 0{,}9851 \\] \\cite{eq-brown-2001-69f95}",
+    "",
+    "",
+    "Ausgewertet wurde mit Folio Lab, Modul TGA, Version <version>~\\cite{folio-lab-tga}."
    ],
    "type": "tex"
   },
@@ -169,7 +287,7 @@
    "lines": [
     "% Values of 'TGA Calciumoxalat-Monohydrat (synthetisch)' (TGA). Generated by Folio Lab; do not edit.",
     "% Use as \\labval{tga-calciumoxalat-monohydrat-synthetisch}{<key>}.",
-    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{eq-n}{0{,}9851}% n(H2O)",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{eq-n}{$0{,}9851$}% n(H2O)",
     "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-loss}{12,15\\,\\%}% Verlust Stufe 1",
     "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-onset}{160,7\\,°C}% Onset 1",
     "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-peak}{188,5\\,°C}% DTG-Spitze 1",
@@ -220,7 +338,7 @@
    "title": "Introduction to Thermal Analysis: Techniques and Applications"
   },
   {
-   "caption": "Thermogravimetrie von Calciumoxalat-Monohydrat (synthetisch): Masse (TG) und Massenverlustrate (DTG) mit Stufen und extrapolierten Onsets~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch}.",
+   "caption": "Thermogravimetrie von Calciumoxalat-Monohydrat (synthetisch): Masse (TG) mit Massenverlustrate (DTG) und Stufen mit extrapolierten Onsets~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch}.",
    "cites": [
     "data-tga-calciumoxalat-monohydrat-synthetisch"
    ],
@@ -228,6 +346,34 @@
    "id": "tg",
    "kind": "figure",
    "label": "fig:tga-calciumoxalat-monohydrat-synthetisch-tg",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "dtg",
+     "label": "DTG",
+     "steps": [
+      "dtg"
+     ]
+    },
+    {
+     "cites": [],
+     "id": "stufen",
+     "label": "Stufen",
+     "steps": [
+      "dtg",
+      "stufen"
+     ]
+    },
+    {
+     "cites": [],
+     "id": "rueckstand",
+     "label": "Rückstand",
+     "steps": []
+    }
+   ],
    "preview": "fig/tg.png",
    "width": "0.9"
   },
@@ -240,6 +386,12 @@
    "id": "stufen",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-stufen",
+   "needs": {
+    "steps": [
+     "dtg",
+     "stufen"
+    ]
+   },
    "notes": ""
   },
   {
@@ -249,6 +401,9 @@
    "id": "kennwerte",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-kennwerte",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -261,6 +416,13 @@
    "id": "stoechiometrie",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-stoechiometrie",
+   "needs": {
+    "steps": [
+     "dtg",
+     "stufen",
+     "stoechiometrie"
+    ]
+   },
    "notes": ""
   },
   {
@@ -270,6 +432,9 @@
    "id": "kalibrierung",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-kalibrierung",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -284,6 +449,11 @@
    "id": "gleichungen",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-gleichungen",
+   "needs": {
+    "steps": [
+     "gleichungen"
+    ]
+   },
    "notes": ""
   },
   {
@@ -309,15 +479,90 @@
    "rows": 1851
   },
   {
+   "key": "folio-lab-tga",
+   "kind": "citation",
+   "title": "Folio Lab: TGA"
+  },
+  {
    "file": "text-methodik.tex",
    "id": "methodik",
    "kind": "text",
+   "methods": true,
+   "steps": [
+    {
+     "brief": true,
+     "file": "methods/kurz.tex",
+     "id": "kurz",
+     "par": -1,
+     "short": false,
+     "title": "Ein Satz"
+    },
+    {
+     "file": "methods/s1.tex",
+     "id": "s1",
+     "par": 0,
+     "short": true,
+     "title": "Der Lauf Calciumoxalat-Monohydrat (synthetisch) (Einwaage 10,000 mg, …"
+    },
+    {
+     "file": "methods/s2.tex",
+     "id": "s2",
+     "of": "dtg",
+     "par": 0,
+     "short": false,
+     "title": "Die DTG wurde mit einem Savitzky-Golay-Filter über …"
+    },
+    {
+     "file": "methods/s3.tex",
+     "id": "s3",
+     "of": "stufen",
+     "par": 0,
+     "short": false,
+     "title": "Stufen wurden aus den Spitzen der Massenverlustrate …"
+    },
+    {
+     "file": "methods/s4.tex",
+     "id": "s4",
+     "of": "stoechiometrie",
+     "par": 0,
+     "short": false,
+     "title": "Gehalte aus Stufen wurden über die theoretischen …"
+    },
+    {
+     "file": "methods/s5.tex",
+     "id": "s5",
+     "of": "gleichungen",
+     "par": 1,
+     "short": false,
+     "title": "Zusätzlich wurden folgende eigene Gleichungen ausgewertet: [ …"
+    },
+    {
+     "file": "methods/software.tex",
+     "id": "software",
+     "par": 2,
+     "short": true,
+     "title": "Software"
+    }
+   ],
    "title": "Methodik"
   },
   {
    "file": "text-ergebnisse.tex",
    "id": "ergebnisse",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "dtg",
+     "stufen",
+     "zusammensetzung",
+     "stoechiometrie",
+     "trennung",
+     "suche",
+     "mischung",
+     "dsc",
+     "unsicherheit"
+    ]
+   },
    "title": "Ergebnisse"
   },
   {

@@ -1,0 +1,416 @@
+{
+ "quellen": {},
+ "system": {
+  "id": "cu-ag",
+  "name": "Cu–Ag",
+  "name_en": "Cu–Ag",
+  "A": "Cu",
+  "B": "Ag",
+  "gruppe": "lehre",
+  "x_label": "Silber [Gew.-%]",
+  "x_label_en": "Silver [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   200,
+   1200
+  ],
+  "q": [
+   "callister",
+   "subramanian1993",
+   "massalski1990"
+  ],
+  "hinweis": "Einfaches eutektisches Lehrsystem (Hartlote). Literaturwerte (Subramanian & Perepezko 1993; Massalski 1990; Callister): Cu schmilzt bei 1084,9 °C, Ag bei 961,8 °C; Eutektikum L ⇌ α + β bei 779 °C und 71,9 Gew.-% Ag; grösste Löslichkeit von Ag in α (Cu) 8,0 %, von Cu in β (Ag) 8,8 % (β bis 91,2 % Ag). Die Kurvenpunkte dazwischen sind dem bewerteten Diagramm nachgezeichnet (schematisch, nicht zum genauen Ablesen von Löslichkeiten).",
+  "hinweis_en": "Simple eutectic teaching system (brazing alloys). Literature values (Subramanian & Perepezko 1993; Massalski 1990; Callister): Cu melts at 1084.9 °C, Ag at 961.8 °C; eutectic L ⇌ α + β at 779 °C and 71.9 wt% Ag; maximum solubility of Ag in α (Cu) 8.0 %, of Cu in β (Ag) 8.8 % (β down to 91.2 % Ag). Curve points in between are traced from the assessed diagram (schematic, not for reading solubilities precisely).",
+  "points": [
+   {
+    "x": 0,
+    "T": 1084.87,
+    "label": "Cu schmilzt",
+    "label_en": "Cu melts"
+   },
+   {
+    "x": 100,
+    "T": 961.78,
+    "label": "Ag schmilzt",
+    "label_en": "Ag melts"
+   },
+   {
+    "x": 8.0,
+    "T": 779
+   },
+   {
+    "x": 71.9,
+    "T": 779,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 91.2,
+    "T": 779
+   }
+  ],
+  "curves": {
+   "liq_a": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      10,
+      1063
+     ],
+     [
+      20,
+      1038
+     ],
+     [
+      30,
+      1008
+     ],
+     [
+      40,
+      975
+     ],
+     [
+      50,
+      936
+     ],
+     [
+      60,
+      885
+     ],
+     [
+      66,
+      840
+     ],
+     [
+      71.9,
+      779
+     ]
+    ]
+   },
+   "sol_a": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      1084.87
+     ],
+     [
+      1,
+      1055
+     ],
+     [
+      2,
+      1025
+     ],
+     [
+      3,
+      995
+     ],
+     [
+      4,
+      964
+     ],
+     [
+      5,
+      930
+     ],
+     [
+      6,
+      890
+     ],
+     [
+      7,
+      840
+     ],
+     [
+      8.0,
+      779
+     ]
+    ]
+   },
+   "solv_a": {
+    "kind": "solvus",
+    "pts": [
+     [
+      8.0,
+      779
+     ],
+     [
+      6.8,
+      750
+     ],
+     [
+      5.3,
+      700
+     ],
+     [
+      4.0,
+      650
+     ],
+     [
+      3.0,
+      600
+     ],
+     [
+      2.1,
+      550
+     ],
+     [
+      1.5,
+      500
+     ],
+     [
+      0.8,
+      400
+     ],
+     [
+      0.35,
+      300
+     ],
+     [
+      0.1,
+      200
+     ]
+    ]
+   },
+   "liq_b": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      71.9,
+      779
+     ],
+     [
+      75,
+      805
+     ],
+     [
+      80,
+      842
+     ],
+     [
+      85,
+      876
+     ],
+     [
+      90,
+      907
+     ],
+     [
+      95,
+      936
+     ],
+     [
+      100,
+      961.78
+     ]
+    ]
+   },
+   "sol_b": {
+    "kind": "solidus",
+    "pts": [
+     [
+      91.2,
+      779
+     ],
+     [
+      93,
+      830
+     ],
+     [
+      95,
+      875
+     ],
+     [
+      97.5,
+      925
+     ],
+     [
+      100,
+      961.78
+     ]
+    ]
+   },
+   "solv_b": {
+    "kind": "solvus",
+    "pts": [
+     [
+      91.2,
+      779
+     ],
+     [
+      92.3,
+      750
+     ],
+     [
+      93.6,
+      700
+     ],
+     [
+      94.8,
+      650
+     ],
+     [
+      95.9,
+      600
+     ],
+     [
+      96.8,
+      550
+     ],
+     [
+      97.6,
+      500
+     ],
+     [
+      98.7,
+      400
+     ],
+     [
+      99.4,
+      300
+     ],
+     [
+      99.75,
+      200
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1200
+     ],
+     [
+      100,
+      1200
+     ],
+     [
+      100,
+      961.78
+     ],
+     "-liq_b",
+     "-liq_a"
+    ]
+   },
+   {
+    "label": "α",
+    "phases": [
+     "α"
+    ],
+    "poly": [
+     "sol_a",
+     "solv_a",
+     [
+      0,
+      200
+     ]
+    ]
+   },
+   {
+    "label": "α + L",
+    "phases": [
+     "α",
+     "L"
+    ],
+    "poly": [
+     "liq_a",
+     [
+      8.0,
+      779
+     ],
+     "-sol_a"
+    ]
+   },
+   {
+    "label": "β",
+    "phases": [
+     "β"
+    ],
+    "poly": [
+     [
+      100,
+      961.78
+     ],
+     [
+      100,
+      200
+     ],
+     "-solv_b",
+     "sol_b"
+    ]
+   },
+   {
+    "label": "β + L",
+    "phases": [
+     "L",
+     "β"
+    ],
+    "poly": [
+     "liq_b",
+     "-sol_b"
+    ]
+   },
+   {
+    "label": "α + β",
+    "phases": [
+     "α",
+     "β"
+    ],
+    "poly": [
+     [
+      8.0,
+      779
+     ],
+     [
+      91.2,
+      779
+     ],
+     "solv_b",
+     [
+      0.1,
+      200
+     ],
+     "-solv_a"
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 779,
+    "type": "eutectic",
+    "x": [
+     8.0,
+     71.9,
+     91.2
+    ],
+    "reaction": "L ⇌ α + β",
+    "morph": "lamellar",
+    "constituents": [
+     "primäres α",
+     "Eutektikum (α + β)",
+     "primäres β"
+    ],
+    "constituents_en": [
+     "primary α",
+     "eutectic (α + β)",
+     "primary β"
+    ]
+   }
+  ]
+ }
+}

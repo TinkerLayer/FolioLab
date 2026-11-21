@@ -85,6 +85,167 @@
    ],
    "type": "tex"
   },
+  "methods.json": {
+   "lines": [
+    "{",
+    " \"id\": \"methodik\",",
+    " \"title\": \"Methods\",",
+    " \"steps\": [",
+    "  {",
+    "   \"id\": \"kurz\",",
+    "   \"title\": \"One sentence\",",
+    "   \"short\": false,",
+    "   \"par\": -1,",
+    "   \"file\": \"methods/kurz.tex\",",
+    "   \"brief\": true",
+    "  },",
+    "  {",
+    "   \"id\": \"s1\",",
+    "   \"title\": \"The micrograph BeispielPartikel.tif (768,,576 pixels, 16-bit, pixel …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s1.tex\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s2\",",
+    "   \"title\": \"Processing comprised, in this order: Subtract background …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s2.tex\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s3\",",
+    "   \"title\": \"The threshold was set automatically with the …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s3.tex\",",
+    "   \"of\": \"schwelle\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s4\",",
+    "   \"title\": \"Pixels were treated as square.\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s4.tex\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s5\",",
+    "   \"title\": \"Particles were detected as connected regions of …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s5.tex\",",
+    "   \"of\": \"partikel\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s6\",",
+    "   \"title\": \"The perimeter is the length of the …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s6.tex\",",
+    "   \"of\": \"partikel\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s7\",",
+    "   \"title\": \"Only particles whose bounding box does not …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s7.tex\",",
+    "   \"of\": \"partikel\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s8\",",
+    "   \"title\": \"Means, standard deviations and D values use …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s8.tex\",",
+    "   \"of\": \"partikel\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s9\",",
+    "   \"title\": \"D10, D50 and D90 are quantiles of …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s9.tex\",",
+    "   \"of\": \"quantile\"",
+    "  },",
+    "  {",
+    "   \"id\": \"software\",",
+    "   \"title\": \"Software\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/software.tex\"",
+    "  }",
+    " ]",
+    "}"
+   ],
+   "type": "json"
+  },
+  "methods/kurz.tex": {
+   "lines": [
+    "The micrograph Beispiel\\_Partikel.tif \\cite{data-image-analysis-beispiel-partikel-tif} (768\\,$\\times$\\,576 pixels, 16-bit, pixel size \\labval{image-analysis-beispiel-partikel-tif}{px}) was analysed with Folio Lab, Microscopy module, version <version>~\\cite{folio-lab-mikroskopie}."
+   ],
+   "type": "tex"
+  },
+  "methods/s1.tex": {
+   "lines": [
+    "The micrograph Beispiel\\_Partikel.tif \\cite{data-image-analysis-beispiel-partikel-tif} (768\\,$\\times$\\,576 pixels, 16-bit, pixel size \\labval{image-analysis-beispiel-partikel-tif}{px}) was analysed."
+   ],
+   "type": "tex"
+  },
+  "methods/s2.tex": {
+   "lines": [
+    "Processing comprised, in this order: Subtract background (grey-scale opening, square window, r = 30 px, dark background); Gaussian blur ($\\sigma$ = 1.5 px); Threshold (make binary) (Otsu, dark background); Fill holes."
+   ],
+   "type": "tex"
+  },
+  "methods/s3.tex": {
+   "lines": [
+    "The threshold was set automatically with the Otsu method \\cite{otsu1979} (\\labval{image-analysis-beispiel-partikel-tif}{thr})."
+   ],
+   "type": "tex"
+  },
+  "methods/s4.tex": {
+   "lines": [
+    "Pixels were treated as square."
+   ],
+   "type": "tex"
+  },
+  "methods/s5.tex": {
+   "lines": [
+    "Particles were detected as connected regions of the binary image (8-connectivity) with an area of 2.00 to $\\infty$\\,$\\mu$m$^2$ and a circularity $4\\pi A/P^2$ of 0.00 to 1.00."
+   ],
+   "type": "tex"
+  },
+  "methods/s6.tex": {
+   "lines": [
+    "The perimeter is the length of the marching-squares contour between the pixel centres (straight steps one pixel edge, corners cut by half a pixel diagonal), outer contour only (holes filled); the equivalent circle diameter (ECD) is the diameter of the circle of equal area."
+   ],
+   "type": "tex"
+  },
+  "methods/s7.tex": {
+   "lines": [
+    "Only particles whose bounding box does not touch the border of the analysed area were measured; each was weighted after Miles and Lantuéjoul by the inverse fraction of positions in which a box of its size does not touch the border (image $W\\times H$, box $w\\times h$ pixels: $WH/((W-w-1)(H-h-1))$)."
+   ],
+   "type": "tex"
+  },
+  "methods/s8.tex": {
+   "lines": [
+    "Means, standard deviations and D values use these weights; the area fraction includes the particles at the border."
+   ],
+   "type": "tex"
+  },
+  "methods/s9.tex": {
+   "lines": [
+    "$D_{10}$, $D_{50}$ and $D_{90}$ are quantiles of the number distribution (Q0) of the ECD, $D_{v10}$, $D_{v50}$ and $D_{v90}$ of the volume distribution (Q3, weight ECD$^3$, spheres assumed); quantiles by the midpoint rule (for equal weights definition 5 of Hyndman and Fan \\cite{hyndman1996})."
+   ],
+   "type": "tex"
+  },
+  "methods/software.tex": {
+   "lines": [
+    "The analysis used Folio Lab, Microscopy module, version <version>~\\cite{folio-lab-mikroskopie}."
+   ],
+   "type": "tex"
+  },
   "partikel.tex": {
    "lines": [
     "\\begin{tabular}{lr}",
@@ -135,6 +296,13 @@
     "  number = {4},",
     "  pages = {361--365},",
     "  year = {1996}",
+    "}",
+    "",
+    "@misc{folio-lab-mikroskopie,",
+    "  author = {{Folio Lab}},",
+    "  title = {Folio Lab: Microscopy},",
+    "  version = {<version>},",
+    "  note = {analysis module}",
     "}"
    ],
    "type": "bib"
@@ -147,7 +315,7 @@
   },
   "text-methodik.tex": {
    "lines": [
-    "The micrograph Beispiel\\_Partikel.tif \\cite{data-image-analysis-beispiel-partikel-tif} (768\\,$\\times$\\,576 pixels, 16-bit, pixel size \\labval{image-analysis-beispiel-partikel-tif}{px}) was analysed. Processing comprised, in this order: Subtract background (grey-scale opening, square window, r = 30 px, dark background); Gaussian blur ($\\sigma$ = 1.5 px); Threshold (make binary) (Otsu, dark background); Fill holes. The threshold was set automatically with the Otsu method \\cite{otsu1979} (\\labval{image-analysis-beispiel-partikel-tif}{thr}). Pixels were treated as square. Particles were detected as connected regions of the binary image (8-connectivity) with an area of 2.00 to $\\infty$\\,$\\mu$m$^2$ and a circularity $4\\pi A/P^2$ of 0.00 to 1.00. The perimeter is the length of the marching-squares contour between the pixel centres (straight steps one pixel edge, corners cut by half a pixel diagonal), outer contour only (holes filled); the equivalent circle diameter (ECD) is the diameter of the circle of equal area. Only particles whose bounding box does not touch the border of the analysed area were measured; each was weighted after Miles and Lantuéjoul by the inverse fraction of positions in which a box of its size does not touch the border (image $W\\times H$, box $w\\times h$ pixels: $WH/((W-w-1)(H-h-1))$). Means, standard deviations and D values use these weights; the area fraction includes the particles at the border. $D_{10}$, $D_{50}$ and $D_{90}$ are quantiles of the number distribution (Q0) of the ECD, $D_{v10}$, $D_{v50}$ and $D_{v90}$ of the volume distribution (Q3, weight ECD$^3$, spheres assumed); quantiles by the midpoint rule (for equal weights definition 5 of Hyndman and Fan \\cite{hyndman1996})."
+    "The micrograph Beispiel\\_Partikel.tif \\cite{data-image-analysis-beispiel-partikel-tif} (768\\,$\\times$\\,576 pixels, 16-bit, pixel size \\labval{image-analysis-beispiel-partikel-tif}{px}) was analysed. Processing comprised, in this order: Subtract background (grey-scale opening, square window, r = 30 px, dark background); Gaussian blur ($\\sigma$ = 1.5 px); Threshold (make binary) (Otsu, dark background); Fill holes. The threshold was set automatically with the Otsu method \\cite{otsu1979} (\\labval{image-analysis-beispiel-partikel-tif}{thr}). Pixels were treated as square. Particles were detected as connected regions of the binary image (8-connectivity) with an area of 2.00 to $\\infty$\\,$\\mu$m$^2$ and a circularity $4\\pi A/P^2$ of 0.00 to 1.00. The perimeter is the length of the marching-squares contour between the pixel centres (straight steps one pixel edge, corners cut by half a pixel diagonal), outer contour only (holes filled); the equivalent circle diameter (ECD) is the diameter of the circle of equal area. Only particles whose bounding box does not touch the border of the analysed area were measured; each was weighted after Miles and Lantuéjoul by the inverse fraction of positions in which a box of its size does not touch the border (image $W\\times H$, box $w\\times h$ pixels: $WH/((W-w-1)(H-h-1))$). Means, standard deviations and D values use these weights; the area fraction includes the particles at the border. $D_{10}$, $D_{50}$ and $D_{90}$ are quantiles of the number distribution (Q0) of the ECD, $D_{v10}$, $D_{v50}$ and $D_{v90}$ of the volume distribution (Q3, weight ECD$^3$, spheres assumed); quantiles by the midpoint rule (for equal weights definition 5 of Hyndman and Fan \\cite{hyndman1996}). The analysis used Folio Lab, Microscopy module, version <version>~\\cite{folio-lab-mikroskopie}."
    ],
    "type": "tex"
   },
@@ -205,6 +373,17 @@
    "id": "bild",
    "kind": "figure",
    "label": "fig:image-analysis-beispiel-partikel-tif-bild",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "auswahl",
+     "label": "Selections",
+     "steps": []
+    }
+   ],
    "preview": "fig/bild.png",
    "width": "0.8"
   },
@@ -215,6 +394,13 @@
    "id": "partikel",
    "kind": "figure",
    "label": "fig:image-analysis-beispiel-partikel-tif-partikel",
+   "needs": {
+    "steps": [
+     "partikel",
+     "schwelle",
+     "wasserscheide"
+    ]
+   },
    "preview": "fig/partikel.png",
    "width": "0.8"
   },
@@ -225,6 +411,19 @@
    "id": "histogramm",
    "kind": "figure",
    "label": "fig:image-analysis-beispiel-partikel-tif-histogramm",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "schwelle",
+     "label": "Threshold range",
+     "steps": [
+      "schwelle"
+     ]
+    }
+   ],
    "preview": "fig/histogramm.png",
    "width": "0.75"
   },
@@ -235,6 +434,12 @@
    "id": "groessen",
    "kind": "figure",
    "label": "fig:image-analysis-beispiel-partikel-tif-groessen",
+   "needs": {
+    "steps": [
+     "partikel",
+     "quantile"
+    ]
+   },
    "preview": "fig/groessen.png",
    "width": "0.75"
   },
@@ -245,6 +450,11 @@
    "id": "form",
    "kind": "figure",
    "label": "fig:image-analysis-beispiel-partikel-tif-form",
+   "needs": {
+    "steps": [
+     "partikel"
+    ]
+   },
    "preview": "fig/form.png",
    "width": "0.75"
   },
@@ -255,6 +465,9 @@
    "id": "profil1",
    "kind": "figure",
    "label": "fig:image-analysis-beispiel-partikel-tif-profil1",
+   "needs": {
+    "steps": []
+   },
    "preview": "fig/profil1.png",
    "width": "0.75"
   },
@@ -265,6 +478,9 @@
    "id": "messungen",
    "kind": "table",
    "label": "tab:image-analysis-beispiel-partikel-tif-messungen",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -274,6 +490,14 @@
    "id": "partikel",
    "kind": "table",
    "label": "tab:image-analysis-beispiel-partikel-tif-partikel",
+   "needs": {
+    "steps": [
+     "partikel",
+     "quantile",
+     "schwelle",
+     "wasserscheide"
+    ]
+   },
    "notes": "Mean $\\pm$ standard deviation; ECD: diameter of the circle of equal area. Q0: weighted by number; Q3: weighted by volume (ECD$^3$, spheres assumed). Area fraction from all particles including those at the border. Means, standard deviations and D values edge-corrected: particles at the border of the analysed area not measured, the others weighted after Miles and Lantuéjoul."
   },
   {
@@ -350,15 +574,116 @@
    "rows": 501
   },
   {
+   "key": "folio-lab-mikroskopie",
+   "kind": "citation",
+   "title": "Folio Lab: Microscopy"
+  },
+  {
    "file": "text-methodik.tex",
    "id": "methodik",
    "kind": "text",
+   "methods": true,
+   "steps": [
+    {
+     "brief": true,
+     "file": "methods/kurz.tex",
+     "id": "kurz",
+     "par": -1,
+     "short": false,
+     "title": "One sentence"
+    },
+    {
+     "file": "methods/s1.tex",
+     "id": "s1",
+     "par": 0,
+     "short": true,
+     "title": "The micrograph BeispielPartikel.tif (768,,576 pixels, 16-bit, pixel …"
+    },
+    {
+     "file": "methods/s2.tex",
+     "id": "s2",
+     "par": 0,
+     "short": false,
+     "title": "Processing comprised, in this order: Subtract background …"
+    },
+    {
+     "file": "methods/s3.tex",
+     "id": "s3",
+     "of": "schwelle",
+     "par": 0,
+     "short": false,
+     "title": "The threshold was set automatically with the …"
+    },
+    {
+     "file": "methods/s4.tex",
+     "id": "s4",
+     "par": 0,
+     "short": false,
+     "title": "Pixels were treated as square."
+    },
+    {
+     "file": "methods/s5.tex",
+     "id": "s5",
+     "of": "partikel",
+     "par": 0,
+     "short": false,
+     "title": "Particles were detected as connected regions of …"
+    },
+    {
+     "file": "methods/s6.tex",
+     "id": "s6",
+     "of": "partikel",
+     "par": 0,
+     "short": false,
+     "title": "The perimeter is the length of the …"
+    },
+    {
+     "file": "methods/s7.tex",
+     "id": "s7",
+     "of": "partikel",
+     "par": 0,
+     "short": false,
+     "title": "Only particles whose bounding box does not …"
+    },
+    {
+     "file": "methods/s8.tex",
+     "id": "s8",
+     "of": "partikel",
+     "par": 0,
+     "short": false,
+     "title": "Means, standard deviations and D values use …"
+    },
+    {
+     "file": "methods/s9.tex",
+     "id": "s9",
+     "of": "quantile",
+     "par": 0,
+     "short": false,
+     "title": "D10, D50 and D90 are quantiles of …"
+    },
+    {
+     "file": "methods/software.tex",
+     "id": "software",
+     "par": 0,
+     "short": true,
+     "title": "Software"
+    }
+   ],
    "title": "Methods"
   },
   {
    "file": "text-ergebnisse.tex",
    "id": "ergebnisse",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "partikel",
+     "quantile",
+     "schwelle",
+     "wasserscheide",
+     "unsicherheit"
+    ]
+   },
    "title": "Results"
   },
   {

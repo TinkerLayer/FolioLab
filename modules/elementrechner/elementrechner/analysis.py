@@ -221,8 +221,12 @@ def equation_result(text: str, amounts=None, actual=None, thermo=None, redox=Non
         if sp.kind == "chem":
             try:
                 c["M"] = C.molar_mass(sp)["M"]
+                from . import uncert as UC                   # Runde U: u(M) nach Possolo et al. 2018 (Wertekatalog)
+                c["M_u"] = UC.possolo_u(sp)["u"]
             except C.ChemError as e:
                 c["M_error"] = str(e)
+            except ValueError:
+                pass
             c.update(collection_match(sp))
             if c.get("match_by") == "name" and c.get("matches"):
                 hints[str(i)] = c["matches"][0]["key"]
@@ -273,7 +277,16 @@ PREP_KINDS = ("solid", "stock", "series", "mixsolve", "reaction", "gas", "buffer
 
 def prep_call(kind: str, r: dict) -> dict:
     """Eine Rechnung des Tabs „Ansetzen“ – gleiche Eingabe wie /api/prep/<kind>; Server und Bericht nutzen sie beide,
-    damit der Bericht genau das rechnet, was die Seite zeigt."""
+    damit der Bericht genau das rechnet, was die Seite zeigt. Mit ``unc`` (±-Angaben und Verfahren) kommt die
+    Messunsicherheit der Ergebnisse dazu (``out["unc"]``, elementrechner.uncert)."""
+    out = _prep_call(kind, r)
+    if isinstance(r.get("unc"), dict) and isinstance(out, dict) and not r.get("terms_only"):
+        from . import uncert as UC
+        out["unc"] = UC.prep(kind, r, out, r.get("lang") if r.get("lang") in ("de", "en") else "de")
+    return out
+
+
+def _prep_call(kind: str, r: dict) -> dict:
     from labcalc import prep as PR
     if kind == "solid":
         comps = r.get("components") or []
@@ -546,8 +559,11 @@ def run(state: dict) -> dict:
         if kind not in PREP_KINDS:
             continue
         try:
+            rq = dict(item.get("req") or {}, terms_only=False)
+            if state.get("lang") in ("de", "en"):
+                rq["lang"] = state["lang"]
             prep.append({"kind": kind, "label": item.get("label") or "", "req": item.get("req") or {},
-                         "result": prep_call(kind, dict(item.get("req") or {}, terms_only=False))})
+                         "result": prep_call(kind, rq)})
         except (C.ChemError, ValueError, TypeError) as e:
             out["errors"].append({"where": f"prep:{kind}", "error": str(e)})
     if prep:
@@ -608,6 +624,9 @@ def run(state: dict) -> dict:
             out["empirical"] = C.empirical_formula(fr, float(emp["M"]) if emp.get("M") else None)
         except (C.ChemError, ValueError) as e:
             out["errors"].append({"where": "empirical", "error": str(e)})
+    if isinstance(state.get("unc"), dict):                  # Runde U: Ausbeute, molare Massen, pH mit Unsicherheit
+        from . import uncert as UC
+        out["unc"] = UC.for_run(state, out, state.get("lang") if state.get("lang") in ("de", "en") else "de")
     return out
 
 

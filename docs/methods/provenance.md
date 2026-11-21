@@ -319,7 +319,7 @@ To make a number reproducible, state:
 
 Example wording:
 
-> Raw data (file names and SHA-256 in the supplementary material) were read and cleaned with Folio Lab 0.4.0,
+> Raw data (file names and SHA-256 in the supplementary material) were read and cleaned with Folio Lab 0.5.0,
 > module Datenaufbereitung 0.3.0. Outliers were flagged with the Grubbs test (two-sided, applied sequentially with
 > α = 0.05 per step, so the overall error rate is not 0.05) and
 > 2 of 14 rows were excluded after inspection (reasons listed in the supplement). The analysis used dataset

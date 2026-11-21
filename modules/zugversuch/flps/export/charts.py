@@ -31,6 +31,24 @@ plt.rcParams.update({
 })
 
 
+def _part(arts, pid: str):
+    """Artists als Teil ``pid`` der Grafik markieren (Attribut wie labstyle.PART_ATTR): der Bericht kann den Teil dann
+    mit seinen Wörtern in der Bildunterschrift, seinen Quellen und Methodensätzen weglassen (labbundle add_figure parts)."""
+    todo = [arts]
+    while todo:
+        a = todo.pop()
+        if a is None:
+            continue
+        if isinstance(a, (list, tuple)):
+            todo.extend(a)
+            continue
+        try:
+            a._labpart = pid
+        except Exception:
+            pass
+    return arts
+
+
 def _cf(x, _=None):
     s = f"{x:.10g}"
     if "e" in s:
@@ -98,11 +116,12 @@ def chart1(r: Result, ax=None, title: bool = True):
     if r.break_idx is not None:
         marks.append(("break", r.break_idx, "Bruch"))
     offsets = {"yield": ((8, 10), "left"), "max": ((-12, 10), "right"), "break": ((-12, -28), "right")}
+    part = {"yield": "fliessbeginn", "max": "maximum", "break": "bruch"}
     for key, i, lab in marks:
-        ax.plot(t[i], y[i], "o", ms=8, color=MARK[key], zorder=5, label=f"{lab}: {fmt(y[i], nd, u)}")
+        _part(ax.plot(t[i], y[i], "o", ms=8, color=MARK[key], zorder=5, label=f"{lab}: {fmt(y[i], nd, u)}"), part[key])
         off, ha = offsets[key]
-        ax.annotate(f"{fmt(y[i], nd, u)}\n{fmt(t[i], 1, 's')}", (t[i], y[i]), textcoords="offset points",
-                    xytext=off, ha=ha, fontsize=9, color=MARK[key], fontweight="bold")
+        _part(ax.annotate(f"{fmt(y[i], nd, u)}\n{fmt(t[i], 1, 's')}", (t[i], y[i]), textcoords="offset points",
+                          xytext=off, ha=ha, fontsize=9, color=MARK[key], fontweight="bold"), part[key])
     ax.set_xlabel("Zeit t [s]")
     ax.set_ylabel(_ylabel(r))
     if title:
@@ -233,9 +252,10 @@ def key_height_in(n: int) -> float:
     return 0.35 + -(-n // ncol) * fs * 1.45 / 72
 
 
-def _curve_numbers(ax, ends):
+def _curve_numbers(ax, ends, n_group: int | None = None):
     """Kurvennummern am Ende jeder Vergleichskurve; überlappende Nummern werden nach oben versetzt
-    und mit einer feinen Linie an ihr Kurvenende gebunden."""
+    und mit einer feinen Linie an ihr Kurvenende gebunden. Nummern bis n_group gehören zum Feld, die übrigen zu den
+    zusätzlich eingeblendeten Werkstoffen (Teile der Grafik)."""
     s = ax.figure.dpi / 72.0          # Pixel je Punkt
     by = {nr: (x, y) for nr, x, y in ends}
     pts = sorted(((nr, *ax.transData.transform(by[nr])) for nr in by), key=lambda p: (p[2], p[1]))
@@ -248,10 +268,12 @@ def _curve_numbers(ax, ends):
             y += 8 * s
         placed.append((xd, y))
         dy = (y - yd) / s
-        ax.annotate(str(nr), by[nr], xytext=(2.5, dy), textcoords="offset points", fontsize=6, color="#3c4043",
-                    ha="left", va="center", zorder=4, gid="keep",
-                    bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.75),
-                    arrowprops=dict(arrowstyle="-", color="#9aa0a6", lw=0.4, shrinkA=0, shrinkB=0) if dy > 0.5 else None)
+        t = ax.annotate(str(nr), by[nr], xytext=(2.5, dy), textcoords="offset points", fontsize=6, color="#3c4043",
+                        ha="left", va="center", zorder=4, gid="keep",
+                        bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.75),
+                        arrowprops=dict(arrowstyle="-", color="#9aa0a6", lw=0.4, shrinkA=0, shrinkB=0) if dy > 0.5 else None)
+        if n_group is not None:
+            _part(t, "feld" if nr <= n_group else "zusatz")
 
 
 def _field_key(ax, members, where: str):
@@ -292,20 +314,20 @@ def chart3(r: Result, ax=None, title: bool = True, key: str = "right"):
     eps, up, lo, curves = alloys_mod.envelope(group or members, eps_max=eps_max)
     ends = []
     for nr, c in enumerate(curves if group else [], 1):
-        ax.plot(eps * 100, c, "-", color="#9aa0a6", lw=0.6, alpha=0.8)
+        _part(ax.plot(eps * 100, c, "-", color="#9aa0a6", lw=0.6, alpha=0.8), "feld")
         ok = np.where(np.isfinite(c))[0]
         if len(ok):
             ends.append((nr, eps[ok[-1]] * 100, c[ok[-1]]))
     kind = "Kurven aus Quellen" if group and all(getattr(a, "curve", None) for a in group) else "idealisiert, zur Orientierung"
-    ax.fill_between(eps * 100, lo, up, color="#1a73e8", alpha=0.12, lw=0, label=f"Feld {r.group} ({kind})")
-    ax.plot(eps * 100, up, "-", color="#1a73e8", lw=1.4, label="obere Grenze")
-    ax.plot(eps * 100, lo, "--", color="#1a73e8", lw=1.4, label="untere Grenze")
+    _part(ax.fill_between(eps * 100, lo, up, color="#1a73e8", alpha=0.12, lw=0, label=f"Feld {r.group} ({kind})"), "feld")
+    _part(ax.plot(eps * 100, up, "-", color="#1a73e8", lw=1.4, label="obere Grenze"), "feld")
+    _part(ax.plot(eps * 100, lo, "--", color="#1a73e8", lw=1.4, label="untere Grenze"), "feld")
     ymax_x = 0.0
     for j, a in enumerate(extras):
         nr = len(group) + j + 1
         c = alloys_mod.ideal_curve(a, eps)
-        ax.plot(eps * 100, c, "-", color=EXTRA_COLORS[j % len(EXTRA_COLORS)], lw=1.5,
-                label=f"{nr} {short_name(a.name)} ({curve_kind(a)})", gid="keep")
+        _part(ax.plot(eps * 100, c, "-", color=EXTRA_COLORS[j % len(EXTRA_COLORS)], lw=1.5,
+                      label=f"{nr} {short_name(a.name)} ({curve_kind(a)})", gid="keep"), "zusatz")
         ok = np.where(np.isfinite(c))[0]
         if len(ok):
             ends.append((nr, eps[ok[-1]] * 100, c[ok[-1]]))
@@ -313,8 +335,8 @@ def chart3(r: Result, ax=None, title: bool = True, key: str = "right"):
     if r.reference is not None:
         ref = r.reference
         e2 = np.linspace(0, _a_end(ref) / 100.0, 800)
-        ax.plot(e2 * 100, alloys_mod.ideal_curve(ref, e2), "-", color=REF_COLOR, lw=2.2,
-                label=f"Referenz {ref.name} ({curve_kind(ref)})")
+        _part(ax.plot(e2 * 100, alloys_mod.ideal_curve(ref, e2), "-", color=REF_COLOR, lw=2.2,
+                      label=f"Referenz {ref.name} ({curve_kind(ref)})"), "referenz")
     ax.plot(x, yy, "-", color="#d93025", lw=2.2, label=r.name)
     ax.plot(r.strain[r.imax] * 100, r.y[r.imax], "o", color=MARK["max"], ms=7)
     ax.annotate(fmt(r.y[r.imax], 0, "MPa"), (r.strain[r.imax] * 100, r.y[r.imax]),
@@ -330,9 +352,9 @@ def chart3(r: Result, ax=None, title: bool = True, key: str = "right"):
     if own:
         ax.figure.tight_layout()
     if ends and len(members) <= NUMBER_MAX:
-        _curve_numbers(ax, ends)
+        _curve_numbers(ax, ends, len(group))
     if key and members:
-        _field_key(ax, members, key)
+        _part(_field_key(ax, members, key), "feld" if group else "zusatz")
     # oben rechts (hohe Festigkeit bei hoher Dehnung) ist das Feld praktisch immer leer: dort verdeckt die
     # Legende weder Kurven noch Kurvennummern
     ax.legend(loc="upper right", fontsize=8.5)
@@ -636,19 +658,20 @@ def peaks_curve(r: Result, ax, lang: str = "de"):
     en = lang == "en"
     ax.plot(r.t, r.y, "-", color="#5f6368", lw=1.1, label="Measured curve" if en else "Messkurve")
     pts = pk["list"]
-    ax.plot([e["t"] for e in pts], [e["y"] for e in pts], "o", ms=5, color=PEAK_COLOR, zorder=5,
-            label=(f"Load peaks (drop ≥ {fmt(pk['delta'], 2, r.unit)} after each)" if en else
-                   f"Lastspitzen (je Abfall ≥ {fmt(pk['delta'], 2, r.unit)} danach)"))
-    ax.plot([e["valley_t"] for e in pts], [e["valley_y"] for e in pts], "v", ms=4, color="#9aa0a6", zorder=4,
-            label="Valleys" if en else "Täler")
+    _part(ax.plot([e["t"] for e in pts], [e["y"] for e in pts], "o", ms=5, color=PEAK_COLOR, zorder=5,
+                  label=(f"Load peaks (drop ≥ {fmt(pk['delta'], 2, r.unit)} after each)" if en else
+                         f"Lastspitzen (je Abfall ≥ {fmt(pk['delta'], 2, r.unit)} danach)")), "spitzen")
+    _part(ax.plot([e["valley_t"] for e in pts], [e["valley_y"] for e in pts], "v", ms=4, color="#9aa0a6", zorder=4,
+                  label="Valleys" if en else "Täler"), "taeler")
     for e in pts:
-        ax.annotate(str(e["nr"]), (e["t"], e["y"]), textcoords="offset points", xytext=(0, 5), ha="center",
-                    fontsize=7, color=PEAK_COLOR, fontweight="bold")
+        _part(ax.annotate(str(e["nr"]), (e["t"], e["y"]), textcoords="offset points", xytext=(0, 5), ha="center",
+                          fontsize=7, color=PEAK_COLOR, fontweight="bold"), "spitzen")
     fit = pk.get("fit") or {}
     best, cv = fit.get("best"), fit.get("curve") or {}
     if best and best in cv:
-        ax.plot(cv["t"], cv[best], "--", color=FIT_COLORS[best], lw=1.6,
-                label=("Envelope: " if en else "Hüllkurve: ") + FIT_NAMES[lang if lang in FIT_NAMES else "de"][best])
+        _part(ax.plot(cv["t"], cv[best], "--", color=FIT_COLORS[best], lw=1.6,
+                      label=("Envelope: " if en else "Hüllkurve: ") + FIT_NAMES[lang if lang in FIT_NAMES else "de"][best]),
+              "huellkurve")
     ax.set_xlabel("Time t [s]" if en else "Zeit t [s]")
     ax.set_ylabel(("Stress σ [MPa]" if r.mode == "Spannung" else "Force |F| [N]") if en else _ylabel(r))
     ax.set_xlim(0, r.t[-1] * 1.02)

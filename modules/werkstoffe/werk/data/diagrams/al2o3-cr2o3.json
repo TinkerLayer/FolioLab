@@ -1,0 +1,309 @@
+{
+ "quellen": {
+  "al2o3-cr2o3_bunting1931": {
+   "type": "article",
+   "authors": "Bunting, E. N.",
+   "title": "Phase equilibria in the system Cr₂O₃–Al₂O₃",
+   "container": "Bureau of Standards Journal of Research",
+   "year": "1931",
+   "volume": "6",
+   "pages": "947–949",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "al2o3-cr2o3_roy1972": {
+   "type": "article",
+   "authors": "Roy, D. M.; Barks, R. E.",
+   "title": "Subsolidus phase equilibria in Al₂O₃–Cr₂O₃",
+   "container": "Nature Physical Science",
+   "year": "1972",
+   "volume": "235",
+   "pages": "118–119",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "al2o3-cr2o3",
+  "name": "Al₂O₃–Cr₂O₃",
+  "name_en": "Al₂O₃–Cr₂O₃",
+  "A": "Al₂O₃",
+  "B": "Cr₂O₃",
+  "gruppe": "keramik",
+  "x_label": "Cr₂O₃ [Gew.-%]",
+  "x_label_en": "Cr₂O₃ [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   600,
+   2400
+  ],
+  "q": [
+   "al2o3-cr2o3_bunting1931",
+   "al2o3-cr2o3_roy1972",
+   "crc97"
+  ],
+  "hinweis": "x = Gew.-% Cr₂O₃ (A = Al₂O₃, B = Cr₂O₃). Zitiert: Al₂O₃ schmilzt bei 2054 °C, Cr₂O₃ bei ≈ 2330 °C; lückenlose Mischkristallreihe (Korundstruktur) im ganzen Bereich (Bunting 1931); im festen Zustand Mischungslücke mit kritischer Temperatur ≈ 945 °C (Roy & Barks 1972). Die Linse ist als ideale Lösung mit den Schmelzpunkten und Schmelzenthalpien gerechnet, die Mischungslücke als symmetrische reguläre Lösung mit T_c = 945 °C (kritische Zusammensetzung 50 Mol-% ≈ 60 Gew.-% angenommen): beide Kurven sind schematisch, nur Schmelzpunkte und T_c sind zitiert. Die Entmischung ist sehr träge; Rubin (≈ 0,5–1 Gew.-% Cr₂O₃) liegt ausserhalb der Lücke.",
+  "hinweis_en": "x = wt% Cr₂O₃ (A = Al₂O₃, B = Cr₂O₃). Cited: Al₂O₃ melts at 2054 °C, Cr₂O₃ at ≈ 2330 °C; continuous solid solution (corundum structure) over the whole range (Bunting 1931); solid-state miscibility gap with critical temperature ≈ 945 °C (Roy & Barks 1972). The lens is computed as an ideal solution from the melting points and enthalpies of fusion, the gap as a symmetric regular solution with T_c = 945 °C (critical composition assumed at 50 mol% ≈ 60 wt%): both curves are schematic, only melting points and T_c are cited. Decomposition is very sluggish; ruby (≈ 0.5–1 wt% Cr₂O₃) lies outside the gap.",
+  "points": [
+   {
+    "x": 0,
+    "T": 2054.0,
+    "label": "Al₂O₃ schmilzt",
+    "label_en": "Al₂O₃ melts"
+   },
+   {
+    "x": 100,
+    "T": 2330.0,
+    "label": "Cr₂O₃ schmilzt",
+    "label_en": "Cr₂O₃ melts"
+   },
+   {
+    "x": 59.85,
+    "T": 945.0,
+    "label": "kritischer Punkt",
+    "label_en": "critical point"
+   }
+  ],
+  "curves": {
+   "liq": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      2054.0
+     ],
+     [
+      8.286,
+      2076.1
+     ],
+     [
+      17.654,
+      2100.9
+     ],
+     [
+      28.07,
+      2128.5
+     ],
+     [
+      39.474,
+      2158.9
+     ],
+     [
+      51.774,
+      2192.0
+     ],
+     [
+      63.855,
+      2225.1
+     ],
+     [
+      74.681,
+      2255.5
+     ],
+     [
+      84.281,
+      2283.1
+     ],
+     [
+      92.702,
+      2307.9
+     ],
+     [
+      100,
+      2330.0
+     ]
+    ]
+   },
+   "sol": {
+    "kind": "solidus",
+    "pts": [
+     [
+      0,
+      2054.0
+     ],
+     [
+      15.111,
+      2076.1
+     ],
+     [
+      29.542,
+      2100.9
+     ],
+     [
+      43.087,
+      2128.5
+     ],
+     [
+      55.639,
+      2158.9
+     ],
+     [
+      67.167,
+      2192.0
+     ],
+     [
+      76.938,
+      2225.1
+     ],
+     [
+      84.676,
+      2255.5
+     ],
+     [
+      90.887,
+      2283.1
+     ],
+     [
+      95.915,
+      2307.9
+     ],
+     [
+      100,
+      2330.0
+     ]
+    ]
+   },
+   "gap": {
+    "kind": "solvus",
+    "pts": [
+     [
+      13.396,
+      600
+     ],
+     [
+      20.047,
+      700
+     ],
+     [
+      27.02,
+      780
+     ],
+     [
+      33.743,
+      840
+     ],
+     [
+      39.464,
+      880
+     ],
+     [
+      45.058,
+      910
+     ],
+     [
+      49.663,
+      928
+     ],
+     [
+      54.407,
+      940
+     ],
+     [
+      59.85,
+      945.0
+     ],
+     [
+      65.061,
+      940
+     ],
+     [
+      69.252,
+      928
+     ],
+     [
+      73.043,
+      910
+     ],
+     [
+      77.317,
+      880
+     ],
+     [
+      81.355,
+      840
+     ],
+     [
+      85.718,
+      780
+     ],
+     [
+      89.86,
+      700
+     ],
+     [
+      93.492,
+      600
+     ]
+    ]
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      2400
+     ],
+     [
+      100,
+      2400
+     ],
+     "-liq"
+    ]
+   },
+   {
+    "label": "L + (Al,Cr)₂O₃",
+    "phases": [
+     "L",
+     "(Al,Cr)₂O₃"
+    ],
+    "poly": [
+     "liq",
+     "-sol"
+    ]
+   },
+   {
+    "label": "(Al,Cr)₂O₃",
+    "phases": [
+     "(Al,Cr)₂O₃"
+    ],
+    "poly": [
+     [
+      0,
+      2054.0
+     ],
+     "sol",
+     [
+      100,
+      600
+     ],
+     [
+      93.492,
+      600
+     ],
+     "-gap",
+     [
+      0,
+      600
+     ]
+    ]
+   },
+   {
+    "label": "(Al,Cr)₂O₃ (1) + (2)",
+    "phases": [
+     "(Al,Cr)₂O₃ (1)",
+     "(Al,Cr)₂O₃ (2)"
+    ],
+    "poly": [
+     "gap"
+    ]
+   }
+  ],
+  "invariants": []
+ }
+}

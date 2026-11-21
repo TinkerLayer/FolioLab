@@ -1,0 +1,114 @@
+{
+  "quellen": {
+    "al-mg_murray1982": {
+      "type": "article",
+      "authors": "Murray, J. L.",
+      "title": "The Al-Mg (Aluminum-Magnesium) System",
+      "container": "Bulletin of Alloy Phase Diagrams",
+      "year": "1982",
+      "volume": "3",
+      "pages": "60-74",
+      "note": "Angaben nicht am Original geprüft"
+    },
+    "al-mg2si_mondolfo1976": {
+      "type": "book",
+      "authors": "Mondolfo, L. F.",
+      "title": "Aluminum Alloys: Structure and Properties",
+      "container": "Butterworths, London",
+      "year": "1976",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "al-mg",
+    "name": "Al–Mg (Al-reiche Seite)",
+    "name_en": "Al–Mg (Al-rich side)",
+    "A": "Al",
+    "B": "Mg",
+    "gruppe": "al",
+    "x_label": "Magnesium [Gew.-%]",
+    "x_label_en": "Magnesium [wt%]",
+    "xlim": [0, 38],
+    "Tlim": [100, 700],
+    "q": ["al-mg_murray1982", "massalski1990", "al-mg2si_mondolfo1976"],
+    "hinweis": "Zitiert (Murray 1982): Schmelzpunkt Al 660,3 °C; Eutektikum L ⇌ (Al) + β bei 450 °C mit L ≈ 35 Gew.-% Mg, (Al) 17,4 Gew.-% Mg (18,9 At.-%, grösste Löslichkeit) und β (Al₃Mg₂) ab 36,1 Gew.-% Mg (38,5 At.-%). Ältere Angaben (Mondolfo 1976) nennen für die grösste Löslichkeit 14,9 Gew.-% Mg. Liquidus, Solidus und Solvus zwischen diesen Eckwerten sind dem bewerteten Diagramm nachgezeichnet bzw. die Solvuslinie als Arrhenius-Kurve gelegt: schematisch, nicht zum genauen Ablesen von Löslichkeiten. Vereinfacht: das Diagramm endet bei β; β schmilzt nur etwa 1 K über dem Eutektikum, das schmale Gebiet L + β ist weggelassen; die Phasen jenseits von β (γ, Mg-Seite) siehe Mg–Al.",
+    "hinweis_en": "Cited (Murray 1982): melting point of Al 660.3 °C; eutectic L ⇌ (Al) + β at 450 °C with L ≈ 35 wt% Mg, (Al) 17.4 wt% Mg (18.9 at%, maximum solubility) and β (Al₃Mg₂) from 36.1 wt% Mg (38.5 at%). Older data (Mondolfo 1976) give 14.9 wt% Mg as maximum solubility. Liquidus, solidus and solvus between these key values are traced from the assessed diagram, the solvus as an Arrhenius curve: schematic, not for reading solubilities precisely. Simplified: the diagram ends at β; β melts only about 1 K above the eutectic, the narrow L + β field is omitted; for the phases beyond β (γ, Mg side) see Mg–Al.",
+    "points": [
+      {
+        "x": 0,
+        "T": 660.3,
+        "label": "Al schmilzt",
+        "label_en": "Al melts"
+      },
+      {
+        "x": 17.4,
+        "T": 450,
+        "label": "grösste Löslichkeit von Mg in (Al)",
+        "label_en": "maximum solubility of Mg in (Al)"
+      },
+      {
+        "x": 35,
+        "T": 450,
+        "label": "Eutektikum",
+        "label_en": "Eutectic"
+      },
+      {
+        "x": 36.1,
+        "T": 450,
+        "label": "β (Al₃Mg₂)"
+      }
+    ],
+    "curves": {
+      "liq": {
+        "kind": "liquidus",
+        "pts": [[0, 660.3], [2.5, 649.5], [5, 638.5], [7.5, 627], [10, 615], [12.5, 602.5], [15, 589.5], [17.5, 576], [20, 561.5], [22.5, 546.5], [25, 530.5], [27.5, 513.5], [30, 495], [32.5, 474], [35, 450]]
+      },
+      "sol": {
+        "kind": "solidus",
+        "pts": [[0, 660.3], [2, 639.2], [4, 617.3], [6, 594.6], [8, 571.1], [10, 546.8], [12, 521.7], [14, 495.9], [16, 469.2], [17.4, 450]]
+      },
+      "solv": {
+        "kind": "solvus",
+        "pts": [[17.4, 450], [15.6, 425], [13.88, 400], [12.24, 375], [10.68, 350], [9.21, 325], [7.85, 300], [6.59, 275], [5.44, 250], [4.4, 225], [3.49, 200], [2.69, 175], [2.01, 150], [1.45, 125], [1.0, 100]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 700], [38, 700], [38, 450], "-liq"]
+      },
+      {
+        "label": "(Al) + L",
+        "phases": ["(Al)", "L"],
+        "poly": ["liq", [17.4, 450], "-sol"]
+      },
+      {
+        "label": "(Al)",
+        "phases": ["(Al)"],
+        "poly": ["sol", "solv", [0, 100]]
+      },
+      {
+        "label": "(Al) + β",
+        "phases": ["(Al)", "β"],
+        "poly": [[17.4, 450], [36.1, 450], [36.1, 100], "-solv"]
+      },
+      {
+        "label": "β",
+        "phases": ["β"],
+        "poly": [[36.1, 450], [38, 450], [38, 100], [36.1, 100]]
+      }
+    ],
+    "invariants": [
+      {
+        "T": 450,
+        "type": "eutectic",
+        "x": [17.4, 35, 36.1],
+        "reaction": "L ⇌ (Al) + β",
+        "constituents": ["primäres (Al)", "Eutektikum ((Al) + β)", "primäres β"],
+        "constituents_en": ["primary (Al)", "eutectic ((Al) + β)", "primary β"],
+        "morph": "divorced"
+      }
+    ]
+  }
+}

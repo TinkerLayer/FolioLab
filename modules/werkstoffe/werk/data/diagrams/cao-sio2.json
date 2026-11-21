@@ -1,0 +1,925 @@
+{
+ "quellen": {
+  "cao-sio2_osborn1960": {
+   "type": "book",
+   "authors": "Osborn, E. F.; Muan, A.",
+   "title": "Phase Equilibrium Diagrams of Oxide Systems, Plate 1: The System CaO–SiO₂",
+   "container": "American Ceramic Society / Edward Orton Jr. Ceramic Foundation, Columbus (OH)",
+   "year": "1960",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "cao-sio2_levin1964": {
+   "type": "book",
+   "authors": "Levin, E. M.; Robbins, C. R.; McMurdie, H. F.",
+   "title": "Phase Diagrams for Ceramists",
+   "container": "American Ceramic Society, Columbus (OH)",
+   "year": "1964",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "cao-sio2_welch1959": {
+   "type": "article",
+   "authors": "Welch, J. H.; Gutt, W.",
+   "title": "Tricalcium silicate and its stability within the system CaO–SiO₂",
+   "container": "Journal of the American Ceramic Society",
+   "year": "1959",
+   "volume": "42",
+   "pages": "11–15",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "system": {
+  "id": "cao-sio2",
+  "name": "SiO₂–CaO",
+  "name_en": "SiO₂–CaO",
+  "A": "SiO₂",
+  "B": "CaO",
+  "gruppe": "keramik",
+  "x_label": "CaO [Gew.-%]",
+  "x_label_en": "CaO [wt%]",
+  "xlim": [
+   0,
+   100
+  ],
+  "Tlim": [
+   1000,
+   2700
+  ],
+  "q": [
+   "cao-sio2_osborn1960",
+   "cao-sio2_levin1964",
+   "cao-sio2_welch1959",
+   "crc97"
+  ],
+  "hinweis": "x = Gew.-% CaO (A = SiO₂, B = CaO). Zitiert (Osborn & Muan 1960; Welch & Gutt 1959): SiO₂ schmilzt bei 1723 °C, CaO bei ≈ 2613 °C; Entmischung der Schmelze auf der SiO₂-Seite mit Monotektikum bei 1698 °C (≈ 0,6 und ≈ 27,5 Gew.-% CaO, Kuppe ≈ 2100 °C nur geschätzt); Eutektikum SiO₂ + CaSiO₃ bei 1436 °C (37 Gew.-%); CaSiO₃ (Pseudowollastonit, 48,3 Gew.-%) schmilzt kongruent bei 1544 °C; Eutektikum CaSiO₃ + Ca₃Si₂O₇ bei 1460 °C (≈ 54,5 Gew.-%); Rankinit Ca₃Si₂O₇ (58,2 Gew.-%) zerfällt peritektisch bei 1464 °C; Ca₂SiO₄ (65,1 Gew.-%) schmilzt kongruent bei 2130 °C; Eutektikum Ca₂SiO₄ + Ca₃SiO₅ bei 2050 °C; Ca₃SiO₅ (Alit, 73,7 Gew.-%) schmilzt inkongruent bei 2070 °C und ist nur oberhalb 1250 °C stabil (darunter Zerfall in Ca₂SiO₄ + CaO). Die Schmelzzusammensetzungen bei 2050/2070 °C und alle Kurvenpunkte sind abgelesen (schematisch). Vereinfacht: alle Verbindungen als Strichphasen; SiO₂ ohne Unterscheidung Cristobalit/Tridymit (1470 °C), CaSiO₃ ohne Wollastonit ⇌ Pseudowollastonit (1125 °C), Ca₂SiO₄ ohne seine Modifikationen (α, α′, β, γ). Zementbezug: Portlandzementklinker liegt im Feld Ca₃SiO₅ + CaO nahe Ca₃SiO₅/Ca₂SiO₄ (Alit und Belit); rasches Abkühlen erhält Alit unter 1250 °C.",
+  "hinweis_en": "x = wt% CaO (A = SiO₂, B = CaO). Cited (Osborn & Muan 1960; Welch & Gutt 1959): SiO₂ melts at 1723 °C, CaO at ≈ 2613 °C; liquid immiscibility on the SiO₂ side with a monotectic at 1698 °C (≈ 0.6 and ≈ 27.5 wt% CaO, dome top ≈ 2100 °C estimated only); eutectic SiO₂ + CaSiO₃ at 1436 °C (37 wt%); CaSiO₃ (pseudowollastonite, 48.3 wt%) melts congruently at 1544 °C; eutectic CaSiO₃ + Ca₃Si₂O₇ at 1460 °C (≈ 54.5 wt%); rankinite Ca₃Si₂O₇ (58.2 wt%) decomposes peritectically at 1464 °C; Ca₂SiO₄ (65.1 wt%) melts congruently at 2130 °C; eutectic Ca₂SiO₄ + Ca₃SiO₅ at 2050 °C; Ca₃SiO₅ (alite, 73.7 wt%) melts incongruently at 2070 °C and is stable only above 1250 °C (below it decomposes into Ca₂SiO₄ + CaO). The liquid compositions at 2050/2070 °C and all curve points are read off (schematic). Simplified: all compounds as line compounds; SiO₂ without cristobalite/tridymite distinction (1470 °C), CaSiO₃ without wollastonite ⇌ pseudowollastonite (1125 °C), Ca₂SiO₄ without its polymorphs (α, α′, β, γ). Cement: Portland clinker lies in the Ca₃SiO₅ + CaO / Ca₂SiO₄ region (alite and belite); fast cooling retains alite below 1250 °C.",
+  "points": [
+   {
+    "x": 0,
+    "T": 1723,
+    "label": "SiO₂ schmilzt",
+    "label_en": "SiO₂ melts"
+   },
+   {
+    "x": 100,
+    "T": 2613,
+    "label": "CaO schmilzt",
+    "label_en": "CaO melts"
+   },
+   {
+    "x": 48.3,
+    "T": 1544,
+    "label": "CaSiO₃",
+    "label_en": "CaSiO₃"
+   },
+   {
+    "x": 65.1,
+    "T": 2130,
+    "label": "Ca₂SiO₄",
+    "label_en": "Ca₂SiO₄"
+   },
+   {
+    "x": 73.7,
+    "T": 2070,
+    "label": "Ca₃SiO₅",
+    "label_en": "Ca₃SiO₅"
+   },
+   {
+    "x": 58.2,
+    "T": 1464,
+    "label": "Ca₃Si₂O₇",
+    "label_en": "Ca₃Si₂O₇"
+   },
+   {
+    "x": 37.0,
+    "T": 1436,
+    "label": "Eutektikum",
+    "label_en": "Eutectic"
+   },
+   {
+    "x": 54.5,
+    "T": 1460
+   },
+   {
+    "x": 67.5,
+    "T": 2050
+   },
+   {
+    "x": 27.5,
+    "T": 1698,
+    "label": "Monotektikum",
+    "label_en": "Monotectic"
+   },
+   {
+    "x": 73.7,
+    "T": 1250,
+    "label": "Zerfall Ca₃SiO₅",
+    "label_en": "Ca₃SiO₅ decomposes"
+   }
+  ],
+  "curves": {
+   "liqSi1": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      0,
+      1723
+     ],
+     [
+      0.6,
+      1698
+     ]
+    ],
+    "smooth": false
+   },
+   "gap": {
+    "kind": "other",
+    "pts": [
+     [
+      0.6,
+      1698
+     ],
+     [
+      0.9,
+      1780
+     ],
+     [
+      1.6,
+      1860
+     ],
+     [
+      2.8,
+      1940
+     ],
+     [
+      4.5,
+      2010
+     ],
+     [
+      7,
+      2065
+     ],
+     [
+      10.5,
+      2095
+     ],
+     [
+      14,
+      2100
+     ],
+     [
+      17.5,
+      2090
+     ],
+     [
+      21,
+      2050
+     ],
+     [
+      24,
+      1970
+     ],
+     [
+      26,
+      1870
+     ],
+     [
+      27,
+      1780
+     ],
+     [
+      27.5,
+      1698
+     ]
+    ]
+   },
+   "liqSi2": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      27.5,
+      1698
+     ],
+     [
+      29,
+      1662
+     ],
+     [
+      31,
+      1612
+     ],
+     [
+      33,
+      1560
+     ],
+     [
+      35,
+      1502
+     ],
+     [
+      37.0,
+      1436
+     ]
+    ]
+   },
+   "liqCS1": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      37.0,
+      1436
+     ],
+     [
+      39,
+      1474
+     ],
+     [
+      41,
+      1501
+     ],
+     [
+      43,
+      1521
+     ],
+     [
+      45,
+      1535
+     ],
+     [
+      47,
+      1542
+     ],
+     [
+      48.3,
+      1544
+     ]
+    ]
+   },
+   "liqCS2": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      48.3,
+      1544
+     ],
+     [
+      50,
+      1538
+     ],
+     [
+      51.5,
+      1525
+     ],
+     [
+      53,
+      1501
+     ],
+     [
+      54.5,
+      1460
+     ]
+    ]
+   },
+   "liqC3S2": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      54.5,
+      1460
+     ],
+     [
+      55.5,
+      1464
+     ]
+    ],
+    "smooth": false
+   },
+   "liqC2S1": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      55.5,
+      1464
+     ],
+     [
+      56.5,
+      1555
+     ],
+     [
+      57.8,
+      1670
+     ],
+     [
+      59.3,
+      1790
+     ],
+     [
+      60.9,
+      1905
+     ],
+     [
+      62.5,
+      2010
+     ],
+     [
+      63.9,
+      2085
+     ],
+     [
+      65.1,
+      2130
+     ]
+    ]
+   },
+   "liqC2S2": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      65.1,
+      2130
+     ],
+     [
+      66.3,
+      2104
+     ],
+     [
+      67.5,
+      2050
+     ]
+    ]
+   },
+   "liqC3S": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      67.5,
+      2050
+     ],
+     [
+      69.5,
+      2070
+     ]
+    ],
+    "smooth": false
+   },
+   "liqC": {
+    "kind": "liquidus",
+    "pts": [
+     [
+      69.5,
+      2070
+     ],
+     [
+      72,
+      2148
+     ],
+     [
+      76,
+      2250
+     ],
+     [
+      80,
+      2340
+     ],
+     [
+      85,
+      2432
+     ],
+     [
+      90,
+      2508
+     ],
+     [
+      95,
+      2566
+     ],
+     [
+      100,
+      2613
+     ]
+    ]
+   },
+   "cs": {
+    "kind": "other",
+    "pts": [
+     [
+      48.3,
+      1000
+     ],
+     [
+      48.3,
+      1544
+     ]
+    ],
+    "smooth": false
+   },
+   "c3s2": {
+    "kind": "other",
+    "pts": [
+     [
+      58.2,
+      1000
+     ],
+     [
+      58.2,
+      1464
+     ]
+    ],
+    "smooth": false
+   },
+   "c2s": {
+    "kind": "other",
+    "pts": [
+     [
+      65.1,
+      1000
+     ],
+     [
+      65.1,
+      2130
+     ]
+    ],
+    "smooth": false
+   },
+   "c3s": {
+    "kind": "other",
+    "pts": [
+     [
+      73.7,
+      1250
+     ],
+     [
+      73.7,
+      2070
+     ]
+    ],
+    "smooth": false
+   }
+  },
+  "regions": [
+   {
+    "label": "L",
+    "phases": [
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      2700
+     ],
+     [
+      100,
+      2700
+     ],
+     "-liqC",
+     "-liqC3S",
+     "-liqC2S2",
+     "-liqC2S1",
+     "-liqC3S2",
+     "-liqCS2",
+     "-liqCS1",
+     "-liqSi2",
+     "-gap",
+     "-liqSi1"
+    ]
+   },
+   {
+    "label": "L₁ + L₂",
+    "phases": [
+     "L₁",
+     "L₂"
+    ],
+    "poly": [
+     "gap"
+    ]
+   },
+   {
+    "label": "SiO₂ + L₁",
+    "phases": [
+     "SiO₂",
+     "L₁"
+    ],
+    "poly": [
+     "liqSi1",
+     [
+      0,
+      1698
+     ]
+    ]
+   },
+   {
+    "label": "SiO₂ + L",
+    "phases": [
+     "SiO₂",
+     "L"
+    ],
+    "poly": [
+     [
+      0,
+      1698
+     ],
+     [
+      27.5,
+      1698
+     ],
+     "liqSi2",
+     [
+      0,
+      1436
+     ]
+    ]
+   },
+   {
+    "label": "SiO₂ + CaSiO₃",
+    "phases": [
+     "SiO₂",
+     "CaSiO₃"
+    ],
+    "poly": [
+     [
+      0,
+      1436
+     ],
+     [
+      48.3,
+      1436
+     ],
+     [
+      48.3,
+      1000
+     ],
+     [
+      0,
+      1000
+     ]
+    ]
+   },
+   {
+    "label": "L + CaSiO₃",
+    "phases": [
+     "L",
+     "CaSiO₃"
+    ],
+    "poly": [
+     "liqCS1",
+     [
+      48.3,
+      1436
+     ]
+    ]
+   },
+   {
+    "label": "CaSiO₃ + L",
+    "phases": [
+     "CaSiO₃",
+     "L"
+    ],
+    "poly": [
+     "liqCS2",
+     [
+      48.3,
+      1460
+     ]
+    ]
+   },
+   {
+    "label": "CaSiO₃ + Ca₃Si₂O₇",
+    "phases": [
+     "CaSiO₃",
+     "Ca₃Si₂O₇"
+    ],
+    "poly": [
+     [
+      48.3,
+      1460
+     ],
+     [
+      58.2,
+      1460
+     ],
+     [
+      58.2,
+      1000
+     ],
+     [
+      48.3,
+      1000
+     ]
+    ]
+   },
+   {
+    "label": "L + Ca₃Si₂O₇",
+    "phases": [
+     "L",
+     "Ca₃Si₂O₇"
+    ],
+    "poly": [
+     "liqC3S2",
+     [
+      58.2,
+      1464
+     ],
+     [
+      58.2,
+      1460
+     ]
+    ]
+   },
+   {
+    "label": "L + Ca₂SiO₄",
+    "phases": [
+     "L",
+     "Ca₂SiO₄"
+    ],
+    "poly": [
+     "liqC2S1",
+     [
+      65.1,
+      1464
+     ]
+    ]
+   },
+   {
+    "label": "Ca₃Si₂O₇ + Ca₂SiO₄",
+    "phases": [
+     "Ca₃Si₂O₇",
+     "Ca₂SiO₄"
+    ],
+    "poly": [
+     [
+      58.2,
+      1464
+     ],
+     [
+      65.1,
+      1464
+     ],
+     [
+      65.1,
+      1000
+     ],
+     [
+      58.2,
+      1000
+     ]
+    ]
+   },
+   {
+    "label": "Ca₂SiO₄ + L",
+    "phases": [
+     "Ca₂SiO₄",
+     "L"
+    ],
+    "poly": [
+     "liqC2S2",
+     [
+      65.1,
+      2050
+     ]
+    ]
+   },
+   {
+    "label": "Ca₂SiO₄ + Ca₃SiO₅",
+    "phases": [
+     "Ca₂SiO₄",
+     "Ca₃SiO₅"
+    ],
+    "poly": [
+     [
+      65.1,
+      2050
+     ],
+     [
+      73.7,
+      2050
+     ],
+     [
+      73.7,
+      1250
+     ],
+     [
+      65.1,
+      1250
+     ]
+    ]
+   },
+   {
+    "label": "L + Ca₃SiO₅",
+    "phases": [
+     "L",
+     "Ca₃SiO₅"
+    ],
+    "poly": [
+     "liqC3S",
+     [
+      73.7,
+      2070
+     ],
+     [
+      73.7,
+      2050
+     ]
+    ]
+   },
+   {
+    "label": "L + CaO",
+    "phases": [
+     "L",
+     "CaO"
+    ],
+    "poly": [
+     "liqC",
+     [
+      100,
+      2070
+     ]
+    ]
+   },
+   {
+    "label": "Ca₃SiO₅ + CaO",
+    "phases": [
+     "Ca₃SiO₅",
+     "CaO"
+    ],
+    "poly": [
+     [
+      73.7,
+      2070
+     ],
+     [
+      100,
+      2070
+     ],
+     [
+      100,
+      1250
+     ],
+     [
+      73.7,
+      1250
+     ]
+    ]
+   },
+   {
+    "label": "Ca₂SiO₄ + CaO",
+    "phases": [
+     "Ca₂SiO₄",
+     "CaO"
+    ],
+    "poly": [
+     [
+      65.1,
+      1250
+     ],
+     [
+      100,
+      1250
+     ],
+     [
+      100,
+      1000
+     ],
+     [
+      65.1,
+      1000
+     ]
+    ]
+   }
+  ],
+  "invariants": [
+   {
+    "T": 1698,
+    "type": "monotectic",
+    "x": [
+     0,
+     0.6,
+     27.5
+    ],
+    "reaction": "L₁ ⇌ SiO₂ + L₂"
+   },
+   {
+    "T": 1436,
+    "type": "eutectic",
+    "x": [
+     0,
+     37.0,
+     48.3
+    ],
+    "reaction": "L ⇌ SiO₂ + CaSiO₃",
+    "constituents": [
+     "primäres SiO₂",
+     "Eutektikum",
+     "primäres CaSiO₃"
+    ],
+    "constituents_en": [
+     "primary SiO₂",
+     "eutectic",
+     "primary CaSiO₃"
+    ],
+    "morph": "faceted"
+   },
+   {
+    "T": 1544,
+    "type": "congruent",
+    "x": [
+     48.3,
+     48.3,
+     48.3
+    ],
+    "reaction": "L ⇌ CaSiO₃"
+   },
+   {
+    "T": 1460,
+    "type": "eutectic",
+    "x": [
+     48.3,
+     54.5,
+     58.2
+    ],
+    "reaction": "L ⇌ CaSiO₃ + Ca₃Si₂O₇",
+    "constituents": [
+     "primäres CaSiO₃",
+     "Eutektikum",
+     "primäres Ca₃Si₂O₇"
+    ],
+    "constituents_en": [
+     "primary CaSiO₃",
+     "eutectic",
+     "primary Ca₃Si₂O₇"
+    ],
+    "morph": "faceted"
+   },
+   {
+    "T": 1464,
+    "type": "peritectic",
+    "x": [
+     55.5,
+     58.2,
+     65.1
+    ],
+    "reaction": "L + Ca₂SiO₄ ⇌ Ca₃Si₂O₇"
+   },
+   {
+    "T": 2130,
+    "type": "congruent",
+    "x": [
+     65.1,
+     65.1,
+     65.1
+    ],
+    "reaction": "L ⇌ Ca₂SiO₄"
+   },
+   {
+    "T": 2050,
+    "type": "eutectic",
+    "x": [
+     65.1,
+     67.5,
+     73.7
+    ],
+    "reaction": "L ⇌ Ca₂SiO₄ + Ca₃SiO₅",
+    "constituents": [
+     "primäres Ca₂SiO₄",
+     "Eutektikum",
+     "primäres Ca₃SiO₅"
+    ],
+    "constituents_en": [
+     "primary Ca₂SiO₄",
+     "eutectic",
+     "primary Ca₃SiO₅"
+    ],
+    "morph": "faceted"
+   },
+   {
+    "T": 2070,
+    "type": "peritectic",
+    "x": [
+     69.5,
+     73.7,
+     100
+    ],
+    "reaction": "L + CaO ⇌ Ca₃SiO₅"
+   },
+   {
+    "T": 1250,
+    "type": "eutectoid",
+    "x": [
+     65.1,
+     73.7,
+     100
+    ],
+    "reaction": "Ca₃SiO₅ ⇌ Ca₂SiO₄ + CaO",
+    "constituents": [
+     "Ca₂SiO₄",
+     "Zerfallsprodukt (Ca₂SiO₄ + CaO)",
+     "CaO"
+    ],
+    "constituents_en": [
+     "Ca₂SiO₄",
+     "decomposition product (Ca₂SiO₄ + CaO)",
+     "CaO"
+    ],
+    "morph": "divorced"
+   }
+  ]
+ }
+}

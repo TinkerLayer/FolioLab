@@ -7,10 +7,10 @@ from pathlib import Path
 import numpy as np
 
 try:
-    from labbundle import Bundle, booktabs, num, slugify, tex_escape
+    from labbundle import Bundle, booktabs, num, slugify, step_tag, tex_escape
 except ImportError:  # Modul ausserhalb von Folio Lab gestartet
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "sdk" / "python"))
-    from labbundle import Bundle, booktabs, num, slugify, tex_escape
+    from labbundle import Bundle, booktabs, num, slugify, step_tag, tex_escape
 
 from . import charts as C
 from . import threshold as TH
@@ -42,7 +42,7 @@ T = {
                  "region": "Ausgewertete Fläche"},
         "meas_head": ["Auswahl", "Fläche", "Mittelwert", "Std.-Abw.", "Min", "Max"],
         "cmp_head": ["Bild", "n", "Flächenant. [\\%]", "ECD [{u}]", "D50 (Q0) [{u}]", "Zirk."],
-        "fig_ovl": "Grössenverteilung der Partikel in {n} und Vergleichsverteilung {c} (relative Häufigkeit nach Anzahl, gestrichelt: $D_{{50}}$ (Q0)).",
+        "fig_ovl": "Grössenverteilung der Partikel in {n}{{parts}} (relative Häufigkeit nach Anzahl, gestrichelt: $D_{{50}}$ (Q0)).",
         "tab_ovl": "Partikel in {n} und Vergleichsverteilung {c}.", "ovl_img": "Partikel (ECD)",
         "ovl_mean": "Mittelwert", "data_ovl": "Vergleichsverteilung {c}.",
         "methods": "Methodik", "results": "Ergebnisse",
@@ -69,7 +69,7 @@ T = {
                  "feret": "Feret diameter", "ar": "Aspect ratio", "sol": "Solidity", "region": "Analysed area"},
         "meas_head": ["Selection", "Area", "Mean", "Std. dev.", "Min", "Max"],
         "cmp_head": ["Image", "n", "Area fr. [\\%]", "ECD [{u}]", "D50 (Q0) [{u}]", "Circ."],
-        "fig_ovl": "Size distribution of the particles in {n} and comparison distribution {c} (relative frequency by number, dashed: $D_{{50}}$ (Q0)).",
+        "fig_ovl": "Size distribution of the particles in {n}{{parts}} (relative frequency by number, dashed: $D_{{50}}$ (Q0)).",
         "tab_ovl": "Particles in {n} and comparison distribution {c}.", "ovl_img": "Particles (ECD)",
         "ovl_mean": "Mean", "data_ovl": "Comparison distribution {c}.",
         "methods": "Methods", "results": "Results",
@@ -102,8 +102,8 @@ def _nd(v):
     return 0 if a >= 100 else 1 if a >= 10 else 2 if a >= 1 else 3
 
 
-def _fig(b, fig, id, caption, width="0.8"):
-    b.add_figure(fig, id, caption, width=width, dpi=150)
+def _fig(b, fig, id, caption, width="0.8", **kw):
+    b.add_figure(fig, id, caption, width=width, dpi=150, **kw)
 
 
 def _cal_text(calib) -> str:
@@ -219,33 +219,42 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
         area_rois = [r for r in (a.state.get("rois") or [])]
         sb = a.state.get("scalebar")
         _fig(b, C.fig_image(rgb, a.calib, lang, rois=area_rois, scalebar=sb),
-             "bild", L["fig_img"].format(n=n, roi=L["fig_img_roi"] if area_rois else ""))
+             "bild", L["fig_img"].format(n=n, roi="{parts}"), steps=[],
+             parts=[{"id": "auswahl", "label": "Auswahlen" if lang == "de" else "Selections",
+                     "caption": L["fig_img_roi"].split(" ", 2)[2]}] if area_rois else [])
         if part:
             from .measure import outline_rgba
             labels = [r["_px"] for r in rows] if len(rows) <= 300 else None
             _fig(b, C.fig_image(rgb, a.calib, lang, overlay=outline_rgba(part["labels"]), labels=labels, scalebar=sb),
-                 "partikel", L["fig_part"].format(n=n, c=len(rows)))
+                 "partikel", L["fig_part"].format(n=n, c=len(rows)), steps=["partikel", "schwelle", "wasserscheide"])
         hv = a.intensity
         if hv.ndim == 2:
             thr = a.proc.thr
             m = TH.METHODS.get(thr.get("method"), ("manuell" if lang == "de" else "manual",))[0] if thr else ""
             _fig(b, C.fig_hist(hv, lang, thr), "histogramm",
-                 L["fig_hist"].format(n=n, thr=L["fig_hist_thr"].format(m=tex_escape(m)) if thr else ""), "0.75")
+                 L["fig_hist"].format(n=n, thr="{parts}"), "0.75", steps=[],
+                 parts=[{"id": "schwelle", "label": "Schwellenbereich" if lang == "de" else "Threshold range", "steps": ["schwelle"],
+                         "caption": L["fig_hist_thr"].format(m=tex_escape(m)).split(" ", 2)[2]}] if thr and thr.get("lo") is not None else [])
         if len(rows) >= 3:
             ecorr = summ.get("EdgeCorrection") == "miles-lantuejoul"
-            _fig(b, C.fig_sizes(rows, u, lang), "groessen", L["fig_sizes"].format(n=n, e=L["fig_sizes_e"] if ecorr else ""), "0.75")
-            _fig(b, C.fig_shape(rows, u, lang), "form", L["fig_shape"].format(n=n), "0.75")
+            _fig(b, C.fig_sizes(rows, u, lang), "groessen", L["fig_sizes"].format(n=n, e=L["fig_sizes_e"] if ecorr else ""), "0.75",
+                 steps=["partikel", "quantile"])
+            _fig(b, C.fig_shape(rows, u, lang), "form", L["fig_shape"].format(n=n), "0.75", steps=["partikel"])
         if ov:
             cname = ov["cmp"].get("name") or ov["cmp"].get("key")
             b.add_figure(C.fig_sizes_overlay(ov["ecd"], ov["vals"], u, lang,
                                              (("Partikel" if lang == "de" else "Particles"), f"{cname}"), weights=ov["w"]),
-                         "vergleichsverteilung", L["fig_ovl"].format(n=n, c=tex_escape(_ovl_name(ov["cmp"]))),
-                         width="0.8", dpi=150, cites=[cites["cmp"]] if "cmp" in cites else None)
+                         "vergleichsverteilung", L["fig_ovl"].format(n=n), width="0.8", dpi=150,
+                         steps=["partikel", "quantile"], parts_lead="und" if lang == "de" else "and",
+                         parts=[{"id": "vergleich", "label": _ovl_name(ov["cmp"]),
+                                 "caption": ("Vergleichsverteilung " if lang == "de" else "comparison distribution ")
+                                 + tex_escape(_ovl_name(ov["cmp"])),
+                                 "cites": [cites["cmp"]] if "cmp" in cites else []}])
         for i, r in enumerate([r for r in (a.state.get("rois") or []) if r.get("type") == "line"][:3], 1):
             d, v = sample_line(a.intensity, r["x1"], r["y1"], r["x2"], r["y2"], int(r.get("width") or 1))
             d = d * line_scale(a.calib, r["x2"] - r["x1"], r["y2"] - r["y1"])
             _fig(b, C.fig_profile(d, v, u, lang), f"profil{i}",
-                 L["fig_profile"].format(n=n, l=tex_escape(r.get("name") or str(i))), "0.75")
+                 L["fig_profile"].format(n=n, l=tex_escape(r.get("name") or str(i))), "0.75", steps=[])
 
     if inc.get("tables", True):
         if a.measurements:
@@ -263,7 +272,7 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
                              num(m.get("Mean"), 1, lang), num(m.get("StdDev"), 1, lang), num(m.get("Min"), 0, lang),
                              num(m.get("Max"), 0, lang)])
             if body:
-                b.add_table("messungen", booktabs(head, body, "lrrrrr", small=True), L["tab_meas"].format(n=n))
+                b.add_table("messungen", booktabs(head, body, "lrrrrr", small=True), L["tab_meas"].format(n=n), steps=[])
         if part:
             R = L["rows"]
             nd = _nd(summ.get("MeanECD"))
@@ -298,7 +307,8 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
                 if ecorr:
                     note += (r" Means, standard deviations and D values edge-corrected: particles at the border of the "
                              r"analysed area not measured, the others weighted after Miles and Lantuéjoul.")
-            b.add_table("partikel", booktabs([L["h_quant"], L["h_val"]], tab, "lr"), L["tab_part"].format(n=n), notes=note)
+            b.add_table("partikel", booktabs([L["h_quant"], L["h_val"]], tab, "lr"), L["tab_part"].format(n=n), notes=note,
+                        steps=["partikel", "quantile", "schwelle", "wasserscheide"])
         if ov:
             si, sd = ov["s_img"], ov["s_ds"]
             nd = _nd(si.get("D50"))
@@ -308,7 +318,7 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
             tab.append([L["ovl_mean"] + " (Q0)", _pm(si["mean"], si["sd"], nd, lang, u), _pm(sd["mean"], sd["sd"], nd, lang, u)])
             b.add_table("vergleichsverteilung", booktabs([L["h_quant"], L["ovl_img"], tex_escape(ov["cmp"].get("name") or "")], tab, "lrr"),
                         L["tab_ovl"].format(n=n, c=tex_escape(_ovl_name(ov["cmp"]))),
-                        cites=[cites["cmp"]] if "cmp" in cites else None,
+                        cites=[cites["cmp"]] if "cmp" in cites else None, steps=["partikel", "quantile"],
                         notes=(r"Beide Spalten gleich berechnet: jeder Datensatzwert gilt als ein Teilchen; Q0 nach Anzahl, "
                                r"Q3 nach Volumen ($d^3$) gewichtet. Kennwerte einer Laserbeugungsverteilung (meist Q3) sind "
                                r"keine Einzelwerte und so nicht vergleichbar." if lang == "de" else
@@ -366,7 +376,10 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
                     vals.append((f"roi{i}Area", f"{m['Label']}: " + ("Fläche" if lang == "de" else "area"), num(m["Area"], _nd(m["Area"]), lang, u + "²"), ""))
                 if m.get("Length") is not None:
                     vals.append((f"roi{i}Length", f"{m['Label']}: " + ("Länge" if lang == "de" else "length"), num(m["Length"], 2, lang, u), ""))
-        b.add_values([(k, tex_escape(lbl), ltx, txt) for k, lbl, ltx, txt in vals])
+        need = {"thr": ["schwelle"], "thrMethod": ["schwelle"]}
+        need.update({k: ["partikel"] for k in ("n", "areaFrac", "meanArea", "meanECD", "sdECD", "meanCirc", "meanFeret", "nCorr")})
+        need.update({v[0]: ["partikel", "quantile"] for v in vals if v[0].startswith(("D10", "D50", "D90", "Dv", "cmp"))})
+        b.add_values([(k, tex_escape(lbl), ltx, txt) for k, lbl, ltx, txt in vals], needs=need)
 
     if inc.get("data", True):
         if rows:
@@ -393,8 +406,27 @@ def _single(b: Bundle, a: Analysis, raw_len: int, lang: str, inc: dict):
                                    "value": "Grauwert" if lang == "de" else "Grey value"},
                            plot={"x": "d", "y": "value"})
 
+    uo, eq_text = None, ""
+    if inc.get("values", True) and a.part is not None:
+        from . import uncertainty as UNC
+        unc = UNC.evaluate_all(a, lang) if a.state.get("unc") else None
+        if unc:                                         # Messunsicherheit: Werte ±, Budgettabellen, Methodentext
+            at = b.added_mark()
+            uo = UNC.to_report(b, a, lang, unc)
+            b.needs_since(at, ["unsicherheit"])
+        if a.state.get("equations"):                    # eigene Gleichungen (mit fortgepflanzter Unsicherheit)
+            from labcalc import formulas as Fm
+            _v, eqs = UNC.evaluate_equations(a, unc, a.state["equations"], lang)
+            if eqs:
+                mark = b.added_mark()
+                eq_text = Fm.to_report(b, eqs, lang, cite_prefix="eq").get("latex", "")
+                for it in b.items[mark[0]:]:            # Tabelle, Budgets und Werte brauchen den Gleichungsblock
+                    if it.get("kind") == "table":
+                        it["needs"] = {"steps": ["gleichungen"]}
+                b.needs_since(mark, ["gleichungen"])
+
     if inc.get("text", True):
-        _texts(b, a, lang, cites)
+        _texts(b, a, lang, cites, uo, eq_text)
 
 
 def _csv_col(c):
@@ -411,7 +443,7 @@ def _ovl_ratio(ov: dict):
     return CMP.ratio(ov["s_img"].get("D50"), ov["s_ds"].get("D50"))
 
 
-def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
+def _texts(b: Bundle, a: Analysis, lang: str, cites: dict, uo: dict | None = None, eq_text: str = ""):
     s = b.slug
     v = lambda k: f"\\labval{{{s}}}{{{k}}}"  # noqa: E731
     have = {x["key"] for x in b.values}
@@ -427,11 +459,11 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
         if steps:
             m.append("Die Bearbeitung umfasste in dieser Reihenfolge: " + "; ".join(tex_escape(x) for x in steps) + ".")
         if a.proc.thr and a.proc.thr.get("method"):
-            m.append(f"Die Schwelle wurde automatisch nach der Methode {tex_escape(TH.METHODS[a.proc.thr['method']][0])}{c_thr} bestimmt"
+            m.append(step_tag("schwelle") + f"Die Schwelle wurde automatisch nach der Methode {tex_escape(TH.METHODS[a.proc.thr['method']][0])}{c_thr} bestimmt"
                      + (f" ({v('thr')})." if "thr" in have else "."))
         if _uses_ws(a):
             c_ws = f" \\cite{{{cites['ws']}}}" if "ws" in cites else ""
-            m.append("Sich berührende Teilchen wurden mit einer Wasserscheide auf der euklidischen Distanzkarte getrennt "
+            m.append(step_tag("wasserscheide") + "Sich berührende Teilchen wurden mit einer Wasserscheide auf der euklidischen Distanzkarte getrennt "
                      f"(Marker aus den h-Maxima, Flutung nach Vincent und Soille){c_ws}.")
         if a.calib.calibrated:
             m.append("Die Pixel wurden als quadratisch behandelt" + (" (nur eine Pixelgrösse bekannt, Pixelhöhe gleich Pixelbreite angenommen)." if a.calib.square_assumed else ".")
@@ -442,7 +474,7 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
             unit = "Pixel" if P.get("size_in_pixels") else tex_escape(_u(a.calib) + "²")
             smax = "∞" if P.get("size_max") in (None, "", "inf") else num(P["size_max"], 2, lang)
             total = P.get("perimeter") == "total" and not P.get("include_holes")
-            m.append(f"Partikel wurden als zusammenhängende Bereiche des Binärbildes (8er-Nachbarschaft) erfasst, "
+            m.append(step_tag("partikel") + f"Partikel wurden als zusammenhängende Bereiche des Binärbildes (8er-Nachbarschaft) erfasst, "
                      f"mit einer Fläche von {num(P.get('size_min') or 0, 2, lang)} bis {tex_escape(smax)}\\,{unit} und einer Zirkularität "
                      f"$4\\pi A/U^2$ von {num(P.get('circ_min') or 0, 2, lang)} bis {num(P.get('circ_max') if P.get('circ_max') is not None else 1, 2, lang)}"
                      + ("; Löcher wurden der Partikelfläche zugerechnet" if P.get("include_holes") else "") + ". "
@@ -451,14 +483,14 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
                      + ("einschliesslich der Ränder von Löchern" if total else "nur die Aussenkontur (Löcher gefüllt)")
                      + "; der Äquivalentdurchmesser (ECD) ist der Durchmesser des flächengleichen Kreises.")
             if P.get("exclude_edges", True):
-                m.append("Vermessen wurden nur Partikel, deren Begrenzungsrechteck den Rand der ausgewerteten Fläche nicht "
+                m.append(step_tag("partikel") + "Vermessen wurden nur Partikel, deren Begrenzungsrechteck den Rand der ausgewerteten Fläche nicht "
                          "berührt; jedes wurde nach Miles und Lantuéjoul mit dem Kehrwert des Anteils der Lagen gewichtet, "
                          "in denen ein Rechteck seiner Grösse den Rand nicht berührt (Bild $W\\times H$, Rechteck $w\\times h$ "
                          "Pixel: $WH/((W-w-1)(H-h-1))$). Mittelwerte, Standardabweichungen und D-Werte sind mit diesen Gewichten "
                          "berechnet; der Flächenanteil enthält auch die Partikel am Rand.")
             else:
-                m.append("Partikel am Rand der ausgewerteten Fläche wurden mit ihrem sichtbaren Teil vermessen (keine Randkorrektur).")
-            m.append("$D_{10}$, $D_{50}$ und $D_{90}$ sind Quantile der Anzahlverteilung (Q0) des ECD, $D_{v10}$, $D_{v50}$ "
+                m.append(step_tag("partikel") + "Partikel am Rand der ausgewerteten Fläche wurden mit ihrem sichtbaren Teil vermessen (keine Randkorrektur).")
+            m.append(step_tag("quantile") + "$D_{10}$, $D_{50}$ und $D_{90}$ sind Quantile der Anzahlverteilung (Q0) des ECD, $D_{v10}$, $D_{v50}$ "
                      "und $D_{v90}$ der Volumenverteilung (Q3, Gewicht ECD$^3$, Kugeln angenommen); Quantile nach der "
                      "Mittelpunktsregel (bei gleichen Gewichten Definition 5 nach Hyndman und Fan"
                      + (f" \\cite{{{cites['q']}}}" if "q" in cites else "") + ").")
@@ -468,11 +500,11 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
         if steps:
             m.append("Processing comprised, in this order: " + "; ".join(tex_escape(x) for x in steps) + ".")
         if a.proc.thr and a.proc.thr.get("method"):
-            m.append(f"The threshold was set automatically with the {tex_escape(TH.METHODS[a.proc.thr['method']][0])} method{c_thr}"
+            m.append(step_tag("schwelle") + f"The threshold was set automatically with the {tex_escape(TH.METHODS[a.proc.thr['method']][0])} method{c_thr}"
                      + (f" ({v('thr')})." if "thr" in have else "."))
         if _uses_ws(a):
             c_ws = f" \\cite{{{cites['ws']}}}" if "ws" in cites else ""
-            m.append("Touching particles were separated by a watershed on the Euclidean distance map "
+            m.append(step_tag("wasserscheide") + "Touching particles were separated by a watershed on the Euclidean distance map "
                      f"(markers from the h-maxima, flooding after Vincent and Soille){c_ws}.")
         if a.calib.calibrated:
             m.append("Pixels were treated as square" + (" (only one pixel size known; pixel height assumed equal to pixel width)." if a.calib.square_assumed else ".")
@@ -483,7 +515,7 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
             unit = "pixels" if P.get("size_in_pixels") else tex_escape(_u(a.calib) + "²")
             smax = "∞" if P.get("size_max") in (None, "", "inf") else num(P["size_max"], 2, lang)
             total = P.get("perimeter") == "total" and not P.get("include_holes")
-            m.append(f"Particles were detected as connected regions of the binary image (8-connectivity) with an area of "
+            m.append(step_tag("partikel") + f"Particles were detected as connected regions of the binary image (8-connectivity) with an area of "
                      f"{num(P.get('size_min') or 0, 2, lang)} to {tex_escape(smax)}\\,{unit} and a circularity $4\\pi A/P^2$ of "
                      f"{num(P.get('circ_min') or 0, 2, lang)} to {num(P.get('circ_max') if P.get('circ_max') is not None else 1, 2, lang)}"
                      + ("; holes were counted as particle area" if P.get("include_holes") else "") + ". "
@@ -492,18 +524,21 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
                      + ("including the boundaries of holes" if total else "outer contour only (holes filled)")
                      + "; the equivalent circle diameter (ECD) is the diameter of the circle of equal area.")
             if P.get("exclude_edges", True):
-                m.append("Only particles whose bounding box does not touch the border of the analysed area were measured; "
+                m.append(step_tag("partikel") + "Only particles whose bounding box does not touch the border of the analysed area were measured; "
                          "each was weighted after Miles and Lantuéjoul by the inverse fraction of positions in which a box of "
                          "its size does not touch the border (image $W\\times H$, box $w\\times h$ pixels: "
                          "$WH/((W-w-1)(H-h-1))$). Means, standard deviations and D values use these weights; the area "
                          "fraction includes the particles at the border.")
             else:
-                m.append("Particles at the border of the analysed area were measured with their visible part (no edge correction).")
-            m.append("$D_{10}$, $D_{50}$ and $D_{90}$ are quantiles of the number distribution (Q0) of the ECD, $D_{v10}$, "
+                m.append(step_tag("partikel") + "Particles at the border of the analysed area were measured with their visible part (no edge correction).")
+            m.append(step_tag("quantile") + "$D_{10}$, $D_{50}$ and $D_{90}$ are quantiles of the number distribution (Q0) of the ECD, $D_{v10}$, "
                      "$D_{v50}$ and $D_{v90}$ of the volume distribution (Q3, weight ECD$^3$, spheres assumed); quantiles by "
                      "the midpoint rule (for equal weights definition 5 of Hyndman and Fan"
                      + (f" \\cite{{{cites['q']}}}" if "q" in cites else "") + ").")
-    b.add_text("methodik", " ".join(m) + "\n", T[lang]["methods"])
+    if uo:
+        m.append({"id": "unsicherheit", "title": "Messunsicherheit" if de else "Measurement uncertainty",
+                  "text": "\n\n" + uo["latex"]})
+    b.add_methods(m, T[lang]["methods"], sep=" ", eq=eq_text, brief=b.brief_from(m[0], evaluated=True))
 
     r = []
     if a.part is not None and "n" in have:
@@ -555,8 +590,12 @@ def _texts(b: Bundle, a: Analysis, lang: str, cites: dict):
                 r.append(f"In selection {lab} the mean grey value is {v(f'roi{i}Mean')}"
                          + (f" over an area of {v(f'roi{i}Area')}" if f"roi{i}Area" in have else "")
                          + (f" along a length of {v(f'roi{i}Length')}" if f"roi{i}Length" in have else "") + ".")
+    if uo:
+        got = [f"{tex_escape(x['label'])} {v('unc-' + x['name'] + '-pm')}" for x in uo["results"].values()]
+        r.append(("Mit Messunsicherheit: " if de else "With measurement uncertainty: ") + "; ".join(got) + ".")
     if r:
-        b.add_text("ergebnisse", " ".join(r) + "\n", T[lang]["results"])
+        b.add_text("ergebnisse", " ".join(r) + "\n", T[lang]["results"],
+                   steps=["partikel", "quantile", "schwelle", "wasserscheide", "unsicherheit"])
 
 
 def _multi(b: Bundle, analyses: list[Analysis], raws: list[int], lang: str, inc: dict):
@@ -575,7 +614,8 @@ def _multi(b: Bundle, analyses: list[Analysis], raws: list[int], lang: str, inc:
             series = [(a.name, [r["ECD"] for r in a.part["rows"]], [r.get("Weight", 1.0) for r in a.part["rows"]])
                       for a in with_p]
             b.add_figure(C.fig_compare(series, u, lang), "vergleich",
-                         L["fig_cmp"].format(n=tex_escape(", ".join(a.name for a in with_p))), width="0.8", dpi=150)
+                         L["fig_cmp"].format(n=tex_escape(", ".join(a.name for a in with_p))), width="0.8", dpi=150,
+                         steps=[])              # mehrere Bilder: das Bundle hat keinen Methodentext
         for i, a in enumerate(analyses, 1):
             base = a.intensity if a.kind == "binary" else a.img
             kind = ("gray" if base.ndim == 2 else "rgb")
@@ -585,7 +625,7 @@ def _multi(b: Bundle, analyses: list[Analysis], raws: list[int], lang: str, inc:
             ov = outline_rgba(a.part["labels"]) if a.part else None
             b.add_figure(C.fig_image(rgb, a.calib, lang, overlay=ov, scalebar=a.state.get("scalebar")), f"bild{i}",
                          (L["fig_part"].format(n=tex_escape(a.name), c=len(a.part["rows"])) if a.part
-                          else L["fig_img"].format(n=tex_escape(a.name), roi="")), width="0.48", dpi=130)
+                          else L["fig_img"].format(n=tex_escape(a.name), roi="")), width="0.48", dpi=130, steps=[])
     if inc.get("tables", True) and with_p:
         head = [h.format(u=tex_escape(u)) for h in L["cmp_head"]]
         rows = []
@@ -595,7 +635,7 @@ def _multi(b: Bundle, analyses: list[Analysis], raws: list[int], lang: str, inc:
             rows.append([tex_escape(a.name), num(s["Count"], 0, lang), num(s["AreaFraction"], 2, lang),
                          _pm(s.get("MeanECD"), s.get("SDECD"), nd, lang), num(s.get("D50"), nd, lang),
                          num(s.get("MeanCirc"), 2, lang)])
-        b.add_table("vergleich", booktabs(head, rows, "lrrrrr", small=True, escape_header=False), L["tab_cmp"])
+        b.add_table("vergleich", booktabs(head, rows, "lrrrrr", small=True, escape_header=False), L["tab_cmp"], steps=[])
     if inc.get("values", True) and with_p:
         vals = []
         for a in with_p:
@@ -606,6 +646,38 @@ def _multi(b: Bundle, analyses: list[Analysis], raws: list[int], lang: str, inc:
             if s.get("D50") is not None:
                 vals.append((f"{k}-D50", f"{a.name}: D50", num(s["D50"], _nd(s["D50"]), lang, u), ""))
         b.add_values([(k, tex_escape(lbl), ltx, txt) for k, lbl, ltx, txt in vals])
+        if any(a.state.get("unc") for a in with_p):
+            _series_unc(b, with_p, lang)
+
+
+def _series_unc(b: Bundle, analyses: list[Analysis], lang: str):
+    """Mehrere Bilder (Felder): Mittelwert ± Unsicherheit von Flächenanteil, ECD und D50 (ASTM E562: t·s/√n)."""
+    import labcite
+    from labbundle import cite
+
+    from labcalc import uncertainty as UN
+
+    from . import uncertainty as UNC
+    ser = UNC.series(analyses, lang)
+    if not ser:
+        return
+    at = b.added_mark()
+    uo = UN.to_report(b, list(ser.values()), lang, prefix="serie-")
+    b.needs_since(at, [])
+    keys = [labcite.to_bib(b, "astm-e562", UNC.SOURCES["astm-e562"])]
+    de = lang == "de"
+    n = next(iter(ser.values()))["n"]
+    head = (f"Serie aus {n} Bildern (Feldern): Mittelwert je Kennwert, Standardunsicherheit des Mittelwerts aus der "
+            "Streuung der Felder ($s/\\sqrt{n}$, $n-1$ Freiheitsgrade, Vertrauensbereich mit dem $t$-Faktor wie bei der "
+            f"Punktzählung){cite(keys)}; Längen zusätzlich mit der relativen Unsicherheit des Massstabs, der für alle Bilder "
+            "gleich ist." if de else
+            f"Series of {n} images (fields): mean of each parameter, standard uncertainty of the mean from the scatter of the "
+            "fields ($s/\\sqrt{n}$, $n-1$ degrees of freedom, confidence interval with the $t$ factor as for point "
+            f"counting){cite(keys)}; lengths additionally carry the relative uncertainty of the scale, which is the same for "
+            "all images.")
+    vals = "; ".join(f"{tex_escape(x['label'])} \\labval{{{b.slug}}}{{serie-{x['name']}-pm}}" for x in ser.values())
+    b.add_text("unsicherheit", head + "\n" + uo["latex"] + "\n\n" + vals + ".\n",
+               "Messunsicherheit der Serie" if de else "Measurement uncertainty of the series", steps=[])
 
 
 def build(items: list[tuple[Stack, bytes, dict]], request: dict, lang: str = "de", include: dict | None = None,

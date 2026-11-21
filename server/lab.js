@@ -9,7 +9,8 @@
 //
 // The hub never edits the user's own .tex files; the editor inserts \input lines and snippets.
 const crypto = require('crypto');
-const fsp = require('fs').promises;
+const fs = require('fs');
+const fsp = fs.promises;
 const path = require('path');
 const { HttpError, exists } = require('./util');
 const P = require('./projects');
@@ -33,6 +34,10 @@ const LABDATA = String.raw`% Folio Lab: values handed over from analysis modules
 \makeatletter
 \providecommand\labset[3]{\expandafter\gdef\csname labv@#1@#2\endcsname{#3}}
 \providecommand\labval[2]{\@ifundefined{labv@#1@#2}{\textbf{??}\PackageWarning{folio-lab}{Value #1/#2 undefined}}{\csname labv@#1@#2\endcsname}}
+% \labstale[<result>]{<value>}: a value or reference of a result removed from the report, frozen as it was and
+% marked with \labstalemark (a dagger); \renewcommand\labstalemark{} hides the mark.
+\providecommand\labstalemark{\textsuperscript{\dag}}
+\providecommand\labstale[2][]{#2\labstalemark}
 \makeatother
 `;
 
@@ -103,7 +108,10 @@ async function rebuildReferences(id) {
     ...all.filter((b) => (b.files || []).includes('preamble.tex')).map((b) => `\\InputIfFileExists{lab/${b.slug}/preamble}{}{}% packages and macros of ${String(b.title).replace(/[\r\n]+/g, ' ')}`),
     ...all.filter((b) => (b.files || []).includes('values.tex')).map((b) => `\\InputIfFileExists{lab/${b.slug}/values}{}{}% ${String(b.title).replace(/[\r\n]+/g, ' ')}`),
   ];
-  await fsp.writeFile(path.join(labDir(id), 'labdata.tex'), LABDATA + inputs.join('\n') + '\n');
+  // a variant placed "exactly here" ([H]) needs the float package; only in the preamble
+  const needFloat = all.some((b) => b.fork && b.fork.place && b.fork.place.pos === 'H');
+  const extra = needFloat ? '\\makeatletter\\ifx\\usepackage\\@notprerr\\else\\RequirePackage{float}\\fi\\makeatother% [H] of a placed figure\n' : '';
+  await fsp.writeFile(path.join(labDir(id), 'labdata.tex'), LABDATA + extra + inputs.join('\n') + '\n');
 }
 
 async function uniqueSlug(id, base) {
@@ -216,6 +224,8 @@ async function save(id, bundle, mode, info) {
     link: bundle.link && typeof bundle.link === 'object' ? JSON.parse(JSON.stringify(bundle.link)) : null,
     // The pieces chosen from a module environment (server/folio.js); Refresh keeps the same subset
     ...(bundle.pick && typeof bundle.pick === 'object' ? { pick: JSON.parse(JSON.stringify(bundle.pick)) } : {}),
+    // a styled or edited variant of one piece of another result (live follows it, snapshot stays)
+    ...(bundle.fork && typeof bundle.fork === 'object' ? { fork: JSON.parse(JSON.stringify(bundle.fork)) } : {}),
   };
   await fsp.writeFile(path.join(target, 'bundle.json'), JSON.stringify(manifest, null, 2));
   await rebuildReferences(id);
@@ -223,55 +233,475 @@ async function save(id, bundle, mode, info) {
   return manifest;
 }
 
+/** Have the result's module rebuild a stored result. src: the manifest whose source (request + files) is used (a live
+ *  fork uses its original's); extra: keys added to the request (styles, describe_figures). Returns the fresh bundle. */
+async function rebuildFrom(id, man, src, extra = {}, lang) {
+  if (!src.source || !src.source.request) throw new HttpError(400, 'This result has no stored source and cannot be redrawn');
+  const files = {};
+  for (const name of src.source.files || []) {
+    files[name] = (await fsp.readFile(path.join(labDir(id), src.slug, 'source', name))).toString('base64');
+  }
+  const m = await modules.get(man.module);
+  const endpoint = (m.bundle && m.bundle.rebuild) || '/api/bundle/rebuild';
+  const body = { source: { request: { ...src.source.request, slug: man.slug, ...extra }, files } };
+  if (lang) body.lang = lang;
+  const fresh = await modules.call(man.module, endpoint, body);
+  if (!fresh || fresh.format !== FORMAT) throw new HttpError(502, `${man.module_name || man.module} returned no report bundle`);
+  return fresh;
+}
+
 /** Ask the module to rebuild a bundle from its stored source files and settings. */
 async function refresh(id, slug, opts = {}) {
   const man = await readManifest(id, slug);
   if (man.module === 'import') return require('./importer').update(id, slug, opts); // rebuild from the source
+  if (man.fork) return refreshFork(id, man, opts);
   if (!man.source || !man.source.request) throw new HttpError(400, 'This result has no stored source and cannot be refreshed');
-  const files = {};
-  for (const name of man.source.files || []) {
-    files[name] = (await fsp.readFile(path.join(labDir(id), slug, 'source', name))).toString('base64');
-  }
-  const m = await modules.get(man.module);
-  const endpoint = (m.bundle && m.bundle.rebuild) || '/api/bundle/rebuild';
-  const body = { source: { request: { ...man.source.request, slug }, files } };
-  if (opts.lang) body.lang = opts.lang;
-  const fresh = await modules.call(man.module, endpoint, body);
+  const fresh = await rebuildFrom(id, man, man, {}, opts.lang);
   fresh.slug = slug;
   if (man.pick) {
     // a subset imported from a module environment: rebuild from the stored source, keep the same pieces and link
-    const { items, keep } = applyPick(fresh, man.pick);
+    const src = fresh.files || {};
+    const { items, keep, extra } = applyPick(fresh, man.pick, (rel) => (src[rel] ? Buffer.from(src[rel], 'base64').toString('utf8') : ''), { forks: await variantsOf(id, slug) });
     fresh.items = items;
-    fresh.files = Object.fromEntries(Object.entries(fresh.files || {}).filter(([rel]) => keep(rel)));
+    fresh.files = Object.fromEntries(Object.entries(src).filter(([rel]) => keep(rel)));
+    for (const [rel, t] of Object.entries(extra)) fresh.files[rel] = Buffer.from(t, 'utf8').toString('base64');
     fresh.pick = man.pick;
     fresh.title = man.title;
   }
   if (man.link && !fresh.link) fresh.link = man.link;
-  return save(id, fresh, 'replace', { action: opts.lang ? 'language' : 'refresh' });
+  const saved = await save(id, fresh, 'replace', { action: opts.lang ? 'language' : 'refresh' });
+  // live forks of this result follow it (snapshots stay as they are)
+  if (!opts.noForks) {
+    for (const f of await list(id).catch(() => [])) {
+      if (f.fork && f.fork.of === slug && f.fork.mode === 'live') await refresh(id, f.slug, { noForks: true }).catch(() => {});
+    }
+  }
+  return saved;
 }
 
+// ---------------------------------------------------------------- forks: styled or edited variants of one piece
+const FORK_KINDS = ['figure', 'table', 'text'];
+const MAX_SPEC = 20000;
+
+function forkSpec(body = {}) {
+  const style = body.style && typeof body.style === 'object' ? body.style : {};
+  if (JSON.stringify(style).length > MAX_SPEC) throw new HttpError(400, 'Style too large');
+  const str = (v, n) => (v === undefined || v === null ? undefined : String(v).slice(0, n));
+  const table = body.table && typeof body.table === 'object' ? {
+    hide: Array.isArray(body.table.hide) ? body.table.hide.map((x) => +x).filter((x) => Number.isInteger(x) && x >= 0 && x < 60) : [],
+    digits: Number.isInteger(+body.table.digits) && +body.table.digits >= 0 && +body.table.digits <= 8 && body.table.digits !== '' && body.table.digits !== null ? +body.table.digits : null,
+  } : null;
+  const place = cleanPlace(body.place);
+  return { style, caption: str(body.caption, 2000), text: str(body.text, 200000), table, ...(Object.keys(place).length ? { place } : {}) };
+}
+
+/** Where a figure variant sits in the document: width (share of the line, or 'full' for figure*), float position,
+ *  alignment. Same rules as cleanPlace in public/js/editor/labuses.mjs. */
+const PLACE_POS = ['htbp', 'h', 't', 'b', 'p', 'H'];
+function cleanPlace(p) {
+  const out = {};
+  if (!p || typeof p !== 'object') return out;
+  if (p.width === 'full') out.width = 'full';
+  else if (p.width !== undefined && p.width !== null && p.width !== '' && Number.isFinite(+p.width)) out.width = Math.round(Math.min(1, Math.max(0.1, +p.width)) * 100) / 100;
+  if (PLACE_POS.includes(p.pos)) out.pos = p.pos;
+  if (['center', 'left', 'right'].includes(p.align)) out.align = p.align;
+  return out;
+}
+
+/** Split a tabular row at its column separators (& outside braces, not \&). */
+function splitRow(row) {
+  const cells = [];
+  let depth = 0;
+  let cur = '';
+  for (let i = 0; i < row.length; i++) {
+    const c = row[i];
+    if (c === '\\' && i + 1 < row.length) { cur += c + row[i + 1]; i++; continue; }
+    if (c === '{') depth++;
+    else if (c === '}') depth = Math.max(0, depth - 1);
+    if (c === '&' && depth === 0) { cells.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  cells.push(cur);
+  return cells;
+}
+
+/** Column tokens of a tabular spec ("lrp{3cm}S" -> ['l','r','p{3cm}','S']); null when it has @, >, < or |. */
+function specCols(spec) {
+  if (/[@<>|!*]/.test(spec)) return null;
+  const out = [];
+  for (let i = 0; i < spec.length; i++) {
+    const c = spec[i];
+    if (/\s/.test(c)) continue;
+    let tok = c;
+    if (spec[i + 1] === '{') {
+      let d = 0;
+      let j = i + 1;
+      for (; j < spec.length; j++) {
+        if (spec[j] === '{') d++;
+        else if (spec[j] === '}' && --d === 0) break;
+      }
+      tok += spec.slice(i + 1, j + 1);
+      i = j;
+    }
+    out.push(tok);
+  }
+  return out;
+}
+
+/** Table variant: hide columns and set the decimals of plain numbers (1,234 / -0.5 / 12). Refuses tables it cannot
+ *  rewrite safely (\multicolumn, rules in the column spec). */
+function tableVariant(tex, t) {
+  if (!t || (!t.hide.length && t.digits === null)) return tex;
+  const m = tex.match(/\\begin\{tabular\}\{((?:[^{}]|\{[^{}]*\})*)\}/);
+  if (!m) throw new HttpError(400, 'Not a tabular this variant can change');
+  const cols = specCols(m[1]);
+  if (t.hide.length && (!cols || /\\multicolumn/.test(tex))) throw new HttpError(400, 'Columns of this table cannot be hidden (spanning cells or rules in the column layout)');
+  const hide = new Set(t.hide);
+  const start = m.index + m[0].length;
+  const end = tex.indexOf('\\end{tabular}', start);
+  const body = tex.slice(start, end);
+  const fmt = (cell) => {
+    if (t.digits === null) return cell;
+    const s = cell.trim();
+    // a number with decimals, optionally followed by a unit or exponent (4,0495\,\AA{} / 1,36\,$\cdot$\,10$^{-11}$);
+    // integers (counts, years) stay as they are
+    const mm = s.match(/^(\$?)(-|\$-\$|−)?(\d+)([.,])(\d+)(\$?)((?:\\,|~|\s).*)?$/);
+    if (!mm) return cell;
+    const dec = mm[4];
+    const v = parseFloat(`${mm[2] ? '-' : ''}${mm[3]}.${mm[5]}`);
+    const out = v.toFixed(t.digits).replace('-', '');
+    return cell.replace(s, `${mm[1]}${mm[2] || ''}${out.replace('.', dec)}${mm[6]}${mm[7] || ''}`);
+  };
+  const rows = body.split(/(\\\\(?:\[[^\]]*\])?)/);
+  const outRows = rows.map((r) => {
+    if (/^\\\\/.test(r)) return r;
+    const lead = r.match(/^(\s*(?:\\(?:toprule|midrule|bottomrule|hline|addlinespace|cmidrule(?:\([^)]*\))?\{[^}]*\})\s*)*)/)[0];
+    const rest = r.slice(lead.length);
+    if (!rest.trim()) return r;
+    const cells = splitRow(rest);
+    const kept = cells.map((c, i) => [c, i]).filter(([, i]) => !hide.has(i)).map(([c]) => fmt(c));
+    return lead + kept.join('&');
+  });
+  const spec = t.hide.length ? cols.filter((_, i) => !hide.has(i)).join('') : m[1];
+  if (t.hide.length && cols.length - t.hide.filter((i) => i < cols.length).length < 1) throw new HttpError(400, 'At least one column must stay');
+  return tex.slice(0, m.index) + `\\begin{tabular}{${spec}}` + outRows.join('') + tex.slice(end);
+}
+
+/** Apply a fork's edits to a fresh bundle of the original: show only its piece, caption, text and table changes. */
+function applyFork(fresh, fork) {
+  const files = fresh.files || {};
+  const items = (fresh.items || []).map((it) => {
+    if (it.kind === 'citation' || it.kind === 'values') return it;
+    if (it.id !== fork.item || !FORK_KINDS.includes(it.kind)) return { ...it, hidden: true };
+    const out = { ...it };
+    // the user's own caption wins; one equal to the module's caption (as stored by older variants) follows the
+    // parts the variant shows, which the module set in the fresh caption (labbundle compose_caption)
+    if (fork.caption !== undefined && it.kind !== 'text' && fork.caption !== it.caption_full) out.caption = fork.caption;
+    // own label, so the original and its variant can both be in the report
+    if (out.label && fresh.slug) out.label = /^[a-z]+:/i.test(out.label) ? out.label.replace(/^([a-z]+:).*$/i, `$1${fresh.slug}`) : fresh.slug;
+    if (it.kind === 'text') {
+      if (fork.text !== undefined) files[it.file] = Buffer.from(fork.text, 'utf8').toString('base64');
+      delete out.shown_file;
+    }
+    if (it.kind === 'table' && fork.table) {
+      const tex = Buffer.from(files[it.file] || '', 'base64').toString('utf8');
+      files[it.file] = Buffer.from(tableVariant(tex, fork.table), 'utf8').toString('base64');
+    }
+    return { ...out, fork_of: fork.of };
+  });
+  if (!items.some((i) => i.id === fork.item && !i.hidden)) throw new HttpError(409, `“${fork.item}” is no longer in the original result`);
+  return { ...fresh, items, files };
+}
+
+/** Build (or rebuild) a fork from its original. */
+async function buildFork(id, fork, slug, title, lang) {
+  const orig = await readManifest(id, fork.of);
+  const it = (orig.items || []).find((i) => i.id === fork.item && FORK_KINDS.includes(i.kind));
+  if (!it) throw new HttpError(404, `No figure, table or text “${fork.item}” in ${fork.of}`);
+  let fresh;
+  if (orig.source && orig.source.request && orig.module !== 'import') {
+    fresh = await rebuildFrom(id, { ...orig, slug }, orig, it.kind === 'figure' && Object.keys(fork.style || {}).length ? { styles: { [fork.item]: fork.style } } : {}, lang);
+  } else {
+    if (it.kind === 'figure' && Object.keys(fork.style || {}).length) throw new HttpError(400, 'This result has no stored source, so its module cannot redraw the figure');
+    // no source (copy, other report): the fork starts from the stored files
+    const files = {};
+    for (const rel of orig.files || []) files[rel] = (await fsp.readFile(path.join(labDir(id), fork.of, rel))).toString('base64');
+    fresh = { format: FORMAT, module: orig.module, module_name: orig.module_name, lang: orig.lang, summary: orig.summary, items: orig.items, files, source: null };
+  }
+  const out = applyFork({ ...fresh, slug, title }, fork);
+  out.fork = fork;
+  out.pick = { items: [fork.item], values: [], methods: false };
+  out.link = null;
+  return out;
+}
+
+/** A styled or edited variant of one figure, table or text of result `slug`, stored as its own result.
+ *  body: {item, style?, caption?, text?, table? {hide, digits}, mode: 'live' | 'snapshot', title?, target? (update
+ *  that fork in place)}. The original stays untouched. */
+async function fork(id, slug, body = {}) {
+  const orig = await readManifest(id, slug);
+  if (orig.fork) return fork(id, orig.fork.of, { ...body, target: body.target || slug });
+  const item = String(body.item || '');
+  const it = (orig.items || []).find((i) => i.id === item && FORK_KINDS.includes(i.kind));
+  if (!it) throw new HttpError(404, 'Choose a figure, table or text of this result');
+  const mode = body.mode === 'snapshot' ? 'snapshot' : 'live';
+  let target = body.target ? checkSlug(String(body.target)) : null;
+  let prev = null;
+  if (target) {
+    prev = await readManifest(id, target);
+    if (!prev.fork || prev.fork.of !== slug) throw new HttpError(400, `${target} is not a variant of ${slug}`);
+  }
+  const spec = forkSpec(body);
+  const f = { of: slug, item, kind: it.kind, mode, ...spec, created: (prev && prev.fork.created) || new Date().toISOString() };
+  const plain = (s) => String(s || '').replace(/~?\\cite\{[^}]*\}/g, '').replace(/\\textdegree(\{\})?/g, '°').replace(/\\[,;:! ]/g, ' ').replace(/\\[a-zA-Z]+\{([^}]*)\}/g, '$1').replace(/[{}$\\~]/g, '').replace(/\s+/g, ' ').trim().slice(0, 70);
+  const title = String(body.title || (prev && prev.title) || `${orig.title}: ${plain(it.caption || it.title || item)} (${mode === 'live' ? 'variant' : 'snapshot'})`).slice(0, 160);
+  if (!target) target = await uniqueSlug(id, `${slug}-${item}`.slice(0, 50).replace(/-+$/, ''));
+  const fresh = await buildFork(id, f, target, title, orig.lang);
+  const saved = await save(id, fresh, 'replace', { action: prev ? 'fork-edit' : 'fork' });
+  await followVariants(id, slug);       // the variant stands in for its piece in the original's methods text
+  return saved;
+}
+
+/** Rebuild a fork: a live one from its original's current source, a snapshot from its own stored source. */
+async function refreshFork(id, man, opts = {}) {
+  const f = man.fork;
+  if (f.mode === 'live') {
+    const fresh = await buildFork(id, f, man.slug, man.title, opts.lang || man.lang);
+    return save(id, fresh, 'replace', { action: 'refresh' });
+  }
+  const fresh = await rebuildFrom(id, man, man, f.kind === 'figure' && Object.keys(f.style || {}).length ? { styles: { [f.item]: f.style } } : {}, opts.lang);
+  const out = applyFork({ ...fresh, slug: man.slug, title: man.title }, f);
+  out.fork = f;
+  out.pick = man.pick;
+  return save(id, out, 'replace', { action: opts.lang ? 'language' : 'refresh' });
+}
+
+/** Preview for the editing window: the module redraws only that figure with `style` and describes it; nothing is
+ *  saved. Returns {png (base64) | svg (text, element ids in describe.now.gids), describe, style, caption}. The same
+ *  redraw of the same stored result is answered from a small in-memory cache (CS-01). */
+const PREVIEW_CACHE = new Map();
+const PREVIEW_CACHE_MAX = 40;
+async function preview(id, slug, body = {}) {
+  let man = await readManifest(id, slug);
+  const src = man.fork && man.fork.mode === 'live' ? await readManifest(id, man.fork.of) : man;
+  const item = String(body.item || (man.fork && man.fork.item) || '');
+  const style = body.style && typeof body.style === 'object' ? body.style : {};
+  const spec = JSON.stringify(style);
+  if (spec.length > MAX_SPEC) throw new HttpError(400, 'Style too large');
+  const key = JSON.stringify([id, src.slug, src.updated || src.created || '', src.revision || 1, item, spec, body.svg !== false]);
+  if (PREVIEW_CACHE.has(key)) {
+    const hit = PREVIEW_CACHE.get(key);
+    PREVIEW_CACHE.delete(key);
+    PREVIEW_CACHE.set(key, hit);    // most recently used last
+    return hit;
+  }
+  const fresh = await rebuildFrom(id, man, src, {
+    styles: Object.keys(style).length ? { [item]: style } : {}, describe_figures: true,
+    preview: { item, svg: body.svg !== false } });
+  const it = (fresh.items || []).find((i) => i.kind === 'figure' && i.id === item);
+  if (!it) throw new HttpError(404, `No figure “${item}”`);
+  const files = fresh.files || {};
+  const svg = files[`fig/${item}.svg`] ? Buffer.from(files[`fig/${item}.svg`], 'base64').toString('utf8') : null;
+  const out = { png: files[it.preview] || null, svg, describe: it.describe || null, style: it.style || null, caption: it.caption };
+  PREVIEW_CACHE.set(key, out);
+  while (PREVIEW_CACHE.size > PREVIEW_CACHE_MAX) PREVIEW_CACHE.delete(PREVIEW_CACHE.keys().next().value);
+  return out;
+}
+
+/** The variants (forks) of a result, for the Lab dialog. */
+async function forksOf(id, slug) {
+  return (await list(id)).filter((b) => b.fork && b.fork.of === slug).map((b) => ({ slug: b.slug, title: b.title, item: b.fork.item, mode: b.fork.mode, updated: b.updated }));
+}
 const METHODS_RE = /method|methodik/i;
 
-/** Items and files of a bundle that stay for a pick {items: [ids], values: [keys], methods: bool}. Citations and the
- *  values file stay whole (only what the inserted text cites or uses is printed); methods texts stay unless switched off. */
-function applyPick(b, pick) {
-  const isMethods = (it) => it.kind === 'text' && (METHODS_RE.test(it.id) || METHODS_RE.test(it.title || ''));
-  if (!pick || typeof pick !== 'object') return { items: [...(b.items || [])], keep: () => true, isMethods };   // no pick: whole bundle
-  const want = new Set(pick.items || []);
-  const methodsToo = pick.methods !== false;
-  const keepItem = (it) => {
-    if (it.kind === 'citation' || it.kind === 'values') return true;
-    if (want.has(it.id)) return true;
-    return methodsToo && isMethods(it);
-  };
-  const items = (b.items || []).filter(keepItem);
-  const dropped = new Set();
-  for (const it of b.items || []) {
-    if (keepItem(it)) continue;
-    for (const f of [it.file, it.preview]) if (f) dropped.add(f);
-    if (it.file && /\.pdf$/i.test(it.file)) dropped.add(it.file.replace(/\.pdf$/i, '.png'));
+/** Methods choice of a pick: {mode: 'full' | 'short' | 'custom' | 'none', steps: [ids], eq: bool, edits?}. Older
+ *  picks carry methods: true/false. edits: {step id: {text, orig}}: the user's wording of a sentence and the module's
+ *  sentence it replaced (to flag when the module later writes something else there). */
+function methodsChoice(pick) {
+  const m = pick ? pick.methods : true;
+  if (m === false) return { mode: 'none', steps: [], eq: false };
+  if (!m || m === true || typeof m !== 'object') return { mode: 'full', steps: [], eq: true };
+  const mode = ['full', 'short', 'custom', 'none'].includes(m.mode) ? m.mode : 'full';
+  const out = { mode, steps: Array.isArray(m.steps) ? m.steps.map(String).slice(0, 400) : [], eq: m.eq !== false };
+  if (m.edits && typeof m.edits === 'object') {
+    const edits = {};
+    for (const [k, v] of Object.entries(m.edits).slice(0, 400)) {
+      if (!/^[A-Za-z0-9_-]{1,40}$/.test(k) || !v || typeof v !== 'object' || typeof v.text !== 'string') continue;
+      edits[k] = { text: v.text.slice(0, 4000), orig: String(v.orig ?? '').slice(0, 4000) };
+    }
+    if (Object.keys(edits).length) out.edits = edits;
   }
-  return { items, keep: (rel) => !dropped.has(rel), isMethods };
+  return out;
+}
+
+/** Running text of chosen methods steps (same paragraph: space, otherwise a blank line); as labbundle.compose_methods.
+ *  edits: {step id: {text}} replace the module's sentence. */
+function composeMethods(steps, text, chosen, edits = {}) {
+  const want = new Set(chosen);
+  let out = '';
+  let last = null;
+  for (const st of steps) {
+    if (!want.has(st.id)) continue;
+    const t = String(edits[st.id] ? edits[st.id].text : text(st.file) || '').trim();
+    if (!t) continue;
+    if (out) out += st.par === last ? ' ' : '\n\n';
+    out += t;
+    last = st.par;
+  }
+  return out ? out + '\n' : '';
+}
+
+/** Which methods steps the shown pieces need (report pieces cite and describe only what they show). A figure, table
+ *  or text that declares itself (labbundle: `needs.steps`, `parts` with `steps` and `shown: false` for hidden parts)
+ *  needs exactly those steps; an undeclared one counts as needing every step. A step no piece names (the measurement,
+ *  the standard, the software) is general and always allowed. A variant (fork) of a piece stands in for that piece:
+ *  its parts count instead of the original's. Values name their steps in `needs`.
+ *  Returns {ok(step) -> bool, inactive: [step ids], reduced}: reduced = the bundle names evaluation steps and the
+ *  shown pieces need none of them (then Short is the module's one-sentence `brief` step). */
+function stepScope(b, pick, forks = []) {
+  const items = b.items || [];
+  const all = !pick || !Array.isArray(pick.items);
+  const want = new Set((pick && pick.items) || []);
+  const isMethods = (it) => it.kind === 'text' && (it.methods === true || METHODS_RE.test(it.id) || METHODS_RE.test(it.title || ''));
+  const piece = (it) => ['figure', 'table', 'text'].includes(it.kind) && !isMethods(it);
+  const named = new Set();
+  const active = new Set();
+  let everything = false;
+  const stepsOf = (it, onlyShown) => [
+    ...(((it.needs || {}).steps) || []),
+    ...(it.parts || []).filter((p) => !onlyShown || p.shown !== false).flatMap((p) => p.steps || []),
+  ];
+  const valuesOf = (it) => (it.kind === 'values' ? it.values || [] : []);
+  const forkItems = new Map();
+  for (const f of forks || []) {
+    const fi = (f.items || []).find((i) => f.fork && i.id === f.fork.item && !i.hidden);
+    if (!fi) continue;
+    if (!forkItems.has(fi.id)) forkItems.set(fi.id, []);
+    forkItems.get(fi.id).push(fi);
+  }
+  for (const it of items) {
+    if (piece(it)) stepsOf(it, false).forEach((s) => named.add(s));
+    for (const v of valuesOf(it)) (v.needs || []).forEach((s) => named.add(s));
+  }
+  for (const fis of forkItems.values()) for (const fi of fis) stepsOf(fi, false).forEach((s) => named.add(s));
+  const count = (it) => {
+    if (!it.needs && !it.parts) everything = true;
+    else stepsOf(it, true).forEach((s) => active.add(s));
+  };
+  for (const it of items) {
+    if (!piece(it)) continue;
+    if (forkItems.has(it.id)) continue;             // its variant is in the text instead
+    if (all || want.has(it.id)) count(it);
+  }
+  for (const fis of forkItems.values()) fis.forEach(count);
+  const vals = all ? null : new Set((pick && pick.values) || []);
+  for (const it of items) for (const v of valuesOf(it)) if (!vals || vals.has(v.key)) (v.needs || []).forEach((s) => active.add(s));
+  const sid = (s) => s.of || s.id;                  // a further paragraph of a named step goes with it
+  const ok = (s) => everything || !named.has(sid(s)) || active.has(sid(s));
+  const methodSteps = items.filter(isMethods).flatMap((m) => m.steps || []).filter((s) => !s.brief);
+  const inactive = methodSteps.filter((s) => !ok(s)).map((s) => s.id);
+  const reduced = !everything && methodSteps.some((s) => !s.eq && named.has(sid(s))) && !methodSteps.some((s) => !s.eq && named.has(sid(s)) && active.has(sid(s)));
+  return { ok, inactive, reduced };
+}
+
+/** What a pick {items: [ids], values: [keys], methods} shows of a bundle. The whole bundle stays in the
+ *  result's folder: pieces not chosen are kept and marked hidden (the Lab dialog lists them under "also in this
+ *  result"). For a methods text with steps (labbundle add_methods) the chosen steps are set as running text in
+ *  text-<id>-auswahl.tex, which the report inputs instead of the full text. text(rel) reads a bundle file.
+ *  Only steps the shown pieces need are set (stepScope); a piece that shows no evaluation gets the module's
+ *  one-sentence `brief` step as Short. opts.forks: the variants of this result (they stand in for their pieces).
+ *  Returns {items, keep, extra: {rel: text}, warnings, isMethods}. */
+function applyPick(b, pick, text = () => '', opts = {}) {
+  const isMethods = (it) => it.kind === 'text' && (it.methods === true || METHODS_RE.test(it.id) || METHODS_RE.test(it.title || ''));
+  if (!pick || typeof pick !== 'object') return { items: [...(b.items || [])], keep: () => true, extra: {}, warnings: [], isMethods };   // no pick: whole bundle
+  const all = !Array.isArray(pick.items);          // a pick that only sets the methods choice shows every piece
+  const want = new Set(pick.items || []);
+  const mc = methodsChoice(pick);
+  const scope = stepScope(b, pick, opts.forks);
+  const extra = {};
+  const warnings = [];
+  const items = (b.items || []).map((it0) => {
+    const it = { ...it0 };
+    delete it.hidden;
+    delete it.shown_file;
+    delete it.edited_steps;
+    delete it.edited_changed;
+    delete it.inactive_steps;
+    delete it.reduced;
+    if (it.kind === 'citation' || it.kind === 'values') return it;
+    if (isMethods(it)) {
+      if (mc.mode === 'none') return { ...it, hidden: true };
+      const steps = Array.isArray(it.steps) ? it.steps : [];
+      const edits = mc.edits || {};
+      const plain = steps.filter((s) => !s.brief);
+      const inactive = steps.filter((s) => !s.brief && !scope.ok(s)).map((s) => s.id);
+      const flags = { ...(inactive.length ? { inactive_steps: inactive } : {}), ...(scope.reduced ? { reduced: true } : {}) };
+      if (!steps.length || mc.mode === 'full' && mc.eq && !Object.keys(edits).length && !inactive.length) return { ...it, ...flags };      // whole text as before
+      let ids;
+      const brief = steps.find((s) => s.brief);
+      if (mc.mode === 'custom') {
+        const have = new Set(steps.map((s) => s.id));
+        const gone = mc.steps.filter((s) => !have.has(s));
+        if (gone.length) warnings.push(`Methods steps no longer in the result: ${gone.join(', ')}`);
+        ids = mc.steps.filter((s) => have.has(s) && !inactive.includes(s));
+      } else if (mc.mode === 'short' && scope.reduced && brief) ids = [brief.id];       // the piece shows no evaluation
+      else ids = plain.filter((s) => (mc.mode === 'full' || s.short) && !s.eq && scope.ok(s)).map((s) => s.id);
+      if (mc.eq) ids = [...ids, ...plain.filter((s) => s.eq && scope.ok(s)).map((s) => s.id)];
+      if (!ids.length) return { ...it, ...flags, hidden: true };
+      if (mc.mode === 'full' && mc.eq && !Object.keys(edits).length && ids.length === plain.length) return { ...it, ...flags };
+      const rel = it.file.replace(/\.tex$/i, '-auswahl.tex');
+      const used = Object.fromEntries(Object.entries(edits).filter(([k]) => ids.includes(k)));
+      extra[rel] = composeMethods(steps, text, ids, used);
+      // the module now writes something else where the user replaced a sentence: keep the user's wording, flag it
+      const norm = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+      const changed = Object.keys(used).filter((k) => {
+        const st = steps.find((s) => s.id === k);
+        return st && norm(text(st.file)) !== norm(used[k].orig);
+      });
+      if (changed.length) warnings.push(`Methods: the module changed ${changed.length === 1 ? 'a sentence' : `${changed.length} sentences`} you edited (${changed.join(', ')}); your wording is kept`);
+      return { ...it, ...flags, shown_file: rel, shown_steps: ids, ...(Object.keys(used).length ? { edited_steps: Object.keys(used) } : {}), ...(changed.length ? { edited_changed: changed } : {}) };
+    }
+    return all || want.has(it.id) ? it : { ...it, hidden: true };
+  });
+  return { items, keep: () => true, extra, warnings, isMethods };
+}
+
+/** The variants (forks) of result `slug`, as stored manifests. */
+async function variantsOf(id, slug) {
+  return (await list(id).catch(() => [])).filter((f) => f.fork && f.fork.of === slug);
+}
+
+/** Set the methods text of result `slug` again for its variants (a variant was saved or removed): the parts a variant
+ *  hides no longer need their steps. Only for results whose pieces were chosen (a pick). */
+async function followVariants(id, slug) {
+  const man = await readManifest(id, slug).catch(() => null);
+  if (man && man.pick && !man.fork) await repick(id, slug, {}).catch(() => {});
+}
+
+/** Change what a stored result shows: pieces {items: [ids] | null for all} and the methods choice
+ *  {mode, steps, eq}. Everything is already in the folder, so no module is called and no revision is made; the
+ *  choice is kept for Refresh and Update. body: {items?, methods?}. */
+async function repick(id, slug, body = {}) {
+  const man = await readManifest(id, slug);
+  const dir = path.join(labDir(id), slug);
+  const old = man.pick && typeof man.pick === 'object' ? man.pick : { items: null, values: [], methods: true };
+  const pick = { ...old };
+  if ('items' in body) {
+    const ids = new Set((man.items || []).map((i) => i.id).filter(Boolean));
+    pick.items = Array.isArray(body.items) ? body.items.map(String).filter((s) => ids.has(s)) : null;
+  }
+  if ('methods' in body) pick.methods = body.methods && typeof body.methods === 'object' ? methodsChoice({ methods: body.methods }) : body.methods !== false;
+  const readRel = (rel) => {
+    if (!/^[A-Za-z0-9_][A-Za-z0-9_.\-/]{0,120}$/.test(String(rel || '')) || rel.includes('..')) return '';
+    try { return fs.readFileSync(path.join(dir, rel), 'utf8'); } catch { return ''; }
+  };
+  const { items, extra, warnings } = applyPick(man, pick, readRel, { forks: await variantsOf(id, slug) });
+  for (const [rel, t] of Object.entries(extra)) await fsp.writeFile(path.join(dir, rel), t);
+  const files = new Set([...(man.files || []), ...Object.keys(extra)]);
+  const out = { ...man, items, pick, files: [...files].sort(), updated: new Date().toISOString() };
+  await fsp.writeFile(path.join(dir, 'bundle.json'), JSON.stringify(out, null, 2));
+  await P.touch?.(id);
+  return { ...out, warnings };
 }
 
 // ---------------------------------------------------------------- A1 revisions
@@ -437,10 +867,65 @@ async function wasIssued(dir) {
   return false;
 }
 
-async function remove(id, slug) {
+// A result removed as a unit (the editor took it out of the text) goes to the project's bin outside its files
+// (<project>/lab-bin/<slug>-<time>/result, plus section/<slug>.tex for its results section), so one Undo can bring it
+// back. Bin entries older than BIN_DAYS are deleted on the next removal.
+const BIN = 'lab-bin';
+const BIN_DAYS = 14;
+const binDir = (id) => path.join(P.projectDir(id), BIN);
+const sectionRel = (slug) => `sections/${slug}.tex`;
+
+async function purgeBin(id) {
+  const old = Date.now() - BIN_DAYS * 864e5;
+  for (const d of await fsp.readdir(binDir(id), { withFileTypes: true }).catch(() => [])) {
+    if (!d.isDirectory()) continue;
+    const st = await fsp.stat(path.join(binDir(id), d.name)).catch(() => null);
+    if (st && st.mtimeMs < old) await fsp.rm(path.join(binDir(id), d.name), { recursive: true, force: true });
+  }
+}
+
+/** Remove a result: an issued one is kept in lab/_removed/ (A8), any other goes to the bin. With opts.section the
+ *  results section file sections/<slug>.tex goes along. Returns {kept, undo} (undo: what restore() needs). */
+async function remove(id, slug, opts = {}) {
+  const was = await readManifest(id, slug).catch(() => null);
+  const out = await removeResult(id, slug, opts);
+  // a removed variant no longer stands in for its piece: the original's methods text follows again
+  if (was && was.fork && was.fork.of) await followVariants(id, was.fork.of);
+  return out;
+}
+
+async function removeResult(id, slug, opts = {}) {
   await P.readMeta(id);
   const dir = path.join(labDir(id), checkSlug(slug));
   if (!(await exists(dir))) throw new HttpError(404, `Bundle "${slug}" not found`);
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const secAbs = path.join(P.filesDir(id), sectionRel(slug));
+  const withSection = opts.section && (await exists(secAbs));
+  if (opts.bin !== false) {
+    // one place for the undo: the bin holds the result (issued ones are copied to _removed as well, see below)
+    const entry = path.join(binDir(id), `${slug}-${stamp}`);
+    await fsp.mkdir(entry, { recursive: true });
+    const issued = await wasIssued(dir);
+    if (issued) {
+      // A8: the issued result stays protected in lab/_removed/ like before; the bin keeps a copy for the undo
+      const kept = path.join(labDir(id), REMOVED, `${slug}-${stamp}`);
+      await fsp.mkdir(path.dirname(kept), { recursive: true });
+      await fsp.cp(dir, path.join(entry, 'result'), { recursive: true });
+      await fsp.rename(dir, kept);
+      await markRemoved(kept);
+    } else {
+      await fsp.rename(dir, path.join(entry, 'result'));
+    }
+    if (withSection) {
+      await fsp.mkdir(path.join(entry, 'section'), { recursive: true });
+      await fsp.rename(secAbs, path.join(entry, 'section', `${slug}.tex`));
+    }
+    await fsp.writeFile(path.join(entry, 'removed.json'), JSON.stringify({ slug, at: new Date().toISOString(), issued, kept: issued ? `${REMOVED}/${slug}-${stamp}` : null, section: withSection ? sectionRel(slug) : null }, null, 2));
+    await rebuildReferences(id);
+    await purgeBin(id).catch(() => {});
+    await P.touch?.(id);
+    return { kept: issued ? `${REMOVED}/${slug}-${stamp}` : null, undo: `${slug}-${stamp}` };
+  }
   let kept = null;
   if (await wasIssued(dir)) {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -460,6 +945,113 @@ async function remove(id, slug) {
   }
   await rebuildReferences(id);
   return { kept: kept ? path.relative(labDir(id), kept).split(path.sep).join('/') : null };
+}
+
+async function markRemoved(kept) {
+  const mp = path.join(kept, 'bundle.json');
+  try {
+    const m = JSON.parse(await fsp.readFile(mp, 'utf8'));
+    m.removed = { at: new Date().toISOString(), reason: 'issued revision kept' };
+    await fsp.writeFile(mp, JSON.stringify(m, null, 2));
+  } catch {
+    /* manifest unreadable: the folder is kept as it is */
+  }
+}
+
+/** Undo of remove(): the result (and its results section) back from the bin entry `undo`. */
+async function restoreRemoved(id, undo) {
+  await P.readMeta(id);
+  if (!/^[a-z0-9][a-z0-9-]{0,59}-\d{4}-\d{2}-\d{2}T[\dZ-]+$/.test(String(undo || ''))) throw new HttpError(400, 'Nothing to restore');
+  const entry = path.join(binDir(id), undo);
+  let meta;
+  try {
+    meta = JSON.parse(await fsp.readFile(path.join(entry, 'removed.json'), 'utf8'));
+  } catch {
+    throw new HttpError(404, 'This removal can no longer be undone');
+  }
+  const slug = checkSlug(meta.slug);
+  const dir = path.join(labDir(id), slug);
+  if (await exists(dir)) throw new HttpError(409, `A result “${slug}” exists again; it was not overwritten`);
+  await fsp.mkdir(labDir(id), { recursive: true });
+  await fsp.rename(path.join(entry, 'result'), dir);
+  if (meta.kept) await fsp.rm(path.join(labDir(id), meta.kept), { recursive: true, force: true });
+  if (meta.section) {
+    const secAbs = path.join(P.filesDir(id), meta.section);
+    if (!(await exists(secAbs))) {
+      await fsp.mkdir(path.dirname(secAbs), { recursive: true });
+      await fsp.rename(path.join(entry, 'section', `${slug}.tex`), secAbs);
+    }
+  }
+  await fsp.rm(entry, { recursive: true, force: true });
+  await rebuildReferences(id);
+  const back = await readManifest(id, slug).catch(() => null);
+  if (back && back.fork && back.fork.of) await followVariants(id, back.fork.of);
+  await P.touch?.(id);
+  return { slug, section: meta.section || null };
+}
+
+/** What the editor needs to take a result out of the text as a unit: its labels, the citation keys only it
+ *  provides, its values, the numbers LaTeX gave its labels in the last compile and its results section. */
+async function usesInfo(id, slug) {
+  const man = await readManifest(id, slug);
+  const dir = path.join(labDir(id), slug);
+  const labels = new Set();
+  for (const it of man.items || []) {
+    if (it.label) labels.add(it.label);
+    if (it.kind === 'data') labels.add(`fig:${slug}-${it.id}-plot`);
+  }
+  // labels written inside its own text files (equations of a methods text, sections of an import)
+  for (const rel of man.files || []) {
+    if (!/\.tex$/i.test(rel)) continue;
+    const t = await fsp.readFile(path.join(dir, rel), 'utf8').catch(() => '');
+    for (const m of t.matchAll(/\\label\{([^}]+)\}/g)) labels.add(m[1].trim());
+  }
+  // citation keys: those of this result that no other result and no own .bib file of the report provides
+  const keysOf = (t) => [...String(t).matchAll(/^\s*@\w+\s*\{\s*([^,\s]+)\s*,/gm)].map((m) => m[1]);
+  const mine = keysOf(await fsp.readFile(path.join(dir, 'refs.bib'), 'utf8').catch(() => ''));
+  const others = new Set();
+  for (const b of await list(id)) {
+    if (b.slug === slug) continue;
+    for (const k of keysOf(await fsp.readFile(path.join(labDir(id), b.slug, 'refs.bib'), 'utf8').catch(() => ''))) others.add(k);
+  }
+  const walkBib = async (d, rel = '') => {
+    for (const e of await fsp.readdir(d, { withFileTypes: true }).catch(() => [])) {
+      if (e.name.startsWith('.') || (!rel && e.name === 'lab') || e.name === 'node_modules') continue;
+      const abs = path.join(d, e.name);
+      if (e.isDirectory()) await walkBib(abs, `${rel}${e.name}/`);
+      else if (/\.bib$/i.test(e.name)) for (const k of keysOf(await fsp.readFile(abs, 'utf8').catch(() => ''))) others.add(k);
+    }
+  };
+  await walkBib(P.filesDir(id));
+  const values = {};
+  const vt = await fsp.readFile(path.join(dir, 'values.tex'), 'utf8').catch(() => '');
+  for (const line of vt.split('\n')) {
+    const m = /^\\labset\{[^}]*\}\{([^}]*)\}\{(.*)\}%/.exec(line) || /^\\labset\{[^}]*\}\{([^}]*)\}\{(.*)\}\s*$/.exec(line);
+    if (m) values[m[1]] = m[2];
+  }
+  // numbers from the last compile: \newlabel{<label>}{{<number>}{<page>}…} in every .aux of the build
+  const numbers = {};
+  const build = P.buildDir(id);
+  const auxFiles = [];
+  const walkAux = async (d, depth = 0) => {
+    for (const e of await fsp.readdir(d, { withFileTypes: true }).catch(() => [])) {
+      if (e.isDirectory() && depth < 3) await walkAux(path.join(d, e.name), depth + 1);
+      else if (/\.aux$/i.test(e.name)) auxFiles.push(path.join(d, e.name));
+    }
+  };
+  await walkAux(build);
+  for (const f of auxFiles) {
+    const t = await fsp.readFile(f, 'utf8').catch(() => '');
+    for (const m of t.matchAll(/\\newlabel\{([^}@]+)\}\{\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*)\}/g)) {
+      if (labels.has(m[1])) numbers[m[1]] = { num: m[2], page: m[3] };
+    }
+  }
+  const section = (await exists(path.join(P.filesDir(id), sectionRel(slug)))) ? sectionRel(slug) : null;
+  return {
+    slug, title: man.title, lang: man.lang || 'de', labels: [...labels], keys: mine.filter((k) => !others.has(k)),
+    shared_keys: mine.filter((k) => others.has(k)), values, numbers, section,
+    variants: (await list(id)).filter((b) => b.fork && b.fork.of === slug).map((b) => b.slug),
+  };
 }
 
 // ---------------------------------------------------------------- UI-09: history and dependencies
@@ -570,4 +1162,4 @@ async function dependencies(id) {
   };
 }
 
-module.exports = { FORMAT, list, save, refresh, applyPick, remove, rebuildReferences, readManifest, uniqueSlug, labDir, revisions, compare, restore, issue, issueAll, history, dependencies };
+module.exports = { FORMAT, list, save, refresh, repick, fork, preview, forksOf, variantsOf, tableVariant, applyPick, stepScope, composeMethods, methodsChoice, remove, restoreRemoved, usesInfo, cleanPlace, rebuildReferences, readManifest, uniqueSlug, labDir, revisions, compare, restore, issue, issueAll, history, dependencies };

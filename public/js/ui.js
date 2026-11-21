@@ -1,7 +1,8 @@
 // Shared UI helpers: API calls, icons, modals, toasts, context menus, theme.
 
-export async function api(method, url, body, { raw = false } = {}) {
+export async function api(method, url, body, { raw = false, signal } = {}) {
   const opts = { method, headers: { 'X-Folio': '1' } };
+  if (signal) opts.signal = signal;
   if (body !== undefined) {
     if (body instanceof Blob || body instanceof ArrayBuffer || typeof body === 'string') opts.body = body;
     else {
@@ -134,12 +135,21 @@ export function store(key, value) {
 
 // ---------------------------------------------------------------- toast
 let toastHost;
-export function toast(msg, type = 'info', ms = 3200) {
+/** action: {label, onClick} adds a button (e.g. Undo); clicking it closes the toast. */
+export function toast(msg, type = 'info', ms = 3200, action = null) {
   if (!toastHost) {
     toastHost = h('<div class="toasts"></div>');
     document.body.appendChild(toastHost);
   }
   const t = h(`<div class="toast ${type}">${esc(msg)}</div>`);
+  if (action) {
+    const b = h(`<button class="btn xs toast-act">${esc(action.label)}</button>`);
+    b.onclick = () => {
+      t.remove();
+      action.onClick();
+    };
+    t.appendChild(b);
+  }
   toastHost.appendChild(t);
   setTimeout(() => t.remove(), ms);
 }
@@ -177,6 +187,9 @@ export function modal({ title, body = '', buttons = [{ label: 'OK', value: true,
       footer.appendChild(btn);
     });
     const onKey = (e) => {
+      // a dialog opened on top of this one (e.g. Customise over the Lab dialog) handles its own keys
+      const all = document.querySelectorAll('.modal-backdrop');
+      if (all.length && all[all.length - 1] !== back) return;
       if (e.key === 'Escape') {
         e.stopPropagation();
         close(null);

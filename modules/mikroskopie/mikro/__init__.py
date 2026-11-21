@@ -4,4 +4,4 @@ Bilder laden (TIFF auch 16 bit und Stapel, PNG, JPEG, BMP), Kalibrierung, reprod
 Bearbeitungsschritte (Protokoll), Schwellenwerte, Messungen in Auswahlen, Partikelanalyse und
 Uebergabe an den Berichtseditor. Nur numpy, Pillow und matplotlib.
 """
-__version__ = "1.3.0"
+__version__ = "1.4.0"

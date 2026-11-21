@@ -336,7 +336,7 @@ class PhaseTest(unittest.TestCase):
         a, b = lv["phases"]
         self.assertEqual(lv["region"], "α + β")
         self.assertAlmostEqual(a["frac"], (b["x"] - 40) / (b["x"] - a["x"]), places=9)
-        self.assertAlmostEqual(a["frac"], 0.70, delta=0.01)
+        self.assertAlmostEqual(a["frac"], 0.67, delta=0.02)        # Callister, Beispiel 9.3: W_α = 0,67
 
     def test_single_phase_region(self):
         lv = P.lever(P.system("fe-c"), 0.4, 900)
@@ -757,8 +757,9 @@ class GitterTest(unittest.TestCase):
         self.assertTrue(any("Korngrenze" in n for n in g["notes"]))
 
     def test_own_limit_with_source_in_report(self):
-        req = {"host": "Al", "T": 20, "n": 5, "seed": 1, "solutes": [{"el": "Mn", "c": 3, "einheit": "wt"}],
-               "limits": {"Mn": 0.2}, "limit_src": {"Mn": "Eigene Quelle 2020, https://example.org/mn.pdf"}}
+        # ein Paar ohne hinterlegtes Diagramm (Al–Mn hat inzwischen eines; das Diagramm geht dann vor)
+        req = {"host": "Al", "T": 20, "n": 5, "seed": 1, "solutes": [{"el": "Cr", "c": 3, "einheit": "wt"}],
+               "limits": {"Cr": 0.2}, "limit_src": {"Cr": "Eigene Quelle 2020, https://example.org/mn.pdf"}}
         r = T.run("gitter", req, T.Ctx())
         s = r["solutes"][0]
         self.assertEqual(s["how"], "eigen")
@@ -771,6 +772,20 @@ class GitterTest(unittest.TestCase):
         meth = files["text-methodik.tex"]
         for s_ in ("c_v = \\exp", "\\langle u_x^2\\rangle", "u(r) = \\delta"):
             self.assertIn(s_, meth)
+
+    def test_figure_style_in_request_redraws_that_figure(self):
+        """A styled variant in the report: the hub sends styles {figure id: spec} with the stored request."""
+        req = {"host": "Al", "T": 20, "n": 5, "seed": 1, "solutes": []}
+        base = B.build({"sections": [{"tool": "gitter", "req": req}], "lang": "de"}, T.Ctx(), {})
+        fig = next(it for it in base["items"] if it["kind"] == "figure")
+        b = B.build({"sections": [{"tool": "gitter", "req": req}], "lang": "de", "describe_figures": True,
+                     "styles": {fig["id"]: {"preset": "elsevier-1"}}}, T.Ctx(), {})
+        it = next(i for i in b["items"] if i.get("id") == fig["id"])
+        self.assertEqual(it["style"]["preset"], "elsevier-1")
+        self.assertAlmostEqual(it["describe"]["now"]["width_mm"], 90, places=0)
+        self.assertNotAlmostEqual(it["describe"]["width_mm"], 90, places=0)   # as the module draws it
+        self.assertNotIn("style", next(i for i in base["items"] if i.get("id") == fig["id"]))
+        self.assertEqual(b["source"]["request"]["styles"], {fig["id"]: {"preset": "elsevier-1"}})
 
 
 def CH_slice(res, plane):
@@ -811,6 +826,10 @@ def all_cases():
         ("kriechen", {"rows": [{"s": 200, "T": 550, "t": 1000}, {"s": 150, "T": 600, "t": 800},
                                {"s": 120, "T": 600, "t": 3000}, {"s": 100, "T": 650, "t": 500},
                                {"s": 80, "T": 650, "t": 2000}], "predict": {"s": 130, "T": 600}}),
+        ("struktur", {"material": "c45e-qt", "T": 20, "n": 3, "show": "gefuege"}),
+        ("struktur", {"material": "en-aw-6061-t6", "show": "gefuege",
+                      "temper": {"steps": [{"name": "Lösungsglühen", "T": 540, "t": 1}, {"name": "Abschrecken", "T": 20, "t": 0, "quench": True},
+                                           {"name": "Warmauslagern", "T": 175, "t": 8}, {"name": "Abkühlen", "T": 20, "t": 0}]}}),
     ]
     return ctx, secs
 
@@ -829,6 +848,124 @@ class AllToolsTest(unittest.TestCase):
     def test_unknown_tool(self):
         with self.assertRaises(LookupError):
             T.run("gibtsnicht", {}, T.Ctx())
+
+
+# ============================================================================= Struktur
+class StrukturTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from werk import polymer as PY
+        from werk import struktur as SK
+        cls.SK, cls.PY = SK, PY
+
+    def test_every_material_and_tensile_alloy_has_a_structure(self):
+        from labcalc import materials as M
+        rows = M.materials()
+        have = {m["id"] for m in self.SK.materials("de")}
+        self.assertEqual({r["id"] for r in rows} - have, set())
+        self.assertTrue(any(r.get("zugversuch") for r in rows))
+        self.assertGreaterEqual(len(have), 130)
+
+    def test_all_materials_build_at_room_temperature(self):
+        for m in self.SK.materials("en"):
+            with self.subTest(material=m["id"]):
+                b = self.SK.build(m["id"], 20, "en", n=3)
+                self.assertTrue(b["panels"])
+                self.assertTrue(b["statements"])
+                self.assertLess(len(json.dumps(b)), 400_000)
+                for k in b["refs_keys"] + b["q"]:
+                    self.assertTrue(RF.known(k), k)
+                lo, hi = b["range"]
+                self.assertLess(lo, hi)
+
+    def test_views_switch_with_temperature(self):
+        cold, hot = self.SK.build("c45e-qt", 20, "en"), self.SK.build("c45e-qt", 850, "en")
+        self.assertEqual(cold["panels"][0]["id"], "gefuege")          # Metalle öffnen auf dem Gefüge
+        self.assertIn("ferrite", " ".join(p["title"] for p in cold["panels"]).lower())
+        self.assertIn("austenite", " ".join(hot["statements"] + [p["title"] for p in hot["panels"]]).lower())
+        t6, sol = self.SK.build("en-aw-6061-t6", 20, "en"), self.SK.build("en-aw-6061-t6", 560, "en")
+        ids = lambda b: {p["id"] for p in b["panels"]}
+        self.assertIn("zelle:mg5si6-bpp", ids(t6))                      # beta'' in T6
+        self.assertNotIn("zelle:mg5si6-bpp", ids(sol))                  # dissolved above the solvus
+        pe20, pe200 = self.SK.build("pe-hd", 20, "en"), self.SK.build("pe-hd", 200, "en")
+        self.assertNotEqual(pe20["statements"], pe200["statements"])
+        self.assertIn("melt", " ".join(pe200["statements"]).lower())
+
+    def test_polymer_chain_geometry(self):
+        for pid in self.PY.POLY:
+            with self.subTest(polymer=pid):
+                c = self.PY.chain(pid, 6)
+                P = np.array([a[1] for a in c["atoms"]])
+                nb = {i: set() for i in range(len(P))}
+                for i, j in c["bonds"]:
+                    d = float(np.linalg.norm(P[i] - P[j]))
+                    self.assertTrue(1.1 < d < 1.9, (i, j, d))
+                    nb[i].add(j)
+                    nb[j].add(i)
+                for i in range(len(P)):                                  # keine Überlappung jenseits von 1-3-Nachbarn
+                    for j in range(i + 1, len(P)):
+                        if j not in nb[i] and not nb[i] & nb[j]:
+                            self.assertGreater(float(np.linalg.norm(P[i] - P[j])), 2.05, (pid, i, j))
+        rep = {pid: self.PY.chain(pid, 6)["repeat"] for pid in ("pe", "pp", "ptfe", "pom")}
+        self.assertAlmostEqual(rep["pe"], 2.55, delta=0.03)                  # Bunn 1939
+        self.assertAlmostEqual(rep["pp"], 6.50 / 3, delta=0.03)              # 3/1-Helix, Natta 1960
+        self.assertAlmostEqual(rep["ptfe"], 16.8 / 13, delta=0.02)           # 13/6-Helix
+        self.assertAlmostEqual(rep["pom"], 17.39 / 9, delta=0.03)            # 9/5-Helix
+
+    def test_steel_quench_and_temper_path(self):
+        pre = {p["id"]: p for p in self.SK.temper_presets("c45e-qt", "en")}
+        self.assertEqual(set(pre), {"qt200", "qt400", "qt600"})
+        r = self.SK.temper("c45e-qt", pre["qt400"]["steps"], "en")
+        labels = [f["label"] for f in r["frames"]]
+        self.assertEqual(labels[0], "initial state")
+        self.assertIn("quench", labels)
+        txt = lambda lab: " ".join(next(f for f in r["frames"] if f["label"] == lab)["statements"]).lower()
+        self.assertIn("martensite", txt("quench"))
+        self.assertIn("3rd stage", txt("cool"))
+        t = [p[0] for p in r["profile"]]
+        self.assertEqual(t, sorted(t))
+        with self.assertRaises(self.SK.StructError):
+            self.SK.temper("c45e-qt", [{"T": 20, "t": 0}] * 9, "en")
+
+    def test_aluminium_ageing_path(self):
+        pre = {p["id"]: p for p in self.SK.temper_presets("en-aw-6061-t6", "en")}
+        self.assertTrue({"t4", "t6", "t7"} <= set(pre))
+        r = self.SK.temper("en-aw-6061-t6", pre["t6"]["steps"], "en")
+        st = [" ".join(f["statements"]).lower() for f in r["frames"]]
+        self.assertTrue(any("supersaturated" in s for s in st))
+        self.assertIn("peak", st[-1])
+        self.assertEqual(self.SK.temper_presets("pe-hd", "en"), [])
+
+    def test_step_names_follow_the_language(self):
+        steps = [{"name": "Austenitisieren", "T": 820, "t": 0.5}, {"name": "Abschrecken", "T": 20, "t": 0, "quench": True},
+                 {"name": "Mein Schritt", "T": 300, "t": 1}]
+        r = self.SK.temper("c45e-qt", steps, "en")
+        self.assertEqual([s["name"] for s in r["steps"]], ["austenitise", "quench", "Mein Schritt"])
+
+    def test_sketches_are_compact(self):
+        b = self.SK.build("c45e-qt", 20, "de")
+        sk = next(p for p in b["panels"] if p["kind"] == "sketch")["sketch"]
+        self.assertLess(len(json.dumps(sk)), 150_000)
+        kinds = {it["t"] for it in sk["items"]}
+        self.assertIn("hatch", kinds)
+        self.assertTrue(self.SK.hatch_lines(next(it for it in sk["items"] if it["t"] == "hatch")))
+
+    def test_tool_errors(self):
+        with self.assertRaises(T.ToolError):
+            T.run("struktur", {}, T.Ctx())
+        with self.assertRaises(T.ToolError):
+            T.run("struktur", {"material": "c45e-qt", "n": 9}, T.Ctx())
+        with self.assertRaises(self.SK.StructError):
+            T.run("struktur", {"material": "gibtsnicht"}, T.Ctx())
+
+    def test_report_figures_render(self):
+        from werk import charts as CH
+        for mid in ("pe-ld", "al2o3-999", "kalk-natron-glas"):
+            for p in self.SK.build(mid, 20, "en", n=3)["panels"]:
+                CH.close(CH.fig_panel(p, "en"))
+        r = self.SK.temper("c45e-qt", self.SK.temper_presets("c45e-qt", "en")[0]["steps"], "en")
+        CH.close(CH.fig_temper_path(r, "en"))
+        CH.close(CH.fig_temper_frames(r, "en", "gefuege"))
 
 
 # ============================================================================= Bericht
@@ -983,6 +1120,60 @@ class ServerTest(unittest.TestCase):
         code, r = self.post("/api/tool/kristall", {"phase": it["phase_id"]})
         self.assertEqual(code, 200, r)
         self.assertEqual([L["hkl"] for L in r["lines"]][:2], ["111", "200"])
+
+
+class UncertaintyViewsTest(unittest.TestCase):
+    """Messunsicherheit in Bruch, Härte, Stahl; Erklärung und Quellen je Ansicht."""
+    KQ = {"geom": "senb", "P": 12, "B": 25, "W": 50, "a": 25, "S": 200}
+
+    def test_kq_budget_and_compare(self):
+        req = {"kq": self.KQ, "unc": {"bruch.kq.P": {"parts": [{"kind": "rel", "pct": 1}]},
+                                      "bruch.kq.a": {"parts": [{"kind": "limits", "a": 0.1}]}}}
+        r = T.run("bruch", req, T.Ctx())
+        u = r["unc"]["kq"]
+        self.assertAlmostEqual(u["value"], r["kq"]["K"], places=6)
+        self.assertGreater(u["U"], 0)
+        self.assertEqual({b["name"] for b in u["budget"] if not b["exact"]}, {"P", "a"})
+        self.assertIn("jcgm100", u["refs"])
+        r2 = T.run("bruch", {**req, "unc_compare": "kq"}, T.Ctx())
+        self.assertEqual(set(r2["unc"]["kq"]["compare"]), {"gum", "mc", "gauss", "worst"})
+        self.assertNotIn("unc", T.run("bruch", {"kq": self.KQ}, T.Ctx()))      # ohne Angabe keine Unsicherheit
+
+    def test_hardness_repeats_alone_give_type_a(self):
+        req = {"method": "HV", "indents": [{"F": 98.07, "d1": 0.43}, {"F": 98.07, "d1": 0.44}, {"F": 98.07, "d1": 0.435}]}
+        u = T.run("haerte", req, T.Ctx())["unc"]["haerte"]
+        row = next(b for b in u["budget"] if b["name"] == "Hbar")
+        self.assertEqual(row["type"], "A")
+        self.assertEqual(row["dof"], 2)
+
+    def test_steel_drops_results_without_uncertain_input(self):
+        r = T.run("stahl", {"comp": {"C": 0.18, "Mn": 1.4, "Si": 0.3},
+                            "unc": {"stahl.comp.C": {"parts": [{"kind": "limits", "a": 0.02}]}}}, T.Ctx())
+        self.assertIn("CE", r["unc"])
+        self.assertNotIn("Ac1", r["unc"])                 # Ac1 hängt nicht von C ab
+
+    def test_report_has_budget_and_cites_gum(self):
+        req = {"kq": self.KQ, "unc": {"bruch.kq.P": {"parts": [{"kind": "rel", "pct": 1}]}}}
+        b = B.build({"sections": [{"tool": "bruch", "req": req}], "lang": "en"}, T.Ctx(), {})
+        ids = {it.get("id") for it in b["items"]}
+        self.assertIn("bruch-kq-budget", ids)
+        files = {k: base64.b64decode(v).decode("utf-8", "replace") for k, v in b["files"].items()}
+        self.assertIn("unc-jcgm100", files["refs.bib"])
+        self.assertIn("$K_{Q}$", files["text-methodik.tex"])
+
+    def test_every_view_has_compendium_entry_and_its_sources(self):
+        cases = {"bruch": {"kq": self.KQ},
+                 "haerte": {"method": "HV", "indents": [{"F": 98.07, "d1": 0.43}]},
+                 "weibull": {"values": [300, 320, 340, 355, 370, 390]}}
+        for tool, req in cases.items():
+            r = T.run(tool, req, T.Ctx())
+            vi = r.get("views_info")
+            self.assertTrue(vi, tool)
+            have = {q["key"] for q in r.get("refs") or []}
+            for view, e in vi.items():
+                self.assertTrue(e["entry"].startswith("tool:" + tool), (tool, view))
+                self.assertNotIn("more", e)
+                self.assertLessEqual(set(e.get("keys") or []), have, (tool, view))
 
 
 if __name__ == "__main__":

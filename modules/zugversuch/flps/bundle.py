@@ -18,12 +18,12 @@ from matplotlib.text import Text  # noqa: E402
 from matplotlib.ticker import FuncFormatter, ScalarFormatter  # noqa: E402
 
 try:
-    from labbundle import Bundle, booktabs, cite, num, slugify, tex_escape  # noqa: E402
+    from labbundle import Bundle, booktabs, cite, num, slugify, split_sentences, tex_escape  # noqa: E402
 except ImportError:  # Modul ausserhalb des Hubs gestartet: SDK aus dem Suite-Ordner holen
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "sdk" / "python"))
-    from labbundle import Bundle, booktabs, cite, num, slugify, tex_escape  # noqa: E402
+    from labbundle import Bundle, booktabs, cite, num, slugify, split_sentences, tex_escape  # noqa: E402
 
 from .analyse import PHASES, Result, specimen_label  # noqa: E402
 from .export import charts as C  # noqa: E402
@@ -53,10 +53,11 @@ NORMS = {
 T = {
     "de": {
         "title1": "Zugversuch {n}", "titleN": "Zugversuche {n}",
-        "fig_curve": "{q}-Zeit-Verlauf der Messung {n} nach Phasen mit Fliessbeginn ({thr}\\,\\% von {ref}), Maximum und Bruch.",
+        "fig_curve": "{q}-Zeit-Verlauf der Messung {n} nach Phasen{{parts}}.",
         "fig_fit": "Messpunkte der Messung {n} gegen die verlängerte Ausgleichsgerade des linearen Abschnitts.",
         "fig_dev": "Abweichung der Messpunkte von der Ausgleichsgeraden mit der Schwelle des Fliessbeginns ({thr}\\,\\% von {ref}).",
-        "fig_field": "Gemessene Spannungs-Dehnungs-Kurve im Feld der Vergleichsgruppe {g}{refpart}; die Werkstoffkurven sind idealisiert und dienen nur der Orientierung. Dehnung aus dem {src}.",
+        "fig_field": "Gemessene Spannungs-Dehnungs-Kurve{{parts}}. Dehnung aus dem {src}.",
+        "fig_field_note": "Die Werkstoffkurven sind idealisiert und dienen nur der Orientierung.",
         "fig_cand": "Fliessbeginn und Zugfestigkeit der Messung im Vergleich mit den nächstliegenden Werkstoffen der Gruppe {g}.",
         "fig_field_key": " Die Zahlen an den Kurvenenden bezeichnen die Werkstoffe im Schlüssel; Kennwerte aus den angegebenen Quellen.",
         "tab_src": "Werkstoffe des Spannungs-Dehnungs-Felds {g} mit den Kennwerten, aus denen ihre Kurven idealisiert sind (Nummern wie im Diagramm){cont}.",
@@ -84,15 +85,16 @@ T = {
         "src_trav": "Traversenweg (scheinbar)", "src_probe": "Weg an der Probe",
         "phase": {"Setzen": "Setzen", "elastisch": "elastisch", "plastisch": "plastisch", "Abfall": "Abfall",
                   "Anstieg": "Anstieg", "Lastspitzen": "Lastspitzen"},
-        "fig_curve_np": "{q}-Zeit-Verlauf der Messung {n} nach Phasen (ohne Einteilung elastisch/plastisch) mit Maximum und Bruch.",
+        "fig_curve_np": "{q}-Zeit-Verlauf der Messung {n} nach Phasen (ohne Einteilung elastisch/plastisch){{parts}}.",
         "fig_dev_np": "Abweichung der Messpunkte von der Ausgleichsgeraden.",
     },
     "en": {
         "title1": "Tensile test {n}", "titleN": "Tensile tests {n}",
-        "fig_curve": "{q}--time curve of measurement {n} by phase, with yield onset ({thr}\\,\\% of {ref}), maximum and break.",
+        "fig_curve": "{q}--time curve of measurement {n} by phase{{parts}}.",
         "fig_fit": "Data points of measurement {n} against the extended regression line of the linear section.",
         "fig_dev": "Deviation of the data points from the regression line, with the yield-onset threshold ({thr}\\,\\% of {ref}).",
-        "fig_field": "Measured stress--strain curve within the field of the comparison group {g}{refpart}; the material curves are idealised, for orientation only. Strain from the {src}.",
+        "fig_field": "Measured stress--strain curve{{parts}}. Strain from the {src}.",
+        "fig_field_note": "The material curves are idealised, for orientation only.",
         "fig_cand": "Yield onset and tensile strength of the measurement compared with the closest materials of the group {g}.",
         "fig_field_key": " Numbers at the curve ends identify the materials in the key; property values from the sources given.",
         "tab_src": "Materials of the stress--strain field {g} with the property values their curves are idealised from (numbers as in the figure){cont}.",
@@ -120,7 +122,7 @@ T = {
         "src_trav": "crosshead displacement (apparent)", "src_probe": "displacement measured on the specimen",
         "phase": {"Setzen": "settling", "elastisch": "elastic", "plastisch": "plastic", "Abfall": "drop",
                   "Anstieg": "rise", "Lastspitzen": "load peaks"},
-        "fig_curve_np": "{q}--time curve of measurement {n} by phase (not divided into elastic and plastic), with maximum and break.",
+        "fig_curve_np": "{q}--time curve of measurement {n} by phase (not divided into elastic and plastic){{parts}}.",
         "fig_dev_np": "Deviation of the data points from the regression line.",
     },
 }
@@ -183,12 +185,16 @@ def _translate(fig, lang: str, keep: set[str]):
 
 
 def _fig(draw, lang, keep, size=FIG):
-    fig, ax = plt.subplots(figsize=size)
-    draw(ax)
-    ax.set_title("")
-    _translate(fig, lang, keep)
-    fig.tight_layout()
-    return fig
+    """A function that draws the figure: labbundle calls it only when the figure is written, so the preview of one
+    figure in the hub's editing window does not draw the others."""
+    def make():
+        fig, ax = plt.subplots(figsize=size)
+        draw(ax)
+        ax.set_title("")
+        _translate(fig, lang, keep)
+        fig.tight_layout()
+        return fig
+    return make
 
 
 def _norm(r: Result):
@@ -277,8 +283,13 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
                            number="902", year="1943")
             cites["ro"] = RO_KEY
         if st and r.comparison:
-            # jede Vergleichskurve im Feld und jeder Kandidat mit eigener Quelle
-            cites["field"] = [_mat_cite(b, a, lang) for a in C.field_members(r)]
+            # jede Vergleichskurve im Feld und jeder Kandidat mit eigener Quelle; Gruppe, zusätzlich eingeblendete
+            # Werkstoffe und Referenz getrennt, damit ein weggelassener Teil der Grafik seine Quellen mitnimmt
+            members = C.field_members(r)
+            n_grp = len(r.alloys or [])
+            cites["group"] = [_mat_cite(b, a, lang) for a in members[:n_grp]]
+            cites["extra"] = [_mat_cite(b, a, lang) for a in members[n_grp:]]
+            cites["field"] = cites["group"] + [k for k in cites["extra"] if k not in cites["group"]]
             if "mat" in cites and cites["mat"] not in cites["field"]:
                 cites["field"].append(cites["mat"])
             shown = [row["name"] for row in r.comparison["rows"][:6]]
@@ -344,39 +355,70 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
     ep_on = (r.kv.get("ep") or {}).get("on", True)
     if has_pk:
         vals += _peak_values(r, lang)
+    # die Methodenschritte, die ein einzeln eingefügter Wert braucht (seine Auswertung)
+    vneeds = {k: ["linear"] for k in ("yield", "yieldF", "thr", "tol", "ratio")}
+    vneeds["E"] = ["linear", "modul"]
+    vneeds.update({k: ["haltezeit"] for k in ("hold", "holdthr")})
+    vneeds.update({k: ["dehnung"] for k in ("Agt", "Ag", "At", "A")})
+    vneeds.update({k: ["referenz"] for k in ("refRm", "refdRm")})
+    vneeds.update({k: ["lastspitzen"] for k in ("npk", "pkthr", "pkdelta")})
+    vneeds.update({v[0]: ["lastspitzen", "ausgleich"] for v in vals if v[0].startswith("pk") and v[0] not in vneeds})
     if inc.get("values", True):
-        b.add_values(vals)
+        b.add_values(vals, needs=vneeds)
 
     if inc.get("figures", True):
+        de = lang == "de"
+        # Verlauf: die Phasen folgen aus dem linearen Abschnitt (Fliessbeginn); Marken als Teile
+        marks = []
+        if ep_on and r.yield_idx is not None:
+            marks.append({"id": "fliessbeginn", "label": "Fliessbeginn" if de else "Yield onset", "steps": ["linear"],
+                          "caption": (f"Fliessbeginn ({thr}\\,\\% von {ref_lbl})" if de else f"yield onset ({thr}\\,\\% of {ref_lbl})")})
+        marks.append({"id": "maximum", "label": "Maximum", "caption": "Maximum" if de else "maximum"})
+        if r.break_idx is not None:
+            marks.append({"id": "bruch", "label": "Bruch" if de else "Break", "caption": "Bruch" if de else "break"})
         b.add_figure(_fig(lambda ax: C.chart1(r, ax, title=False), lang, keep), "verlauf",
-                     L["fig_curve" if ep_on else "fig_curve_np"].format(q=q, n=n, thr=thr, ref=ref_lbl))
-        b.add_figure(_fig(lambda ax: C.chart2_fit(r, ax, full=True), lang, keep), "linear", L["fig_fit"].format(n=n))
+                     L["fig_curve" if ep_on else "fig_curve_np"].format(q=q, n=n), steps=["linear"], parts=marks,
+                     parts_lead="mit" if de else ", with")
+        b.add_figure(_fig(lambda ax: C.chart2_fit(r, ax, full=True), lang, keep), "linear", L["fig_fit"].format(n=n),
+                     steps=["linear"])
         b.add_figure(_fig(lambda ax: C.chart2_dev(r, ax), lang, keep, (6.4, 2.8)), "abweichung",
-                     L["fig_dev" if ep_on else "fig_dev_np"].format(thr=thr, ref=ref_lbl))
+                     L["fig_dev" if ep_on else "fig_dev_np"].format(thr=thr, ref=ref_lbl), steps=["linear"])
         if st and r.strain is not None and r.comparison:
-            refpart = (f" und dem Referenzwerkstoff {tex_escape(r.reference.name)}" if lang == "de" else
-                       f" and the reference material {tex_escape(r.reference.name)}") if r.reference else ""
             src = L["src_probe"] if r.config.displacement_source == "probe" else L["src_trav"]
             n_field = len(C.field_members(r))
-            extra_txt = ""
+            fparts = []
+            if r.alloys:
+                own = any(getattr(a, "curve", None) for a in C.field_members(r)[:len(r.alloys)])
+                fparts.append({"id": "feld", "label": (f"Feld der Gruppe {r.group}" if de else f"Field of the group {r.group}"),
+                               "cites": cites.get("group", []), "steps": ["vergleich"],
+                               "caption": (f"im Feld der Vergleichsgruppe {tex_escape(r.group)}" if de else
+                                           f"within the field of the comparison group {tex_escape(r.group)}"),
+                               "note": L["fig_field_note"] + L["fig_field_key"]
+                                       + ((" Werkstoffe mit eigener Kurve sind nicht idealisiert, sondern aus der angegebenen "
+                                           "Quelle übernommen." if de else
+                                           " Materials with their own curve are not idealised but taken from the source given.")
+                                          if own else "")})
             if r.extras:
                 nr0 = n_field - len(r.extras)
                 lst = ", ".join(f"{nr0 + i + 1}~{tex_escape(a.name)}" for i, a in enumerate(r.extras))
-                extra_txt = (f" Zusätzlich eingeblendet (farbig, nicht Teil des Felds): {lst}." if lang == "de" else
-                             f" Additionally shown (coloured, not part of the field): {lst}.")
-            if any(getattr(a, "curve", None) for a in C.field_members(r)):
-                extra_txt += (" Werkstoffe mit eigener Kurve sind nicht idealisiert, sondern aus der angegebenen Quelle "
-                              "übernommen." if lang == "de" else
-                              " Materials with their own curve are not idealised but taken from the source given.")
+                fparts.append({"id": "zusatz", "label": "Zusätzlich eingeblendete Werkstoffe" if de else "Additional materials",
+                               "cites": cites.get("extra", []), "steps": ["zusatz"],
+                               "note": (f"Zusätzlich eingeblendet (farbig, nicht Teil des Felds): {lst}." if de else
+                                        f"Additionally shown (coloured, not part of the field): {lst}.")})
+            if r.reference is not None:
+                fparts.append({"id": "referenz", "label": (f"Referenz {r.reference.name}" if de else f"Reference {r.reference.name}"),
+                               "cites": [cites["mat"]] if "mat" in cites else [], "steps": ["referenz"],
+                               "caption": (f"mit dem Referenzwerkstoff {tex_escape(r.reference.name)}" if de else
+                                           f"with the reference material {tex_escape(r.reference.name)}")})
             b.add_figure(_fig(lambda ax: C.chart3(r, ax, title=False, key="below"), lang, keep,
                               (6.4, 4.0 + C.key_height_in(n_field))), "feld",
-                         L["fig_field"].format(g=tex_escape(r.group), refpart=refpart, src=src) + L["fig_field_key"]
-                         + extra_txt, cites=cites.get("field"))
+                         L["fig_field"].format(src=src), steps=[], parts=fparts, parts_lead="")
         if st and r.comparison:
             b.add_figure(_fig(lambda ax: C.chart4(r, ax, title=False), lang, keep), "kandidaten",
-                         L["fig_cand"].format(g=tex_escape(r.group)), cites=cites.get("cand"))
+                         L["fig_cand"].format(g=tex_escape(r.group)), cites=cites.get("cand"),
+                         steps=["vergleich", "rangfolge"] + (["referenz"] if r.reference is not None else []))
         b.add_figure(_fig(lambda ax: C.specimen_sketch(r, ax), lang, keep, (5.0, 2.0)), "probe",
-                     L["fig_sketch"].format(s=tex_escape(specimen_label(r))), width="0.6")
+                     L["fig_sketch"].format(s=tex_escape(specimen_label(r))), width="0.6", steps=[])
         if has_pk:
             _peak_figures(b, r, lang, keep)
 
@@ -408,7 +450,8 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
                 rows.append([R[rk] + app, num(kv[kk], 2, lang, "%")])
         rows.append([R["k"], num(kv["fit"]["k_N_s"], 3, lang, "N/s")])
         rows.append([R["r2"], num(kv["fit"]["r2"], 5, lang)])
-        b.add_table("kennwerte", booktabs([L["col_q"], L["col_v"]], rows), L["tab_kv"].format(n=n))
+        b.add_table("kennwerte", booktabs([L["col_q"], L["col_v"]], rows), L["tab_kv"].format(n=n),
+                    steps=["linear", "haltezeit", "dehnung", "modul"])
         if r.reference is not None and st:
             ref = r.reference
             rr = [[R["max_s"], num(kv["Rm"], 0, lang), num(ref.rm, 0, lang), num(100 * (kv["Rm"] - ref.rm) / ref.rm, 1, lang, "%")]]
@@ -419,7 +462,8 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
                 rr.append([R["e"] + " [GPa]", num(r.e_schein_gpa, 1, lang), num(ref.e_gpa, 1, lang),
                            num(100 * (r.e_schein_gpa - ref.e_gpa) / ref.e_gpa, 0, lang, "%")])
             b.add_table("referenz", booktabs([L["col_q"] + " [MPa]", L["col_meas"], L["col_ref"], L["col_dev"]], rr, "lrrr"),
-                        L["tab_ref"].format(n=n, r=tex_escape(ref.name)), cites=cites.get("mat"))
+                        L["tab_ref"].format(n=n, r=tex_escape(ref.name)), cites=cites.get("mat"),
+                        steps=["referenz", "linear", "modul"])
         if st and r.comparison and "field" in cites:
             _source_tables(b, r, lang, cites)
         if has_pk:
@@ -450,10 +494,32 @@ def _single(b: Bundle, r: Result, lang: str, inc: dict, keep: set[str]):
     eq_text = ""
     if r.equations and inc.get("values", True):
         from labcalc import formulas as Fm
+        at = b.added_mark()
         eq_text = Fm.to_report(b, r.equations, lang, cite_prefix="eq").get("latex", "")
+        _eq_needs(b, at, ["gleichungen"])
+
+    uo = None
+    if r.unc and inc.get("values", True):              # Messunsicherheit: Werte ±, Budgettabellen, Methodentext
+        from . import uncertainty as UNC
+        n_items, n_vals = len(b.items), len(b.values)
+        uo = UNC.to_report(b, r, lang)
+        if uo:                                          # Werte ± und Budgettabellen brauchen den Unsicherheitsschritt
+            for v in b.values[n_vals:]:
+                v["needs"] = ["unsicherheit"]
+            for it in b.items[n_items:]:
+                if it.get("kind") == "table":
+                    it["needs"] = {"steps": ["unsicherheit"]}
 
     if inc.get("text", True):
-        _texts(b, r, lang, cites, eq_text)
+        _texts(b, r, lang, cites, eq_text, uo)
+
+
+def _eq_needs(b: Bundle, at: tuple, steps: list[str]):
+    """Eigene Gleichungen: Tabelle, Budgets und Werte seit ``at`` brauchen den Gleichungsblock des Methodentexts."""
+    for it in b.items[at[0]:]:
+        if it.get("kind") == "table":
+            it["needs"] = {"steps": list(steps)}
+    b.needs_since(at, steps)
 
 
 def _source_tables(b: Bundle, r: Result, lang: str, cites: dict, per_table: int = 40):
@@ -481,10 +547,11 @@ def _source_tables(b: Bundle, r: Result, lang: str, cites: dict, per_table: int 
         b.add_table("werkstoffe" + (f"-{k // per_table + 1}" if k else ""),
                     booktabs(L["h_src"], [row for _, row in chunk], "rlrrrrl", small=True, escape_header=False),
                     L["tab_src"].format(g=tex_escape(r.group), cont=L["cont"] if k else "") + star_txt + wood_txt,
-                    cites=[key for key, _ in chunk])
+                    cites=[key for key, _ in chunk],
+                    steps=["vergleich"] + (["zusatz"] if r.extras else []) + (["referenz"] if r.reference is not None else []))
 
 
-def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
+def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = "", uo: dict | None = None):
     st = r.mode == "Spannung"
     s, c = b.slug, r.config
     V = lambda k: rf"\labval{{{s}}}{{{k}}}"  # noqa: E731
@@ -495,53 +562,62 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
     o = d.get("origin")                           # I-03: aus einem Datensatz – kein Gerät, Zeitachse ggf. aus dem Weg
     rl = (o or {}).get("roles") or {}
     unit_of = lambda x: tex_escape(x.get("unit") or "1")  # noqa: E731
+    grp = cites.get("group") or cites.get("field") or []
+    # Methodenschritte als (id, Text): Grafiken, Tabellen und Werte nennen die ids, die sie brauchen (add_figure steps)
     if lang == "de":
         if o:
             cols = " und ".join(f"{tex_escape(x['name'])} [{unit_of(x)}]" for x in (rl.get("load"), rl.get("ext")) if x)
-            m = [f"Ausgewertet wurde der Datensatz ,,{tex_escape(o.get('title') or r.name)}`` (Version {o.get('version') or '?'})"
-                 f"{data_c} einer Probe {spec}{norm_c} mit den Spalten {cols}."]
+            m = [("messung", f"Ausgewertet wurde der Datensatz ,,{tex_escape(o.get('title') or r.name)}`` (Version {o.get('version') or '?'})"
+                 f"{data_c} einer Probe {spec}{norm_c} mit den Spalten {cols}.")]
             if o.get("time_from") == "elongation":
-                m.append(f"Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit {V('v')} "
-                         "berechnet; Dehnung und Modul folgen damit dem gemessenen Weg.")
+                m.append(("zeitachse", f"Die Zeitachse der Auswertung wurde aus dem zurückgelegten Weg und der Prüfgeschwindigkeit {V('v')} "
+                         "berechnet; Dehnung und Modul folgen damit dem gemessenen Weg."))
             elif c.speed_mm_min:
-                m.append(f"Die Prüfgeschwindigkeit betrug {V('v')}.")
+                m.append(("geschwindigkeit", f"Die Prüfgeschwindigkeit betrug {V('v')}."))
         else:
-            m = [f"Die Zugprüfung erfolgte an einer Probe {spec}{norm_c} auf einem Kraftmessgerät IMADA {tex_escape(d['model'])}"
-                 f" (SN {tex_escape(d['serial'])}){data_c}."]
+            m = [("messung", f"Die Zugprüfung erfolgte an einer Probe {spec}{norm_c} auf einem Kraftmessgerät IMADA {tex_escape(d['model'])}"
+                 f" (SN {tex_escape(d['serial'])}){data_c}.")]
             if c.speed_mm_min:
-                m.append(f"Die Prüfgeschwindigkeit betrug {V('v')}, die Kraft wurde mit {V('rate')} aufgezeichnet.")
+                m.append(("geschwindigkeit", f"Die Prüfgeschwindigkeit betrug {V('v')}, die Kraft wurde mit {V('rate')} aufgezeichnet."))
             else:
-                m.append(f"Die Kraft wurde mit {V('rate')} aufgezeichnet; die Prüfgeschwindigkeit ist nicht dokumentiert.")
+                m.append(("geschwindigkeit", f"Die Kraft wurde mit {V('rate')} aufgezeichnet; die Prüfgeschwindigkeit ist nicht dokumentiert."))
         if st:
-            m.append(f"Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $ {V('A0')}.")
-        m.append("Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen "
+            m.append(("spannung", f"Die Spannung bezieht sich auf den Ausgangsquerschnitt $A_0 = $ {V('A0')}."))
+        m.append(("linear", "Der lineare Abschnitt wurde ausgehend von der Stelle der grössten Steigung schrittweise um je einen "
                  "Messpunkt nach links und nach rechts erweitert, solange alle Messpunkte des Fensters um weniger als "
                  f"{V('tol')} von ihrer Ausgleichsgeraden abweichen; die Suche endet, sobald keine Seite mehr wachsen kann "
-                 "(gierige Suche, nicht notwendig das längste solche Fenster). " + _ep_text(r, "de", V))
-        m.append(f"Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens "
-                 f"{V('holdthr')} des Maximums beträgt.")
+                 "(gierige Suche, nicht notwendig das längste solche Fenster). " + _ep_text(r, "de", V)))
+        m.append(("haltezeit", f"Als Haltezeit gilt die Dauer des zusammenhängenden Abschnitts um das Maximum, in dem die Last mindestens "
+                 f"{V('holdthr')} des Maximums beträgt."))
         if r.kv.get("A_pct") is not None:
             iso_c = (" " + _cite_cmd([cites["iso6892"]])) if "iso6892" in cites else ""
-            m.append("Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die "
+            m.append(("dehnung", "Die Dehnung wurde ab dem Fusspunkt der Ausgleichsgeraden gezählt. Die Bruchdehnung $A$ und die "
                      "plastische Dehnung bei Höchstkraft $A_g$ wurden wie beim Extensometerverfahren" + iso_c + " aus den "
                      "Gesamtdehnungen $A_t$ und $A_{gt}$ unter Last bestimmt, abzüglich des elastischen Anteils (Spannung "
-                     "geteilt durch die Steigung des linearen Abschnitts derselben Kurve).")
+                     "geteilt durch die Steigung des linearen Abschnitts derselben Kurve)."))
         if c.displacement_source != "probe" and r.e_schein_gpa is not None:
-            m.append("Ob der Weg an der Probe gemessen wurde, ist nicht dokumentiert; der berechnete Modul ist deshalb ein "
+            m.append(("modul", "Ob der Weg an der Probe gemessen wurde, ist nicht dokumentiert; der berechnete Modul ist deshalb ein "
                      "scheinbarer Wert." if o else
                      "Die Dehnung stammt aus dem Traversenweg und enthält die Nachgiebigkeit des Aufbaus; der daraus "
-                     "berechnete Modul ist ein scheinbarer Wert.")
+                     "berechnete Modul ist ein scheinbarer Wert."))
         if cites.get("field"):
             ro_c = ("~" + _cite_cmd([cites["ro"]])) if "ro" in cites else ""
-            m.append(f"Verglichen wurde mit den {len(r.alloys)} Werkstoffen der Gruppe {tex_escape(r.group)}; "
+            m.append(("vergleich", f"Verglichen wurde mit den {len(r.alloys)} Werkstoffen der Gruppe {tex_escape(r.group)}; "
                      "ihre Spannungs-Dehnungs-Kurven sind aus den Kennwerten $R_{p0,2}$, $R_m$, $A$ und $E$ "
                      "idealisiert (elastisch mit $E$, dann die Beziehung nach Ramberg und Osgood" + ro_c + " durch "
                      "$R_{p0,2}$ und $R_m$ bei $0{,}55\\,A$, danach ein linearer Abfall um 7\\,\\% bis $A$; ohne "
                      "$R_{p0,2}$ elastisch bis $R_m$). Sie dienen nur der Orientierung und sind keine Messkurven "
-                     f"(Kennwerte nach{cite(cites['field'])}).")
-            m.append("Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ "
+                     f"(Kennwerte nach{cite(grp)})."))
+            m.append(("rangfolge", "Rangfolge der Kandidaten: zuerst nach Status, bei gleichem Status nach der Abweichung in $R_m$ "
                      "bezogen auf den Wert des Werkstoffs; das Verhältnis von Maximum zu Fliessbeginn senkt nur den "
-                     "Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist.")
+                     "Status, weil der Fliessbeginn eine Schwelle und keine $R_{p0,2}$ ist."))
+            if r.extras and cites.get("extra"):
+                lst = ", ".join(tex_escape(a.name) for a in r.extras)
+                m.append(("zusatz", f"Zusätzlich eingeblendet, aber nicht Teil des Vergleichs, sind {lst}; ihre Kurven sind "
+                                    f"auf dieselbe Weise idealisiert (Kennwerte nach{cite(cites['extra'])})."))
+        if r.reference is not None and "mat" in cites:
+            m.append(("referenz", f"Als Referenzwerkstoff dient {tex_escape(r.reference.name)} mit Sollwerten "
+                                  f"nach{cite([cites['mat']])}; diese Werte sind nicht gemessen."))
         res = []
         if st:
             res.append(f"Die Probe erreichte eine Zugfestigkeit von {V('Rm')} (Maximalkraft {V('Fmax')} nach {V('tmax')}).")
@@ -566,49 +642,56 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
     else:
         if o:
             cols = " and ".join(f"{tex_escape(x['name'])} [{unit_of(x)}]" for x in (rl.get("load"), rl.get("ext")) if x)
-            m = [f"The dataset ``{tex_escape(o.get('title') or r.name)}'' (version {o.get('version') or '?'}){data_c} of a "
-                 f"specimen {spec}{norm_c} was evaluated, with the columns {cols}."]
+            m = [("messung", f"The dataset ``{tex_escape(o.get('title') or r.name)}'' (version {o.get('version') or '?'}){data_c} of a "
+                 f"specimen {spec}{norm_c} was evaluated, with the columns {cols}.")]
             if o.get("time_from") == "elongation":
-                m.append(f"The time axis of the evaluation was calculated from the travelled displacement and the test speed "
-                         f"{V('v')}, so strain and modulus follow the measured displacement.")
+                m.append(("zeitachse", f"The time axis of the evaluation was calculated from the travelled displacement and the test speed "
+                         f"{V('v')}, so strain and modulus follow the measured displacement."))
             elif c.speed_mm_min:
-                m.append(f"The test speed was {V('v')}.")
+                m.append(("geschwindigkeit", f"The test speed was {V('v')}."))
         else:
-            m = [f"The tensile test was carried out on a specimen {spec}{norm_c} using an IMADA {tex_escape(d['model'])} force "
-                 f"gauge (SN {tex_escape(d['serial'])}){data_c}."]
+            m = [("messung", f"The tensile test was carried out on a specimen {spec}{norm_c} using an IMADA {tex_escape(d['model'])} force "
+                 f"gauge (SN {tex_escape(d['serial'])}){data_c}.")]
             if c.speed_mm_min:
-                m.append(f"The test speed was {V('v')}; force was recorded at {V('rate')}.")
+                m.append(("geschwindigkeit", f"The test speed was {V('v')}; force was recorded at {V('rate')}."))
             else:
-                m.append(f"Force was recorded at {V('rate')}; the test speed was not documented.")
+                m.append(("geschwindigkeit", f"Force was recorded at {V('rate')}; the test speed was not documented."))
         if st:
-            m.append(f"Stress refers to the initial cross-section $A_0 = $ {V('A0')}.")
-        m.append("The linear section was found by growing a window from the point of steepest slope, one data point at a "
+            m.append(("spannung", f"Stress refers to the initial cross-section $A_0 = $ {V('A0')}."))
+        m.append(("linear", "The linear section was found by growing a window from the point of steepest slope, one data point at a "
                  "time to the left and to the right, as long as all points of the window deviate from their regression "
                  f"line by less than {V('tol')}; the search stops when neither side can grow (a greedy search, not "
-                 "necessarily the longest such window). " + _ep_text(r, "en", V))
-        m.append(f"The hold time is the duration of the contiguous section around the maximum in which the load stays at "
-                 f"or above {V('holdthr')} of the maximum.")
+                 "necessarily the longest such window). " + _ep_text(r, "en", V)))
+        m.append(("haltezeit", f"The hold time is the duration of the contiguous section around the maximum in which the load stays at "
+                 f"or above {V('holdthr')} of the maximum."))
         if r.kv.get("A_pct") is not None:
             iso_c = (" " + _cite_cmd([cites["iso6892"]])) if "iso6892" in cites else ""
-            m.append("Strain was counted from the foot point of the regression line. The percentage elongation after "
+            m.append(("dehnung", "Strain was counted from the foot point of the regression line. The percentage elongation after "
                      "fracture $A$ and the plastic extension at maximum force $A_g$ were obtained as in the extensometer "
                      "method" + iso_c + " from the total extensions under load $A_t$ and $A_{gt}$, minus the elastic part "
-                     "(stress divided by the slope of the linear section of the same curve).")
+                     "(stress divided by the slope of the linear section of the same curve)."))
         if c.displacement_source != "probe" and r.e_schein_gpa is not None:
-            m.append("Whether the displacement was measured on the specimen is not documented, so the calculated modulus is "
+            m.append(("modul", "Whether the displacement was measured on the specimen is not documented, so the calculated modulus is "
                      "an apparent value." if o else
                      "Strain was derived from the crosshead displacement and includes the compliance of the set-up; the "
-                     "modulus calculated from it is an apparent value.")
+                     "modulus calculated from it is an apparent value."))
         if cites.get("field"):
             ro_c = ("~" + _cite_cmd([cites["ro"]])) if "ro" in cites else ""
-            m.append(f"The measurement was compared with the {len(r.alloys)} materials of the group "
+            m.append(("vergleich", f"The measurement was compared with the {len(r.alloys)} materials of the group "
                      f"{tex_escape(r.group)}; their stress--strain curves are idealised from $R_{{p0.2}}$, $R_m$, $A$ and $E$ "
                      "(elastic with $E$, then the Ramberg--Osgood relation" + ro_c + " through $R_{p0.2}$ and $R_m$ at "
                      "$0.55\\,A$, then a linear drop of 7\\,\\% to $A$; without $R_{p0.2}$ elastic up to $R_m$). They are "
-                     f"for orientation only and are not measured curves (property values from{cite(cites['field'])}).")
-            m.append("Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ "
+                     f"for orientation only and are not measured curves (property values from{cite(grp)})."))
+            m.append(("rangfolge", "Candidates are ranked first by status and, within the same status, by the deviation in $R_m$ "
                      "relative to the material value; the ratio of maximum to yield onset only lowers the status, because "
-                     "the yield onset is a threshold, not $R_{p0.2}$.")
+                     "the yield onset is a threshold, not $R_{p0.2}$."))
+            if r.extras and cites.get("extra"):
+                lst = ", ".join(tex_escape(a.name) for a in r.extras)
+                m.append(("zusatz", f"Also shown, but not part of the comparison: {lst}; their curves are idealised in the "
+                                    f"same way (property values from{cite(cites['extra'])})."))
+        if r.reference is not None and "mat" in cites:
+            m.append(("referenz", f"The reference material is {tex_escape(r.reference.name)}, with nominal values "
+                                  f"from{cite([cites['mat']])}; these values are not measured."))
         res = []
         if st:
             res.append(f"The specimen reached a tensile strength of {V('Rm')} (maximum force {V('Fmax')} after {V('tmax')}).")
@@ -634,9 +717,28 @@ def _texts(b: Bundle, r: Result, lang: str, cites: dict, eq_text: str = ""):
         m += pm
         res += pr
     L = T[lang]
-    b.add_text("methodik", " ".join(m).replace("$ \\labval", "$\\labval") + "\n" + ("\n" + eq_text if eq_text else ""),
-               L["methods_t"])
-    b.add_text("ergebnisse", " ".join(res) + "\n", L["results_t"])
+    # jeder Satz ein Schritt mit laufender id (s1, s2, ...: gespeicherte Auswahl und Satzänderungen bleiben gültig),
+    # "of" nennt die Auswertung, zu der er gehört; neue Schritte (zusatz, referenz) stehen deshalb hinten
+    m = [x for x in m if x[0] not in ("zusatz", "referenz")] + [x for x in m if x[0] in ("zusatz", "referenz")]
+    steps = []
+    for sid, txt in m:
+        for sent in split_sentences(txt.replace("$ \\labval", "$\\labval")):
+            steps.append({"of": sid, "text": sent})
+    if uo:
+        steps.append({"id": "unsicherheit", "title": "Messunsicherheit" if lang == "de" else "Measurement uncertainty",
+                      "text": "\n\n" + uo["latex"]})
+        got = [f"{tex_escape(x['label'])} {V(x['name'] + '-pm')}" for x in uo["results"].values()]
+        res.append(("Mit Messunsicherheit: " if lang == "de" else "With measurement uncertainty: ") + "; ".join(got) + ".")
+    # ein Satz für ein eingefügtes Stück ohne Auswertung (eine reine Messkurve): Messung, Norm, Software
+    clause = b.software_clause()
+    if o:       # der erste Satz sagt bei einem Datensatz schon "ausgewertet"
+        clause = ("Software: " if lang == "de" else "software: ") + clause.split(" ", 2)[2]
+    brief = m[0][1].replace("$ \\labval", "$\\labval").rstrip().rstrip(".") + "; " + clause + "."
+    b.add_methods(steps, L["methods_t"], sep=" ", eq=eq_text or "", brief=brief)
+    used = {s.get("of") or s.get("id") for s in steps}
+    b.add_text("ergebnisse", " ".join(res) + "\n", L["results_t"],
+               steps=[s for s in ("linear", "haltezeit", "dehnung", "modul", "referenz", "lastspitzen", "ausgleich",
+                                  "unsicherheit") if s in used])
 
 
 def _ep_text(r: Result, lang: str, V) -> str:
@@ -737,15 +839,22 @@ def _peak_figures(b: Bundle, r: Result, lang: str, keep: set[str]):
     d = num(pk["delta"], nd, lang, r.unit)
     fit = pk.get("fit") or {}
     best = fit.get("best")
-    if lang == "de":
-        cap = (f"Lastspitzen der Messung {n} (fortschreitendes Versagen): {pk['n']} nummerierte Spitzen, jede mit einem "
-               f"Lastabfall von mindestens {d} danach, die Täler dazwischen"
-               + (f" und als Hüllkurve die besser passende {_MODEL['de'][best]} der Spitzenlasten." if best else "."))
-    else:
-        cap = (f"Load peaks of measurement {n} (progressive failure): {pk['n']} numbered peaks, each followed by a load "
-               f"drop of at least {d}, the valleys between them"
-               + (f" and, as envelope, the better-fitting {_MODEL['en'][best]} of the peak loads." if best else "."))
-    b.add_figure(_fig(lambda ax: C.peaks_curve(r, ax, lang), lang, keep), "lastspitzen", cap)
+    de = lang == "de"
+    # was die Grafik zeigt, als abschaltbare Teile: Spitzen, Täler, Hüllkurve (Ausgleich)
+    parts = [{"id": "spitzen", "label": "Lastspitzen" if de else "Load peaks", "steps": ["lastspitzen"],
+              "caption": (f"{pk['n']} nummerierten Lastspitzen (je mit einem Lastabfall von mindestens {d} danach)" if de else
+                          f"{pk['n']} numbered load peaks (each followed by a load drop of at least {d})")},
+             {"id": "taeler", "label": "Täler" if de else "Valleys", "steps": ["lastspitzen"],
+              "caption": "den Tälern dazwischen" if de else "the valleys between them"}]
+    if best:
+        dat = {"line": "Geraden", "exp": "Exponentialfunktion"}[best]
+        parts.append({"id": "huellkurve", "label": "Hüllkurve" if de else "Envelope", "steps": ["lastspitzen", "ausgleich"],
+                      "caption": (f"der besser passenden {dat} der Spitzenlasten als Hüllkurve" if de else
+                                  f"the better-fitting {_MODEL['en'][best]} of the peak loads as envelope")})
+    cap = (f"Verlauf der Messung {n} (fortschreitendes Versagen){{parts}}." if de else
+           f"Curve of measurement {n} (progressive failure){{parts}}.")
+    b.add_figure(_fig(lambda ax: C.peaks_curve(r, ax, lang), lang, keep), "lastspitzen", cap, steps=[], parts=parts,
+                 parts_lead="mit" if de else ", with")
     if best:
         cap = (f"Spitzenlasten der Messung {n} über {_x_text(pk, 'de')} mit Ausgleichsgerade und Exponentialfunktion "
                "(beide direkt nach kleinsten Quadraten in $y$); durchgezogen und kräftig die besser passende."
@@ -753,7 +862,7 @@ def _peak_figures(b: Bundle, r: Result, lang: str, keep: set[str]):
                f"Peak loads of measurement {n} against {_x_text(pk, 'en')} with a straight line and an exponential "
                "(both direct least squares in $y$); solid and bold: the better fit.")
         b.add_figure(_fig(lambda ax: C.peaks_fit_chart(r, ax, lang), lang, keep, (6.4, 3.4)), "lastspitzen-ausgleich",
-                     cap)
+                     cap, steps=["lastspitzen", "ausgleich"])
 
 
 def _peak_tables(b: Bundle, r: Result, lang: str):
@@ -795,7 +904,7 @@ def _peak_tables(b: Bundle, r: Result, lang: str):
     for k in range(0, len(rows), PEAK_ROWS_PER_TABLE):
         b.add_table("lastspitzen" + (f"-{k // PEAK_ROWS_PER_TABLE + 1}" if k else ""),
                     booktabs(head, rows[k:k + PEAK_ROWS_PER_TABLE], align, small=True, escape_header=False),
-                    cap if not k else cap.split(". ")[0] + cont + ".")
+                    cap if not k else cap.split(". ")[0] + cont + ".", steps=["lastspitzen"])
     fit = pk.get("fit") or {}
     if fit.get("reason"):
         return
@@ -829,10 +938,11 @@ def _peak_tables(b: Bundle, r: Result, lang: str):
                "direct least squares in $y$; both have two parameters and the same $y$, so the model with the smaller "
                "sum of squared residuals (the larger $R^2$) is the better one (bold). $u$: standard uncertainty; "
                f"95\\,\\%: confidence interval with the Student $t$ quantile for {nfit - 2} degrees of freedom.")
-    b.add_table("lastspitzen-ausgleich", booktabs(head, frows, "llrrrl", small=True, escape_header=False), cap)
+    b.add_table("lastspitzen-ausgleich", booktabs(head, frows, "llrrrl", small=True, escape_header=False), cap,
+                steps=["lastspitzen", "ausgleich"])
 
 
-def _peak_texts(r: Result, lang: str, V) -> tuple[list[str], list[str]]:
+def _peak_texts(r: Result, lang: str, V) -> tuple[list[tuple[str, str]], list[str]]:
     pk = r.kv["peaks"]
     st = r.mode == "Spannung"
     ref = "$R_m$" if st else "$F_\\mathrm{max}$"
@@ -840,21 +950,21 @@ def _peak_texts(r: Result, lang: str, V) -> tuple[list[str], list[str]]:
     best = fit.get("best")
     res_lim = pk["delta_basis"] == "aufloesung"
     if lang == "de":
-        m = [f"Lastspitzen (fortschreitendes Versagen) wurden mit einer Schwellenregel mit Hysterese erkannt: Ein "
+        m = [("lastspitzen", f"Lastspitzen (fortschreitendes Versagen) wurden mit einer Schwellenregel mit Hysterese erkannt: Ein "
              f"laufendes Maximum gilt als Lastspitze, sobald die Last um mindestens $\\Delta = $ {V('pkdelta')} darunter "
              f"fällt ({V('pkthr')} von {ref}, mindestens das Dreifache der Anzeigeauflösung"
              + (", hier massgebend" if res_lim else "") + "); danach wird das Minimum (Tal) verfolgt, bis die Last "
              "wieder um mindestens $\\Delta$ darüber steigt, und die Suche nach der nächsten Spitze beginnt dort. Bei "
              "einem flachen Maximum oder Minimum zählt der erste Punkt; nach der letzten Spitze ist das Tal das Minimum "
-             "bis zum Ende des aktiven Abschnitts. Die Schwelle ist eine Festlegung, keine Norm."]
+             "bis zum Ende des aktiven Abschnitts. Die Schwelle ist eine Festlegung, keine Norm.")]
         if not fit.get("reason"):
-            m.append(f"Die Spitzenlasten wurden gegen {_x_text(pk, 'de')} mit einer Geraden {_FORMULA['line']} und "
+            m.append(("ausgleich", f"Die Spitzenlasten wurden gegen {_x_text(pk, 'de')} mit einer Geraden {_FORMULA['line']} und "
                      f"einer Exponentialfunktion {_FORMULA['exp']} ausgeglichen, beide direkt nach kleinsten Quadraten "
                      "in $y$ (die Exponentialfunktion mit Levenberg--Marquardt). Da beide Modelle zwei Parameter haben "
                      "und an dieselben Werte angepasst sind, gilt das Modell mit der kleineren Summe der "
                      "Fehlerquadrate, also dem grösseren $R^2$, als das bessere. Die Unsicherheiten sind "
                      "Standardunsicherheiten aus der Kovarianzmatrix am Optimum, die Vertrauensbereiche 95\\,\\% mit "
-                     "dem Student-$t$-Quantil für $n - 2$ Freiheitsgrade.")
+                     "dem Student-$t$-Quantil für $n - 2$ Freiheitsgrade."))
         res = [f"Die Kurve zeigt {V('npk')} Lastspitzen (fortschreitendes Versagen); {ref} ist die höchste davon, "
                "Haltezeit, Plateau und Bruch beziehen sich auf dieses globale Maximum."]
         if best:
@@ -867,20 +977,20 @@ def _peak_texts(r: Result, lang: str, V) -> tuple[list[str], list[str]]:
         elif fit.get("reason"):
             res.append("Für einen Ausgleich der Spitzenlasten sind es zu wenige Spitzen (mindestens drei nötig).")
     else:
-        m = [f"Load peaks (progressive failure) were detected with a threshold rule with hysteresis: a running maximum "
+        m = [("lastspitzen", f"Load peaks (progressive failure) were detected with a threshold rule with hysteresis: a running maximum "
              f"counts as a load peak as soon as the load falls by at least $\\Delta = $ {V('pkdelta')} below it "
              f"({V('pkthr')} of {ref}, at least three times the display resolution"
              + (", which governs here" if res_lim else "") + "); then the minimum (valley) is tracked until the load "
              "rises again by at least $\\Delta$ above it, and the search for the next peak starts there. For a flat "
              "maximum or minimum the first point counts; after the last peak the valley is the minimum up to the end of "
-             "the active section. The threshold is a convention, not a standard."]
+             "the active section. The threshold is a convention, not a standard.")]
         if not fit.get("reason"):
-            m.append(f"The peak loads were fitted against {_x_text(pk, 'en')} with a straight line {_FORMULA['line']} "
+            m.append(("ausgleich", f"The peak loads were fitted against {_x_text(pk, 'en')} with a straight line {_FORMULA['line']} "
                      f"and an exponential {_FORMULA['exp']}, both by direct least squares in $y$ (the exponential with "
                      "Levenberg--Marquardt). Both models have two parameters and are fitted to the same values, so the "
                      "model with the smaller sum of squared residuals, i.e. the larger $R^2$, is taken as the better "
                      "one. Uncertainties are standard uncertainties from the covariance matrix at the optimum; the 95\\,\\% "
-                     "confidence intervals use the Student $t$ quantile for $n - 2$ degrees of freedom.")
+                     "confidence intervals use the Student $t$ quantile for $n - 2$ degrees of freedom."))
         res = [f"The curve shows {V('npk')} load peaks (progressive failure); {ref} is the highest of them, and hold "
                "time, plateau and break refer to this global maximum."]
         if best:
@@ -912,10 +1022,13 @@ def _multi(b: Bundle, results: list[Result], lang: str, inc: dict, keep: set[str
     if inc.get("values", True):
         b.add_values(vals)
     if inc.get("figures", True):
-        b.add_figure(_fig(lambda ax: C.overlay_time(results, ax), lang, keep), "verlauf", L["fig_ov_time"].format(n=names))
+        b.add_figure(_fig(lambda ax: C.overlay_time(results, ax), lang, keep), "verlauf", L["fig_ov_time"].format(n=names),
+                     steps=[])          # mehrere Messungen: das Bundle hat keinen Methodentext
         if st and any(r.strain is not None for r in results):
-            b.add_figure(_fig(lambda ax: C.overlay_strain(results, ax), lang, keep), "dehnung", L["fig_ov_strain"].format(n=names))
-        b.add_figure(_fig(lambda ax: C.grouped_kpis(results, ax), lang, keep), "kennwerte", L["fig_kpis"].format(n=names))
+            b.add_figure(_fig(lambda ax: C.overlay_strain(results, ax), lang, keep), "dehnung", L["fig_ov_strain"].format(n=names),
+                         steps=[])
+        b.add_figure(_fig(lambda ax: C.grouped_kpis(results, ax), lang, keep), "kennwerte", L["fig_kpis"].format(n=names),
+                     steps=[])
     if inc.get("tables", True):
         R = L["rows"]
         head = [L["col_name"], "$A_0$ [mm$^2$]", ("Fliessbeginn" if lang == "de" else "Yield onset") + f" [{u}]",
@@ -927,7 +1040,9 @@ def _multi(b: Bundle, results: list[Result], lang: str, inc: dict, keep: set[str
                          num(kv["yield"]["y"], nd, lang) if kv["yield"] else "--", num(kv["max"]["y"], nd, lang),
                          num(kv["break"]["y"], nd, lang) if kv["break"] else "--",
                          num(kv["drop"]["pct"], 1, lang) if kv["drop"] else "--"])
-        b.add_table("vergleich", booktabs(head, rows, "lrrrrr", small=True, escape_header=False), L["tab_cmp"])
+        b.add_table("vergleich", booktabs(head, rows, "lrrrrr", small=True, escape_header=False), L["tab_cmp"], steps=[])
+    if inc.get("values", True) and any(r.unc for r in results):
+        _series_unc(b, results, lang)
     if inc.get("citations", True):
         for r in results:
             nm = _norm(r)
@@ -935,6 +1050,33 @@ def _multi(b: Bundle, results: list[Result], lang: str, inc: dict, keep: set[str
                 key, number, title, year = nm
                 b.add_citation(key, "misc", title=f"{number}: {title}", author="{" + number.split()[0] + "}", year=year,
                                note="" if year else ("Ausgabe prüfen" if lang == "de" else "check edition"))
+
+
+def _series_unc(b: Bundle, results: list[Result], lang: str):
+    """Serie: Mittelwert ± Unsicherheit je Kennwert (Typ A aus der Streuung der Proben plus mittleres Einzelbudget)."""
+    import labcite
+
+    from labcalc import uncertainty as UN
+
+    from . import uncertainty as UNC
+    ser = UNC.series(results, lang)
+    if not ser:
+        return
+    at = b.added_mark()
+    uo = UN.to_report(b, list(ser.values()), lang, prefix="serie-")
+    b.needs_since(at, [])
+    keys = [labcite.to_bib(b, k, rec) for k, rec in UNC.SOURCES.items()]
+    de = lang == "de"
+    n = len([r for r in results if r.unc])
+    head = (f"Serie aus {n} Proben: Mittelwert der Kennwerte mit der Standardunsicherheit des Mittelwerts aus der "
+            "Streuung der Proben (Typ A, $s/\\sqrt{n}$) und dem Mittel der Einzelbudgets als voll korreliertem Beitrag "
+            f"(konservativ){cite(keys)}." if de else
+            f"Series of {n} specimens: mean of each property with the standard uncertainty of the mean from the scatter "
+            "of the specimens (type A, $s/\\sqrt{n}$) and the mean single-test budget as a fully correlated contribution "
+            f"(conservative){cite(keys)}.")
+    vals = "; ".join(f"{tex_escape(x['label'])} \\labval{{{b.slug}}}{{serie-{x['name']}-pm}}" for x in ser.values())
+    b.add_text("unsicherheit", head + "\n" + uo["latex"] + "\n\n" + vals + ".\n",
+               "Messunsicherheit der Serie" if de else "Measurement uncertainty of the series", steps=[])
 
 
 # ----------------------------------------------------------------------------- Einstieg

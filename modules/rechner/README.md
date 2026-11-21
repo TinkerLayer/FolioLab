@@ -72,11 +72,19 @@ variables of the sheet, the results of the formula cards, the derived values and
 | `2(3+4)^2`, `5!`, `2pi`, `3e-4` | implicit multiplication, power, factorial, power of ten |
 | `sin(30)` | angle according to the **DEG/RAD** setting (top) |
 | `k = 2*v`, `f(x) = x^2 - 2` | assignment and user function (valid in the following lines) |
+| `m = 2 kg`, `a = 9,81 m/s^2` | number with a unit. A compound unit stays a unit even if the page defines `m`. A single name the page defines stays the variable (`m = 3`, then `y = 2 m` is 6) and the line says so; `L = 3 [m]` always means the unit. If every name of a compound is a page name or a usual algebra letter (`s = 0.5 a t^2`), it is read as algebra, also with a note |
+| `f'(x)`, `f''(x)`, `f'(3)` | symbolic derivative of a function: with `f(x) = x^2`, `f'(x)` gives 2x, `f''(x)` gives 2, `f'(3)` gives 6 |
+| `diff(sin(x^2), x)`, `diff(x^3, x, 2)`, `d/dx(x^3)`, `d²/dx²(x^4)` | symbolic derivative of an expression; with a value for x the line shows the number, the unit is divided by the unit of x. `d/dx` is a quotient only if the page defines `d` or `dx` |
 | `inv(A)*b`, `A'`, `A[2,1]`, `det(A)*2`, `A^2+E` | matrices from the Matrices tab (valid on every sheet) |
+| `inv(A) = Q`, `adj(A) = Q`, `eig(A) = Q`, `rref(A) = Q` | the result is assigned to the free name on the right |
+| `AB = C` | with matrices `A`, `B` and no name `AB` on the page: read as `A*B = C`, with a note. A defined `AB` always wins |
+| `A*X = B`, `X*A = B` | solves for the free matrix `X`; singular and contradictory systems are reported as such |
 | `integral(f(x), x, 0, 2)`, `deriv(x^3, x, 2)`, `nsolve(x^2 == 2, x, 1)`, `sum(k^2, k, 1, 10)` | calculus |
 | `mean(L)`, `std(L)`, `linreg(x, y)`, `polyfit(x, y, 2)`, `roots([1,0,-4])` | statistics, polynomials |
-| `v/t`, `E_kin -> kJ` | calculates in SI with units; `->` converts |`n| `T2 - T1 -> °F`, `dT -> Δ°C` | a temperature difference is converted without offset (shown as Δ°F); `Δ` forces a difference |
+| `v/t`, `E_kin -> kJ` | calculates in SI with units; `->` converts |
+| `T2 - T1 -> °F`, `dT -> Δ°C` | a temperature difference is converted without offset (shown as Δ°F); `Δ` forces a difference |
 | `sqrt(-4)` with **complex** on | complex results, `2 + 3i` |
+| `L = eig(R)` with complex eigenvalues | stays complex in later lines (`L*2`); functions for real numbers (`max`, `floor`, `dot`, integrals, …) refuse it with a message. The Matrices tab stores complex results too and shows them read-only |
 
 With `v` = 72 km/h and `t` = 8 s, `v/t` gives **2.5 m/s²**. ★ marks a line for the report (default: on).
 
@@ -92,11 +100,85 @@ the unit comes from the expression (`v*t = s_w` has m). `u` applies in the follo
   **⇄ Connections** (*⇄ Verbindungen*) in the header lists all connections (change, disconnect); on the overview they
   appear as arrows between the environments and can be drawn there as well.
 
+The same **⇄** sits on solved equations and on the result of a formula card. Solved quantities and card results go to
+other sheets and environments with their unit. **To the project index …** (*In den Projektindex …*) in the same menu is
+the route to other modules: every module can read the index, and the Rechner takes values from it as variables. Line
+values also carry their uncertainty u; card results and solved quantities are calculated without one.
+
 **Inserting matrices:** above the calculation lines of each sheet, the matrices from the Matrices tab are shown as
 buttons (name and size); a click inserts the name at the cursor of the last used line. While you type, an
 **autocomplete** suggests matrices, variables, values of the sheet, constants and functions (↑/↓ choose, Tab or
 Enter accept, Esc closes). If the result of a line is a matrix or a vector, *→ Matrix* stores it under a name in the
-Matrices tab, so that it can be used there and on all sheets.
+Matrices tab, so that it can be used there and on all sheets. A number calculated from a matrix (`det(A)`, `rank(A)`)
+has **→ Value** (*→ Wert*) in the same place.
+
+**Storing matrix results:** in the expression field of the Matrices tab, `D = adj(A)` and `A*B = C` store the result
+under the new name at once. If the name already exists it stays unchanged and **Store** (*Speichern*) overwrites it
+after asking. A calculation line behaves like any assignment: `A*B = C` gives `C` a new value on that sheet from that
+line on, also when `C` was defined before. Complex results are stored the same way, listed as *complex* and shown
+read-only, because the number grid cannot edit complex cells; they can be used in lines and operations and stay in
+saved workspaces and reports.
+
+If two lines on a page would both determine the same unknown (`x^2 = k` and `x + y = k; x - y = 2`), both lines say so
+and name each other instead of reporting a circular reference.
+
+**Any order:** lines may stand in any order; the Rechner works out which line needs which and calculates definitions
+first. Write the result first and define its inputs below it:
+
+```
+z = y + x
+y = 5
+x = f(t) = t^5 - 3
+t = 3          → z = 245
+```
+
+A dot after the line number means the line is calculated at another position (the tooltip says which). On hover,
+▴/▾ beside the number move a line; in a line, Alt+↑/↓ does the same. Lines that need each other in a circle get an
+error. In the report the lines appear in calculation order, so every name is defined before it is used.
+
+**Names not defined yet:** a line that uses a name nothing defines shows what it can: `z = y + x` with `y = 5` gives
+*z = 5 + x* ("x noch nicht definiert"), and `w = 2*z` then gives *w = 2·(5 + x)*. Define x anywhere on the sheet and
+the numbers appear.
+
+**Ranges, lists and sliders** turn a value into many:
+
+| Line | Gives |
+|---|---|
+| `t = 0..10 step 0.5` or `t = 0..1 count 5` | evenly spaced values |
+| `t = [1; 2; 5; 7.5]` | these values |
+| `t = eps` (a dataset column), `t = linspace(0, 1, 50)` | the values of the list |
+| `t = 0..5 slider` | one value, set with a slider under the line |
+
+Every line that uses `t` then gives a list: the line shows *n Werte*, a small curve and, folded, the value table.
+With a slider, the dependent lines show their value at the slider position and a small curve over the whole slider
+range. *→ Grafik* puts the line into the graph as a curve that follows the line when it changes. In the report each
+such line gets a value table, a figure and a CSV.
+
+## Measurement uncertainty
+
+A value line can carry its uncertainty after `±` (or `+/-`); the unit stands at the end:
+
+| Line | Meaning |
+|---|---|
+| `x = 5,0 ± 0,1 mm` | standard uncertainty u = 0.1 mm |
+| `y = 2,0 ± 0,2 (k=2) s` | expanded uncertainty U = 0.2 s with coverage factor k = 2 (u = U/k) |
+| `T = 20 ± 0,5 rect °C`, `a = 1 ± 0,3 tri` | limits ±a of a rectangular or triangular distribution (u = a/√3, a/√6) |
+
+Lines without `±` behave exactly as before. The small **±** button on a value line (and on a variable) opens the
+shared uncertainty editor: several components, repeated measurements (mean, s, s/√n), instrument classes from the
+shared library. Every line that depends on such inputs shows **value ± U**; a click on it folds out the budget and
+**Compare methods** (*Verfahren vergleichen*: GUM, Monte Carlo, Gauss, worst case side by side).
+
+* The uncertainty is propagated through the whole chain of lines (any order, `->` conversions included). Each input
+  enters once, so a value that appears twice (`s = x + x`, or `w = v·y − x` with `v = x/y`) keeps its correlation.
+* **Uncertainty** (*Messunsicherheit*, folded under each sheet): method (default GUM, k = 2), coverage probability,
+  correlations between inputs (r), own instruments.
+* Values passed on to other sheets or environments carry their standard uncertainty; across sheets the correlation
+  with the original inputs is not kept.
+* Results of formula cards and derived values are taken as exact (the line says so); range and list lines get no
+  uncertainty.
+* In the report: `value ± U` values, a budget table per result, the method in the methods text with JCGM 100 as
+  source; the ± inputs travel with the report so that **Refresh** recomputes them.
 
 ## Dataset as variables
 
@@ -144,9 +226,17 @@ variables** (*Als Variablen*). From the overview, the target environment is chos
     free parameters, or "no solution" with the least-squares solution.
   - Nonlinear systems are solved with Newton's method from several starting points.
   - A, b and the solution can be stored as matrices `A`, `b`, `xsol`.
-* The **Σ symbol picker** (tooltip *Symbols and templates* / *Symbole und Vorlagen*) at the inputs inserts templates:
-  sum, product, integral, derivative, roots, Greek letters, relations and units. The first gap is selected, so the
-  code notation is not needed.
+* The **∫Σπ symbol picker** (tooltip *Symbols and templates* / *Symbole und Vorlagen*) at the inputs opens **drawn
+  templates**: integral with limits, d/dx, d²/dx², derivative at a point, sum, product, square, cube and n-th root,
+  fraction, power, absolute value, exponential, logarithm with base, case distinction, numeric solve, vector, matrix,
+  determinant, inverse, adjugate, norm, cross and dot product, equation, system of equations (a brace with one equation
+  per row and a button for another row), condition on the solutions (a button switches between >, ≥, < and ≤), own
+  function, and the plain function keys (sin, cos, tan, ln, lg, mean, std, identity matrix). Equations, systems and
+  function definitions also reopen drawn; a plain assignment such as `y = 2` stays text. The template is drawn in the
+  input line itself. Click a box and fill it in; Tab and Shift+Tab move between
+  boxes, Enter applies, Esc restores the line, Backspace removes an empty template. Choosing another template while a
+  box is active nests it there. A line that contains a template opens drawn again when you click it. The saved form
+  stays the text form (`integral(x^2, x, 0, 1)`), which is also what the calculation reads.
 
 ## Formula cards, derive, search for missing values
 
@@ -185,10 +275,20 @@ variables** (*Als Variablen*). From the overview, the target environment is chos
 * In the card, the sheet's variables are inserted, but only if symbol **and** kind of quantity match (the `a` of the
   crack length is not the `a` of the acceleration). If there is exactly one variable of a kind and exactly one
   quantity of that kind in the formula, it is taken as well. Via *Quelle* ("source") each quantity can be assigned
-  explicitly (variable, derived value, result of another card on the same sheet) or left free.
-* If exactly one quantity is missing, it is calculated; at the top of the card the wanted quantity can also be set.
-  The rearranged formula, the inserted values and the result (unit selectable) are shown. Formulas that cannot be
-  rearranged in closed form are solved numerically (also double roots without a sign change); several solutions are`n  offered for selection. If all quantities are given, the card checks the formula; the tolerance follows from the`n  number of digits typed for the inputs.
+  explicitly (variable, line of the page, derived value, result of another card on the same sheet) or left free.
+* **Values from the page:** a calculation line such as `m = 2 kg` feeds the quantity `m` of a card on the same sheet if
+  the dimension fits; a number without a unit counts in the SI unit of the quantity. The card shows *from line: m*
+  (*aus Zeile: m*). A value typed into the card overrides it, and a variable of the sheet goes before a line. Values
+  passed on from other sheets are used the same way.
+* If exactly one quantity is missing, it is calculated. **Click a quantity's button** in the card's list to calculate
+  that one: the others become the inputs. A second click returns to automatic. The rearranged formula, the inserted values and the result (unit selectable) are shown. Formulas that cannot be
+  rearranged in closed form are solved numerically (also double roots without a sign change); several solutions are
+  offered for selection. If all quantities are given, the card checks the formula; the tolerance follows from the
+  number of digits typed for the inputs.
+* **Solve for any quantity:** click its button in the card, or hover a formula in the library and click one of
+  its quantities under *berechnen:* to insert it already solved for that quantity. The card header then shows the
+  rearranged formula (the original form is in its tooltip). While values are missing, the card shows the rearranged
+  formula with the known values inserted, e.g. *m = E_kin / (4,5 J/kg)* for v = 3 m/s, and what is still missing.
 * *ableiten* ("derive"): general laws (marked *auto* in the collection) calculate further values from the variables,
   also over several stages (from `v` and `t` follows `a`, with `m` further `F`). ⇣ takes a derived value over as a
   variable of this sheet.
@@ -202,6 +302,8 @@ As in Desmos: a list of expressions on the left, the canvas on the right. Drawin
 | Expression | gives |
 |---|---|
 | `y = x^2 - 2`, `f(x) = sin(x)/x` | function of x |
+| `f'(x)`, `y = f''(x)`, `diff(sin(x^2), x)`, `d/dx(x^3)` | derivative as a curve; the row and the report legend show the derived term (`f'(x) = 3·x^2`), also a constant one (`f''(x) = 2`) |
+| `y'`, `y''`, `diff(y, x)` | derivative of the curve `y = …` nearest above this row (otherwise the first one on the page) |
 | `a = 1.5` | slider (▶ plays; limits left/right clickable) |
 | `y = a x^2 + b` | missing names offer *Schieberegler anlegen* ("create slider"); `ax` counts as a·x, `sinx` as sin(x) |
 | `x^2 + y^2 = 9`, `x = y^2` | equations in x and y |
@@ -225,7 +327,9 @@ resolution.
 * Models: straight line, line through origin, polynomial of degree 2/3, logarithm, exponential, power, Arrhenius,
   Michaelis–Menten.
 * Each model can be fitted **linearised** (*linearisiert*; unweighted straight line through the transformed values)
-  or **direct** (*direkt*; least squares in y, default for new fits; uses every point at which the model is defined).`n  The range is set by dragging in the graph. Linearised Michaelis–Menten is labelled Lineweaver–Burk with a note on its`n  bias.
+  or **direct** (*direkt*; least squares in y, default for new fits; uses every point at which the model is defined).
+  The range is set by dragging in the graph. Linearised Michaelis–Menten is labelled Lineweaver–Burk with a note on its
+  bias.
 * Result: parameters ± standard uncertainty with units (the 95 % confidence interval is in the tooltip), R², the
   linearised plot with residuals and the curve in the graph. Arrhenius gives Eₐ in kJ/mol and converts °C to K.
 * **→ Variables** (*→ Variablen*) takes over the parameters. In the report, table and figure appear with dataset and
@@ -249,8 +353,8 @@ language.
 ## Technical notes
 
 Calculation core in the SDK, shared with FTIR, Tensile test and TGA: `sdk/python/labcalc/units.py` (units, kinds of
-quantity, constants), `expr.py` (parsing and evaluation, only permitted expressions, no `eval`), `render.py`
-(LaTeX/HTML, rearranging), `sources.py` (sources for formulas and constants); `rechner/{units,expr,render}.py` only
+quantity, constants), `expr.py` (parsing and evaluation, only permitted expressions, no `eval`), `deriv.py` (symbolic
+derivatives and simplification), `render.py` (LaTeX/HTML, rearranging), `sources.py` (sources for formulas and constants); `rechner/{units,expr,render}.py` only
 forward to them. In the module: `library.py` (formula collection), `solver.py` (worksheet, derive, search),
 `recognize.py` (recognise variables from name and unit, synonyms), `workspace.py` (sheets and scopes; internally still
 `envs`), `graph.py` (expression list of the graph: classification, sliders, implicit curves, regression, special

@@ -125,7 +125,9 @@ main { min-height: 0; display: grid; }
 .hmore .hmenu button:hover { border-color: var(--accent); }
 #varList { overflow-y: auto; flex: 1; padding: 6px 10px 12px; }
 .var { border: 1px solid var(--line); border-radius: 8px; padding: 6px 7px; margin-top: 7px; background: var(--panel); }
-.var .vr1 { display: grid; grid-template-columns: minmax(0, 1.25fr) 10px minmax(0, 1fr) 74px 22px; gap: 4px; align-items: center; }
+.var .vr1 { display: grid; grid-template-columns: minmax(0, 1.25fr) 10px minmax(0, 1fr) auto 74px 22px; gap: 4px; align-items: center; }
+.var .vunc { margin-left: 0; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.var .vunc:not(.on) { opacity: .55; }
 .var .sym { font-size: 13.5px; font-weight: 600; }
 .var .eqs { color: var(--muted); text-align: center; }
 .var .unit { font-size: 12.5px; }
@@ -205,12 +207,52 @@ button.solchip:hover { border-color: var(--accent); }
 .lchk.no { color: var(--warn, #b45309); font-weight: 600; }
 .line .rep { font-size: 15px; padding: 0; }
 .line .rep.on { color: #e0a100; }
-.line .lshr { padding: 0 3px; font-size: 13px; color: var(--muted); vertical-align: middle; }
-.line .lshr.on { color: var(--accent); font-weight: 700; }
+.line .lshr, .card .lshr { padding: 0 3px; font-size: 13px; color: var(--muted); vertical-align: middle; }
+.line .lshr.on, .card .lshr.on { color: var(--accent); font-weight: 700; }
 .line .lshr.dup { color: var(--warn, #b45309); }
 .vchip.imp { border-style: dashed; cursor: default; }
+/* Messunsicherheit: kleiner ±-Knopf an Wertzeilen und Variablen, Budget aufklappbar unter der Zeile */
+.line .luncb, .var .vunc { font-size: 11.5px; padding: 0 5px; margin-left: 3px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); background: transparent; vertical-align: middle; }
+.line .luncb:not(.on) { opacity: 0; }
+.line:hover .luncb, .line:focus-within .luncb, .line .luncb:focus-visible { opacity: .75; }
+.line .luncb.on, .var .vunc.on { border-style: solid; border-color: var(--accent); color: var(--accent); opacity: 1; }
+.line .lpm { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; }
+.line .lunc { grid-column: 2 / 6; font-size: 12.5px; padding: 2px 0 4px; }
+.line .lunc[hidden] { display: none; }
+.line .luncerr { color: var(--warn, #b45309); font-size: 12px; margin-left: 4px; }
+.env .euncm { margin: 0 0 6px; font-size: 12.5px; }
+.env .euncm[hidden] { display: none; }
+.env .euncm summary { cursor: pointer; }
+.env .euncm .row { margin: 4px 0; gap: 6px; align-items: center; display: flex; flex-wrap: wrap; }
 .line .ldel { visibility: hidden; padding: 0; }
 .line:hover .ldel { visibility: visible; }
+/* RC-02: Zeilen verschieben (bei Hover statt der Nummer), Rechenreihenfolge */
+.line .lmv { display: none; flex-direction: column; align-items: flex-end; }
+.line .lmv button { padding: 0 2px; font-size: 11px; line-height: 1.1; min-height: 0; }
+.line:hover .lmv, .line:focus-within .lmv { display: flex; }
+.line:hover .lno, .line:focus-within .lno { display: none; }
+.line .ln { cursor: grab; }
+.line.dragging { opacity: .45; }
+.it.dropb { box-shadow: inset 0 2px 0 var(--accent); }
+.it.dropa { box-shadow: inset 0 -2px 0 var(--accent); }
+.line .ln.reord .lno::after { content: "•"; color: var(--accent); margin-left: 1px; }
+.line .lsym { font-family: "Cambria Math", "Times New Roman", serif; }
+/* RC-03/RC-04: Schieberegler, Werteliste */
+.line .lrng { grid-column: 2 / 6; }
+.line .lrng:empty { display: none; }
+.lslrow { display: flex; align-items: center; gap: 8px; }
+.lslrow .lsl { flex: 1; max-width: 420px; }
+.lrv { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 12px; }
+.lrv .mini { flex: none; background: var(--soft); border-radius: 6px; }
+.lrv details { flex: 1; min-width: 160px; }
+.lrv summary { cursor: pointer; }
+.lrtw { max-height: 220px; overflow: auto; margin-top: 4px; }
+.lrt { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+.lrt th, .lrt td { padding: 1px 10px 1px 0; text-align: right; border-bottom: 1px solid var(--line); }
+.lrt th { position: sticky; top: 0; background: var(--panel); font-weight: 600; }
+.lrt .u { color: var(--muted); font-weight: 400; font-size: 12px; }
+.card .eqline.solved { border-left: 3px solid var(--accent); padding-left: 8px; }
+.card .line2.part { font-weight: 600; }
 .eadd { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .eadd .newline { flex: 1; min-width: 220px; font-family: ui-monospace, Consolas, monospace; font-size: 14px; padding: 6px 9px; }
 .goalbox { margin-top: 8px; padding: 8px; border-radius: 8px; background: var(--soft); }
@@ -271,6 +313,9 @@ table.vars tr.miss td.src { color: var(--err-ink); }
 .eqi:hover { background: var(--accent-soft); border-color: var(--line); }
 .eqi .nm { font-size: 12.5px; }
 .eqi .f { font-size: 14px; display: block; overflow-x: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.eqi .eqt { display: none; flex-wrap: wrap; gap: 3px; align-items: center; margin-top: 3px; }
+.eqi:hover .eqt, .eqi:focus-within .eqt { display: flex; }
+.eqi .tchip { font-size: 12.5px; padding: 0 6px; border-radius: 8px; min-height: 0; line-height: 1.5; }
 .eqi .nm .tag { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 0 5px; margin-left: 4px; }
 #libFn { overflow-y: auto; padding: 8px 10px 16px; flex: 1; }
 #libMat { display: flex; flex-direction: column; min-height: 0; flex: 1; }
@@ -311,6 +356,7 @@ details.ref .chips { margin: 4px 0 8px; }
 .xr .xsrc, .xr .xnew { width: 100%; border: 0; background: transparent; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 18px; padding: 4px 2px; outline: none; }
 .xr .xdisp { font-size: 18px; padding: 4px 2px; cursor: text; overflow-x: auto; display: none; }
 .xr.hasdisp:not(.editing) .xdisp { display: block; }
+.xr .wl { font-size: 16px; padding: 2px; overflow-x: auto; }
 .xr.hasdisp:not(.editing) .xsrc { display: none; }
 .xr.editing { background: color-mix(in srgb, var(--c) 5%, var(--panel)); }
 .xr .xdel { visibility: hidden; align-self: start; margin-top: 8px; padding: 0; }
@@ -391,6 +437,7 @@ table.xt th.tadd, table.xt td:last-child { border: 0; background: transparent; }
 .mmain { overflow-y: auto; padding: 12px 16px 40px; }
 .grid { display: inline-grid; gap: 3px; padding: 6px 8px; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); border-radius: 6px; margin: 6px 0; }
 .grid input { width: 74px; text-align: right; font-variant-numeric: tabular-nums; }
+.grid .mro { padding: 2px 8px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .opbtns { display: flex; flex-wrap: wrap; gap: 4px; }
 .mres { margin-top: 10px; padding: 10px; border-radius: 8px; background: var(--soft); overflow-x: auto; }
 /* S-03: Symbole und Vorlagen */
@@ -403,6 +450,40 @@ table.xt th.tadd, table.xt td:last-child { border: 0; background: transparent; }
 .symgrid.wide { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
 .symgrid button { font-family: "Cambria Math", "Times New Roman", serif; font-size: 16px; min-height: 34px; padding: 2px 4px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); cursor: pointer; }
 .symgrid button:hover, .symgrid button:focus-visible { border-color: var(--accent); background: var(--soft); }
+.bigop { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; line-height: 1; margin: 0 3px; }
+.bigop .bo { font-size: 1.55em; line-height: 1; }
+.bigop sup, .bigop sub, .f .bigop sup, .f .bigop sub { display: block; font-size: 70%; line-height: 1.15; vertical-align: baseline; }
+.bigop.int { flex-direction: row; align-items: stretch; }
+.bigop.int .lims { display: inline-flex; flex-direction: column; justify-content: space-between; margin-left: 1px; }
+.evalbar { display: inline-block; border-left: 1px solid currentColor; padding: 0 0 0 3px; margin-left: 2px; font-size: 80%; vertical-align: -.45em; }
+.tplpan { position: fixed; z-index: 1200; display: flex; align-items: center; gap: 1px; max-width: 92vw; overflow-x: auto; white-space: nowrap; padding: 9px 12px;
+  font-size: 18px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, .18); }
+.tplpan sup, .tplpan sub { line-height: 1; }
+.tplpan > sup { align-self: flex-start; }
+.tplpan input.tb { width: 2ch; min-width: 0; height: auto; min-height: 0; margin: 1px; padding: 0 2px; font: inherit; text-align: center; color: inherit;
+  background: transparent; border: 1px dashed var(--muted); border-radius: 3px; box-shadow: none; }
+.tplpan input.tb:focus { outline: none; border: 1px solid var(--accent); background: var(--accent-soft); }
+.tplpan input.tb.side { width: .7ch; padding: 0; border-color: transparent; }
+.tplpan input.tb.side:focus { width: 2ch; }
+.tplhost { color: transparent !important; caret-color: transparent; }
+.tplhost::placeholder { color: transparent; }
+.tplpan.over { box-sizing: border-box; min-height: 32px; padding: 4px 9px; font-size: 16px; border-color: var(--accent); border-radius: 6px; box-shadow: none; }
+.tplpan input.tb.plain { text-align: left; border-color: transparent; }
+.tplpan input.tb.plain:focus { border-color: transparent; background: transparent; }
+.tplpan .tfn { font-style: normal; margin-right: 1px; }
+.tplpan .tw { font-size: 12px; color: var(--muted); margin: 0 5px; }
+.tplpan .tat { display: inline-flex; align-items: flex-end; align-self: stretch; margin-left: 2px; }
+.tplpan .cases { position: relative; display: inline-flex; flex-direction: column; gap: 3px; padding: 1px 2px 1px 13px; margin: 0 3px; }
+.tplpan .cases > span { display: inline-flex; align-items: center; white-space: nowrap; }
+.tplpan .cases::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 100' preserveAspectRatio='none'%3E%3Cpath d='M9 1C5 1 5 4 5 12V40C5 46 3 49 1 50C3 51 5 54 5 60V88C5 96 5 99 9 99' fill='none' stroke='black' stroke-width='1.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 100' preserveAspectRatio='none'%3E%3Cpath d='M9 1C5 1 5 4 5 12V40C5 46 3 49 1 50C3 51 5 54 5 60V88C5 96 5 99 9 99' fill='none' stroke='black' stroke-width='1.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+.tplpan .tcmp { margin: 0 4px; min-width: 22px; font-size: 14px; color: inherit; }
+.tplpan .tadd { margin-left: 6px; padding: 0 5px; font-size: 12px; line-height: 1.5; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; }
+table.vars button.vbtn { min-width: 34px; padding: 2px 7px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+table.vars button.vbtn:hover, table.vars button.vbtn:focus-visible { border-color: var(--accent); }
+table.vars tr.tgt button.vbtn { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
+table.vars tr.tgt input.val:disabled, table.vars tr.tgt select.unit:disabled, table.vars tr.tgt select.bind:disabled { visibility: hidden; }
 /* S-02: Gleichungssystem im Matrixfenster */
 .msys { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 8px; }
 .msys > summary { cursor: pointer; font-weight: 650; font-size: 14px; }
@@ -597,6 +678,7 @@ footer { display: flex; gap: 14px; align-items: center; padding: 4px 12px; backg
 <script src="labboard.js"></script>
 <script src="laboverview.js"></script>
 <script src="labimport.js"></script>
+<script src="labunc.js"></script>
 <script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
    Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
 (function (g) {
@@ -646,7 +728,7 @@ const RC_T = {
         "rc.dsv_hist": "Herkunft", "rc.dsv_none_cols": "Mindestens eine Zahlenspalte wählen.", "rc.dsv_ins_t": "{n} an der Schreibmarke einfügen", "rc.dsv_ac": "Liste aus Datensatz",
         "rc.lv_shr_t": "Variable weitergeben: an die anderen Blätter oder an eine andere Umgebung",
         "rc.lv_t": "Diese Zeile legt die Variable an; spätere Zeilen dieses Blatts rechnen damit.",
-        "rc.lv_all": "Auch auf den anderen Blättern verwenden ({n})", "rc.lv_env": "An eine andere Umgebung …",
+        "rc.lv_all": "Auch auf den anderen Blättern verwenden ({n})", "rc.lv_env": "An eine andere Umgebung …", "rc.lv_idx": "In den Projektindex …", "rc.lv_idx_t": "Für andere Module: der Projektindex ist aus jedem Modul lesbar",
         "rc.lv_from": "von Blatt „{b}“ (Zeile {n})", "rc.lv_on": "geht an die anderen Blätter", "rc.lv_dup": "„{v}“ gibt schon Blatt „{b}“ weiter – dieses gilt dort",
         "rc.ev_link": "↳ verbunden aus Umgebung „{e}“ ({m})", "rc.ev_live": "live", "rc.ev_copy": "Momentaufnahme v{v}", "rc.ev_gone": "Verbindung gelöst – Wert bleibt",
         "rc.ds_rows": "{n} Zeilen", "rc.ds_style_t": "Darstellung: automatisch (Linie bei vielen fortlaufenden Werten), Punkte oder Linie",
@@ -674,16 +756,42 @@ const RC_T = {
         "rc.sys_stored": "Als {n} gespeichert.", "rc.sys_toenv": "→ Rechenzeile in {e}", "rc.sys_toenv_done": "Als Rechenzeile in „{e}“ übernommen.",
         "rc.sym_t": "Symbole und Vorlagen: Σ, ∫, √, π, griechische Buchstaben, Einheiten …",
         "rc.sym_ops": "Rechnen", "rc.sym_calc": "Σ ∫ Gleichungen", "rc.sym_mat": "Matrizen", "rc.sym_greek": "Griechisch", "rc.sym_rel": "Vergleiche", "rc.sym_unit": "Einheiten",
-        "rc.sym_hint": "Fügt an der Schreibmarke ein. □ ist eine Lücke: sie ist markiert, Tab springt zur nächsten.",
+        "rc.sym_hint": "Vorlagen: Felder anklicken und ausfüllen, Tab wechselt das Feld, Enter schliesst.",
         "rc.symt_root": "n-te Wurzel: root(x, n)", "rc.symt_e": "Eulersche Zahl", "rc.symt_i": "imaginäre Einheit (Einstellung „komplex“)",
-        "rc.symt_log": "Logarithmus zur Basis a: log(x, a)", "rc.symt_sum": "Summe: Ausdruck, Laufvariable, von, bis",
+        "rc.symt_log": "Logarithmus zur Basis a", "rc.symt_sum": "Summe: Ausdruck, Laufvariable, von, bis",
         "rc.symt_prod": "Produkt: Ausdruck, Laufvariable, von, bis", "rc.symt_int": "bestimmtes Integral: Ausdruck, Variable, untere, obere Grenze",
-        "rc.symt_d1": "Ableitung an einer Stelle: Ausdruck, Variable, Stelle", "rc.symt_d2": "zweite Ableitung an einer Stelle",
-        "rc.symt_eq": "Gleichung – wird nach der Unbekannten gelöst", "rc.symt_sys": "Gleichungssystem – Gleichungen mit ; trennen",
+        "rc.symt_d1": "Ableitung: Ausdruck, Variable", "rc.symt_d2": "zweite Ableitung: Ausdruck, Variable",
+        "rc.symt_eq": "Gleichung – wird nach der Unbekannten gelöst", "rc.symt_sys": "Gleichungssystem – eine Gleichung je Zeile",
         "rc.symt_cond": "Bedingung für die Lösungen, z. B. x > 0", "rc.symt_ns": "numerisch lösen ab einem Startwert",
-        "rc.symt_if": "Fallunterscheidung: if(Bedingung, dann, sonst)", "rc.symt_fn": "eigene Funktion definieren",
+        "rc.symt_if": "Fallunterscheidung: Wert, Bedingung, sonst", "rc.symt_fn": "eigene Funktion definieren",
         "rc.symt_conv": "Ergebnis in eine Einheit umrechnen", "rc.symt_vec": "Vektor", "rc.symt_mat": "Matrix (Zeilen in eckigen Klammern)",
-        "rc.symt_tr": "transponiert (nach der Matrix)", "rc.symt_eqq": "Vergleich: ist gleich?", "rc.symt_semi": "trennt Gleichungen eines Systems" },
+        "rc.symt_tr": "transponiert (nach der Matrix)", "rc.symt_eqq": "Vergleich: ist gleich?", "rc.symt_semi": "trennt Gleichungen eines Systems",
+        "rc.unc_sum": "± Messunsicherheit · {m} · {n} unsichere Eingaben", "rc.unc_in_t": "Messunsicherheit",
+        "rc.unc_btn_t": "Messunsicherheit angeben (Messmittel, Wiederholmessung, Kalibrierschein …); ein ± in der Zeile zählt zusätzlich",
+        "rc.unc_var_t": "Messunsicherheit der Variable angeben (Messmittel, Wiederholmessung …)",
+        "rc.unc_res_t": "Unsicherheitsbudget ein-/ausklappen",
+        "rc.unc_hint": "In einer Zeile: x = 5,0 ± 0,1 mm (Standardunsicherheit u), ± 0,2 (k=2) mm (erweitert, U mit k), ± 0,1 rect bzw. tri (Grenzen ±a). Jede Zeile, die davon abhängt, bekommt Wert ± U.",
+        "rc.unc_corr": "Korrelationen", "rc.unc_corr_t": "Eingaben gelten als unabhängig; hier lässt sich ein Korrelationskoeffizient r (−1 … 1) zwischen zwei Eingaben angeben.",
+        "rc.unc_corr_add": "+ Korrelation", "rc.unc_own": "Eigene Messmittel …",
+        "rc.symt_frac": "Bruch", "rc.symt_pow": "Potenz", "rc.symt_sqrt": "Quadratwurzel", "rc.symt_abs": "Betrag",
+        "rc.symt_dat": "Ableitung an einer Stelle: Ausdruck, Variable, Stelle", "rc.symt_adj": "Adjunkte",
+        "rc.symt_cbrt": "Kubikwurzel", "rc.symt_exp": "Exponentialfunktion", "rc.symt_ln": "natürlicher Logarithmus", "rc.symt_lg": "Zehnerlogarithmus",
+        "rc.symt_e10": "mal Zehnerpotenz", "rc.symt_sin": "Sinus", "rc.symt_cos": "Kosinus", "rc.symt_tan": "Tangens", "rc.symt_inv": "inverse Matrix",
+        "rc.symt_det": "Determinante", "rc.symt_cross": "Kreuzprodukt", "rc.symt_dot": "Skalarprodukt", "rc.symt_norm": "Norm (Betrag des Vektors)",
+        "rc.symt_eye": "Einheitsmatrix der Grösse n", "rc.symt_mean": "Mittelwert", "rc.symt_std": "Standardabweichung",
+        "rc.tpl_when": "falls", "rc.tpl_other": "sonst", "rc.tpl_solve_for": "nach", "rc.tpl_solve_from": "Start",
+        "rc.tpl_cond": "mit", "rc.tpl_cmp": "Vergleich wechseln", "rc.tpl_eq_row": "Gleichung hinzufügen",
+        "rc.mat_cplx_tag": "komplex", "rc.mat_cplx_ro": "Komplex: nur Anzeige, das Zahlenraster kann komplexe Zellen nicht bearbeiten.",
+        "rc.mat_cplx_sys": "Für komplexe Matrizen A*X = B als Rechenzeile schreiben.",
+        "rc.tpl_row": "Zeile hinzufügen", "rc.tpl_col": "Spalte hinzufügen",
+        "rc.card_tgt": "Diese Grösse berechnen", "rc.card_tgt_off": "Wird berechnet – nochmals klicken: wieder automatisch",
+        "rc.card_pick": "Klicken Sie auf die gesuchte Grösse.", "rc.src_line": "aus Zeile: {n}", "rc.bind_line": "aus Zeile: {n}",
+        "rc.card_shr_t": "Ergebnis weitergeben: an die anderen Blätter oder an eine andere Umgebung",
+        "rc.card_shr_h": "Das Ergebnis dieser Karte steht in den Rechenzeilen dieses Blatts.",
+        "rc.val_store": "Als Wert speichern (dann auf allen Blättern verwendbar)", "rc.val_btn": "→ Wert",
+        "rc.mat_store": "Speichern als", "rc.mat_save": "Speichern", "rc.mat_saved": "Gespeichert als {n}.",
+        "rc.mat_exists": "{n} gibt es schon und bleibt unverändert; „Speichern“ überschreibt.", "rc.mat_val": "Wert",
+        "rc.mat_over": "„{n}“ gibt es schon. Überschreiben?" },
   en: { "rc.tab_work": "Calculate", "rc.tab_plot": "Graph", "rc.tab_mat": "Matrices", "rc.angle": "Angle", "rc.cplx": "complex",
         "rc.lt_mat": "Materials", "rc.lt_mat_t": "Materials database: properties with sources",
         "rc.wk_ph": "Search material: 1.4301, HDPE, Al2O3, copper …",
@@ -717,7 +825,7 @@ const RC_T = {
         "rc.dsv_hist": "Origin", "rc.dsv_none_cols": "Choose at least one numeric column.", "rc.dsv_ins_t": "Insert {n} at the cursor", "rc.dsv_ac": "list from dataset",
         "rc.lv_shr_t": "Pass the variable on: to the other sheets or to another environment",
         "rc.lv_t": "This line defines the variable; later lines of this sheet calculate with it.",
-        "rc.lv_all": "Use it on the other sheets too ({n})", "rc.lv_env": "To another environment …",
+        "rc.lv_all": "Use it on the other sheets too ({n})", "rc.lv_env": "To another environment …", "rc.lv_idx": "To the project index …", "rc.lv_idx_t": "For other modules: every module can read the project index",
         "rc.lv_from": "from sheet “{b}” (line {n})", "rc.lv_on": "goes to the other sheets", "rc.lv_dup": "sheet “{b}” already passes on “{v}” – that one applies there",
         "rc.ev_link": "↳ connected from environment “{e}” ({m})", "rc.ev_live": "live", "rc.ev_copy": "snapshot v{v}", "rc.ev_gone": "connection removed – the value stays",
         "rc.ds_rows": "{n} rows", "rc.ds_style_t": "Style: automatic (line for many consecutive values), points or line",
@@ -745,16 +853,42 @@ const RC_T = {
         "rc.sys_stored": "Stored as {n}.", "rc.sys_toenv": "→ Calculation line in {e}", "rc.sys_toenv_done": "Added as a calculation line in “{e}”.",
         "rc.sym_t": "Symbols and templates: Σ, ∫, √, π, Greek letters, units …",
         "rc.sym_ops": "Arithmetic", "rc.sym_calc": "Σ ∫ equations", "rc.sym_mat": "Matrices", "rc.sym_greek": "Greek", "rc.sym_rel": "Relations", "rc.sym_unit": "Units",
-        "rc.sym_hint": "Inserts at the cursor. □ is a gap: it is selected, Tab jumps to the next one.",
+        "rc.sym_hint": "Templates: click a box and fill it in, Tab moves between boxes, Enter closes.",
         "rc.symt_root": "n-th root: root(x, n)", "rc.symt_e": "Euler's number", "rc.symt_i": "imaginary unit (setting “complex”)",
-        "rc.symt_log": "logarithm to base a: log(x, a)", "rc.symt_sum": "sum: expression, index, from, to",
+        "rc.symt_log": "logarithm to base a", "rc.symt_sum": "sum: expression, index, from, to",
         "rc.symt_prod": "product: expression, index, from, to", "rc.symt_int": "definite integral: expression, variable, lower, upper limit",
-        "rc.symt_d1": "derivative at a point: expression, variable, point", "rc.symt_d2": "second derivative at a point",
-        "rc.symt_eq": "equation – solved for the unknown", "rc.symt_sys": "system of equations – separate them with ;",
+        "rc.symt_d1": "derivative: expression, variable", "rc.symt_d2": "second derivative: expression, variable",
+        "rc.symt_eq": "equation – solved for the unknown", "rc.symt_sys": "system of equations – one equation per row",
         "rc.symt_cond": "condition for the solutions, e.g. x > 0", "rc.symt_ns": "solve numerically from a start value",
-        "rc.symt_if": "case distinction: if(condition, then, else)", "rc.symt_fn": "define your own function",
+        "rc.symt_if": "case distinction: value, condition, otherwise", "rc.symt_fn": "define your own function",
         "rc.symt_conv": "convert the result to a unit", "rc.symt_vec": "vector", "rc.symt_mat": "matrix (rows in square brackets)",
-        "rc.symt_tr": "transposed (after the matrix)", "rc.symt_eqq": "comparison: is equal?", "rc.symt_semi": "separates the equations of a system" },
+        "rc.symt_tr": "transposed (after the matrix)", "rc.symt_eqq": "comparison: is equal?", "rc.symt_semi": "separates the equations of a system",
+        "rc.unc_sum": "± Measurement uncertainty · {m} · {n} uncertain inputs", "rc.unc_in_t": "Measurement uncertainty",
+        "rc.unc_btn_t": "Enter the measurement uncertainty (instrument, repeat measurements, calibration certificate …); a ± in the line counts as well",
+        "rc.unc_var_t": "Enter the variable's measurement uncertainty (instrument, repeat measurements …)",
+        "rc.unc_res_t": "Show or hide the uncertainty budget",
+        "rc.unc_hint": "In a line: x = 5,0 ± 0,1 mm (standard uncertainty u), ± 0,2 (k=2) mm (expanded, U with k), ± 0,1 rect or tri (limits ±a). Every line that depends on it gets value ± U.",
+        "rc.unc_corr": "Correlations", "rc.unc_corr_t": "Inputs are treated as independent; enter a correlation coefficient r (−1 … 1) between two inputs here.",
+        "rc.unc_corr_add": "+ Correlation", "rc.unc_own": "Own instruments …",
+        "rc.symt_frac": "fraction", "rc.symt_pow": "power", "rc.symt_sqrt": "square root", "rc.symt_abs": "absolute value",
+        "rc.symt_dat": "derivative at a point: expression, variable, point", "rc.symt_adj": "adjugate",
+        "rc.symt_cbrt": "cube root", "rc.symt_exp": "exponential function", "rc.symt_ln": "natural logarithm", "rc.symt_lg": "base-10 logarithm",
+        "rc.symt_e10": "times a power of ten", "rc.symt_sin": "sine", "rc.symt_cos": "cosine", "rc.symt_tan": "tangent", "rc.symt_inv": "inverse matrix",
+        "rc.symt_det": "determinant", "rc.symt_cross": "cross product", "rc.symt_dot": "dot product", "rc.symt_norm": "norm (length of the vector)",
+        "rc.symt_eye": "identity matrix of size n", "rc.symt_mean": "mean", "rc.symt_std": "standard deviation",
+        "rc.tpl_when": "if", "rc.tpl_other": "otherwise", "rc.tpl_solve_for": "for", "rc.tpl_solve_from": "start",
+        "rc.tpl_cond": "with", "rc.tpl_cmp": "Change the comparison", "rc.tpl_eq_row": "Add an equation",
+        "rc.mat_cplx_tag": "complex", "rc.mat_cplx_ro": "Complex: read-only, the number grid cannot edit complex cells.",
+        "rc.mat_cplx_sys": "For complex matrices, write A*X = B as a calculation line.",
+        "rc.tpl_row": "Add a row", "rc.tpl_col": "Add a column",
+        "rc.card_tgt": "Calculate this quantity", "rc.card_tgt_off": "Being calculated – click again: automatic",
+        "rc.card_pick": "Click the quantity you are looking for.", "rc.src_line": "from line: {n}", "rc.bind_line": "from line: {n}",
+        "rc.card_shr_t": "Pass the result on: to the other sheets or to another environment",
+        "rc.card_shr_h": "This card's result is available in the calculation lines of this sheet.",
+        "rc.val_store": "Store as a value (then usable on all sheets)", "rc.val_btn": "→ Value",
+        "rc.mat_store": "Store as", "rc.mat_save": "Store", "rc.mat_saved": "Stored as {n}.",
+        "rc.mat_exists": "{n} already exists and stays unchanged; “Store” overwrites it.", "rc.mat_val": "value",
+        "rc.mat_over": "“{n}” already exists. Overwrite?" },
 };
 if (window.LabUI) LabUI.strings(RC_T);
 const tr = (k, v) => (window.LabUI ? LabUI.t(k, v) : (RC_T.de[k] || k).replace(/\{(\w+)\}/g, (m, x) => (v && v[x] !== undefined ? v[x] : m)));
@@ -929,8 +1063,8 @@ async function loadStateFile(file) {
 function applies(v, envId) { return v.scope === "all" || v.scope == null || (Array.isArray(v.scope) && v.scope.includes(envId)); }
 function envSheet(e) { return { values: S.values.filter(v => applies(v, e.id)), cards: e.items.filter(i => i.type === "card"), derive: e.derive !== false, lang: "de" }; }
 function wsState() {
-  return { values: S.values, envs: S.envs.map(e => ({ id: e.id, items: e.items, derive: e.derive !== false })), vars: S.vars,
-    dsvars: S.dsvars, angle: S.angle, complex: S.complex, digits: S.digits, lang: "de" };
+  return { values: S.values, envs: S.envs.map(e => ({ id: e.id, name: e.name, items: e.items, derive: e.derive !== false, ...(e.unc ? { unc: e.unc } : {}) })), vars: S.vars,
+    dsvars: S.dsvars, angle: S.angle, complex: S.complex, digits: S.digits, lang: "de", unc_lang: uncLang() };
 }
 function envById(id) { return S.envs.find(e => e.id === id) || null; }
 function activeEnv() { return envById(S.active) || S.envs[0] || null; }
@@ -1037,6 +1171,7 @@ function varHtml(v) {
   return `<div class="var" data-id="${v.id}">
     <div class="vr1"><input class="sym" value="${esc(v.sym)}" placeholder="Name" title="Beliebiger Name: v, Geschwindigkeit, Dicke Blech …" autocomplete="off" spellcheck="false">
       <span class="eqs">=</span><input class="val" value="${esc(v.value)}" placeholder="Wert" title="Zahl oder Ausdruck (2*3, 1e-3, auch andere Variablen)">
+      ${varUncHtml(v)}
       <input class="unit" value="${esc(v.unit || "")}" list="ul-${v.id}" placeholder="Einheit" title="Einheit, z. B. m/s, km/h, N/mm^2, kg/m" autocomplete="off" spellcheck="false">
       <button class="ghost x" title="Entfernen">✕</button></div>
     ${unitList(v)}
@@ -1053,6 +1188,7 @@ function takeIndex(e) {
   const sym = (e.key || "x").normalize("NFKD").replace(/[^\w]+/g, "_").replace(/^_+|_+$/g, "").replace(/^(\d)/, "_$1").slice(0, 40) || "x";
   const p = e.provenance || {};
   const v = addVariable(sym, null, "all", false, String(e.quantity.value), e.quantity.unit || null);
+  if (+e.quantity.u > 0) { v.u = +e.quantity.u; v.u_m = (e.conditions || {}).unc || ""; }   // Standardunsicherheit des Indexeintrags
   v.origin = { index: e.id, module_name: "Projektindex", from: [p.module, p.env_name || p.env, p.item_name].filter(Boolean).join(" · "), label: e.label || e.key };
   renderVarsPanel(); saveSoon(); recomputeSoon();
   setStatus(`${esc(sym)} aus dem Projektindex (${esc(e.id)}) übernommen.`);
@@ -1313,6 +1449,7 @@ function envHtml(e) {
     </div>
     <div class="eb">
       <div class="emats">${envMatChips()}</div>
+      <div class="euncm" hidden></div>
       <div class="items">${e.items.map((it, k) => it.type === "card" ? cardHtml(e, it) : lineHtml(it, k)).join("")}</div>
       <div class="eadd">
         <input class="newline" placeholder="Rechnung eingeben: v/t,  k = 2*a,  E_kin -> kJ,  x^2 + x = 3 …" spellcheck="false" autocomplete="off">
@@ -1331,13 +1468,15 @@ function envHtml(e) {
 }
 function lineHtml(it, k) {
   return `<div class="it line" data-it="${it.id}">
-    <span class="ln">${k + 1}</span>
+    <span class="ln" draggable="true"><span class="lno">${k + 1}</span><span class="lmv"><button class="ghost lup" title="Zeile nach oben (Alt+↑)" aria-label="Zeile nach oben">▴</button><button class="ghost ldn" title="Zeile nach unten (Alt+↓)" aria-label="Zeile nach unten">▾</button></span></span>
     <div class="lmain"><div class="disp f"></div><input class="lsrc" value="${esc(it.src || "")}" spellcheck="false" autocomplete="off"></div>
     <div class="lres"></div>
     <button class="ghost rep${it.report !== false ? " on" : ""}" title="Im Bericht als Rechenzeile zeigen">${it.report !== false ? "★" : "☆"}</button>
     <button class="ghost ldel" title="Zeile entfernen">✕</button>
     <div class="lerr err-t"></div>
     <div class="lsol"></div>
+    <div class="lrng"></div>
+    <div class="lunc" hidden></div>
   </div>`;
 }
 // S-01/S-02: Lösungen einer Gleichung bzw. eines Systems als Chips; bei mehreren wählt ein Klick die Lösung für x
@@ -1369,16 +1508,15 @@ function cardHtml(e, c) {
     const sv = (c.vars || {})[v.sym] || {};
     const t = c.target === v.sym;
     return `<tr data-sym="${esc(v.sym)}"${t ? ' class="tgt"' : ""}>
-      <td class="s f">${v.html}</td><td class="l">${esc(v.de)}</td>
+      <td class="s f"><button type="button" class="vbtn f" data-tgt="${esc(v.sym)}" aria-pressed="${t}" title="${esc(tr(t ? "rc.card_tgt_off" : "rc.card_tgt"))}">${v.html}</button></td><td class="l">${esc(v.de)}</td>
       <td><input class="val" value="${esc(sv.value || "")}"${t ? " disabled" : ""}></td>
       <td><select class="unit"${t ? " disabled" : ""}>${unitOptions(v.kind, sv.unit || KIND[v.kind].units[0])}</select></td>
       <td><select class="bind" title="Woher der Wert kommt"${t ? " disabled" : ""}></select></td>
       <td class="src"></td></tr>`;
   }).join("");
-  const tg = `<select class="tgt" title="Welche Grösse berechnet werden soll"><option value="">Gesucht: automatisch</option>${eq.vars.map(v => `<option value="${esc(v.sym)}"${c.target === v.sym ? " selected" : ""}>Gesucht: ${esc(v.sym.replace(/_$/, ""))} (${esc(v.de)})</option>`).join("")}</select>`;
   return `<div class="it card" data-it="${c.id}">
     <div class="ch"><span class="num">K${cardNo(e, c.id)}</span><b>${esc(eq.de)}</b><span class="cat">${esc(eq.cat)} · ${esc(eq.sub)}</span><span class="grow"></span>
-      ${tg}<button class="ghost up" title="Nach oben">↑</button><button class="ghost dn" title="Nach unten">↓</button><button class="ghost del" title="Entfernen">✕</button></div>
+      <button class="ghost up" title="Nach oben">↑</button><button class="ghost dn" title="Nach unten">↓</button><button class="ghost del" title="Entfernen">✕</button></div>
     <div class="eqline f big">${eq.html}</div>
     ${eq.note ? `<div class="small">${esc(eq.note)}</div>` : ""}
     ${eq.source_short ? `<div class="small eqsrc" title="${esc(eq.source_text)}">Quelle: ${esc(eq.source_short)}${constSrcNote(eq)}</div>` : ""}
@@ -1417,6 +1555,7 @@ function updateEnv(e) {
   const el = $(`.env[data-env="${e.id}"]`); if (!el) return;
   $(".evars", el).innerHTML = envVarChips(e);
   const r = envRes(e);
+  renderUncSheet(e, r);
   for (const it of e.items) if (it.type === "calc") updateLine(e, it, r);
   updateCards(e, r);
   renderDerived(e, r);
@@ -1424,6 +1563,12 @@ function updateEnv(e) {
 function updateLine(e, it, r) {
   const el = $(`.it[data-it="${it.id}"]`); if (!el) return;
   const o = r && r.lines ? r.lines[it.id] : null;
+  const ord = (r && r.order) || [], pi = e.items.filter(x => x.type === "calc").indexOf(it), oi = ord.indexOf(it.id);
+  const lnEl = $(".ln", el);                      // RC-02: wird diese Zeile später/früher gerechnet als sie steht?
+  lnEl.classList.toggle("reord", oi >= 0 && oi !== pi);
+  lnEl.title = oi >= 0 && oi !== pi ? `wird als ${oi + 1}. Zeile gerechnet (erst definieren, dann nutzen)` : "";
+  rangeExtras(e, it, o, el);
+  uncBox(e, it, o, el);
   const disp = $(".disp", el), res = $(".lres", el), err = $(".lerr", el), sol = $(".lsol", el);
   if (sol) sol.innerHTML = "";
   if (!o || o.empty) { disp.innerHTML = ""; res.innerHTML = ""; err.textContent = ""; el.classList.remove("hasdisp"); return; }
@@ -1436,6 +1581,8 @@ function updateLine(e, it, r) {
     if (sol) sol.innerHTML = p.row;
     if (o.kind === "system" && o.store != null && o.result && o.result.type === "vector")
       res.insertAdjacentHTML("beforeend", ` <button class="ghost tomat" title="Lösungsvektor im Matrixfenster speichern">→ Matrix</button>`);
+    if ((o.kind === "solve" || o.kind === "system") && (o.sets || []).length)
+      res.insertAdjacentHTML("beforeend", ` <button class="ghost lshr${it.export ? " on" : ""}" title="${esc(tr("rc.lv_shr_t"))}" aria-label="${esc(tr("rc.lv_shr_t"))}">⇄</button>`);
     return;
   }
   if (o.error) {
@@ -1447,18 +1594,90 @@ function updateLine(e, it, r) {
   err.textContent = "";
   disp.innerHTML = o.html || "";
   el.classList.toggle("hasdisp", !!o.html);
+  if (o.kind === "symbolic") {                    // RC-01: noch nicht definierte Namen bleiben im Ergebnis stehen
+    res.innerHTML = `${o.same ? "" : `= <span class="f lsym">${o.partial_html}</span> `}<span class="small lnote">${esc([o.text, ...(o.notes || [])].filter(Boolean).join(" · "))}</span>`;
+    return;
+  }
   res.innerHTML = o.kind === "func" ? `<span class="small">Funktion</span>`
     : o.parts ? o.parts.map(p => `<span class="small">${esc(p.name === "R2" ? "R²" : p.name)} =</span> <span class="lp">${esc(p.text)}${p.unit ? `<span class="u">${esc(p.unit)}</span>` : ""}</span>`).join("; ")   // DP-11: linreg mit Einheiten
+    : (o.range_var || o.range) && o.result && Array.isArray(o.result.value) && o.result.value.length > 6
+      ? `<span class="small">${o.result.value.length} Werte${o.unit ? " in " + esc(o.unit) : ""}</span>`     // RC-04: Liste steht darunter
+    : o.unc && !o.unc.error && window.LabUnc ? "= " + uncPmHtml(o)                                         // Wert ± U nach dem Verfahren des Blatts
     : "= " + resultHtml(o.result, o.unit);
   if ((o.notes || []).length) res.insertAdjacentHTML("beforeend", ` <span class="small lnote">${esc(o.notes.join(" · "))}</span>`);
+  uncLineButtons(it, o, res);
   if (o.kind === "assign") {                      // Zeilenvariable: weitergeben an andere Blätter / Umgebungen
     const ex = S.ws && S.ws.exports && S.ws.exports[o.name];
     const dup = it.export && ex && (ex.env !== e.id || ex.line !== it.id);
     const t = dup ? tr("rc.lv_dup", { v: o.name, b: (S.envs.find(x => x.id === ex.env) || {}).name || "?" }) : it.export ? `${tr("rc.lv_shr_t")} – ${tr("rc.lv_on")}` : tr("rc.lv_shr_t");
     res.insertAdjacentHTML("beforeend", ` <button class="ghost lshr${it.export ? " on" : ""}${dup ? " dup" : ""}" title="${esc(t)}" aria-label="${esc(t)}">⇄</button>`);
   }
-  if (o.store != null && o.result && (o.result.type === "matrix" || o.result.type === "vector"))
+  if (Array.isArray(o.store) && o.result && (o.result.type === "matrix" || o.result.type === "vector"))   // auch komplex ({re, im})
     res.insertAdjacentHTML("beforeend", ` <button class="ghost tomat" title="Ergebnis im Matrixfenster speichern (dann auf allen Blättern verwendbar)">→ Matrix</button>`);
+  else if ((typeof o.store === "number" || isCplx(o.store)) && o.kind !== "func" && lineUsesMatrix(it.src))       // det(A), rank(A) …
+    res.insertAdjacentHTML("beforeend", ` <button class="ghost tomat" title="${esc(tr("rc.val_store"))}">${esc(tr("rc.val_btn"))}</button>`);
+}
+function lineUsesMatrix(src) {
+  const names = new Set(matNames());
+  return (String(src || "").match(/[^\W\d]\w*/g) || []).some(n => names.has(n));
+}
+// RC-03/RC-04: Schieberegler unter einer Zeile „t = 0..10 slider“; Werteliste als kleine Kurve mit Tabelle zum Aufklappen
+function rangeExtras(e, it, o, el) {
+  const box = $(".lrng", el); if (!box) return;
+  if (!o || o.error || o.empty) { box.innerHTML = ""; box.dataset.sig = ""; return; }
+  if (o.slider) {
+    const s = o.slider, lo = Math.min(s.lo, s.hi), hi = Math.max(s.lo, s.hi);
+    const sig = `sl|${lo}|${hi}|${s.step}|${s.text}`;
+    if (box.dataset.sig !== sig) {
+      box.innerHTML = `<div class="lslrow"><input type="range" class="lsl" min="${lo}" max="${hi}" step="${s.step ? Math.abs(s.step) : "any"}" value="${s.cur}" aria-label="${esc(o.name || "Wert")}"><span class="small">${s.text || ""}${s.unit ? " " + esc(s.unit) : ""}</span></div>`;
+      box.dataset.sig = sig;
+    }
+    const rg = $(".lsl", box); if (rg && document.activeElement !== rg) rg.value = s.cur;
+    return;
+  }
+  const d = lineSeries(o);
+  if (!d) { box.innerHTML = ""; box.dataset.sig = ""; return; }
+  const open = !!$("details[open]", box);
+  const MAX = 400, n = d.x.length;
+  const cell = (v) => v == null || !isFinite(v) ? "–" : esc(fmtNum(v));
+  const rows = d.x.slice(0, MAX).map((x, i) => `<tr><td>${cell(x)}</td><td>${cell(d.y[i])}</td></tr>`).join("");
+  box.innerHTML = `<div class="lrv">${miniCurve(d)}
+      <details${open ? " open" : ""}><summary class="small">${d.cur != null ? `Verlauf über ${esc(d.xname)} (Schieberegler) · ` : ""}Tabelle (${n} Werte)</summary>
+        <div class="lrtw"><table class="lrt"><thead><tr><th>${symHtml(d.xname)}${d.xunit ? ` <span class="u">${esc(d.xunit)}</span>` : ""}</th><th>${symHtml(d.yname)}${d.unit ? ` <span class="u">${esc(d.unit)}</span>` : ""}</th></tr></thead><tbody>${rows}</tbody></table>
+        ${n > MAX ? `<div class="small">… ${n - MAX} weitere (vollständig in der Grafik und im Bericht)</div>` : ""}</div></details>
+      <button class="ghost l2g" title="Als Kurve in die Grafik (bleibt mit der Zeile verbunden)">→ Grafik</button></div>`;
+  box.dataset.sig = "rv";
+}
+function miniCurve(d) {
+  const W = 180, H = 42, P = 3, pts = [];
+  for (let i = 0; i < d.x.length; i++) { const x = +d.x[i], y = +d.y[i]; if (isFinite(x) && isFinite(y)) pts.push([x, y]); }
+  if (pts.length < 2) return "";
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 === x0) x1 = x0 + 1; if (y1 === y0) { y0 -= 1; y1 += 1; }
+  const sx = (x) => P + (x - x0) / (x1 - x0) * (W - 2 * P), sy = (y) => H - P - (y - y0) / (y1 - y0) * (H - 2 * P);
+  const shape = d.line ? `<polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="${pts.map(([x, y]) => sx(x).toFixed(1) + "," + sy(y).toFixed(1)).join(" ")}"/>`
+    : pts.map(([x, y]) => `<circle cx="${sx(x).toFixed(1)}" cy="${sy(y).toFixed(1)}" r="2.2" fill="var(--accent)"/>`).join("");
+  let mark = "";
+  if (d.cur != null && isFinite(d.cur)) {            // aktueller Schiebereglerwert
+    let k = 0; for (let i = 1; i < pts.length; i++) if (Math.abs(pts[i][0] - d.cur) < Math.abs(pts[k][0] - d.cur)) k = i;
+    mark = `<line x1="${sx(pts[k][0]).toFixed(1)}" x2="${sx(pts[k][0]).toFixed(1)}" y1="${P}" y2="${H - P}" stroke="var(--muted)" stroke-dasharray="2 2"/><circle cx="${sx(pts[k][0]).toFixed(1)}" cy="${sy(pts[k][1]).toFixed(1)}" r="3" fill="var(--ink)"/>`;
+  }
+  return `<svg class="mini" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Verlauf von ${esc(d.yname)} über ${esc(d.xname)}">${shape}${mark}</svg>`;
+}
+function lineToGraph(e, it) {
+  if (!S.plot.rows.some(r => r.kind === "wline" && r.env === e.id && r.line === it.id))
+    S.plot.rows.push({ id: uid(), kind: "wline", env: e.id, line: it.id, color: nextColor() });
+  saveSoon(); setTab("plot");
+  const d = wlineSeries({ env: e.id, line: it.id });        // Ausschnitt auf die Werte setzen
+  if (!d) return;
+  const xs = d.x.map(Number).filter(isFinite), ys = d.y.map(Number).filter(isFinite);
+  if (!xs.length || !ys.length) return;
+  const pad = (a, b) => { const m = (b - a) * 0.08 || Math.abs(a) * 0.1 || 1; return [a - m, b + m]; };
+  const [xmin, xmax] = pad(Math.min(...xs), Math.max(...xs)), [ymin, ymax] = pad(Math.min(...ys), Math.max(...ys));
+  S.plot.square = false;                                  // wie bei Formelkurven: Achsen nicht gleich skaliert
+  setView({ xmin, xmax, ymin, ymax });
+  if (typeof renderSettings === "function") renderSettings();
 }
 function constSrcNote(eq) {
   const cs = (eq.consts || []).filter(n => n !== "pi" && n !== "e").map(n => (META.constants || []).find(c => c.name === n)).filter(Boolean);
@@ -1468,22 +1687,141 @@ function constSrcNote(eq) {
   return " · Konstanten: " + Object.entries(by).map(([s, ns]) => `${ns.map(esc).join(", ")} (${esc(s)})`).join("; ");
 }
 function envMatChips() {
-  const n = matNames();
-  return n.length ? `<span class="small">Matrizen:</span> ${n.map(m => { const v = S.vars[m]; const d = Array.isArray(v[0]) ? `${v.length}×${v[0].length}` : `Vektor ${v.length}`;
-    return `<span class="chip" data-insm="${esc(m)}" title="${esc(m)} (${d}) an der Schreibmarke einfügen">${esc(m)} <span class="small">${d}</span></span>`; }).join(" ")}` : "";
+  const n = matNames(), w = valNames();
+  return n.length || w.length ? `<span class="small">Matrizen:</span> ${n.map(m => { const v = S.vars[m]; const d = Array.isArray(v[0]) ? `${v.length}×${v[0].length}` : `Vektor ${v.length}`;
+    return `<span class="chip" data-insm="${esc(m)}" title="${esc(m)} (${d}) an der Schreibmarke einfügen">${esc(m)} <span class="small">${d}</span></span>`; }).join(" ")}
+    ${w.map(m => `<span class="chip" data-insm="${esc(m)}" title="${esc(m)} = ${esc(cellText(S.vars[m]))}">${esc(m)} <span class="small">${esc(cellText(S.vars[m]))}</span></span>`).join(" ")}` : "";
 }
 function updateEnvMats() { $$(".env .emats").forEach(el => { el.innerHTML = envMatChips(); }); }
 function lineToMatrix(e, it) {
   const o = S.ws && S.ws.envs && S.ws.envs[e.id] && S.ws.envs[e.id].lines ? S.ws.envs[e.id].lines[it.id] : null;
   if (!o || o.store == null) return;
   const def = o.kind === "assign" && o.name && !(o.name in S.vars) ? o.name : nextMatName();
-  const n = (prompt("Name der Matrix im Matrixfenster", def) || "").trim();
+  const n = (prompt(typeof o.store === "number" || isCplx(o.store) ? tr("rc.val_store") : "Name der Matrix im Matrixfenster", def) || "").trim();
   if (!n) return;
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(n)) return toast("Name: Buchstaben, Ziffern, _", true);
   if (n in S.vars && !confirm(`„${n}“ gibt es schon. Überschreiben?`)) return;
-  S.vars[n] = o.store; S.matSel = n;
-  renderMatrices(); renderMatSummary(); updateEnvMats(); saveSoon(); recompute();
+  matKeep(n, o.store);
   toast(`Als Matrix ${n} gespeichert.`);
+}
+
+// ---- Messunsicherheit (labunc.js): x = 5,0 ± 0,1 mm, ±-Knopf an Wertzeilen und Variablen, Verfahren je Blatt
+const UNC = { open: {}, sheetOpen: {} };
+const uncLang = () => (window.LabUI && LabUI.lang && LabUI.lang() === "en" ? "en" : "de");
+const uncMethodName = (m) => (window.LabUnc && LabUnc.strings ? (LabUnc.strings[uncLang()] || LabUnc.strings.de)[m || "gum"] : m) || m;
+const uncNum = (x) => String(x).replace(".", uncLang() === "de" ? "," : ".");
+function uncPmHtml(o) {
+  const full = `${o.result && o.result.text || ""}${o.unit ? " " + o.unit : ""}`;
+  return `<button type="button" class="lpm" title="${esc(tr("rc.unc_res_t"))} (${esc(full)})" aria-expanded="${UNC.open[o._id] ? "true" : "false"}">${esc(LabUnc.text(o.unc))}</button>`;
+}
+function uncLineButtons(it, o, res) {
+  if (o.value_line && window.LabUnc) {
+    const on = !!o.unc_in, extra = !!(it.unc && (it.unc.parts || []).length);
+    const t = on ? `${tr("rc.unc_in_t")}: ${o.unc_in.text}${extra ? "" : " · " + tr("rc.unc_btn_t")}` : tr("rc.unc_btn_t");
+    res.insertAdjacentHTML("beforeend", ` <button type="button" class="luncb${on ? " on" : ""}" title="${esc(t)}" aria-label="${esc(t)}">${on ? "± " + esc(o.unc_in.text.replace(/^u = /, "")) : "±"}</button>`);
+  }
+  if (o.unc_error) res.insertAdjacentHTML("beforeend", `<span class="luncerr" title="${esc(o.unc_error)}">± ⚠</span>`);
+}
+// Budget, Hinweise, Quellen und „Verfahren vergleichen“ unter einer Zeile (erst auf Klick)
+function uncBox(e, it, o, el) {
+  const box = $(".lunc", el); if (!box) return;
+  const r = o && !o.error && o.unc && !o.unc.error ? o.unc : null;
+  if (o) o._id = it.id;
+  if (!r || !UNC.open[it.id] || !window.LabUnc) { box.hidden = true; box.innerHTML = ""; box.dataset.sig = ""; return; }
+  const sig = JSON.stringify([r.method, r.value, r.u, r.U, r.lo, r.hi, (r.budget || []).length, o.unc_error, uncLang()]);
+  box.hidden = false;
+  if (box.dataset.sig === sig) return;
+  box.dataset.sig = sig;
+  box.innerHTML = `<div class="lur"></div>${(o.unc_notes || []).map(n => `<div class="small">⚠ ${esc(n)}</div>`).join("")}`;
+  LabUnc.result($(".lur", box), r, { compare: () => uncCompare(e, it) });
+}
+async function uncCompare(e, it) {
+  const j = await api("api/workspace/compare", { ...wsState(), unc_compare: { env: e.id, line: it.id } }, true);
+  if (!j || j.error) throw new Error((j && j.error) || "?");
+  return j;
+}
+const UNC_NUM = /^(\s*[^\W\d]\w*\s*=\s*)([-+−]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][-+−]?\d+)?)/u;
+async function uncEditLine(btn, e, it) {
+  if (!window.LabUnc) return;
+  const o = ((envRes(e) || {}).lines || {})[it.id] || {};
+  const pm = o.pm || o.qty, unit = pm ? pm.unit : "";             // ± und m = 2 kg: Wert in der Einheit der Zeile
+  const value = pm ? pm.value : (o.result ? o.result.value : "");
+  const res = await LabUnc.edit(btn, { value: uncNum(value), unit, label: o.name || it.src, spec: it.unc || null });
+  if (res === undefined) return;
+  let srcChanged = false;
+  if (res && res.useMean != null) {                       // Wiederholmessung: Mittelwert als Wert der Zeile
+    const m = UNC_NUM.exec(it.src || "");
+    if (m) {
+      let s = String(+res.useMean.toPrecision(10));
+      if (m[2].includes(",")) s = s.replace(".", ",");
+      it.src = m[1] + s + it.src.slice(m[0].length); srcChanged = true;
+    }
+    delete res.useMean;
+  }
+  if (res) it.unc = res; else delete it.unc;
+  if (srcChanged) renderEnv(e);
+  saveSoon(); recompute();
+}
+async function uncEditVar(btn, v) {
+  if (!window.LabUnc) return;
+  const spec = v.unc || (+v.u > 0 ? { parts: [{ kind: "u", u: +v.u }] } : null);
+  const res = await LabUnc.edit(btn, { value: v.value, unit: v.unit || "", label: v.sym, spec });
+  if (res === undefined) return;
+  if (res && res.useMean != null) { v.value = uncNum(+res.useMean.toPrecision(10)); delete res.useMean; }
+  if (res) v.unc = res; else { delete v.unc; delete v.u; }
+  if (v.origin && v.origin.link) v.origin = { ...v.origin, edited: true };
+  renderVarsPanel(); saveSoon(); recompute();
+}
+function varUncHtml(v) {
+  const sv = (S.ws && S.ws.envs) ? Object.values(S.ws.envs).flatMap(r => (r.unc && r.unc.inputs) || []).find(x => x.var === v.id) : null;
+  const u = sv ? sv.u : (v.unc && window.LabUnc ? LabUnc.specU(v.unc, String(v.value).replace(",", ".")) : +v.u);
+  const on = !!(v.unc || +v.u > 0);
+  const lab = on && isFinite(u) && u > 0 ? "± " + fmt(u, 2) : "±";
+  const t = on ? `${tr("rc.unc_in_t")}: u = ${isFinite(u) ? fmt(u, 3) : "?"} ${v.unit || ""}${v.u_m ? " (" + v.u_m + ")" : ""}` : tr("rc.unc_var_t");
+  return `<button type="button" class="vunc${on ? " on" : ""}" title="${esc(t)}" aria-label="${esc(t)}">${esc(lab)}</button>`;
+}
+function varUncRefresh() { for (const v of S.values) { const b = $(`.var[data-id="${v.id}"] .vunc`); if (b) b.outerHTML = varUncHtml(v); } }
+function renderUncSheet(e, r) {
+  const el = $(`.env[data-env="${e.id}"] .euncm`); if (!el) return;
+  const u = r && r.unc;
+  if (!u || !window.LabUnc || !(u.inputs || []).length) { el.hidden = true; return; }
+  el.hidden = false;
+  if (!el._mp) {
+    el.innerHTML = `<details${UNC.sheetOpen[e.id] ? " open" : ""}><summary class="small"></summary>
+      <div class="uncm"></div><div class="small" style="margin:4px 0">${esc(tr("rc.unc_hint"))}</div>
+      <div class="unccorr"></div><button type="button" class="ghost mini" data-unc-own>${esc(tr("rc.unc_own"))}</button></details>`;
+    $("details", el).addEventListener("toggle", (ev) => { UNC.sheetOpen[e.id] = ev.target.open; });
+    el._mp = LabUnc.methodPicker($(".uncm", el), { ...(e.unc || {}), onChange: (v) => { e.unc = { ...(e.unc || {}), method: v.method, p: v.p, k: v.k }; saveSoon(); recompute(); } });
+  }
+  $("summary", el).textContent = tr("rc.unc_sum", { m: uncMethodName((e.unc || {}).method), n: u.inputs.length }) + (u.error ? " ⚠ " + u.error : "");
+  const keys = u.inputs.map(x => x.key), cor = (e.unc && e.unc.corr) || [];
+  const sig = JSON.stringify([keys, cor.map(c => [c.a, c.b]), uncLang()]);   // r nicht: Eingabe behält den Fokus
+  const cb = $(".unccorr", el);
+  if (cb.dataset.sig === sig) return;
+  cb.dataset.sig = sig;
+  const opts = keys.map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join("");
+  cb.innerHTML = `<div class="small"><b>${esc(tr("rc.unc_corr"))}</b> – ${esc(tr("rc.unc_corr_t"))}</div>` +
+    cor.map((c, i) => `<div class="row"><span>${symHtml(c.a)} ↔ ${symHtml(c.b)}</span> r = <input class="ucr" data-ci="${i}" value="${esc(uncNum(c.r))}" style="width:60px" aria-label="r"><button type="button" class="ghost mini" data-cdel="${i}" aria-label="✕">✕</button></div>`).join("") +
+    (keys.length >= 2 ? `<div class="row"><select class="uca" aria-label="a">${opts}</select> ↔ <select class="ucb" aria-label="b">${opts.replace(`value="${esc(keys[1])}"`, `value="${esc(keys[1])}" selected`)}</select><button type="button" class="ghost mini" data-cadd>${esc(tr("rc.unc_corr_add"))}</button></div>` : "");
+}
+function uncSheetClick(t, e) {
+  const el = t.closest(".euncm"); if (!el) return false;
+  if (t.closest("[data-unc-own]")) { if (window.LabUnc) LabUnc.instrumentsDialog().then(() => recompute()); return true; }
+  const add = t.closest("[data-cadd]");
+  if (add) {
+    const a = $(".uca", el).value, b = $(".ucb", el).value; if (!a || !b || a === b) return true;
+    e.unc = { ...(e.unc || {}), corr: [...((e.unc && e.unc.corr) || []).filter(c => !((c.a === a && c.b === b) || (c.a === b && c.b === a))), { a, b, r: 0.5 }] };
+    saveSoon(); recompute(); return true;
+  }
+  const del = t.closest("[data-cdel]");
+  if (del) { e.unc.corr.splice(+del.dataset.cdel, 1); saveSoon(); recompute(); return true; }
+  return !!t.closest("details");
+}
+function uncSheetInput(t, e) {
+  if (!t.classList.contains("ucr") || !e.unc || !e.unc.corr) return false;
+  const c = e.unc.corr[+t.dataset.ci], r = Number(String(t.value).replace(",", "."));
+  if (c && isFinite(r) && r >= -1 && r <= 1) { c.r = r; saveSoon(); recomputeSoon(); }
+  return true;
 }
 
 // ---- Vervollständigen von Namen in Rechenzeilen (Matrizen, Variablen, Konstanten, Funktionen)
@@ -1586,6 +1924,7 @@ const SRC_LABEL = (s, e) => {
   if (s.startsWith("user:")) return "Variable " + (userSym(s) || "");
   if (s.startsWith("der:")) return "abgeleitet";
   if (s.startsWith("card:")) return "Karte K" + cardNo(e, s.slice(5));
+  if (s.startsWith("line:")) return tr("rc.src_line", { n: s.slice(5).replace(/_$/, "") });
   return s;
 };
 function userSym(src) { const v = S.values.find(x => "user:" + x.id === src); return v ? v.sym : ""; }
@@ -1596,6 +1935,8 @@ function bindOptions(e, card, v, r) {
   for (const q of (r && r.values) || []) if (q.kind === v.kind) opts.push(["user:" + q.id, `Variable ${(q.name || q.sym).replace(/_$/, "")} = ${txt(q.text)}`]);
   for (const q of (r && r.card_values) || []) if (q.kind === v.kind && q.card !== card.id) opts.push(["card:" + q.card, `K${cardNo(e, q.card)}: ${q.sym.replace(/_$/, "")} = ${txt(q.text)}`]);
   for (const q of (r && r.derived) || []) if (q.kind === v.kind) opts.push([`der:${q.sym}|${q.kind}`, `abgeleitet ${q.sym.replace(/_$/, "")} = ${txt(q.text)}`]);
+  const co = ((r && r.cards) || []).find(x => x.id === card.id), ov = co && co.vars ? co.vars.find(x => x.sym === v.sym) : null;
+  for (const n of (ov && ov.page) || []) opts.push(["line:" + n, tr("rc.bind_line", { n: n.replace(/_$/, "") })]);
   if (!opts.some(o => o[0] === cur)) opts.push([cur, cur + " (nicht verfügbar)"]);
   return opts.map(([k, l]) => `<option value="${esc(k)}"${k === cur ? " selected" : ""}>${esc(l)}</option>`).join("");
 }
@@ -1630,32 +1971,39 @@ function updateCards(e, r) {
       const xv = o.vars.find(v => v.sym === cx.value);
       if (xv && xv.value) { $(".c0", el).value = +(xv.value * 0.5).toPrecision(3); $(".c1", el).value = +(xv.value * 1.5).toPrecision(3); }
     }
-    $(".res", el).innerHTML = resultBox(c, o);
+    const eqEl = $(".eqline", el);             // RC-01: Formel nach der gesuchten Grösse umgestellt zeigen
+    const solved = o && o.sol_html && o.target && o.target !== eq.target && !o.numeric ? o.sol_html : null;
+    eqEl.innerHTML = solved || eq.html;
+    eqEl.classList.toggle("solved", !!solved);
+    eqEl.title = solved ? `Umgestellt nach ${o.target.replace(/_$/, "")}; Originalform: ${txt(eq.html)}` : "";
+    $(".res", el).innerHTML = resultBox(c, o, !!solved);
   }
 }
-function resultBox(c, o) {
+function resultBox(c, o, inHead = false) {
   if (!o) return `<span class="small">rechnet …</span>`;
   if (o.status === "error") return `<div class="err-t">${esc(o.error)}</div>`;
   if (o.cycle) return `<div class="note warn">${esc((o.notes || []).join(" "))}</div>` + resultBox(c, { ...o, cycle: null });
   if (o.status === "check") {
     const tol = o.check && o.check.tol != null ? `, Toleranz aus der Rundung der Eingaben ${fmt(o.check.tol * 100, 2)} %` : "";
     return o.check && o.check.ok ? `<div class="note ok">Alle Werte gegeben – die Gleichung ist erfüllt (Abweichung ${o.check.rel != null ? fmt(o.check.rel * 100, 3) + " %" : "?"}${tol}).</div>`
-      : `<div class="note warn">Alle Werte gegeben – die Gleichung ist nicht erfüllt (Abweichung ${o.check && o.check.rel != null ? fmt(o.check.rel * 100, 3) + " %" : "?"}${tol}). Wählen Sie oben, was gesucht ist.</div>`;
+      : `<div class="note warn">Alle Werte gegeben – die Gleichung ist nicht erfüllt (Abweichung ${o.check && o.check.rel != null ? fmt(o.check.rel * 100, 3) + " %" : "?"}${tol}). ${esc(tr("rc.card_pick"))}</div>`;
   }
   if (o.status === "missing") {
     const t = EQ[c.eq].vars.find(v => v.sym === o.target);
-    return `${o.sol_html ? `<div class="line2 f">${o.sol_html}</div>` : ""}
+    const show = o.partial_html || (inHead ? "" : o.sol_html);
+    return `${show ? `<div class="line2 f${o.partial_html ? " part" : ""}">${show}</div>` : ""}
       <div class="line2">Für <span class="f">${t ? t.html : esc(o.target)}</span> fehlen noch:
       ${o.missing.map(m => `<span class="chip" data-addq="${esc(m.sym)}|${esc(m.kind)}" title="Als Variable dieses Blatts anlegen">${m.html}&nbsp;${esc(m.de)} ＋</span>`).join(" ")}</div>
       <div class="small">Wert direkt in der Zeile eintragen oder als Variable anlegen (dann steht er allen Formeln des Blatts zur Verfügung).</div>`;
   }
   const r = o.result;
   const units = (r.units || []).includes(r.unit) ? r.units : [r.unit, ...(r.units || [])];
-  return `<div class="line2 f">${o.sol_html}</div>
+  return `${inHead ? "" : `<div class="line2 f">${o.sol_html}</div>`}
     <div class="line2 f">${o.sub_html}</div>
     <div class="row"><span class="small">${esc(r.label)}</span><span class="val">${r.text}</span>
       <select class="outu" title="Einheit des Ergebnisses">${units.map(u => `<option${u === r.unit ? " selected" : ""}>${esc(u)}</option>`).join("")}</select>
-      <span class="small">· in Rechenzeilen als <span class="f">${symHtml(r.sym)}</span></span></div>
+      <span class="small">· in Rechenzeilen als <span class="f">${symHtml(r.sym)}</span></span>
+      <button type="button" class="ghost cshr lshr${c.export ? " on" : ""}" title="${esc(tr("rc.card_shr_t"))}" aria-label="${esc(tr("rc.card_shr_t"))}">⇄</button></div>
     ${o.roots && o.roots.length > 1 ? `<div class="row small">Mehrere Lösungen: ${o.roots.map((x, i) => `<span class="chip${Math.abs(x.si - r.si) <= 1e-12 * Math.max(1, Math.abs(r.si)) ? " on" : ""}" data-root="${i}">${x.text}</span>`).join(" ")}</div>` : ""}
     ${o.numeric ? `<div class="small">Numerisch gelöst.</div>` : ""}`;
 }
@@ -1689,6 +2037,14 @@ function addLine(e, src = "", after = null, report = true) {
   if (i >= 0) e.items.splice(i + 1, 0, it); else e.items.push(it);
   return it;
 }
+// RC-02: Eintrag (Zeile oder Karte) im Blatt verschieben; die Reihenfolge ist frei, gerechnet wird nach Abhängigkeit
+function moveItem(e, it, d, focus = false) {
+  const i = e.items.indexOf(it), j = i + d;
+  if (i < 0 || j < 0 || j >= e.items.length) return;
+  e.items.splice(j, 0, e.items.splice(i, 1)[0]);
+  renderEnv(e); saveSoon(); recompute();
+  if (focus) focusLine(it.id);
+}
 function focusLine(id) {
   const el = $(`.it[data-it="${id}"]`); if (!el) return false;
   el.classList.add("editing");
@@ -1704,8 +2060,10 @@ function itemOf(el) {
 }
 function onEnvInput(ev) {
   const t = ev.target, { e, it } = itemOf(t); if (!e) return;
+  if (uncSheetInput(t, e)) return;
   if (t.classList.contains("ename")) { e.name = t.value; renderScopes(); renderLibTarget(); saveSoon(); return; }
   if (t.classList.contains("lsrc") && it) { it.src = t.value; saveSoon(); recomputeSoon(); return; }
+  if (t.classList.contains("lsl") && it) { it.cur = +t.value; saveSoon(); recomputeSoon(); return; }   // RC-03
   if (it && it.type === "card") {
     const tr = t.closest("tr[data-sym]");
     if (tr) {
@@ -1717,7 +2075,6 @@ function onEnvInput(ev) {
       if (t.classList.contains("bind")) it.vars[sym].bind = t.value;
       saveSoon(); recomputeSoon(); return;
     }
-    if (t.classList.contains("tgt") && ev.type === "change") { it.target = t.value || null; it.root = null; it.outUnit = null; renderEnv(e); saveSoon(); recompute(); return; }
     if (t.classList.contains("outu") && ev.type === "change") { it.outUnit = t.value; saveSoon(); recompute(); }
   }
 }
@@ -1748,12 +2105,15 @@ function onEnvKey(ev) {
     e.items = e.items.filter(x => x !== it);
     renderEnv(e); saveSoon(); recompute();
     if (k > 0) focusLine(lines[k - 1].id); else $(`.env[data-env="${e.id}"] .newline`).focus();
+  } else if ((ev.key === "ArrowUp" || ev.key === "ArrowDown") && ev.altKey) {     // RC-02: Zeile verschieben
+    ev.preventDefault(); moveItem(e, it, ev.key === "ArrowUp" ? -1 : 1, true);
   } else if (ev.key === "ArrowUp" && k > 0) { ev.preventDefault(); focusLine(lines[k - 1].id); }
   else if (ev.key === "ArrowDown") { ev.preventDefault(); if (k < lines.length - 1) focusLine(lines[k + 1].id); else $(`.env[data-env="${e.id}"] .newline`).focus(); }
 }
 function onEnvClick(ev) {
   const t = ev.target, { e, it, envEl } = itemOf(t); if (!e) return;
   setActive(e.id);
+  if (uncSheetClick(t, e)) return;                // Messunsicherheit: Verfahren, Korrelationen, eigene Messmittel
   const tc = (sel) => t.closest(sel);
   const mc = tc("[data-insm]");
   if (mc) {                                     // Matrix-Chip: Namen an der Schreibmarke der zuletzt benutzten Zeile einfügen
@@ -1806,12 +2166,31 @@ function onEnvClick(ev) {
   if (!it) return;
   if (it.type === "calc") {
     const ls = tc(".lshr");
-    if (ls) { lineSharePopover(ls, e, it); return; }
+    if (ls) { const ro = (envRes(e).lines || {})[it.id]; if (ro && (ro.kind === "solve" || ro.kind === "system")) solveSharePopover(ls, e, it); else lineSharePopover(ls, e, it); return; }
+    const ub = tc(".luncb");
+    if (ub) { uncEditLine(ub, e, it); return; }
+    if (tc(".lpm")) { UNC.open[it.id] = !UNC.open[it.id]; updateLine(e, it, envRes(e)); return; }
     if (tc(".rep")) { it.report = it.report === false; renderEnv(e); saveSoon(); return; }
+    if (tc(".lup") || tc(".ldn")) { moveItem(e, it, tc(".lup") ? -1 : 1); return; }
+    if (tc(".l2g")) { lineToGraph(e, it); return; }
     if (tc(".ldel")) { e.items = e.items.filter(x => x !== it); renderEnv(e); saveSoon(); recompute(); }
     return;
   }
   const i = e.items.indexOf(it);
+  const vb = tc(".vbtn");                       // Klick auf eine Grösse: diese berechnen, die anderen sind Eingaben
+  if (vb) {
+    const sym = vb.dataset.tgt, y = vb.getBoundingClientRect().top;
+    it.target = it.target === sym ? null : sym; it.root = null; it.outUnit = null;
+    renderEnv(e); saveSoon();
+    const hold = () => {                        // die umgestellte Formel ist höher oder flacher: die Taste bleibt unter dem Zeiger
+      const n = $(`.it[data-it="${it.id}"] tr[data-sym="${CSS.escape(sym)}"] .vbtn`);
+      if (n) window.scrollBy(0, n.getBoundingClientRect().top - y);
+    };
+    hold(); recompute().then(hold);
+    return;
+  }
+  const cs = tc(".cshr");
+  if (cs) { cardSharePopover(cs, e, it); return; }
   if (tc(".del")) { e.items.splice(i, 1); renderEnv(e); saveSoon(); recompute(); return; }
   if (tc(".up") && i > 0) { e.items.splice(i - 1, 0, e.items.splice(i, 1)[0]); renderEnv(e); saveSoon(); recompute(); return; }
   if (tc(".dn") && i < e.items.length - 1) { e.items.splice(i + 1, 0, e.items.splice(i, 1)[0]); renderEnv(e); saveSoon(); recompute(); return; }
@@ -1874,7 +2253,8 @@ function renderLibrary() {
       n += eqs.length;
       inner += `<div class="sub">${esc(s.name)}</div>` + eqs.map(e => `
         <div class="eqi" data-eq="${e.id}" title="${esc(e.vars.map(v => v.sym.replace(/_$/, "") + ": " + v.de).join("\n") + (e.source_short ? "\nQuelle: " + e.source_short : ""))}">
-          <div class="nm">${esc(e.de)}${e.auto ? '<span class="tag">auto</span>' : ""}</div><span class="f">${e.html}</span></div>`).join("");
+          <div class="nm">${esc(e.de)}${e.auto ? '<span class="tag">auto</span>' : ""}</div><span class="f">${e.html}</span>
+          <div class="eqt"><span class="small">berechnen:</span>${e.vars.map(v => `<button type="button" class="tchip f" data-tgt="${esc(v.sym)}" title="Einfügen und nach ${esc(v.de)} umstellen">${v.html}</button>`).join("")}</div></div>`).join("");
     }
     if (!n) continue;
     html += `<details${q ? " open" : ""}><summary>${esc(c.name)} <span class="small">(${n})</span></summary>${inner}</details>`;
@@ -1961,7 +2341,8 @@ async function recompute() {
   if (my !== wsNo) return;
   if (r.error) { setStatus(`<span class="err-t">${esc(r.error)}</span>`); return; }
   S.ws = r;
-  showVarErrors(); updateEnvs(); dsvSync();
+  showVarErrors(); updateEnvs(); dsvSync(); varUncRefresh();
+  if (S.plot.rows.some(x => x.kind === "wline")) regraphSoon();   // RC-04: Zeilenkurven folgen der Rechnung
   if (OV && OV.changed) OV.changed();                     // ausgehende Verbindungen: Werte nachführen
   const nd = Object.values(r.envs || {}).reduce((a, x) => a + (x.derived || []).length, 0);
   setStatus(`${S.values.length} Variable(n), ${S.envs.length} Blatt/Blätter, ${nd} abgeleitete Werte`);
@@ -1972,15 +2353,26 @@ const recomputeSoon = debounce(recompute, 260);
 
 // ================================================================ Matrizen
 function matNames() { return Object.keys(S.vars).filter(k => Array.isArray(S.vars[k]) && k !== "ans"); }
+// Komplexe Zellen liegen als {re, im} im Zustand (wie im store des Servers)
+const isCplx = (x) => !!x && typeof x === "object" && !Array.isArray(x) && "re" in x;
+const matIsCplx = (v) => Array.isArray(v) && v.some(r => (Array.isArray(r) ? r.some(isCplx) : isCplx(r)));
+function cellText(x) {
+  if (!isCplx(x)) return x === null ? "" : fmtNum(x);
+  if (x.re == null || x.im == null) return "NaN";
+  const im = `${fmtNum(Math.abs(x.im))}i`;
+  return x.re ? `${fmtNum(x.re)} ${x.im < 0 ? "−" : "+"} ${im}` : `${x.im < 0 ? "−" : ""}${im}`;
+}
+function valNames() { return Object.keys(S.vars).filter(k => (typeof S.vars[k] === "number" || isCplx(S.vars[k])) && k !== "ans"); }   // gespeicherte Werte (det A …)
 function renderMatrices() {
   const names = matNames();
   if (!S.matSel || !names.includes(S.matSel)) S.matSel = names[0] || null;
-  $("#matList").innerHTML = names.map(n => {
+  $("#matList").innerHTML = (names.map(n => {
     const v = S.vars[n];
-    const dim = Array.isArray(v[0]) ? `${v.length}×${v[0].length}` : `Vektor ${v.length}`;
-    return `<div class="mi${n === S.matSel ? " sel" : ""}" data-m="${esc(n)}"><span class="f"><b>${esc(n)}</b></span><span class="dim">${dim}</span>
+    const dim = (Array.isArray(v[0]) ? `${v.length}×${v[0].length}` : `Vektor ${v.length}`) + (matIsCplx(v) ? ` · ${tr("rc.mat_cplx_tag")}` : "");
+    return `<div class="mi${n === S.matSel ? " sel" : ""}" data-m="${esc(n)}"><span class="f"><b>${esc(n)}</b></span><span class="dim">${esc(dim)}</span>
       <button class="ghost" data-delm="${esc(n)}" title="Löschen">✕</button></div>`;
-  }).join("") || `<div class="small">Noch keine Matrix.</div>`;
+  }).join("") + valNames().map(n => `<div class="mi"><span class="f"><b>${esc(n)}</b></span><span class="dim" title="${esc(tr("rc.mat_val"))}">= ${esc(cellText(S.vars[n]))}</span>
+      <button class="ghost" data-delm="${esc(n)}" title="Löschen">✕</button></div>`).join("")) || `<div class="small">Noch keine Matrix.</div>`;
   const opt = names.map(n => `<option>${esc(n)}</option>`).join("");
   const a = $("#opA").value, b = $("#opB").value;
   $("#opA").innerHTML = opt; $("#opB").innerHTML = opt;
@@ -1991,6 +2383,13 @@ function renderMatrices() {
   const v = S.vars[S.matSel];
   const M = Array.isArray(v[0]) ? v : [v];
   const r = M.length, c = M[0].length;
+  if (matIsCplx(v)) {                                     // das Zahlenraster kennt nur reelle Zellen: nur anzeigen
+    ed.innerHTML = `<div class="row"><b class="f" style="font-size:17px">${esc(S.matSel)}</b>
+        <span class="small">${r}×${c}</span><button id="mRename">Umbenennen</button></div>
+      <div class="small">${esc(tr("rc.mat_cplx_ro"))}</div>
+      <div class="grid" style="grid-template-columns:repeat(${c}, auto)">${M.map(row => row.map(x => `<span class="mro">${esc(cellText(x))}</span>`).join("")).join("")}</div>`;
+    return;
+  }
   ed.innerHTML = `<div class="row"><b class="f" style="font-size:17px">${esc(S.matSel)}</b>
       Zeilen <input id="mR" type="number" min="1" max="12" value="${r}" style="width:56px">
       Spalten <input id="mC" type="number" min="1" max="12" value="${c}" style="width:56px">
@@ -2005,32 +2404,646 @@ function resizeMatrix(r, c) {
   setMatrix(S.matSel, N, vec && r === 1); renderMatrices();
 }
 function nextMatName() { for (const n of "ABCDFGHKMNPQRSTUVW") if (!(n in S.vars)) return n; return "M" + uid().slice(0, 3); }
+function matKeep(name, val) {
+  S.vars[name] = val;
+  if (Array.isArray(val)) S.matSel = name;
+  renderMatrices(); renderMatSummary(); updateEnvMats(); saveSoon(); recompute();
+}
 async function matEval(expr) {
   $("#matExpr").value = expr;
   const r = await api("api/eval", { vars: S.vars, angle: S.angle, complex: S.complex, quantities: globalQuantities(), line: expr, digits: S.digits, lang: "de" });
   const box = $("#matRes"); box.hidden = false;
   if (r.error) { box.innerHTML = `<div class="err-t">${esc(r.error)}</div>`; return; }
   S.lastMat = r;
-  const canStore = r.result && (r.result.type === "matrix" || r.result.type === "vector") && r.result.value;
+  const canStore = r.result && (((r.result.type === "matrix" || r.result.type === "vector") && Array.isArray(r.store)) || typeof r.store === "number" || isCplx(r.store));
   const e = activeEnv();
+  // D = adj(A), A*B = C: ein noch freier Name wird gleich gespeichert; ein vorhandener bleibt, bis „Speichern“ ihn überschreibt
+  const named = r.kind === "assign" && r.name && r.name !== "ans" ? r.name : null;
+  const exists = !!named && named in S.vars;
+  let note = "";
+  if (named && !exists && canStore) { matKeep(named, r.store); note = tr("rc.mat_saved", { n: named }); }
+  else if (exists && canStore) note = tr("rc.mat_exists", { n: named });
   box.innerHTML = `<div class="f">${r.html} =</div><div style="margin:8px 0" class="f big">${resultHtml(r.result, r.unit)}</div>
-    <div class="row">${canStore ? `Speichern als <input id="mStoreName" value="${esc(nextMatName())}" style="width:70px"><button id="mStore">Speichern</button>` : ""}
+    ${note ? `<div class="small">${esc(note)}</div>` : ""}
+    <div class="row">${canStore && !(named && !exists) ? `${esc(tr("rc.mat_store"))} <input id="mStoreName" value="${esc(named || nextMatName())}" style="width:70px"><button id="mStore">${esc(tr("rc.mat_save"))}</button>` : ""}
       ${e ? `<button id="mToEnv" class="ghost" title="Als Rechenzeile übernehmen (erscheint im Bericht)">→ Rechenzeile in ${esc(e.name)}</button>` : ""}</div>`;
 }
 // ---- S-02: Gleichungssystem (eine Gleichung je Zeile) – dieselbe Auswertung wie „x + y = 3; x − y = 1“ in einer Rechenzeile
 // ---- S-03: Symbole und Vorlagen – für alle, die Σ, ∫, √ … nicht als Funktionsnamen tippen möchten. Eingefügt wird die
 // Schreibweise, die der Rechner liest; □ markiert eine Lücke (gleich markiert, Tab springt zur nächsten).
+/* TPL-BEGIN */
+// Gezeichnete Vorlagen: ein Baum aus Vorlagen mit Feldern. Ein Feld ist eine Liste [Text, Vorlage, Text, …]; die
+// Eingabezeile bekommt immer die Textform (sie bleibt die Quelle), gerechnet und dargestellt wird wie bei getipptem Text.
+const TPL = (() => {
+  const GAP = "□";
+  const SLOTS = { int: ["lo", "hi", "f", "v"], diff: ["f", "v"], diff2: ["f", "v"], sum: ["k", "a", "b", "f"], prod: ["k", "a", "b", "f"],
+    sqrt: ["x"], root: ["n", "x"], frac: ["num", "den"], pow: ["base", "exp"], abs: ["x"], line: ["x"],
+    logb: ["b", "x"], cbrt: ["x"], exp: ["x"], dat: ["f", "v", "at"], if: ["a", "c", "b"], nsolve: ["l", "r", "v", "s"],
+    det: ["x"], inv: ["x"], adj: ["x"], norm: ["x"], cross: ["a", "b"], dot: ["a", "b"], fn: ["x"], e10: ["exp"],
+    eq: ["l", "r"], cond: ["l", "r"], fdef: ["f", "a", "b"] };
+  const MAIN = { eq: "l", cond: "l", fdef: "b", sys: "l0", int: "f", diff: "f", diff2: "f", sum: "f", prod: "f", sqrt: "x", root: "x", frac: "num", pow: "base", abs: "x", mat: "c0_0",
+    logb: "x", cbrt: "x", exp: "x", dat: "f", if: "a", nsolve: "l", det: "x", inv: "x", adj: "x", norm: "x", cross: "a", dot: "a", fn: "x",
+    e10: "exp", vec: "c0" };
+  const FIRST = { eq: "l", cond: "l", fdef: "b", sys: "l0", int: "lo", diff: "f", diff2: "f", sum: "b", prod: "b", sqrt: "x", root: "x", frac: "num", pow: "base", abs: "x", mat: "c0_0",
+    logb: "b", cbrt: "x", exp: "x", dat: "f", if: "a", nsolve: "l", det: "x", inv: "x", adj: "x", norm: "x", cross: "a", dot: "a", fn: "x",
+    e10: "exp", vec: "c0" };
+  const DEF = { int: { v: "x" }, diff: { v: "x" }, diff2: { v: "x" }, sum: { k: "k", a: "1" }, prod: { k: "k", a: "1" },
+    dat: { v: "x" }, nsolve: { v: "x", s: "1" }, cond: { r: "0" }, fdef: { f: "f", a: "x" } };
+  const FN_LABEL = { log10: "lg" };
+  const OPS = [">", ">=", "<", "<="], OP_SHOW = { ">=": "≥", "<=": "≤" };
+  const BARE = /^[\p{L}_][\p{L}\p{N}_]*$/u;
+  const DEFN = /^([\p{L}_][\p{L}\p{N}_]*)\(\s*([\p{L}_][\p{L}\p{N}_]*(?:\s*,\s*[\p{L}_][\p{L}\p{N}_]*)*)\s*\)$/u;
+  // sin(x) = 0.5 ist eine Gleichung, keine eigene Funktion
+  const CALLS = new Set(("sin cos tan cot asin acos atan atan2 sinh cosh tanh asinh acosh atanh sqrt cbrt root exp ln log log10 log2 abs sign " +
+    "floor ceil round mod gcd lcm fact factorial gamma erf erfc binom nCr nPr deg rad hypot re im conj arg mean median std var min max sort len " +
+    "cumsum trapz linreg polyfit polyval roots interp seq range linspace rand det inv adj adjugate cof transpose trace rank eig eigvec svd norm " +
+    "dot cross eye identity zeros ones diag rref linsolve pinv cond size row col kron convert integral deriv nsolve sum prod if diff").split(" "));
+  const VEC_MAX = 6;                                      // längere Listen sind Daten und bleiben Text
+  const h = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const cell = (i, j) => `c${i}_${j}`;
+  function slotsOf(n) {
+    if (n.t === "vec") return Array.from({ length: n.n }, (_, j) => `c${j}`);
+    if (n.t === "sys") return Array.from({ length: n.n }, (_, j) => [`l${j}`, `r${j}`]).flat();
+    if (n.t !== "mat") return SLOTS[n.t];
+    const out = [];
+    for (let i = 0; i < n.r; i++) for (let j = 0; j < n.c; j++) out.push(cell(i, j));
+    return out;
+  }
+  function make(t, fill = "") {                           // t: Vorlage oder "fn:sin" (Funktion mit einem Feld)
+    const n = { t, s: {} };
+    if (t.startsWith("fn:")) { n.t = "fn"; n.f = t.slice(3); }
+    if (t === "mat") { n.r = 2; n.c = 2; }
+    if (t === "vec") n.n = 3;
+    if (t === "sys") n.n = 2;
+    if (t === "cond") n.op = ">";
+    for (const s of slotsOf(n)) n.s[s] = [(DEF[n.t] && DEF[n.t][s]) || ""];
+    if (fill && fill !== GAP) n.s[MAIN[n.t]] = parse(fill);
+    return n;
+  }
+  function clean(p) {                                     // Dezimalkomma ausserhalb von Klammern: in Funktionen trennt das Komma
+    let d = 0, out = "";
+    for (let i = 0; i < p.length; i++) {
+      const c = p[i];
+      if (c === "(" || c === "[") d++;
+      else if (c === ")" || c === "]") d--;
+      out += c === "," && !d && /\d/.test(p[i - 1] || "") && /\d/.test(p[i + 1] || "") ? "." : c;
+    }
+    return out.trim();
+  }
+  function slot(parts) {
+    const s = parts.map(p => (typeof p === "string" ? p : ser(p))).join("");
+    return clean(s) || GAP;
+  }
+  function closeAt(s, i) {
+    let d = 0;
+    for (let k = i; k < s.length; k++) {
+      if (s[k] === "(" || s[k] === "[") d++;
+      else if (s[k] === ")" || s[k] === "]") { d--; if (!d) return k; }
+    }
+    return -1;
+  }
+  function atomic(s) {
+    if (/^[\p{L}\p{N}_.□]+$/u.test(s)) return true;
+    const m = /^[\p{L}_][\p{L}\p{N}_]*\(/u.exec(s);
+    const o = m ? m[0].length - 1 : s[0] === "(" ? 0 : -1;
+    return o >= 0 && closeAt(s, o) === s.length - 1;
+  }
+  const wrap = (s) => (atomic(s) ? s : `(${s})`);
+  function ser(n) {
+    const v = (k) => slot(n.s[k]);
+    switch (n.t) {
+      case "line": return n.s.x.map(p => (typeof p === "string" ? p : ser(p))).join("");     // ganze Zeile, Text bleibt wörtlich
+      case "int": return `integral(${v("f")}, ${v("v")}, ${v("lo")}, ${v("hi")})`;
+      case "diff": return `diff(${v("f")}, ${v("v")})`;
+      case "diff2": return `diff(${v("f")}, ${v("v")}, 2)`;
+      case "sum": case "prod": return `${n.t}(${v("f")}, ${v("k")}, ${v("a")}, ${v("b")})`;
+      case "sqrt": return `sqrt(${v("x")})`;
+      case "root": return `root(${v("x")}, ${v("n")})`;
+      case "frac": return `${wrap(v("num"))}/${wrap(v("den"))}`;
+      case "pow": return `${wrap(v("base"))}^${wrap(v("exp"))}`;
+      case "abs": return `abs(${v("x")})`;
+      case "logb": return `log(${v("x")}, ${v("b")})`;
+      case "dat": return `deriv(${v("f")}, ${v("v")}, ${v("at")})`;
+      case "if": return `if(${v("c")}, ${v("a")}, ${v("b")})`;
+      case "nsolve": return `nsolve(${v("l")} == ${v("r")}, ${v("v")}, ${v("s")})`;
+      case "cbrt": case "exp": case "det": case "inv": case "adj": case "norm": return `${n.t}(${v("x")})`;
+      case "cross": case "dot": return `${n.t}(${v("a")}, ${v("b")})`;
+      case "fn": return `${n.f}(${v("x")})`;
+      case "e10": return `·10^${wrap(v("exp"))}`;
+      case "vec": return `[${slotsOf(n).map(v).join(", ")}]`;
+      case "eq": return `${v("l")} = ${v("r")}`;
+      case "cond": return `, ${v("l")} ${n.op} ${v("r")}`;
+      case "fdef": return `${v("f")}(${v("a")}) = ${v("b")}`;
+      case "sys": {                                       // eine dazugekommene, leere Zeile zählt noch nicht
+        const rows = [];
+        for (let j = 0; j < n.n; j++) if (j < 2 || v(`l${j}`) !== GAP || v(`r${j}`) !== GAP) rows.push(`${v(`l${j}`)} = ${v(`r${j}`)}`);
+        return rows.join("; ");
+      }
+      case "mat": {
+        const rows = [];
+        for (let i = 0; i < n.r; i++) {
+          const row = [];
+          for (let j = 0; j < n.c; j++) row.push(v(cell(i, j)));
+          rows.push(`[${row.join(", ")}]`);
+        }
+        return `[${rows.join(", ")}]`;
+      }
+    }
+    return "";
+  }
+  function args(s) {
+    const out = [];
+    let d = 0, a = 0;
+    for (let i = 0; i < s.length; i++) {
+      if (s[i] === "(" || s[i] === "[") d++;
+      else if (s[i] === ")" || s[i] === "]") d--;
+      else if (s[i] === "," && !d) { out.push(s.slice(a, i).trim()); a = i + 1; }
+    }
+    out.push(s.slice(a).trim());
+    return out;
+  }
+  const inner = (s) => (s === GAP ? [""] : parse(s));
+  function build(t, vals) {
+    const n = { t, s: {} };
+    for (const k of Object.keys(vals)) n.s[k] = inner(vals[k]);
+    return n;
+  }
+  function fromCall(fn, a) {
+    if (fn === "integral" && a.length === 4) return build("int", { f: a[0], v: a[1], lo: a[2], hi: a[3] });
+    if (fn === "diff" && a.length === 2) return build("diff", { f: a[0], v: a[1] });
+    if (fn === "diff" && a.length === 3 && a[2] === "2") return build("diff2", { f: a[0], v: a[1] });
+    if ((fn === "sum" || fn === "prod") && a.length === 4) return build(fn, { f: a[0], k: a[1], a: a[2], b: a[3] });
+    if (fn === "sqrt" && a.length === 1) return build("sqrt", { x: a[0] });
+    if (fn === "root" && a.length === 2) return build("root", { x: a[0], n: a[1] });
+    if (fn === "abs" && a.length === 1) return build("abs", { x: a[0] });
+    if (fn === "log" && a.length === 2) return build("logb", { x: a[0], b: a[1] });
+    if (["cbrt", "exp", "det", "inv", "adj", "norm"].includes(fn) && a.length === 1) return build(fn, { x: a[0] });
+    if (fn === "deriv" && a.length === 3) return build("dat", { f: a[0], v: a[1], at: a[2] });
+    if (fn === "if" && a.length === 3) return build("if", { c: a[0], a: a[1], b: a[2] });
+    if ((fn === "cross" || fn === "dot") && a.length === 2) return build(fn, { a: a[0], b: a[1] });
+    if (fn === "nsolve" && a.length === 3) {              // nur die Form mit ==; ein reiner Term bleibt Text
+      const q = eqAt(a[0]);
+      return q < 0 ? null : build("nsolve", { l: a[0].slice(0, q).trim(), r: a[0].slice(q + 2).trim(), v: a[1], s: a[2] });
+    }
+    return null;
+  }
+  function eqAt(s) {
+    let d = 0;
+    for (let i = 0; i < s.length - 1; i++) {
+      if (s[i] === "(" || s[i] === "[") d++;
+      else if (s[i] === ")" || s[i] === "]") d--;
+      else if (!d && s[i] === "=" && s[i + 1] === "=") return i;
+    }
+    return -1;
+  }
+  function fromVector(s) {                                // s: "a, b, c" (ohne die eckigen Klammern)
+    if (s.includes(";")) return null;
+    const cells = args(s);
+    if (cells.length < 2 || cells.length > VEC_MAX || cells.some(x => !x || x[0] === "[")) return null;
+    const n = { t: "vec", n: cells.length, s: {} };
+    cells.forEach((x, j) => { n.s[`c${j}`] = inner(x); });
+    return n;
+  }
+  function fromMatrix(s) {                                // s: "[[a, b], [c, d]]"
+    const rows = args(s.slice(1, -1));
+    if (!rows.every(r => r[0] === "[" && closeAt(r, 0) === r.length - 1)) return null;
+    const cells = rows.map(r => args(r.slice(1, -1)));
+    if (cells.some(r => r.length !== cells[0].length)) return null;
+    const n = { t: "mat", r: cells.length, c: cells[0].length, s: {} };
+    cells.forEach((r, i) => r.forEach((x, j) => { n.s[cell(i, j)] = inner(x); }));
+    return n;
+  }
+  function scanTop(s, f) {                                // f(Zeichen, Stelle) ausserhalb von Klammern; false beendet
+    let d = 0, q = false;
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      if (c === '"') q = !q;
+      else if (q) continue;
+      else if ("([{".includes(c)) d++;
+      else if (")]}".includes(c)) d--;
+      else if (!d && f(c, i) === false) return;
+    }
+  }
+  function splitTop(s, sep) {
+    const out = [];
+    let a = 0;
+    scanTop(s, (c, i) => { if (c === sep) { out.push(s.slice(a, i).trim()); a = i + 1; } });
+    out.push(s.slice(a).trim());
+    return out;
+  }
+  function eqSpots(s) {                                   // einzelne = (nicht ==, <=, >=, !=), wie der Rechner sie liest
+    const out = [];
+    scanTop(s, (c, i) => { if (c === "=" && !"<>=!".includes(s[i - 1] || " ") && s[i + 1] !== "=") out.push(i); });
+    return out;
+  }
+  function sides(s) {
+    const q = eqSpots(s);
+    if (q.length !== 1) return null;
+    const l = s.slice(0, q[0]).trim(), r = s.slice(q[0] + 1).trim();
+    return l && r ? [l, r] : null;
+  }
+  function condNode(s) {                                  // x > 0 hinter einer Gleichung
+    if (s.includes("->") || eqSpots(s).length) return null;
+    let at = -1, op = "";
+    scanTop(s, (c, i) => {
+      const o = [">=", "<=", "≥", "≤", ">", "<"].find(x => s.startsWith(x, i));
+      if (o) { at = i; op = o; return false; }
+    });
+    if (at < 1) return null;
+    const l = s.slice(0, at).trim(), r = s.slice(at + op.length).trim();
+    if (!l || !r) return null;
+    const n = build("cond", { l, r });
+    n.op = op;
+    return n;
+  }
+  // Eine ganze Zeile als Aussage: System, Gleichung (auch mit Bedingungen) oder eigene Funktion. Eine schlichte
+  // Zuweisung (y = 2) bleibt Text, sonst öffnete jede Rechenzeile gezeichnet.
+  function statement(text) {
+    const s = text.trim();
+    if (!s.includes("=")) return null;
+    const rows = splitTop(s, ";").filter(Boolean);
+    if (rows.length > 1) {
+      const pairs = rows.map(sides);
+      if (pairs.some(p => !p)) return null;
+      const n = { t: "sys", n: pairs.length, s: {} };
+      pairs.forEach(([l, r], j) => { n.s[`l${j}`] = inner(l); n.s[`r${j}`] = inner(r); });
+      return ["", n, ""];
+    }
+    const bits = splitTop(s, ","), conds = bits.slice(1).map(condNode);
+    const withCond = conds.length > 0 && conds.every(Boolean);
+    const eq = sides(withCond ? bits[0] : s);
+    if (!eq) return null;
+    const [l, r] = eq;
+    if (!withCond && BARE.test(l) && !r.includes(GAP)) return null;
+    const m = withCond ? null : DEFN.exec(l);
+    const head = m && !CALLS.has(m[1]) ? build("fdef", { f: m[1], a: m[2], b: r }) : build("eq", { l, r });
+    const parts = ["", head, ""];
+    if (withCond) for (const c of conds) parts.push(c, "");
+    return parts;
+  }
+  const parseLine = (text) => statement(text) || parse(text);
+  function nextOp(n) {
+    const k = OPS.indexOf({ "≥": ">=", "≤": "<=" }[n.op] || n.op);
+    n.op = OPS[(k + 1) % OPS.length];
+  }
+  // Textform -> Felder; was keine Vorlage ist, bleibt Text
+  function parse(text) {
+    const parts = [""];
+    const put = (n) => parts.push(n, "");
+    let i = 0;
+    while (i < text.length) {
+      const prev = i ? text[i - 1] : "";
+      const m = /[\p{L}\p{N}_]/u.test(prev) ? null : /^(integral|diff|sum|prod|sqrt|cbrt|root|abs|log|exp|deriv|if|nsolve|det|inv|adj|norm|cross|dot)\(/.exec(text.slice(i));
+      if (m) {
+        const o = i + m[1].length, e = closeAt(text, o);
+        const n = e > 0 ? fromCall(m[1], args(text.slice(o + 1, e))) : null;
+        if (n) { put(n); i = e + 1; continue; }
+      }
+      if (text.startsWith("[[", i)) {
+        const e = closeAt(text, i);
+        const n = e > 0 ? fromMatrix(text.slice(i, e + 1)) : null;
+        if (n) { put(n); i = e + 1; continue; }
+        if (e > 0) { parts[parts.length - 1] += text.slice(i, e + 1); i = e + 1; continue; }   // ungleiche Zeilen bleiben Text
+      } else if (text[i] === "[" && !/[\p{L}\p{N}_)\]]/u.test(prev)) {   // A[1, 2] ist ein Index, kein Vektor
+        const e = closeAt(text, i);
+        const n = e > 0 ? fromVector(text.slice(i + 1, e)) : null;
+        if (n) { put(n); i = e + 1; continue; }
+      }
+      if (text[i] === "(") {
+        const e = closeAt(text, i), op = e > 0 ? text[e + 1] : "";
+        if ((op === "/" || op === "^") && text[e + 2] === "(") {
+          const e2 = closeAt(text, e + 2);
+          if (e2 > 0) {
+            const a = text.slice(i + 1, e), b = text.slice(e + 3, e2);
+            put(op === "/" ? build("frac", { num: a, den: b }) : build("pow", { base: a, exp: b }));
+            i = e2 + 1;
+            continue;
+          }
+        }
+      }
+      parts[parts.length - 1] += text[i++];
+    }
+    return parts;
+  }
+  const serText = (text) => parseLine(text).map(p => (typeof p === "string" ? p : ser(p))).join("");
+  function at(n, path) {
+    const k = path.split("/");
+    let parts = null;
+    for (let j = 0; j < k.length; j += 2) {
+      parts = n.s[k[j]];
+      if (j + 2 < k.length) n = parts[+k[j + 1]];
+    }
+    return { parts, i: +k[k.length - 1] };
+  }
+  function order(n, pre = "") {
+    const out = [];
+    for (const s of slotsOf(n)) {
+      const parts = n.s[s];
+      parts.forEach((p, i) => {
+        const q = `${pre}${s}/${i}`;
+        if (typeof p !== "string") out.push(...order(p, q + "/"));
+        else if (n.t === "line" || parts.length === 1 || p) out.push(q);
+      });
+    }
+    return out;
+  }
+  const firstBox = (n, pre = "") => {
+    const s = FIRST[n.t], p = n.s[s];
+    if (p.length === 1) return `${pre}${s}/0`;
+    return order(n, pre)[0];
+  };
+  function insert(root, path, caret, t) {
+    const { parts, i } = at(root, path);
+    const text = parts[i], n = make(t);
+    parts.splice(i, 1, text.slice(0, caret), n, text.slice(caret));
+    return firstBox(n, `${path.slice(0, path.lastIndexOf("/") + 1)}${i + 1}/`);
+  }
+  function addRow(n) {
+    if (n.t === "vec") { n.s[`c${n.n}`] = [""]; n.n++; return; }
+    if (n.t === "sys") { n.s[`l${n.n}`] = [""]; n.s[`r${n.n}`] = [""]; n.n++; return; }
+    for (let j = 0; j < n.c; j++) n.s[cell(n.r, j)] = [""];
+    n.r++;
+  }
+  function addCol(n) { for (let i = 0; i < n.r; i++) n.s[cell(i, n.c)] = [""]; n.c++; }
+  function box(p, path, side, plain) {
+    const w = Math.max(String(p).length, 1) + 1;
+    return `<input class="tb${side ? " side" : ""}${plain ? " plain" : ""}" data-p="${h(path)}" value="${h(p)}"${side && !p ? "" : ` style="width:${w}ch"`} spellcheck="false" autocomplete="off">`;
+  }
+  function slotHtml(parts, pre, L, plain) {
+    return parts.map((p, i) => (typeof p === "string" ? box(p, `${pre}${i}`, parts.length > 1 && !p, plain) : html(p, `${pre}${i}/`, L))).join("");
+  }
+  function html(n, pre = "", L = {}) {
+    const b = (s) => slotHtml(n.s[s], `${pre}${s}/`, L);
+    switch (n.t) {
+      case "line": return slotHtml(n.s.x, `${pre}x/`, L, true);
+      case "int": return `<span class="bigop int"><span class="bo">∫</span><span class="lims"><sup>${b("hi")}</sup><sub>${b("lo")}</sub></span></span>${b("f")}&#8201;d${b("v")}`;
+      case "diff": return `<span class="frac"><span>d</span><span>d${b("v")}</span></span>(${b("f")})`;
+      case "diff2": return `<span class="frac"><span>d<sup>2</sup></span><span>d${b("v")}<sup>2</sup></span></span>(${b("f")})`;
+      case "sum": case "prod": return `<span class="bigop sum"><sup>${b("b")}</sup><span class="bo">${n.t === "sum" ? "Σ" : "Π"}</span><sub>${b("k")}=${b("a")}</sub></span>${b("f")}`;
+      case "sqrt": return `√<span class="rad">${b("x")}</span>`;
+      case "root": return `<sup>${b("n")}</sup>√<span class="rad">${b("x")}</span>`;
+      case "frac": return `<span class="frac"><span>${b("num")}</span><span>${b("den")}</span></span>`;
+      case "pow": return `${b("base")}<sup>${b("exp")}</sup>`;
+      case "abs": return `|${b("x")}|`;
+      case "logb": return `<span class="tfn">log</span><sub>${b("b")}</sub>(${b("x")})`;
+      case "cbrt": return `<sup>3</sup>√<span class="rad">${b("x")}</span>`;
+      case "exp": return `<span class="tfn">e</span><sup>${b("x")}</sup>`;
+      case "dat": return `<span class="frac"><span>d</span><span>d${b("v")}</span></span>(${b("f")})<span class="tat">|<sub>${b("at")}</sub></span>`;
+      case "if": return `<span class="cases"><span>${b("a")}<span class="tw">${h(L.when || "falls")}</span>${b("c")}</span><span>${b("b")}<span class="tw">${h(L.other || "sonst")}</span></span></span>`;
+      case "nsolve": return `${b("l")} = ${b("r")}<span class="tw">${h(L.solveFor || "nach")}</span>${b("v")}<span class="tw">${h(L.solveFrom || "Start")}</span>${b("s")}`;
+      case "det": case "adj": return `<span class="tfn">${n.t}</span>(${b("x")})`;
+      case "inv": return `(${b("x")})<sup>−1</sup>`;
+      case "norm": return `‖${b("x")}‖`;
+      case "cross": return `${b("a")} × ${b("b")}`;
+      case "dot": return `${b("a")} · ${b("b")}`;
+      case "fn": return `<span class="tfn">${h(FN_LABEL[n.f] || n.f)}</span>(${b("x")})`;
+      case "e10": return `·10<sup>${b("exp")}</sup>`;
+      case "vec": return `<span class="mat">${slotsOf(n).map(s => `<span><span>${b(s)}</span></span>`).join("")}</span><button type="button" class="tadd" data-tadd="r" data-tn="${h(pre)}" title="${h(L.row || "")}">+↓</button>`;
+      case "eq": return `${b("l")} = ${b("r")}`;
+      case "cond": return `<span class="tw">${h(L.cond || "mit")}</span>${b("l")}<button type="button" class="tadd tcmp" data-tcmp="1" data-tn="${h(pre)}" title="${h(L.cmp || "")}">${h(OP_SHOW[n.op] || n.op)}</button>${b("r")}`;
+      case "fdef": return `${b("f")}(${b("a")}) = ${b("b")}`;
+      case "sys": {
+        let rows = "";
+        for (let j = 0; j < n.n; j++) rows += `<span>${b(`l${j}`)} = ${b(`r${j}`)}</span>`;
+        return `<span class="cases">${rows}</span><button type="button" class="tadd" data-tadd="r" data-tn="${h(pre)}" title="${h(L.eqRow || L.row || "")}">+↓</button>`;
+      }
+      case "mat": {
+        let rows = "";
+        for (let i = 0; i < n.r; i++) {
+          let row = "";
+          for (let j = 0; j < n.c; j++) row += `<span>${b(cell(i, j))}</span>`;
+          rows += `<span>${row}</span>`;
+        }
+        return `<span class="mat">${rows}</span><button type="button" class="tadd" data-tadd="r" data-tn="${h(pre)}" title="${h(L.row || "")}">+↓</button><button type="button" class="tadd" data-tadd="c" data-tn="${h(pre)}" title="${h(L.col || "")}">+→</button>`;
+      }
+    }
+    return "";
+  }
+  function nodeAt(root, pre) {                            // Vorlage unter einem Pfad "f/1/"
+    if (!pre) return root;
+    const k = pre.replace(/\/$/, "").split("/");
+    let n = root;
+    for (let j = 0; j + 1 < k.length; j += 2) n = n.s[k[j]][+k[j + 1]];
+    return n;
+  }
+  // Die ganze Eingabezeile als Baum: Text und Vorlagen abwechselnd
+  const lineOf = (text) => ({ t: "line", s: { x: parseLine(text) } });
+  const lineAround = (before, n, after) => ({ t: "line", s: { x: [...parse(before), n, ...parse(after)] } });
+  const hasTemplate = (text) => parseLine(String(text || "")).length > 1;
+  const blank = (n) => slotsOf(n).every(s => n.s[s].length === 1 && (!n.s[s][0] || n.s[s][0] === ((DEF[n.t] || {})[s] || "")));
+  function remove(root, pre) {                            // Vorlage unter "x/1/" entfernen, der Text links und rechts wird eins
+    const k = pre.replace(/\/$/, "").split("/"), i = +k.pop(), s = k.pop(), up = k.length ? k.join("/") + "/" : "";
+    const parts = nodeAt(root, up).s[s], left = parts[i - 1] ?? "";
+    parts.splice(i - 1, 3, left + (parts[i + 1] ?? ""));
+    return { path: `${up}${s}/${i - 1}`, caret: left.length };
+  }
+  return { GAP, make, ser, parse, parseLine, serText, at, order, firstBox, insert, addRow, addCol, nextOp, html, nodeAt, lineOf, lineAround, hasTemplate, blank, remove };
+})();
+/* TPL-END */
+// Offene Vorlage: liegt genau auf der Eingabezeile und ersetzt deren Text (die Textform bleibt darunter die Quelle).
+// Enter übernimmt, Esc verwirft, ein Klick daneben übernimmt; eine neue Zeile mit offenen Feldern bleibt als Entwurf stehen.
+let TP = null, TP_HOLD = false;
+function tplInput(input) {
+  const skip = AC.skip;
+  AC.skip = true;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  AC.skip = skip;
+}
+function tplWrite() {
+  if (!TP) return;
+  if (!document.body.contains(TP.input)) return tplClose(false, false);
+  TP.input.value = TP.before + TPL.ser(TP.node) + TP.after;
+  tplInput(TP.input);
+}
+function tplFollow() {
+  if (!TP) return;
+  if (!document.body.contains(TP.input)) return tplClose(false, false);
+  const r = TP.input.getBoundingClientRect(), el = TP.el;
+  el.style.display = r.width ? "" : "none";
+  if (TP.over) { el.style.left = r.left + "px"; el.style.top = r.top + "px"; return; }
+  el.style.left = Math.max(8, Math.min(r.left, innerWidth - el.offsetWidth - 8)) + "px";
+  const below = r.bottom + 4;
+  el.style.top = (below + el.offsetHeight > innerHeight - 8 ? Math.max(8, r.top - el.offsetHeight - 4) : below) + "px";
+}
+function tplPlace() {                                     // die Zeile wächst mit der Vorlage, darunter rückt alles nach
+  if (!TP) return;
+  if (TP.over) {
+    const inp = TP.input, el = TP.el;
+    inp.style.height = "";
+    el.style.width = inp.getBoundingClientRect().width + "px";
+    inp.style.height = Math.max(el.offsetHeight, inp.offsetHeight) + "px";
+  }
+  tplFollow();
+}
+function tplFocus(path, caret) {
+  const el = [...TP.el.querySelectorAll("input.tb")].find(x => x.dataset.p === path);
+  if (!el) return;
+  el.focus();
+  const c = caret == null ? el.value.length : Math.min(caret, el.value.length);
+  if (caret == null && el.value) el.select(); else el.setSelectionRange(c, c);
+  TP.last = { path, caret: el.selectionStart };
+}
+function tplRender(path, caret) {
+  TP.el.innerHTML = TPL.html(TP.node, "", { row: tr("rc.tpl_row"), col: tr("rc.tpl_col"), when: tr("rc.tpl_when"), other: tr("rc.tpl_other"),
+    solveFor: tr("rc.tpl_solve_for"), solveFrom: tr("rc.tpl_solve_from"), cond: tr("rc.tpl_cond"), cmp: tr("rc.tpl_cmp"), eqRow: tr("rc.tpl_eq_row") });
+  tplPlace();
+  if (path) tplFocus(path, caret);
+}
+function tplKey(e) {
+  const b = e.target.closest("input.tb"); if (!b || !TP) return;
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const list = TPL.order(TP.node);
+    let k = list.indexOf(b.dataset.p);
+    if (k < 0) k = 0; else k = (k + (e.shiftKey ? -1 : 1) + list.length) % list.length;
+    tplFocus(list[k]);
+  } else if (e.key === "Enter") { e.preventDefault(); tplClose(true); }
+  else if (e.key === "Escape") {                          // verwerfen: die Zeile steht wieder wie vorher
+    e.preventDefault(); e.stopPropagation();
+    const i = TP.input;
+    i.value = TP.orig;
+    tplInput(i);
+    tplClose(false, i.matches(".newline"));
+  } else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && TP.input.matches(".lsrc")) {
+    e.preventDefault();
+    const i = TP.input;
+    tplClose(false, false);
+    i.dispatchEvent(new KeyboardEvent("keydown", { key: e.key, altKey: e.altKey, bubbles: true }));
+  } else if (e.key === "Backspace" && !b.selectionStart && !b.selectionEnd) {
+    const p = b.dataset.p, k = p.split("/"), { parts, i } = TPL.at(TP.node, p);
+    let pre = null;
+    if (i > 0 && typeof parts[i - 1] !== "string") pre = `${p.slice(0, p.lastIndexOf("/") + 1)}${i - 1}/`;   // Vorlage links davon
+    else if (!b.value && k.length > 2) {                  // leere Vorlage
+      const q = k.slice(0, -2).join("/") + "/";
+      if (TPL.blank(TPL.nodeAt(TP.node, q))) pre = q;
+    }
+    if (pre) {
+      e.preventDefault();
+      const r = TPL.remove(TP.node, pre);
+      tplWrite(); tplRender(r.path, r.caret);
+    } else if (TP.input.matches(".lsrc") && !TPL.ser(TP.node)) {   // leere Zeile: wie Rücktaste in der Zeile
+      e.preventDefault();
+      const inp = TP.input;
+      tplClose(false, false);
+      inp.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));
+    }
+  }
+}
+// t: neue Vorlage an der Schreibmarke; ohne t: vorhandene Zeile gezeichnet bearbeiten
+function tplOpen(input, t) {
+  if (!input) return;
+  if (TP && TP.input === input) {
+    if (!t) { if (TP.last) tplFocus(TP.last.path, TP.last.caret); return; }   // Fokus bleibt in der gezeichneten Zeile
+    if (TP.last) {                                       // Vorlage in ein Feld der offenen Vorlage setzen
+      const p = TPL.insert(TP.node, TP.last.path, TP.last.caret ?? 0, t);
+      tplWrite(); tplRender(p);
+      return;
+    }
+  }
+  if (TP) {
+    if (TP.input.matches(".newline") && TP.input.value.includes(TPL.GAP)) TP.input.value = TP.orig;
+    tplClose(false, false);
+  }
+  input.closest(".line, .xr")?.classList.add("editing");
+  const orig = input.value, over = input.tagName === "INPUT";
+  const a = input.selectionStart ?? orig.length, b = input.selectionEnd ?? orig.length;
+  let root, first, before = "", after = "";
+  if (!t) {
+    root = TPL.lineOf(orig);
+    first = TPL.order(root).slice(-1)[0];
+  } else {
+    const n = TPL.make(t, orig.slice(a, b));
+    if (over) {
+      root = TPL.lineAround(orig.slice(0, a), n, orig.slice(b));
+      first = TPL.firstBox(n, `x/${root.s.x.indexOf(n)}/`);
+    } else {                                              // mehrzeiliges Feld: Vorlage schwebt darunter, Text bleibt stehen
+      before = orig.slice(0, a); after = orig.slice(b);
+      root = TPL.lineAround("", n, "");
+      first = TPL.firstBox(n, "x/1/");
+    }
+  }
+  if (t && input.matches(".xnew")) {                      // die erste Eingabe legt in der Grafik die Zeile an
+    TP_HOLD = true;
+    input.value = TPL.ser(root);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    TP_HOLD = false;
+    input = document.activeElement && document.activeElement.matches(".xsrc") ? document.activeElement : input;
+  }
+  const el = document.createElement("div");
+  el.className = "tplpan f" + (over ? " over" : "");
+  document.body.appendChild(el);
+  TP = { input, before, after, node: root, last: null, el, orig, over };
+  if (over) input.classList.add("tplhost");
+  el.addEventListener("keydown", tplKey);
+  el.addEventListener("input", (e) => {
+    const x = e.target.closest("input.tb"); if (!x || !TP) return;
+    const { parts, i } = TPL.at(TP.node, x.dataset.p);
+    parts[i] = x.value;
+    x.style.width = (Math.max(x.value.length, 1) + 1) + "ch";
+    TP.last = { path: x.dataset.p, caret: x.selectionStart };
+    tplWrite(); tplPlace();
+  });
+  const mark = (e) => { const x = e.target.closest && e.target.closest("input.tb"); if (x && TP) TP.last = { path: x.dataset.p, caret: x.selectionStart }; };
+  el.addEventListener("focusin", mark);
+  el.addEventListener("keyup", mark);
+  el.addEventListener("mouseup", mark);
+  el.addEventListener("mousedown", (e) => { if (e.target.closest(".tadd")) e.preventDefault(); });
+  el.addEventListener("click", (e) => {
+    const cmp = e.target.closest("[data-tcmp]");
+    if (cmp && TP) {                                      // Bedingung: > ≥ < ≤ der Reihe nach
+      TPL.nextOp(TPL.nodeAt(TP.node, cmp.dataset.tn));
+      tplWrite(); tplRender(TP.last && TP.last.path, TP.last && TP.last.caret);
+      return;
+    }
+    const ad = e.target.closest("[data-tadd]"); if (!ad || !TP) return;
+    const n = TPL.nodeAt(TP.node, ad.dataset.tn);
+    if (ad.dataset.tadd === "r") TPL.addRow(n); else TPL.addCol(n);
+    tplWrite(); tplRender(TPL.order(n, ad.dataset.tn).slice(n.t === "sys" ? -2 : -1)[0]);   // System: linke Seite der neuen Zeile
+  });
+  addEventListener("scroll", tplFollow, true);
+  addEventListener("resize", tplPlace);
+  if (t) tplWrite();
+  tplRender(first, t ? undefined : Infinity);
+}
+function tplLeave() {                                     // Klick neben die Vorlage
+  if (!TP) return;
+  if (!TP.input.matches(".newline")) return tplClose(false, false);
+  if (TP.input.value.includes(TPL.GAP)) return;           // Entwurf mit offenen Feldern bleibt gezeichnet stehen
+  tplClose(!!TP.input.value.trim(), false);
+}
+function tplClose(enter, refocus = true) {
+  if (!TP) return;
+  const { input, before, node, el } = TP, end = before.length + TPL.ser(node).length;
+  removeEventListener("scroll", tplFollow, true);
+  removeEventListener("resize", tplPlace);
+  el.remove();
+  TP = null;
+  input.classList.remove("tplhost");
+  input.style.height = "";
+  if (!document.body.contains(input)) return;
+  const commit = enter && input.matches(".newline, #matExpr, .lsrc");
+  if (enter && input.matches(".xsrc, .xnew")) { input.closest(".xr")?.classList.remove("editing"); input.blur(); return; }
+  if (!refocus && !commit) { input.closest(".line, .xr")?.classList.remove("editing"); return; }
+  TP_HOLD = true;                                         // das Fokussieren öffnet die Vorlage nicht wieder
+  try {
+    input.closest(".line, .xr")?.classList.add("editing");
+    input.focus();
+    const k = input.value.indexOf("□", before.length);
+    if (k >= 0 && k < end) input.setSelectionRange(k, k + 1); else input.setSelectionRange(end, end);
+    if (commit) input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  } finally { TP_HOLD = false; }
+}
 const SYM_GROUPS = [
-  { k: "ops", items: [["·", "·"], ["÷", "÷"], ["−", "−"], ["x²", "²"], ["x³", "³"], ["xⁿ", "^"], ["√", "√(□)"], ["∛", "cbrt(□)"],
-    ["ⁿ√", "root(□, □)", "root"], ["|x|", "abs(□)"], ["n!", "!"], ["( )", "(□)"], ["π", "π"], ["e", "e", "e"], ["∞", "∞"], ["i", "i", "i"],
-    ["eˣ", "exp(□)"], ["ln", "ln(□)"], ["lg", "log10(□)"], ["logₐ", "log(□, □)", "log"], ["·10ⁿ", "·10^(□)"],
-    ["sin", "sin(□)"], ["cos", "cos(□)"], ["tan", "tan(□)"]] },
-  { k: "calc", items: [["Σ", "sum(□, k, 1, □)", "sum"], ["Π", "prod(□, k, 1, □)", "prod"], ["∫", "integral(□, x, □, □)", "int"],
-    ["d/dx", "deriv(□, x, □)", "d1"], ["d²/dx²", "deriv(□, x, □, 2)", "d2"], ["□ = □", "□ = □", "eq"], ["{ ; }", "□ = □; □ = □", "sys"],
-    [", x > 0", ", □ > 0", "cond"], ["nsolve", "nsolve(□ == □, x, 1)", "ns"], ["if", "if(□, □, □)", "if"], ["f(x) =", "f(x) = □", "fn"],
+  { k: "ops", items: [["·", "·"], ["÷", "÷"], ["−", "−"], ["x²", "²"], ["x³", "³"], ["xⁿ", "tpl:pow", "pow"], ["a/b", "tpl:frac", "frac"], ["√", "tpl:sqrt", "sqrt"], ["∛", "tpl:cbrt", "cbrt"],
+    ["ⁿ√", "tpl:root", "root"], ["|x|", "tpl:abs", "abs"], ["n!", "!"], ["( )", "(□)"], ["π", "π"], ["e", "e", "e"], ["∞", "∞"], ["i", "i", "i"],
+    ["eˣ", "tpl:exp", "exp"], ["ln", "tpl:fn:ln", "ln"], ["lg", "tpl:fn:log10", "lg"], ["logₐ", "tpl:logb", "log"], ["·10ⁿ", "tpl:e10", "e10"],
+    ["sin", "tpl:fn:sin", "sin"], ["cos", "tpl:fn:cos", "cos"], ["tan", "tpl:fn:tan", "tan"]] },
+  { k: "calc", items: [["Σ", "tpl:sum", "sum"], ["Π", "tpl:prod", "prod"], ["∫", "tpl:int", "int"],
+    ["d/dx", "tpl:diff", "d1"], ["d²/dx²", "tpl:diff2", "d2"], ["d/dx|ₐ", "tpl:dat", "dat"], ["□ = □", "tpl:eq", "eq"], ["{ ; }", "tpl:sys", "sys"],
+    [", x > 0", "tpl:cond", "cond"], ["nsolve", "tpl:nsolve", "ns"], ["if", "tpl:if", "if"], ["f(x) =", "tpl:fdef", "fn"],
     ["→", " -> □", "conv"]] },
-  { k: "mat", items: [["[a, b]", "[□, □, □]", "vec"], ["[[ ]]", "[[□, □], [□, □]]", "mat"], ["Aᵀ", "'", "tr"], ["A⁻¹", "inv(□)"], ["det", "det(□)"],
-    ["a×b", "cross(□, □)"], ["a·b", "dot(□, □)"], ["|v|", "norm(□)"], ["E", "eye(□)"], ["x̄", "mean(□)"], ["s", "std(□)"]] },
+  { k: "mat", items: [["[a, b]", "tpl:vec", "vec"], ["[[ ]]", "tpl:mat", "mat"], ["Aᵀ", "'", "tr"], ["A⁻¹", "tpl:inv", "inv"], ["det", "tpl:det", "det"], ["adj", "tpl:adj", "adj"],
+    ["a×b", "tpl:cross", "cross"], ["a·b", "tpl:dot", "dot"], ["|v|", "tpl:norm", "norm"], ["E", "tpl:fn:eye", "eye"], ["x̄", "tpl:fn:mean", "mean"], ["s", "tpl:fn:std", "std"]] },
   { k: "greek", items: [..."αβγδεζηθκλμνξπρστφχψωΓΔΘΛΣΦΨΩ"].map(c => [c, c]) },
   { k: "rel", items: [["=", " = "], ["≠", " ≠ "], ["≤", " ≤ "], ["≥", " ≥ "], ["<", " < "], [">", " > "], ["==", " == ", "eqq"], [";", "; ", "semi"], ["→", " -> ", "conv"]] },
   { k: "unit", items: [["µ", "µ"], ["Ω", "Ω"], ["°C", "°C"], ["°", "°"], ["Å", "Å"], ["%", "%"], ["‰", "‰"], ["m²", "m^2"], ["m³", "m^3"],
@@ -2039,7 +3052,7 @@ const SYM_GROUPS = [
 function symPopHtml() {
   const g = SYM_GROUPS[S.symTab || 0];
   return `<div class="sympop"><div class="symtabs">${SYM_GROUPS.map((x, i) => `<button type="button" data-symtab="${i}" class="${i === (S.symTab || 0) ? "on" : ""}">${esc(tr("rc.sym_" + x.k))}</button>`).join("")}</div>
-    <div class="symgrid${g.k === "calc" ? " wide" : ""}">${g.items.map(([lab, ins, tip]) => `<button type="button" data-sym="${esc(ins)}" title="${esc((tip ? tr("rc.symt_" + tip) + " – " : "") + ins.trim())}">${esc(lab)}</button>`).join("")}</div>
+    <div class="symgrid${g.k === "calc" ? " wide" : ""}">${g.items.map(([lab, ins, tip]) => `<button type="button" data-sym="${esc(ins)}" title="${esc(ins.startsWith("tpl:") ? tr("rc.symt_" + tip) : (tip ? tr("rc.symt_" + tip) + " – " : "") + ins.trim())}">${esc(lab)}</button>`).join("")}</div>
     <div class="small">${esc(tr("rc.sym_hint"))}</div></div>`;
 }
 function symTarget(btn) {
@@ -2049,6 +3062,10 @@ function symTarget(btn) {
   return scope ? scope.querySelector(scope.dataset.symscope) : null;
 }
 function symInsert(input, text) {
+  if (TP && TP.input === input) {                         // offene Vorlage: in das aktive Feld
+    const a = document.activeElement;
+    input = a && a.matches("input.tb") ? a : [...TP.el.querySelectorAll("input.tb")].find(x => TP.last && x.dataset.p === TP.last.path) || TP.el.querySelector("input.tb");
+  }
   if (!input) return;
   input.closest(".line, .xr")?.classList.add("editing");
   const a = input.selectionStart ?? input.value.length;
@@ -2064,7 +3081,9 @@ function symOpen(btn) {
     const t = e.target.closest("[data-symtab]");
     if (t) { S.symTab = +t.dataset.symtab; p.innerHTML = symPopHtml(); return; }
     const s = e.target.closest("[data-sym]");
-    if (s) symInsert(symTarget(btn), s.dataset.sym);
+    if (!s) return;
+    if (s.dataset.sym.startsWith("tpl:")) { const inp = symTarget(btn); LabUI.closePop(); tplOpen(inp, s.dataset.sym.slice(4)); return; }
+    symInsert(symTarget(btn), s.dataset.sym);
   });
 }
 function sysBoxHtml() {
@@ -2122,6 +3141,7 @@ function sysStore(what) {
 }
 function sysFromAB() {                                    // A·x = b (Operand 1, Operand 2) als Gleichungen
   const A = S.vars[$("#opA").value], b = S.vars[$("#opB").value];
+  if (matIsCplx(A) || matIsCplx(b)) return toast(tr("rc.mat_cplx_sys"), true);
   const M = A && (Array.isArray(A[0]) ? A : null), bv = b && (Array.isArray(b[0]) ? b.map(r => r[0]) : b);
   if (!M || !bv || bv.length !== M.length) return toast(tr("rc.sys_ab_err"), true);
   const n = M[0].length, names = n <= 3 ? ["x", "y", "z"].slice(0, n) : Array.from({ length: n }, (_, j) => `x${j + 1}`);
@@ -2139,9 +3159,9 @@ function sysFromAB() {                                    // A·x = b (Operand 1
 }
 const MAT_OPS = [
   ["A + B", (a, b) => `${a} + ${b}`], ["A − B", (a, b) => `${a} - ${b}`], ["A · B", (a, b) => `${a}*${b}`],
-  ["Aᵀ", (a) => `${a}'`], ["A⁻¹", (a) => `inv(${a})`], ["det A", (a) => `det(${a})`], ["Rang", (a) => `rank(${a})`],
+  ["Aᵀ", (a) => `${a}'`], ["A⁻¹", (a) => `inv(${a})`], ["adj A", (a) => `adj(${a})`], ["det A", (a) => `det(${a})`], ["Rang", (a) => `rank(${a})`],
   ["Spur", (a) => `trace(${a})`], ["Eigenwerte", (a) => `eig(${a})`], ["Eigenvektoren", (a) => `eigvec(${a})`],
-  ["rref", (a) => `rref(${a})`], ["A² ", (a) => `${a}^2`], ["A·x = b lösen", (a, b) => `linsolve(${a}, ${b})`],
+  ["Kofaktoren", (a) => `cof(${a})`], ["rref", (a) => `rref(${a})`], ["A² ", (a) => `${a}^2`], ["A·x = b lösen", (a, b) => `linsolve(${a}, ${b})`],
   ["Kreuzprodukt", (a, b) => `cross(${a}, ${b})`], ["Skalarprodukt", (a, b) => `dot(${a}, ${b})`], ["Norm", (a) => `norm(${a})`],
   ["Kondition", (a) => `cond(${a})`], ["Pseudoinverse", (a) => `pinv(${a})`], ["Singulärwerte", (a) => `svd(${a})`],
 ];
@@ -2156,6 +3176,7 @@ function xrowHtml(r, i) {
   else if (r.kind === "curve") body = curveRowHtml(r);
   else if (r.kind === "dataset") body = dsRowHtml(r);
   else if (r.kind === "fit") body = fitRowHtml(r);
+  else if (r.kind === "wline") { const e = envById(r.env); body = `<div class="small">Rechenzeile${e ? " · " + esc(e.name) : ""} (live)</div><div class="f wl"></div>`; }
   else body =`<div class="xdisp f"></div><input class="xsrc" value="${esc(r.src || "")}" spellcheck="false" autocomplete="off">`;
   return `<div class="xr${r.id === S.gsel ? " sel" : ""}${r.kind ? " k-" + r.kind : ""}" data-x="${r.id}" style="--c:${col}">
     <div class="gut"><span class="xn">${i + 1}</span><button class="ic${r.hidden ? " off" : ""}" title="Klick: ein-/ausblenden · rechte Maustaste: Farbe"></button></div>
@@ -2235,6 +3256,14 @@ function updateXRow(r, force = false) {
       }
     }
     else if (r.kind === "fit") h = o.type === "error" ? `<div class="xerr">⚠ ${esc(o.error)}</div>` : o.type === "fit" ? fitResultHtml(r, o) : "";
+    else if (r.kind === "wline") {
+      const e = envById(r.env), res = e && envRes(e), lo = res && res.lines ? res.lines[r.line] : null, d = lineSeries(lo);
+      $(".wl", el).innerHTML = lo && lo.html ? lo.html : esc(wlineLabel(r));
+      h = !e || !e.items.some(x => x.id === r.line) ? `<div class="xerr">⚠ Zeile gibt es nicht mehr</div>`
+        : !d ? `<div class="xerr">⚠ Die Zeile liefert gerade keine Werteliste</div>`
+        : o.type === "error" ? `<div class="xerr">⚠ ${esc(o.error)}</div>`
+        : `<div class="small">${d.x.length} Werte über ${esc(d.xname)}${d.xunit ? " in " + esc(d.xunit) : ""}${d.unit ? " · " + esc(d.yname) + " in " + esc(d.unit) : ""}</div>`;
+    }
     else {
       const disp = $(".xdisp", el);
       disp.innerHTML = o.html || "";
@@ -2333,7 +3362,7 @@ function graphThumb() {
   const en = /^en/i.test(document.documentElement.lang || ""), series = [];
   const label = (r) => r.src || (r.kind === "dataset" ? ((S.dsData[r.id] || {}).title || (r.ds && r.ds.title) || "")
     : r.kind === "table" ? ((r.table && r.table.cols) || []).map(c => c.name).join(", ") : r.kind === "curve" ? (en ? "Curve" : "Kurve")
-    : r.kind === "fit" ? fitName(fitModel(r.model)) : "");
+    : r.kind === "fit" ? fitName(fitModel(r.model)) : r.kind === "wline" ? wlineLabel(r) : "");
   for (const r of S.plot.rows) {
     if (r.hidden) continue;
     const o = r.kind !== "curve" ? S.gres[r.id] : null;
@@ -2466,6 +3495,13 @@ function drawGraph() {
     else if (o.type === "table") for (const s of o.series || []) {
       const c2 = s.col === 1 ? col : COLORS[(COLORS.indexOf(col) + s.col) % COLORS.length];
       if (s.line) poly(g, s.x, s.y, c2, sel, 1.4); else dots(g, s.x, s.y, c2, sel);
+    }
+    if (r.kind === "wline") {                       // RC-04: aktueller Schiebereglerwert als Punkt auf der Kurve
+      const d = wlineSeries(r);
+      if (d && d.cur != null && d.x.length) {
+        let k = 0; for (let j = 1; j < d.x.length; j++) if (Math.abs(d.x[j] - d.cur) < Math.abs(d.x[k] - d.cur)) k = j;
+        if (isFinite(d.y[k])) dots(g, [d.x[k]], [d.y[k]], col, true);
+      }
     }
   });
   // besondere Punkte
@@ -2687,8 +3723,33 @@ function dsRef(r, pinned = false) {
 }
 function fitRef(r) { return { id: r.id, kind: "fit", hidden: r.hidden, of: r.of, y: r.y, model: r.model, mode: r.mode, range: r.range || null }; }
 function graphRows(rows, pinned = false) {
+  const used = new Set(rows.filter(r => r.kind === "table").flatMap(r => ((r.table && r.table.cols) || []).map(c => c.name)));
   return rows.filter(r => r.kind !== "curve").map(r => r.kind === "dataset" ? dsRef(r, pinned) : r.kind === "fit" ? fitRef(r)
+    : r.kind === "wline" ? wlineRef(r, used)
     : ({ id: r.id, src: r.src, kind: r.kind, table: r.table, tmin: r.tmin, tmax: r.tmax, hidden: r.hidden, color: r.color }));
+}
+// RC-04: Rechenzeile mit Bereich/Liste/Schieberegler als Kurve. Die Werte kommen bei jedem Zeichnen aus dem neuesten
+// Ergebnis der Zeile (live); an den Server geht sie als Tabelle mit zwei Spalten.
+function lineSeries(o) {
+  if (!o || o.error) return null;
+  const ys = o.result && Array.isArray(o.result.value) ? o.result.value : null;
+  if (o.sweep) return { x: o.sweep.x, y: o.sweep.y, xname: o.sweep.var, yname: o.name || "y", xunit: o.sweep.xunit || "", unit: o.sweep.unit || "", cur: o.sweep.cur, line: true };
+  if (o.range && ys) return { x: o.range.x, y: ys, xname: o.range.var, yname: o.name || "y", xunit: o.range.xunit || "", unit: o.unit || "", line: !o.range.list };
+  return null;
+}
+function wlineSeries(r) {
+  const e = envById(r.env), res = e && envRes(e);
+  return lineSeries(res && res.lines ? res.lines[r.line] : null);
+}
+function wlineLabel(r) {
+  const e = envById(r.env), it = e && e.items.find(x => x.id === r.line);
+  return it ? (it.src || "").trim() : "–";
+}
+function wlineRef(r, used) {
+  const d = wlineSeries(r);
+  const uniq = (n) => { let k = (n || "y").replace(/[^A-Za-z0-9_]/g, "_").replace(/^(\d)/, "_$1") || "y", s = k, i = 2; while (used.has(s)) s = `${k}_${i++}`; used.add(s); return s; };
+  const cols = d ? [{ name: uniq(d.xname), values: d.x.map(String) }, { name: uniq(d.yname), values: d.y.map(v => v == null ? "" : String(v)) }] : [];
+  return { id: r.id, kind: "table", table: { cols, line: !!(d && d.line) }, hidden: r.hidden || !d, color: r.color };
 }
 const dsLoading = {};
 async function dsFetch(r) {
@@ -2949,7 +4010,7 @@ function reportBody() {
   for (const n of matNames()) mats[n] = S.vars[n];
   const plots = S.snaps.length ? S.snaps.map(plotForReport) : (S.plot.rows.length ? [plotForReport(S.plot)] : []);
   return {
-    values: S.values, envs: S.envs.map(e => ({ id: e.id, name: e.name, items: e.items, derive: e.derive !== false })),
+    values: S.values, envs: S.envs.map(e => ({ id: e.id, name: e.name, items: e.items, derive: e.derive !== false, ...(e.unc ? { unc: e.unc } : {}) })),
     vars: S.vars, dsvars: S.dsvars, plots, matrices: mats, angle: S.angle, complex: S.complex, digits: S.digits,
   };
 }
@@ -2962,8 +4023,13 @@ function bind() {
   $("#saveBtn").addEventListener("click", downloadState);
   $("#loadBtn").addEventListener("click", () => $("#loadFile").click());
   $("#loadFile").addEventListener("change", (e) => { if (e.target.files[0]) loadStateFile(e.target.files[0]); e.target.value = ""; });
-  document.addEventListener("focusin", (e) => { if (e.target.matches(".lsrc, .newline, .xsrc, .xnew, #matExpr, #sysSrc")) S.lastInput = e.target; });
+  document.addEventListener("focusin", (e) => { if (!e.target.matches(".lsrc, .newline, .xsrc, .xnew, #matExpr, #sysSrc")) return;
+    S.lastInput = e.target;
+    if (!TP_HOLD && e.target.matches(".lsrc, .xsrc") && TPL.hasTemplate(e.target.value)) tplOpen(e.target);   // Zeile mit Vorlage: gezeichnet bearbeiten
+  });
   document.addEventListener("click", (e) => { const b = e.target.closest(".symbtn"); if (b) { e.preventDefault(); symOpen(b); } });   // S-03
+  document.addEventListener("mousedown", (e) => { if (TP && !(e.target.closest && e.target.closest(".tplpan, .lab-pop, .symbtn"))) tplLeave(); });
+  document.addEventListener("click", () => { if (TP) tplFollow(); });                 // z. B. anderer Reiter: Entwurf ausblenden
   // Vervollständigen in Rechenzeilen und im Matrix-Ausdruck
   document.addEventListener("input", (e) => { if (!AC.skip && e.target.matches(".lsrc, .newline, #matExpr")) acUpdate(e.target); });
   document.addEventListener("focusout", (e) => { if (e.target === AC.input) setTimeout(acClose, 120); });
@@ -3007,6 +4073,7 @@ function bind() {
     const row = e.target.closest(".var"); if (!row) return;
     const v = S.values.find(x => x.id === row.dataset.id); if (!v) return;
     if (e.target.closest(".x")) { S.values = S.values.filter(x => x !== v); renderVarsPanel(); updateEnvHeads(); saveSoon(); recompute(); return; }
+    const vu = e.target.closest(".vunc"); if (vu) { uncEditVar(vu, v); return; }
     const sg = e.target.closest("[data-sg]"); if (sg) { pickSuggestion(v, +sg.dataset.sg); return; }
     if (e.target.closest("[data-norole]")) { v.as = null; v._kindSet = true; S.sugOpen[v.id] = false; refreshVar(v); updateEnvHeads(); saveSoon(); recompute(); return; }
     if (e.target.closest(".rch")) {
@@ -3043,12 +4110,40 @@ function bind() {
 
   // Blätter
   const envs = $("#envs");
+  // RC-02: Zeile an der Nummer ziehen und zwischen andere Einträge desselben Blatts legen
+  envs.addEventListener("dragstart", (ev) => {
+    const ln = ev.target.closest && ev.target.closest(".line .ln"); if (!ln) return;
+    const { e, it } = itemOf(ln); if (!e || !it) return;
+    S.drag = { env: e.id, id: it.id };
+    ev.dataTransfer.effectAllowed = "move"; ev.dataTransfer.setData("text/plain", it.src || "");
+    ln.closest(".line").classList.add("dragging");
+  });
+  envs.addEventListener("dragover", (ev) => {
+    const d = S.drag, tgt = ev.target.closest && ev.target.closest(".it"); if (!d || !tgt) return;
+    const { e } = itemOf(tgt); if (!e || e.id !== d.env) return;
+    ev.preventDefault();
+    const r = tgt.getBoundingClientRect(), after = ev.clientY > r.top + r.height / 2;
+    $$(".it.dropb, .it.dropa", envs).forEach(x => x.classList.remove("dropb", "dropa"));
+    tgt.classList.add(after ? "dropa" : "dropb");
+  });
+  envs.addEventListener("drop", (ev) => {
+    const d = S.drag, tgt = ev.target.closest && ev.target.closest(".it"); if (!d || !tgt) return;
+    ev.preventDefault();
+    const { e, it } = itemOf(tgt); const after = tgt.classList.contains("dropa");
+    S.drag = null;
+    if (!e || e.id !== d.env || !it || it.id === d.id) { renderEnv(e); return; }
+    const moved = e.items.find(x => x.id === d.id); if (!moved) return;
+    e.items = e.items.filter(x => x !== moved);
+    e.items.splice(e.items.indexOf(it) + (after ? 1 : 0), 0, moved);
+    renderEnv(e); saveSoon(); recompute();
+  });
+  envs.addEventListener("dragend", () => { S.drag = null; $$(".it.dropb, .it.dropa, .line.dragging", envs).forEach(x => x.classList.remove("dropb", "dropa", "dragging")); });
   envs.addEventListener("input", onEnvInput);
   envs.addEventListener("change", onEnvChange);
   envs.addEventListener("click", onEnvClick);
   envs.addEventListener("keydown", onEnvKey);
   envs.addEventListener("focusin", (e) => { const el = e.target.closest(".env"); if (el) setActive(el.dataset.env); const ln = e.target.closest(".line"); if (ln && e.target.classList.contains("lsrc")) ln.classList.add("editing"); });
-  envs.addEventListener("focusout", (e) => { const ln = e.target.closest(".line"); if (ln && e.target.classList.contains("lsrc")) ln.classList.remove("editing"); });
+  envs.addEventListener("focusout", (e) => { const ln = e.target.closest(".line"); if (ln && e.target.classList.contains("lsrc") && !(TP && TP.input === e.target)) ln.classList.remove("editing"); });
   envs.addEventListener("keydown", (e) => { if (e.target.classList.contains("gsym") && e.key === "Enter") { const { e: env } = itemOf(e.target); if (env) runGoal(env); } });
   envs.addEventListener("change", (e) => { if (e.target.classList.contains("gsym")) { const k = defaultKindFor(e.target.value.trim()); if (k) e.target.closest(".goalbox").querySelector(".gkind").value = k; } });
   $("#envAdd").addEventListener("click", addEnv);
@@ -3056,7 +4151,10 @@ function bind() {
   $("#libClose").addEventListener("click", () => { S.libOpen = false; renderLib(); saveSoon(); });
   $$(".minitabs button").forEach(b => b.addEventListener("click", () => { S.libTab = b.dataset.lt; renderLib(); }));
   $("#libSearch").addEventListener("input", debounce(renderLibrary, 120));
-  $("#libTree").addEventListener("click", (e) => { const it = e.target.closest("[data-eq]"); if (it) addCard(activeEnv(), it.dataset.eq); });
+  $("#libTree").addEventListener("click", (e) => {     // RC-01: Chip = gleich nach dieser Grösse umgestellt einfügen
+    const it = e.target.closest("[data-eq]"), tg = e.target.closest("[data-tgt]");
+    if (it) addCard(activeEnv(), it.dataset.eq, tg ? tg.dataset.tgt : null);
+  });
   $("#libFn").addEventListener("click", (e) => {
     const c = e.target.closest("[data-ins]"); if (!c) return;
     let t = c.dataset.ins;
@@ -3134,7 +4232,9 @@ function bind() {
     if (e.target.id === "mStore") {
       const n = $("#mStoreName").value.trim();
       if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(n)) return toast("Name: Buchstaben, Ziffern, _", true);
-      S.vars[n] = S.lastMat.store; S.matSel = n; renderMatrices(); renderMatSummary(); saveSoon(); recompute();
+      if (n in S.vars && !confirm(tr("rc.mat_over", { n }))) return;
+      matKeep(n, S.lastMat.store);
+      toast(esc(tr("rc.mat_saved", { n })));
     }
     if (e.target.id === "mToEnv") {
       const env = activeEnv(); if (!env) return;
@@ -3221,7 +4321,7 @@ function bind() {
     if (e.target.classList.contains("xsrc")) rowEl.classList.add("editing");
     if (S.gsel !== rowEl.dataset.x) selectRow(rowEl.dataset.x);
   });
-  xl.addEventListener("focusout", (e) => { const rowEl = e.target.closest(".xr"); if (rowEl && e.target.classList.contains("xsrc")) rowEl.classList.remove("editing"); });
+  xl.addEventListener("focusout", (e) => { const rowEl = e.target.closest(".xr"); if (rowEl && e.target.classList.contains("xsrc") && !(TP && TP.input === e.target)) rowEl.classList.remove("editing"); });
   xl.addEventListener("click", (e) => {
     const t = e.target, rowEl = t.closest(".xr"); if (!rowEl || rowEl.classList.contains("ghost")) return;
     const r = rowById(rowEl.dataset.x); if (!r) return;
@@ -3366,6 +4466,20 @@ async function takeShare(s) {
   toast(esc(tr("rc.taken", { n, m: mName, id: env.id || s.id, v: env.version })));
 }
 let OV = null;
+// Knöpfe im Weitergabe-Menü; der Projektindex ist der Weg in die anderen Module (genau dieser Wert, nicht der gleichnamige eines anderen Blatts)
+let LV_IDX = null;
+function lvRow(on, q) {
+  if (!on) return "";
+  LV_IDX = q;
+  return `<div class="row" style="margin-top:8px"><button type="button" data-lv-env>${esc(tr("rc.lv_env"))}</button><button type="button" data-lv-idx title="${esc(tr("rc.lv_idx_t"))}">${esc(tr("rc.lv_idx"))}</button></div>`;
+}
+document.addEventListener("click", (ev) => {
+  if (!(ev.target.closest && ev.target.closest("[data-lv-idx]")) || !LV_IDX) return;
+  const q = LV_IDX;
+  LabUI.closePop();
+  LabIndex.add(api, (m, err) => toast(esc(m), err), { key: q.name.replace(/_$/, ""), label: q.label.slice(0, 120), type: "calculated",
+    quantity: { value: +q.value, unit: q.unit === "1" ? "" : (q.unit || ""), ...(q.u > 0 ? { u: +q.u } : {}) } });
+});
 // Zeilenvariable (50/3 = u) weitergeben: an die anderen Blätter (export) oder an eine andere Umgebung (Verbindung)
 function lineSharePopover(anchor, e, it) {
   const r = envRes(e), o = r && r.lines ? r.lines[it.id] : null;
@@ -3375,7 +4489,8 @@ function lineSharePopover(anchor, e, it) {
   const html = `<div class="toolmenu" style="max-width:380px"><b>${symHtml(o.name)} = ${resultHtml(o.result, o.unit)}</b>
     <div class="small" style="margin-top:4px">${esc(tr("rc.lv_t"))}</div>
     <label style="display:block;margin-top:8px"><input type="checkbox" data-lv-all${it.export ? " checked" : ""}${others.length ? "" : " disabled"}> ${esc(tr("rc.lv_all", { n: others.length }))}</label>
-    ${OV && OV.ok && scalar ? `<div class="row" style="margin-top:8px"><button type="button" data-lv-env>${esc(tr("rc.lv_env"))}</button></div>` : ""}</div>`;
+    ${lvRow(OV && OV.ok && scalar, scalar && { name: o.name, value: o.result.value, unit: unitPlainJs(o.unit), label: `${o.name} · ${e.name || "Blatt"}: ${it.src}`,
+      u: o.unc && !o.unc.error ? +o.unc.u : o.unc_in ? +o.unc_in.u_si : 0 })}</div>`;
   const p = LabUI.popover(anchor, html);
   p.addEventListener("change", (ev) => {
     if (!ev.target.matches("[data-lv-all]")) return;
@@ -3388,7 +4503,48 @@ function lineSharePopover(anchor, e, it) {
     OV.share(anchor, o.name);
   });
 }
-// Werte zwischen Umgebungen (Übersicht, „⇄ Verbindungen“): eigene Zahlen-Variablen und Zeilenvariablen
+// Ergebnis einer Formelkarte weitergeben, wie eine Zeilenvariable
+function cardSharePopover(anchor, e, c) {
+  const r = envRes(e), o = ((r && r.cards) || []).find(x => x.id === c.id);
+  if (!o || o.status !== "ok" || !o.result) return;
+  const others = S.envs.filter(x => x.id !== e.id);
+  const html = `<div class="toolmenu" style="max-width:380px"><b>${symHtml(o.result.sym)} = ${o.result.text}</b>
+    <div class="small" style="margin-top:4px">${esc(tr("rc.card_shr_h"))}</div>
+    <label style="display:block;margin-top:8px"><input type="checkbox" data-lv-all${c.export ? " checked" : ""}${others.length ? "" : " disabled"}> ${esc(tr("rc.lv_all", { n: others.length }))}</label>
+    ${lvRow(OV && OV.ok, { name: o.result.sym, value: o.result.value, unit: o.result.unit, label: `${o.result.sym.replace(/_$/, "")} · ${e.name || "Blatt"}: ${EQ[c.eq] ? EQ[c.eq].de : c.eq}` })}</div>`;
+  const p = LabUI.popover(anchor, html);
+  p.addEventListener("change", (ev) => {
+    if (!ev.target.matches("[data-lv-all]")) return;
+    if (ev.target.checked) c.export = true; else delete c.export;
+    saveSoon(); recompute();
+  });
+  p.addEventListener("click", (ev) => {
+    if (!ev.target.closest("[data-lv-env]")) return;
+    LabUI.closePop();
+    OV.share(anchor, o.result.sym);
+  });
+}
+// Gelöste Gleichung weitergeben: ihre Lösungsvariablen gehen an die anderen Blätter
+function solveSharePopover(anchor, e, it) {
+  const r = envRes(e), o = r && r.lines ? r.lines[it.id] : null;
+  if (!o || !(o.sets || []).length) return;
+  const others = S.envs.filter(x => x.id !== e.id), first = o.sets.find(s => typeof s.store === "number");
+  const html = `<div class="toolmenu" style="max-width:380px"><b>${o.sets.map(s => symHtml(s.name)).join(", ")}</b>
+    <label style="display:block;margin-top:8px"><input type="checkbox" data-lv-all${it.export ? " checked" : ""}${others.length ? "" : " disabled"}> ${esc(tr("rc.lv_all", { n: others.length }))}</label>
+    ${lvRow(OV && OV.ok && first, first && { name: first.name, value: first.store, unit: unitPlainJs(first.unit), label: `${first.name} · ${e.name || "Blatt"}: ${it.src}` })}</div>`;
+  const p = LabUI.popover(anchor, html);
+  p.addEventListener("change", (ev) => {
+    if (!ev.target.matches("[data-lv-all]")) return;
+    if (ev.target.checked) it.export = true; else delete it.export;
+    saveSoon(); recompute();
+  });
+  p.addEventListener("click", (ev) => {
+    if (!ev.target.closest("[data-lv-env]")) return;
+    LabUI.closePop();
+    OV.share(anchor, first.name);
+  });
+}
+// Werte zwischen Umgebungen (Übersicht, „⇄ Verbindungen“): eigene Zahlen-Variablen, Zeilenvariablen, Kartenergebnisse, Lösungen
 const unitPlainJs = (u) => String(u || "").replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g, (m) => "^" + m.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, (c) => "0123456789-"["⁰¹²³⁴⁵⁶⁷⁸⁹⁻".indexOf(c)])).replace(/·/g, "*");
 function rcCatalogue() {
   const out = [], have = new Set();
@@ -3398,15 +4554,36 @@ function rcCatalogue() {
     if (!String(v.value).trim() || !Number.isFinite(n)) continue;
     const sym = normName(v.sym);
     if (have.has(sym)) continue;
-    have.add(sym); out.push({ sym, label: v.sym, value: n, unit: v.unit || "", kind: v._kindSet ? v.kind : "" });
+    const vin = S.ws && S.ws.envs ? Object.values(S.ws.envs).flatMap(r => (r.unc && r.unc.inputs) || []).find(x => x.var === v.id) : null;
+    const u = vin ? +vin.u : +v.u;                                 // Messunsicherheit reist mit (u in der Einheit des Werts)
+    have.add(sym); out.push({ sym, label: v.sym, value: n, unit: v.unit || "", kind: v._kindSet ? v.kind : "", ...(u > 0 ? { u, unc: v.u_m || "" } : {}) });
   }
   for (const e of S.envs) {
     const r = envRes(e); if (!r || !r.lines) continue;
     for (const it of e.items) {
+      if (it.type === "card") {                                    // Ergebnis einer Formelkarte (Wert in der gewählten Einheit)
+        const c = (r.cards || []).find(x => x.id === it.id), q = c && c.status === "ok" ? c.result : null;
+        const sym = q && q.sym;
+        if (!q || have.has(sym) || !Number.isFinite(+q.value)) continue;
+        have.add(sym);
+        out.push({ sym, label: `${sym.replace(/_$/, "")} · ${e.name || "Blatt"}: ${EQ[it.eq] ? EQ[it.eq].de : it.eq}`.slice(0, 120), value: q.value, unit: q.unit === "1" ? "" : q.unit, kind: q.kind || "" });
+        continue;
+      }
+      const ln = it.type === "calc" ? r.lines[it.id] : null;
+      if (ln && (ln.kind === "solve" || ln.kind === "system")) {   // Lösungen einer Gleichung (Werte in SI)
+        for (const s of ln.sets || []) {
+          if (typeof s.store !== "number" || !Number.isFinite(s.store) || have.has(s.name)) continue;
+          have.add(s.name);
+          out.push({ sym: s.name, label: `${s.name} · ${e.name || "Blatt"}: ${it.src}`.slice(0, 120), value: s.store, unit: unitPlainJs(s.unit), kind: "" });
+        }
+        continue;
+      }
       const o = it.type === "calc" ? r.lines[it.id] : null;
       if (!o || o.kind !== "assign" || !o.result || o.result.type !== "scalar" || have.has(o.name)) continue;
       have.add(o.name);
-      out.push({ sym: o.name, label: `${o.name} · ${e.name || "Blatt"}: ${it.src}`.slice(0, 120), value: o.result.value, unit: unitPlainJs(o.unit), kind: "" });
+      const u = o.unc && !o.unc.error ? +o.unc.u : o.unc_in ? +o.unc_in.u_si : 0;      // SI wie der Wert
+      out.push({ sym: o.name, label: `${o.name} · ${e.name || "Blatt"}: ${it.src}`.slice(0, 120), value: o.result.value, unit: unitPlainJs(o.unit), kind: "",
+        ...(u > 0 ? { u, unc: o.unc ? (o.unc.method_name || o.unc.method || "") : "" } : {}) });
     }
   }
   return out;
@@ -3423,11 +4600,13 @@ async function rcApplyEnvValues(rows) {
       let sym = r.key;
       for (let i = 2; S.values.some(x => normName(x.sym) === sym); i++) sym = `${r.key}_${i}`;
       const kind = KIND[r.kind] ? r.kind : null, k = kind || defaultKindFor(sym) || "number";
-      v = { id: uid(), sym, kind: k, value: val, unit, scope: "all", as: null, _kindSet: !!kind, origin: og };
+      v = { id: uid(), sym, kind: k, value: val, unit, scope: "all", as: null, _kindSet: !!kind, origin: og,
+        ...(+r.u > 0 ? { u: +r.u, u_m: r.unc || "" } : {}) };        // Messunsicherheit der Quelle (Standardunsicherheit)
       S.values.push(v); ch = true;
     } else {
       const edited = v.origin && v.origin.edited;
       if (!edited && (v.value !== val || (v.unit || "") !== unit)) { v.value = val; v.unit = unit; ch = true; }
+      if (!edited && !v.unc && (+v.u || 0) !== (+r.u > 0 ? +r.u : 0)) { if (+r.u > 0) { v.u = +r.u; v.u_m = r.unc || ""; } else { delete v.u; delete v.u_m; } ch = true; }
       const ng = { ...og, ...(edited ? { edited: true } : {}) };
       if (JSON.stringify(v.origin) !== JSON.stringify(ng)) { v.origin = ng; ch = true; }
     }
@@ -3481,7 +4660,7 @@ async function init() {
       if (OV) setTimeout(() => OV.sync(), 0);                  // Name in der Brotkrume nach Wechsel über den Dialog
     },
   });
-  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.onLang(() => { renderVarFold(); renderDsVars(); WK.data = null; WK.cards = {}; WK.shown = false; if (S.libTab === "mat") wkEnsure(); }); }
+  if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.onLang(() => { renderVarFold(); renderDsVars(); if (S.envs.some(e => (envRes(e) || {}).unc)) recompute(); WK.data = null; WK.cards = {}; WK.shown = false; if (S.libTab === "mat") wkEnsure(); }); }
   // UR: Spalten (Variablen, Bibliothek, Ausdrucksliste, Matrixliste) durch Ziehen an der Kante; Dialoge automatisch.
   // Die Grafik zeichnet über den vorhandenen ResizeObserver auf #stage neu.
   if (window.LabUI && LabUI.sizes) LabUI.sizes("rechner");

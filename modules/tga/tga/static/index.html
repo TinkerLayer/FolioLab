@@ -39,6 +39,11 @@ label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 2px;
 label.chk { display: flex; gap: 6px; align-items: center; color: var(--ink); font-size: 13px; margin: 6px 0; }
 code { font-size: 12px; background: var(--soft); padding: 0 3px; border-radius: 3px; }
 .small { font-size: 12px; color: var(--muted); }
+.uin > div { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.uin > div > label { flex-basis: 100%; }
+.uin > div > input { flex: 1; min-width: 0; width: auto; }
+.upm { font-size: 11px; color: var(--muted); white-space: nowrap; }
+#uRes tr[data-ur], #cUnc tr[data-ur], #kUnc tr[data-ur] { cursor: pointer; }
 .row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -274,6 +279,24 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
         <div><label for="isoAfter">Isotherm: Verlust nach [min]</label><input type="number" id="isoAfter" placeholder="z. B. 30"></div>
       </div>
       <div class="tw" id="resWrap" data-size-h="res" data-size-mode="max"></div>
+      <details class="lab-fold" data-fold="unc" id="uncFold" hidden><summary><span data-i18n="tg.f_unc">Messunsicherheit</span> <span class="cnt" id="uncCnt"></span></summary>
+        <div class="small" data-i18n="tg.u_hint">Optional: mit dem ±-Knopf Unsicherheiten der Einwaage, der TGA-Waage und der Temperatur angeben. Ohne Angabe gelten alle Werte als exakt. Gilt für alle Läufe; die Tabellen zeigen dann ± U.</div>
+        <div class="row3 uin">
+          <div><label for="uM0" data-i18n="tg.u_m0">Einwaage m₀ [mg]</label><input id="uM0" readonly></div>
+          <div><label for="uBal" data-i18n="tg.u_bal">TGA-Waage je Ablesung [mg]</label><input id="uBal" readonly></div>
+          <div><label for="uDrift" data-i18n="tg.u_drift">Drift / Auftrieb [mg]</label><input id="uDrift" readonly value="0"></div>
+        </div>
+        <div class="row3 uin">
+          <div><label for="uTcal" data-i18n="tg.u_tcal">Temperaturkalibrierung [K]</label><input id="uTcal" readonly value="0"></div>
+          <div><label for="uTtc" data-i18n="tg.u_ttc">Temperaturfühler bei 500 °C</label><input id="uTtc" readonly value="500"></div>
+          <div><label for="uBeta" data-i18n="tg.u_beta">Heizrate [K/min]</label><input id="uBeta" readonly></div>
+        </div>
+        <div id="uMeth" class="row"></div>
+        <div class="row"><button id="uFromCal" data-i18n="tg.u_fromcal" data-i18n-title="tg.u_fromcal_t">Aus Temperaturkalibrierung</button><button id="uOwn" data-i18n="tg.u_own">Eigene Messmittel …</button></div>
+        <div id="uNotes"></div>
+        <div class="tw" id="uRes"></div>
+        <div id="uDet"></div>
+      </details>
       <details id="dscFold" hidden><summary>DSC / Wärmestrom auswerten …</summary>
         <div class="row2">
           <div><label for="dscUnit">Einheit des Signals</label><select id="dscUnit"><option value="">aus der Datei</option><option value="mW">mW</option><option value="W/g">W/g (mW/mg)</option><option value="uV">µV (DTA, unkalibriert)</option></select></div>
@@ -365,6 +388,8 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="small">Markierte Läufe werden im Diagramm überlagert (jeweils mit ihrem eigenen Protokoll). Name anklicken zum Umbenennen.</div>
       <div class="list" id="cList" data-size-h="cmp" data-size-mode="max"></div>
       <div class="tw" id="cTable" data-size-h="cmptab" data-size-mode="max"></div>
+      <div class="row" id="cRepRow" hidden><label class="chk" style="margin:0" data-i18n-title="tg.u_rep_t"><input type="checkbox" id="cRep"> <span data-i18n="tg.u_rep">Läufe sind Wiederholungen derselben Probe</span></label></div>
+      <div class="tw" id="cUnc"></div><div id="cUncDet"></div>
       <h4 class="sub">Referenzen einblenden</h4>
       <div class="small">Kurven aus jeder Bibliothek (auch eigene, z. B. Werte aus einem Paper) gestrichelt einblenden. Sie gehen mit Quellenangabe in die TG-Abbildung des Berichts.</div>
       <div class="list" id="refList" data-size-h="refs" data-size-mode="max"></div>
@@ -428,6 +453,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
       <div class="small">Eigene Gleichungen rechnen mit den Kennwerten des Laufs (Namen unten anklicken) und den Funktionen <code>m(T)</code> (Masse in % bei T), <code>dtg(T)</code> und <code>loss(T1, T2)</code>. Spätere Gleichungen dürfen frühere verwenden. Aktive Gleichungen gehen als \labval, Tabelle und Formel in den Bericht.</div>
       <div class="list" id="eqList" data-size-h="eq" data-size-mode="max"></div>
       <div class="row"><button class="primary" id="eqNew">Neue Gleichung …</button><button id="eqExp">Exportieren</button><button id="eqImp">Importieren …</button></div>
+      <div id="eqTaken" hidden></div>
       <h4 class="sub">Ergebnisse</h4>
       <div class="tw" id="eqRes" data-size-h="eqres" data-size-mode="max"></div>
       <h4 class="sub">Verfügbare Namen</h4>
@@ -456,6 +482,7 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
 <script src="labboard.js"></script>
 <script src="laboverview.js"></script>
 <script src="labimport.js"></script>
+<script src="labunc.js"></script>
 <script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
    Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
 (function (g) {
@@ -495,7 +522,19 @@ const TG_T = {
         "tg.ds_from": "Datensatz „{t}“ v{v}", "tg.ds_upd": "auf v{v} aktualisieren", "tg.ds_newer": "neuere Version v{v} vorhanden",
         "tg.ds_same": "Schon aktuell (v{v}).", "tg.ds_done": "Aktualisiert auf v{v}.",
         "tg.r_t": "Zeit", "tg.r_T": "Probentemperatur", "tg.r_Tprog": "Programmtemperatur", "tg.r_m": "Masse", "tg.r_dtg": "DTG (Gerät)",
-        "tg.r_hf": "Wärmestrom / DTA", "tg.r_flow": "Gasfluss", "tg.r_seg": "Segment", "tg.r_gas": "Gas" },
+        "tg.r_hf": "Wärmestrom / DTA", "tg.r_flow": "Gasfluss", "tg.r_seg": "Segment", "tg.r_gas": "Gas",
+        // Messunsicherheit
+        "tg.f_unc": "Messunsicherheit", "tg.u_hint": "Optional: mit dem ±-Knopf Unsicherheiten der Einwaage, der TGA-Waage und der Temperatur angeben. Ohne Angabe gelten alle Werte als exakt. Gilt für alle Läufe; die Tabellen zeigen dann ± U.",
+        "tg.u_m0": "Einwaage m₀ [mg]", "tg.u_bal": "TGA-Waage je Ablesung [mg]", "tg.u_drift": "Drift / Auftrieb [mg]",
+        "tg.u_tcal": "Temperaturkalibrierung [K]", "tg.u_ttc": "Temperaturfühler bei 500 °C", "tg.u_beta": "Heizrate [K/min]",
+        "tg.u_fromcal": "Aus Temperaturkalibrierung", "tg.u_fromcal_t": "Reststreuung der Kalibriergeraden (Zusammensetzung → Kalibrierung, ab drei Punkten) als Unsicherheit der Temperaturkalibrierung übernehmen",
+        "tg.u_own": "Eigene Messmittel …", "tg.u_q": "Grösse", "tg.u_v": "Wert ± U", "tg.u_click": "Zeile anklicken für das Budget.",
+        "tg.u_g_steps": "Stufen", "tg.u_g_temps": "Temperaturen", "tg.u_g_char": "Rückstand", "tg.u_g_comp": "Zusammensetzung und Gehalte",
+        "tg.u_cal_few": "Für die Reststreuung braucht die Kalibrierung mindestens drei Punkte (Zusammensetzung → Kalibrierung).",
+        "tg.u_cal_lab": "Reststreuung der Kalibriergeraden ({n} Punkte, ASTM E1582)", "tg.u_cal_done": "Temperaturkalibrierung: u = {u} K übernommen.",
+        "tg.u_rep": "Läufe sind Wiederholungen derselben Probe", "tg.u_rep_t": "Mittelwert ± U der überlagerten Läufe: Typ A aus der Streuung, kombiniert mit Typ B der Einzelbudgets",
+        "tg.u_rep_h": "Mittel aus Wiederholungen", "tg.u_kin": "Unsicherheit der Aktivierungsenergie",
+        "tg.u_kin_n": "95-%-Vertrauensbereich der Regression im Stil der Messunsicherheit. Temperatur- und Massenunsicherheiten sind nicht zusätzlich eingerechnet (nicht doppelt gezählt): ihre Wirkung steckt schon in der Streuung um die Gerade." },
   en: { "tg.tab_bearbeiten": "Edit", "tg.tab_stufen": "Steps", "tg.tab_kennwerte": "Values", "tg.tab_zusammensetzung": "Composition",
         "tg.tab_suche": "Search", "tg.tab_mischung": "Mixture", "tg.tab_vergleich": "Compare", "tg.tab_kinetik": "Kinetics",
         "tg.tab_trennung": "Separation", "tg.tab_bibliotheken": "Libraries", "tg.tab_gleichungen": "Equations",
@@ -519,7 +558,18 @@ const TG_T = {
         "tg.ds_from": "Dataset “{t}” v{v}", "tg.ds_upd": "update to v{v}", "tg.ds_newer": "newer version v{v} available",
         "tg.ds_same": "Already up to date (v{v}).", "tg.ds_done": "Updated to v{v}.",
         "tg.r_t": "Time", "tg.r_T": "Sample temperature", "tg.r_Tprog": "Program temperature", "tg.r_m": "Mass", "tg.r_dtg": "DTG (instrument)",
-        "tg.r_hf": "Heat flow / DTA", "tg.r_flow": "Gas flow", "tg.r_seg": "Segment", "tg.r_gas": "Gas" },
+        "tg.r_hf": "Heat flow / DTA", "tg.r_flow": "Gas flow", "tg.r_seg": "Segment", "tg.r_gas": "Gas",
+        "tg.f_unc": "Measurement uncertainty", "tg.u_hint": "Optional: use the ± button to enter uncertainties of the sample mass, the TGA balance and the temperature. Without entries all values count as exact. Applies to all runs; the tables then show ± U.",
+        "tg.u_m0": "Sample mass m₀ [mg]", "tg.u_bal": "TGA balance per reading [mg]", "tg.u_drift": "Drift / buoyancy [mg]",
+        "tg.u_tcal": "Temperature calibration [K]", "tg.u_ttc": "Temperature sensor at 500 °C", "tg.u_beta": "Heating rate [K/min]",
+        "tg.u_fromcal": "From temperature calibration", "tg.u_fromcal_t": "Use the residual scatter of the calibration line (Composition → Calibration, three points or more) as the uncertainty of the temperature calibration",
+        "tg.u_own": "Own instruments …", "tg.u_q": "Quantity", "tg.u_v": "Value ± U", "tg.u_click": "Click a row for the budget.",
+        "tg.u_g_steps": "Steps", "tg.u_g_temps": "Temperatures", "tg.u_g_char": "Residue", "tg.u_g_comp": "Composition and contents",
+        "tg.u_cal_few": "The residual scatter needs a calibration with at least three points (Composition → Calibration).",
+        "tg.u_cal_lab": "Residual scatter of the calibration line ({n} points, ASTM E1582)", "tg.u_cal_done": "Temperature calibration: u = {u} K applied.",
+        "tg.u_rep": "Runs are repeats of the same sample", "tg.u_rep_t": "Mean ± U of the overlaid runs: type A from the scatter, combined with type B of the single budgets",
+        "tg.u_rep_h": "Mean of repeats", "tg.u_kin": "Uncertainty of the activation energy",
+        "tg.u_kin_n": "95 % confidence interval of the regression in the style of measurement uncertainty. Temperature and mass uncertainties are not added on top (not counted twice): their effect is already in the scatter about the line." },
 };
 if (window.LabUI) LabUI.strings(TG_T);
 const tr = (k, v) => (window.LabUI ? LabUI.t(k, v) : (TG_T.de[k] || k).replace(/\{(\w+)\}/g, (m, x) => (v && v[x] !== undefined ? v[x] : m)));
@@ -545,6 +595,7 @@ const S = {
   view: null, mouse: null, drag: null, colorIdx: 0,
   libs: [], searchLibs: null, libSel: null, libEntries: [], libEntry: null,
   refs: [], eqs: [], eqOn: null, kin: null, kinSel: null, kinView: "E", kinRep: true, its: [], itsRes: null,
+  uncMethod: { method: "gum", p: 0.95, k: null }, uncRep: false, rep: null,     // Messunsicherheit (für alle Läufe gleich)
 };
 const cur = () => S.runs[S.sel] || null;
 const store = {
@@ -673,8 +724,11 @@ function stateOf(o, report = false) {
     pipeline: o.pipeline, steps: { opts: o.stepOpts, manual: o.manual }, composition: o.comp, reactions: o.reactions,
     calib: o.calib, deconv: o.deconv, equations: activeEqs(),
   };
-  if (S.ext && S.ext.length) st.ext_values = S.ext;                  // Werte anderer Umgebungen (Verbindung)
+  const extV = TK ? TK.ext(S.ext) : (S.ext || []);                    // Indexwerte und Werte anderer Umgebungen (Verbindung)
+  if (extV.length) st.ext_values = extV;
   if (o.dsc && ((o.dsc.peaks || []).length || (o.dsc.tg || []).length)) st.dsc = o.dsc;
+  const un = uncSpecs();
+  if (Object.keys(un).length) { st.unc = un; st.unc_method = S.uncMethod; }   // Messunsicherheit nur mit Angaben
   if (report) {
     if (o.search && o.searchRep && !o.searchStale) {
       st.search = { hits: o.search.hits.slice(0, 10).map(h => slimHit(h)), query: arr(o.search.query), mode: o.search.mode, shift: o.search.shift, w_curve: o.search.w_curve };
@@ -688,9 +742,10 @@ function stateOf(o, report = false) {
 const arr = (a) => a ? Array.from(a, v => (v === null || !isFinite(v)) ? null : +(+v).toPrecision(6)) : null;
 function slimHit(h) { const o = { ...h }; if (h.y) o.y = arr(h.y); if (h.tg) o.tg = arr(h.tg); return o; }
 async function refresh(o) {
-  const j = await withBusy(() => api("api/run", { id: o.id, state: stateOf(o) }));
+  const j = await withBusy(() => api("api/run", { id: o.id, state: stateOf(o), lang: pageLang() }));
   if (j.error) { toast(`${o.name}: ${j.error}`, true); return false; }
   o.data = j;
+  S.rep = null;                                   // Wiederholungen neu rechnen (Lauf geändert)
   return true;
 }
 async function refreshCur() { const o = cur(); if (!o) return; if (await refresh(o)) { updateAll(); draw(); } }
@@ -882,7 +937,7 @@ function updateSteps() {
   const u = d.steps.some(s => s.x === "t") ? "" : "";
   const rows = d.steps.map(s => {
     const xu = s.x === "T" ? "°C" : "min";
-    return `<tr class="click" data-no="${s.no}"><td>${s.no}</td><td>${fx(stepX(s, "onset"), 1)}</td><td>${fx(stepX(s, "peak"), 1)}</td><td>${fx(stepX(s, "endset"), 1)}</td><td>${fx(stepX(s, "mid"), 1)}</td><td>${xu}</td><td><b>${fx(s.loss, 2)}</b>${shr("L" + s.no)}</td><td>${fx(s.loss_mg, 3)}</td><td><button data-rm="${s.no}" title="Stufe entfernen">×</button></td></tr>`;
+    return `<tr class="click" data-no="${s.no}"><td>${s.no}</td><td>${fx(stepX(s, "onset"), 1)}${pmU(`step${s.no}-onset`)}</td><td>${fx(stepX(s, "peak"), 1)}${pmU(`step${s.no}-peak`)}</td><td>${fx(stepX(s, "endset"), 1)}${pmU(`step${s.no}-endset`)}</td><td>${fx(stepX(s, "mid"), 1)}</td><td>${xu}</td><td><b>${fx(s.loss, 2)}</b>${pmU(`step${s.no}-loss`)}${shr("L" + s.no)}</td><td>${fx(s.loss_mg, 3)}</td><td><button data-rm="${s.no}" title="Stufe entfernen">×</button></td></tr>`;
   }).join("");
   $("#stWrap").innerHTML = d.steps.length ? `<table class="res"><thead><tr><th>Nr</th><th>Onset</th><th>Spitze</th><th>Endset</th><th>Mitte</th><th></th><th>Verlust %</th><th>mg</th><th></th></tr></thead><tbody>${rows}</tbody></table>` + u
     : `<div class="small" style="padding:8px">Keine Stufe gefunden. Mindesthöhe oder Mindestverlust verringern, oder Grenzen mit dem Werkzeug R setzen.</div>`;
@@ -1005,11 +1060,11 @@ async function egsLoad(file) {
 // ---------------------------------------------------------------- Kennwerte
 function updateValues() {
   const o = cur(), d = o && o.data;
-  if (!d) { ["#ltWrap", "#resWrap", "#segWrap", "#fileInfo"].forEach(s => $(s).innerHTML = ""); return; }
-  $("#ltWrap").innerHTML = `<table class="res"><thead><tr><th class="l">Verlust</th><th>T [°C]</th><th>t [min]</th></tr></thead><tbody>${Object.entries(d.loss_T).map(([k, v]) => `<tr><td class="l">${k} %</td><td>${v ? fx(v.T, 1) + shr("T" + k) : "–"}</td><td>${v ? fx(v.t, 2) : "–"}</td></tr>`).join("")}</tbody></table>`;
+  if (!d) { ["#ltWrap", "#resWrap", "#segWrap", "#fileInfo"].forEach(s => $(s).innerHTML = ""); updateUnc(); return; }
+  $("#ltWrap").innerHTML = `<table class="res"><thead><tr><th class="l">Verlust</th><th>T [°C]</th><th>t [min]</th></tr></thead><tbody>${Object.entries(d.loss_T).map(([k, v]) => `<tr><td class="l">${k} %</td><td>${v ? fx(v.T, 1) + pmU("t" + k) + shr("T" + k) : "–"}</td><td>${v ? fx(v.t, 2) : "–"}</td></tr>`).join("")}</tbody></table>`;
   $("#resT").value = o.stepOpts.residue_T ?? ""; $("#isoAfter").value = o.stepOpts.iso_after ?? "";
   const r = d.residue || {};
-  let h = `<table class="res"><tbody><tr><td class="l">Rückstand am Ende${r.T_end != null ? ` (${fx(r.T_end, 0)} °C)` : ""}</td><td><b>${fx(r.end, 2)} %</b>${shr("res")}</td><td>${r.end_mg != null ? fx(r.end_mg, 3) + " mg" : ""}</td></tr>`;
+  let h = `<table class="res"><tbody><tr><td class="l">Rückstand am Ende${r.T_end != null ? ` (${fx(r.T_end, 0)} °C)` : ""}</td><td><b>${fx(r.end, 2)} %</b>${pmU("residue")}${shr("res")}</td><td>${r.end_mg != null ? fx(r.end_mg, 3) + " mg" : ""}</td></tr>`;
   if (r.at) h += `<tr><td class="l">Masse bei ${fx(r.at.T, 0)} °C</td><td><b>${fx(r.at.m, 2)} %</b></td><td>${r.at.mg != null ? fx(r.at.mg, 3) + " mg" : ""}</td></tr>`;
   h += `</tbody></table>`;
   if (d.iso && d.iso.length) h += `<table class="res" style="margin-top:6px"><thead><tr><th>Segment</th><th>T [°C]</th><th>Dauer [min]</th><th>Verlust [%]</th><th>nach t</th></tr></thead><tbody>${d.iso.map(i => `<tr><td>${i.no}</td><td>${fx(i.T, 1)}</td><td>${fx(i.duration, 1)}</td><td>${fx(i.loss, 3)}</td><td>${i.loss_after != null ? fx(i.loss_after, 3) + " % (" + fx(i.after, 0) + " min)" : "–"}</td></tr>`).join("")}</tbody></table>`;
@@ -1020,6 +1075,120 @@ function updateValues() {
   const cols = (m.columns || []).map(c => `${esc(c.name || "?")}${c.unit ? " [" + esc(c.unit) + "]" : ""} → ${esc(META.roles[c.role] || "–")}`).join("<br>");
   $("#fileInfo").innerHTML = `${runInfoHtml(o)}<br>${m.crucible ? "Tiegel: " + esc(m.crucible) + "<br>" : ""}${m.instrument ? "Gerät: " + esc(m.instrument) + "<br>" : ""}${m.date ? "Datum: " + esc(m.date) + "<br>" : ""}<div style="margin-top:6px">${cols}</div>${m.m_column ? `<div class="small">Massenspalte: ${esc(m.m_column)}</div>` : ""}${readNotesHtml(o)}<div class="row"><button id="fiMap">Spalten zuordnen …</button></div>`;
   $("#fiMap").addEventListener("click", () => mapDialog());
+  updateUnc();
+}
+
+// ---------------------------------------------------------------- Messunsicherheit (labunc.js; alles optional)
+const UNC_IN = { m0: ["#uM0", "tg.u_m0", "mg"], bal: ["#uBal", "tg.u_bal", "mg"], drift: ["#uDrift", "tg.u_drift", "mg"],
+  T_cal: ["#uTcal", "tg.u_tcal", "K"], T_tc: ["#uTtc", "tg.u_ttc", "°C"], beta: ["#uBeta", "tg.u_beta", "K/min"] };
+let UNC_ON = false, UMP = null, uncTimer = null;
+const pageLang = () => String(window.LabUI && LabUI.lang ? LabUI.lang() : (document.documentElement.lang || "de")).slice(0, 2) === "en" ? "en" : "de";
+function uncSpecs() {
+  if (!UNC_ON) return {};
+  const a = LabUnc.all(), o = {};
+  for (const k of Object.keys(UNC_IN)) if (a[k]) o[k] = a[k];
+  return o;
+}
+function uRes(id, o = cur()) { const u = o && o.data && o.data.unc; return u ? (u.results || []).find(r => r.id === id) || null : null; }
+function uU(res) { return !res ? null : (res.U != null && isFinite(res.U)) ? res.U : (res.hi != null && res.lo != null ? (res.hi - res.lo) / 2 : null); }
+function pmU(id, o) {                     // kleines „± U“ hinter einem Tabellenwert (nur mit Angaben)
+  const r = UNC_ON && uRes(id, o), U = r && uU(r.res);
+  if (!(U > 0)) return "";
+  const Us = LabUnc.roundPm(r.value, U)[1];
+  return ` <span class="upm" title="${esc(r.res.text || "")}">± ${esc(pageLang() === "de" ? Us.replace(".", ",") : Us)}</span>`;
+}
+function uncTable(res, selId, attr = "data-ur") {
+  return `<table class="res"><thead><tr><th class="l">${esc(tr("tg.u_q"))}</th><th>${esc(tr("tg.u_v"))}</th></tr></thead><tbody>` +
+    res.map(r => r.head ? `<tr><td class="l small" colspan="2"><b>${esc(r.head)}</b></td></tr>` :
+      `<tr ${attr}="${esc(r.id)}"${selId === r.id ? ' class="sel"' : ""}><td class="l wrap">${esc(r.label)}</td><td>${esc(r.res.error ? "⚠ " + r.res.error : r.res.text || "")}</td></tr>`).join("") +
+    `</tbody></table><div class="small">${esc(tr("tg.u_click"))}</div>`;
+}
+function wireUncTable(box, det, list, getSel, setSel) {
+  $$("tr[data-ur]", box).forEach(row => row.addEventListener("click", () => { setSel(getSel() === row.dataset.ur ? null : row.dataset.ur); paintSel(); }));
+  const paintSel = () => {
+    $$("tr[data-ur]", box).forEach(row => row.classList.toggle("sel", row.dataset.ur === getSel()));
+    const r = list.find(x => x.id === getSel());
+    if (r) LabUnc.result(det, r.res, { label: true }); else det.innerHTML = "";
+  };
+  paintSel();
+}
+function uncInit() {
+  if (!window.LabUnc) return;                         // älterer Modulserver ohne labunc.js: Seite ohne Unsicherheit
+  UNC_ON = true;
+  $("#uncFold").hidden = false;
+  for (const [k, [sel, lab, unit]] of Object.entries(UNC_IN)) LabUnc.attach($(sel), { key: k, label: tr(lab), unit });
+  UMP = LabUnc.methodPicker($("#uMeth"), { ...S.uncMethod, onChange: (m) => { S.uncMethod = m; uncChanged(true); } });
+  LabUnc.onChange(() => uncChanged(false));
+  $("#uOwn").addEventListener("click", async () => { await LabUnc.instrumentsDialog(); uncChanged(false); });
+  $("#uFromCal").addEventListener("click", uncFromCal);
+}
+function uncChanged(methodChanged) {                  // alle Läufe neu (Angaben gelten für alle), dann Wiederholungen/Kinetik
+  clearTimeout(uncTimer);
+  uncTimer = setTimeout(async () => {
+    for (const o of S.runs) await refresh(o);
+    if (methodChanged && S.kin && S.kin.res) {
+      const pipes = {}; S.kin.ids.forEach(id => { const o = S.runs.find(x => x.id === id); if (o) pipes[id] = o.pipeline; });
+      const j = await withBusy(() => api("api/kinetics", { ids: S.kin.ids, pipelines: pipes, T_lo: S.kin.T_lo, T_hi: S.kin.T_hi, opts: S.kin.opts, unc_method: S.uncMethod, lang: pageLang() }));
+      if (!j.error) S.kin.res = j;
+    }
+    updateAll(); draw();
+  }, 60);
+}
+function uncFromCal() {
+  const r = S.itsRes, res = (r && r.resid) || [];
+  if (res.length < 3) return toast(tr("tg.u_cal_few"), true);
+  const n = res.length, s = Math.sqrt(res.reduce((a, x) => a + x * x, 0) / (n - 2));   // Reststandardabweichung, n − 2 FG
+  LabUnc.set("T_cal", { parts: [{ kind: "u", u: +s.toPrecision(3), dof: n - 2, label: tr("tg.u_cal_lab", { n }) }] });
+  toast(tr("tg.u_cal_done", { u: fx(s, 2) }));
+}
+function updateUnc() {
+  if (!UNC_ON) return;
+  const o = cur(), d = o && o.data;
+  const rate = d && d.orig && d.orig.meta ? d.orig.meta.rate : null;
+  const vals = { m0: d && d.m0 ? fx(d.m0, 3) : "", bal: d && d.m0 ? fx(d.m0, 3) : "", beta: rate ? fx(rate, 1) : "" };
+  for (const [k, v] of Object.entries(vals)) { const el = $(UNC_IN[k][0]); if (el.value !== v) { el.value = v; el.dispatchEvent(new Event("input")); } }
+  const n = Object.keys(uncSpecs()).length;
+  $("#uncCnt").textContent = n ? `(${n})` : "";
+  const u = d && d.unc;
+  $("#uNotes").innerHTML = u ? (u.notes || []).map(t => `<div class="note warn">${esc(t)}</div>`).join("") : "";
+  const rs = (u && u.results) || [];
+  if (!rs.length) { $("#uRes").innerHTML = ""; $("#uDet").innerHTML = ""; return; }
+  const list = [];
+  for (const g of ["steps", "temps", "char", "comp"]) {
+    const x = rs.filter(r => r.group === g);
+    if (x.length) list.push({ head: tr("tg.u_g_" + g) }, ...x);
+  }
+  $("#uRes").innerHTML = uncTable(list, S.uncSel);
+  wireUncTable($("#uRes"), $("#uDet"), rs, () => S.uncSel, (v) => { S.uncSel = v; });
+}
+function uncRestore(extra) {                          // gespeicherter Stand der Umgebung
+  if (!UNC_ON) return;
+  extra = extra || {};
+  if (extra.uncMethod && extra.uncMethod.method) { S.uncMethod = extra.uncMethod; if (UMP) UMP.set(S.uncMethod); }
+  S.uncRep = !!extra.uncRep;
+  LabUnc.load(extra.unc || {});
+  if (Object.keys(uncSpecs()).length) uncChanged(false);   // Läufe wurden ohne Angaben gerechnet
+}
+async function uncReplicates(shown, key) {
+  const j = await withBusy(() => api("api/uncert/replicates", { items: shown.map(o => ({ id: o.id, state: { ...stateOf(o), unc_method: S.uncMethod } })), lang: pageLang() }));
+  S.rep = j.error ? { key, error: j.error, results: [] } : { ...j, key };
+}
+function updateRep(shown) {                            // Vergleich: Läufe als Wiederholungen derselben Probe
+  const on = UNC_ON && shown.length > 1;
+  $("#cRepRow").hidden = !on;
+  $("#cRep").checked = S.uncRep;
+  if (!on || !S.uncRep) { $("#cUnc").innerHTML = ""; $("#cUncDet").innerHTML = ""; return; }
+  const key = shown.map(o => o.id).join(",");
+  if ((!S.rep || S.rep.key !== key) && S.repPending !== key) {
+    S.repPending = key;
+    uncReplicates(shown, key).finally(() => { S.repPending = null; updateCompare(); });
+    return;
+  }
+  if (!S.rep || S.rep.key !== key) return;
+  if (S.rep.error) { $("#cUnc").innerHTML = `<div class="note err">${esc(S.rep.error)}</div>`; return; }
+  const rs = S.rep.results || [];
+  $("#cUnc").innerHTML = rs.length ? `<h4 class="sub">${esc(tr("tg.u_rep_h"))} (n = ${S.rep.n})</h4>` + uncTable(rs, S.repSel) : "";
+  wireUncTable($("#cUnc"), $("#cUncDet"), rs, () => S.repSel, (v) => { S.repSel = v; });
 }
 
 // ---------------------------------------------------------------- Zusammensetzung, Reaktionen, Kalibrierung
@@ -1032,7 +1201,7 @@ function updateComp() {
   $("#cpParams").innerHTML = def ? Object.entries(params).map(([k, v]) => `<div><label>${k === "T1" ? "Grenze 1 [°C]" : k === "T2" ? "Grenze 2 [°C]" : "Grenzen [°C], Komma"}</label><input data-cp="${k}" value="${Array.isArray(v) ? v.join("; ") : v}"></div>`).join("") : "";
   const c = d && d.comp;
   $("#cpOut").innerHTML = !c ? "" : c.error ? `<div class="note err">${esc(c.error)}</div>` :
-    `<div class="tw" data-size-h="cp" data-size-mode="max"><table class="res"><thead><tr><th class="l">Anteil</th><th class="l">Bereich</th><th>%</th>${c.basis ? "<th>% trocken</th>" : ""}</tr></thead><tbody>${c.rows.map(r => `<tr><td class="l">${esc(r.name)}</td><td class="l small">${esc([r.from, r.to].filter(x => x !== "" && x != null).map(x => typeof x === "number" ? fmt(x, 0) + " °C" : x).join(" – "))}</td><td><b>${fx(r.pct, 2)}</b></td>${c.basis ? `<td>${r.dry != null ? fx(r.dry, 2) : "–"}</td>` : ""}</tr>`).join("")}</tbody></table></div>` +
+    `<div class="tw" data-size-h="cp" data-size-mode="max"><table class="res"><thead><tr><th class="l">Anteil</th><th class="l">Bereich</th><th>%</th>${c.basis ? "<th>% trocken</th>" : ""}</tr></thead><tbody>${c.rows.map((r, ri) => `<tr><td class="l">${esc(r.name)}</td><td class="l small">${esc([r.from, r.to].filter(x => x !== "" && x != null).map(x => typeof x === "number" ? fmt(x, 0) + " °C" : x).join(" – "))}</td><td><b>${fx(r.pct, 2)}</b>${pmU("comp" + (ri + 1))}</td>${c.basis ? `<td>${r.dry != null ? fx(r.dry, 2) : "–"}</td>` : ""}</tr>`).join("")}</tbody></table></div>` +
     (c.basis ? `<div class="small">${esc(c.basis.de)}</div>` : "") +
     (c.warnings || []).map(w => `<div class="note warn">${esc(w)}</div>`).join("") + (c.ref ? `<div class="small">Verfahren: ${esc(META.refs[c.ref] ? META.refs[c.ref].text : c.ref)}</div>` : "");
   if (window.LabUI && LabUI.sizes) LabUI.sizes("tga", $("#cpOut"));   // UR: neu erzeugte Tabelle bekommt ihren Ziehgriff
@@ -1041,7 +1210,7 @@ function updateComp() {
   const rx = (d && d.reactions) || [];
   $("#rxWrap").innerHTML = (o && o.reactions.length) ? `<table class="res"><thead><tr><th>Stufe</th><th class="l">Zersetzung</th><th>theor. %</th><th>Gehalt %</th><th></th></tr></thead><tbody>${o.reactions.map((r, i) => {
     const x = rx.find(y => y.step === r.step && y.key === r.key);
-    return `<tr><td>${r.step}</td><td class="l wrap">${esc(x ? x.label : r.key)}</td><td>${x ? fx(x.theory, 2) : "–"}</td><td><b>${x ? fx(x.content, 1) : "–"}</b></td><td><button data-rx="${i}">×</button></td></tr>`;
+    return `<tr><td>${r.step}</td><td class="l wrap">${esc(x ? x.label : r.key)}</td><td>${x ? fx(x.theory, 2) : "–"}</td><td><b>${x ? fx(x.content, 1) : "–"}</b>${x ? pmU("content" + (rx.indexOf(x) + 1)) : ""}</td><td><button data-rx="${i}">×</button></td></tr>`;
   }).join("")}</tbody></table>` : "";
   $$("#rxWrap [data-rx]").forEach(b => b.addEventListener("click", async () => { cur().reactions.splice(+b.dataset.rx, 1); await refreshCur(); }));
   $("#rxAdd").disabled = !d || !d.steps.length;
@@ -1152,6 +1321,7 @@ function updateCompare() {
     h += `<tr><td class="l"><b>Mittel ± s</b></td>${Array.from({ length: n }, (_, k) => `<td>${ms(shown.map(o => o.data.steps[k] && o.data.steps[k].loss))}</td>`).join("")}<td>${ms(shown.map(o => o.data.loss_T["5"] && o.data.loss_T["5"].T))}</td><td>${ms(shown.map(o => o.data.residue.end))}</td></tr></tbody></table>`;
     $("#cTable").innerHTML = h;
   } else $("#cTable").innerHTML = "";
+  updateRep(shown);
   $("#refList").innerHTML = S.refs.map((r, i) => `<div class="it"><span class="sw" style="background:${r.color}"></span><span class="nm" title="${esc(srcText(r.source))}">${esc(r.name)} <span class="small">(${esc(r.lib_name)}${r.modelled ? ", modelliert" : ""}${srcShort(r.source) ? ", " + esc(srcShort(r.source)) : ""})</span></span><button data-rr="${i}" title="Ausblenden">×</button></div>`).join("") || `<div class="empty">Keine Referenz eingeblendet.</div>`;
   $$("#refList [data-rr]").forEach(b => b.addEventListener("click", () => { S.refs.splice(+b.dataset.rr, 1); updateCompare(); draw(); }));
   const opts = S.runs.map((o, i) => `<option value="${i}">${esc(o.name)}</option>`).join("");
@@ -1214,10 +1384,13 @@ function updateKin() {
   h += `<table class="res" style="margin-top:6px"><thead><tr><th class="l">Verfahren</th><th>Eₐ [kJ/mol]</th><th>min–max</th></tr></thead><tbody>${Object.entries(k.iso.summary).map(([m, s]) => `<tr><td class="l">${names[m] || m}</td><td><b>${fx(s.mean, 1)}</b> ± ${fx(s.sd, 1)}</td><td>${fx(s.min, 0)}–${fx(s.max, 0)}</td></tr>`).join("")}` +
     (k.kissinger && !k.kissinger.error ? `<tr><td class="l">Kissinger</td><td><b>${fx(k.kissinger.E, 1)}</b>${k.kissinger.ci != null ? " ± " + fx(k.kissinger.ci, 1) : ""}</td><td>ln A ${fx(k.kissinger.lnA, 1)}</td></tr>` : "") + `</tbody></table>`;
   h += `<div class="small" style="margin-top:4px">Mittel über α = 0,1…0,9; ± Standardabweichung über α (Kissinger: 95-%-Vertrauensbereich).</div>`;
+  const ku = UNC_ON ? (k.unc || []) : [];
+  if (ku.length) h += `<details class="lab-fold" data-fold="kinUnc"><summary>${esc(tr("tg.u_kin"))}</summary><div class="small">${esc(tr("tg.u_kin_n"))}</div><div class="tw" id="kUnc">${uncTable(ku, S.kinUncSel)}</div><div id="kUncDet"></div></details>`;
   if (k.master) h += `<h4 class="sub">Reaktionsmodell</h4><div class="small">Masterplot (beste zuerst): ${k.master.ranking.slice(0, 4).map(r => `${esc(r.model)} (${fx(r.rms, 3)})`).join(", ")}. Gewählt: <b>${esc(k.model)}</b>.</div>`;
   if (k.coats_redfern) h += `<details><summary>Coats-Redfern (${esc(k.coats_redfern.run)})</summary><table class="res"><thead><tr><th class="l">Modell</th><th>Eₐ</th><th>ln A</th><th>R²</th></tr></thead><tbody>${k.coats_redfern.models.slice(0, 14).map(m => `<tr><td class="l">${esc(m.model)} <span class="small">${esc(m.label)}</span></td><td>${fx(m.E, 1)}</td><td>${fx(m.lnA, 1)}</td><td>${fx(m.r2, 4)}</td></tr>`).join("")}</tbody></table><div class="small">Einzelheizraten-Verfahren geben oft scheinbar gute Geraden mit falschem Eₐ (ICTAC 2011); nur zur Modellwahl verwenden.</div></details>`;
   if (k.lifetime) h += `<h4 class="sub">Lebensdauer (${k.lifetime.method === "model" ? "Arrhenius mit Modell " + esc(k.lifetime.model || "") : "Toop-Beziehung, Grundlage von ASTM E1877"})</h4><div class="note warn">Nicht gegen den Text von ASTM E1877 geprüft. ${k.lifetime.method === "model" ? "" : `Eₐ = ${fx(k.lifetime.E, 1)} kJ/mol (OFW bei α = ${fx(k.lifetime.alpha_f, 2)}, iteriert); kein Reaktionsmodell nötig.`}</div><table class="res"><thead><tr><th>T [°C]</th><th>Zeit bis α = ${fx(k.lifetime.alpha_f, 2)}</th></tr></thead><tbody>${k.lifetime.rows.map(r => `<tr><td>${fx(r.T, 0)}</td><td>${r.t_h > 87600 ? fx(r.t_h / 8760, 1) + " Jahre" : fx(r.t_h, 1) + " h"}</td></tr>`).join("")}</tbody></table>${k.lifetime.T_index != null ? `<div class="small">Temperaturindex für ${fmt(k.lifetime.t_target_h, 0)} h: <b>${fx(k.lifetime.T_index, 1)} °C</b></div>` : ""}<div class="small">Extrapolation weit unter den Messtemperaturen ist unsicher; Eₐ und Modell gelten nur, wenn der Mechanismus gleich bleibt.</div>`;
   $("#kOut").innerHTML = h;
+  if (ku.length) wireUncTable($("#kUnc"), $("#kUncDet"), ku, () => S.kinUncSel, (v) => { S.kinUncSel = v; });
 }
 async function runKin() {
   const ids = S.kinSel || $$("#kRuns [data-k]").filter(x => x.checked).map(x => x.dataset.k);
@@ -1229,7 +1402,7 @@ async function runKin() {
   const th = pnum($("#kTh").value); if (th) opts.t_target_h = th;
   const tu = $("#kTuse").value.split(/[;,\s]+/).map(pnum).filter(v => v !== null && isFinite(v)); if (tu.length) opts.T_use = tu;
   const pipes = {}; ids.forEach(id => { const o = S.runs.find(x => x.id === id); if (o) pipes[id] = o.pipeline; });
-  const j = await withBusy(() => api("api/kinetics", { ids, pipelines: pipes, T_lo: lo, T_hi: hi, opts }));
+  const j = await withBusy(() => api("api/kinetics", { ids, pipelines: pipes, T_lo: lo, T_hi: hi, opts, unc_method: S.uncMethod, lang: pageLang() }));
   if (j.error) return toast(j.error, true);
   S.kin = { ids, T_lo: lo, T_hi: hi, opts, res: j };
   S.mode = "kin"; updateMode(); updateKin(); S.view = null; draw(); if (window.ENVS) ENVS.save();
@@ -1433,15 +1606,22 @@ async function loadEqs() {
   if (S.eqOn === null) S.eqOn = store.get("eqOn", null);
   if (S.eqOn === null) S.eqOn = S.eqs.map(e => e.id);
 }
-function activeEqs() { return S.eqs.filter(e => (S.eqOn || []).includes(e.id)).map(e => ({ sym: e.sym, label: e.label, expr: e.expr, unit: e.unit, digits: e.digits, source: e.source })); }
+function activeEqs() { return [...S.eqs.filter(e => (S.eqOn || []).includes(e.id)).map(e => ({ sym: e.sym, label: e.label, expr: e.expr, unit: e.unit, digits: e.digits, source: e.source })), ...(TK ? TK.defs() : [])]; }   // Indexwerte: je eine Zeile für den Bericht
+// Werte aus dem Projektindex als benannte Variablen (mit Einheit, u und Herkunft)
+const curVars = () => { const o = cur(); return (o && o.data && o.data.variables) || []; };
+const TK = window.LabIndex && LabIndex.taker ? LabIndex.taker({ api: (p, b) => api(p, b), toast: (m, e) => toast(m, e),
+  get: () => S.taken || [], set: (l) => { S.taken = l; },
+  names: () => [...curVars().map(x => x.name), ...S.eqs.map(e => e.sym), "m", "dtg", "loss"], vars: curVars,
+  refresh: () => refreshAllEq(), save: () => ENVS.save(), el: () => $("#eqTaken"), reveal: () => switchTab("gleichungen") }) : null;
 function updateEqs() {
   $("#eqList").innerHTML = S.eqs.map(e => `<div class="it"><input type="checkbox" data-on="${esc(e.id)}"${S.eqOn.includes(e.id) ? " checked" : ""}><span class="nm"><code>${esc(e.sym)} = ${esc(e.expr)}</code> ${esc(e.label || "")}${e.unit ? " [" + esc(e.unit) + "]" : ""}${e.source && (e.source.title || e.source.authors) ? ` <span class="small">(${esc(srcShort(e.source))})</span>` : ""}</span><button data-ed="${esc(e.id)}">✎</button><button data-rm="${esc(e.id)}">×</button></div>`).join("") || `<div class="empty">Noch keine eigenen Gleichungen.</div>`;
   $$("#eqList [data-on]").forEach(c => c.addEventListener("change", async () => { S.eqOn = $$("#eqList [data-on]").filter(x => x.checked).map(x => x.dataset.on); store.set("eqOn", S.eqOn); await refreshAllEq(); }));
   $$("#eqList [data-ed]").forEach(b => b.addEventListener("click", () => eqDialog(S.eqs.find(e => e.id === b.dataset.ed))));
   $$("#eqList [data-rm]").forEach(b => b.addEventListener("click", async () => { if (!confirm("Gleichung löschen?")) return; const j = await api("api/equations/delete", { id: b.dataset.rm }); if (j.error) return toast(j.error, true); S.eqs = j.items; await refreshAllEq(); }));
   const o = cur(), d = o && o.data;
-  const res = (d && d.equations) || [];
-  $("#eqRes").innerHTML = res.length ? `<table class="res"><thead><tr><th class="l">Name</th><th class="l">Bedeutung</th><th>Wert</th><th class="l">Einheit</th></tr></thead><tbody>${res.map(r => `<tr><td class="l"><code>${esc(r.sym)}</code></td><td class="l wrap">${esc(r.label || "")}</td><td>${r.error ? `<span style="color:var(--err-ink)">${esc(r.error)}</span>` : `<b>${esc(r.text)}</b>${shr(r.sym)}`}</td><td class="l">${esc(r.unit || "")}</td></tr>`).join("")}</tbody></table>` : `<div class="small" style="padding:8px">Keine aktive Gleichung.</div>`;
+  const res = TK ? TK.own(d && d.equations) : (d && d.equations) || [];
+  if (TK) TK.render();
+  $("#eqRes").innerHTML = res.length ? `<table class="res"><thead><tr><th class="l">Name</th><th class="l">Bedeutung</th><th>Wert</th><th class="l">Einheit</th></tr></thead><tbody>${res.map(r => `<tr><td class="l"><code>${esc(r.sym)}</code></td><td class="l wrap">${esc(r.label || "")}</td><td>${r.error ? `<span style="color:var(--err-ink)">${esc(r.error)}</span>` : `<b>${esc(r.text_pm || r.text)}</b>${shr(r.sym)}`}</td><td class="l">${esc(r.unit || "")}</td></tr>`).join("")}</tbody></table>` : `<div class="small" style="padding:8px">Keine aktive Gleichung.</div>`;
   $("#eqVars").innerHTML = ((d && d.variables) || []).map(v => `<button title="${esc(v.label)}: ${fmt(v.value, 4)} ${esc(v.unit || "")}" data-v="${esc(v.name)}"${v.ext ? ' class="ext"' : ""}>${v.ext ? "← " : ""}${esc(v.name)}</button>`).join("") + ["m(T)", "dtg(T)", "loss(T1, T2)"].map(f => `<button data-v="${f}" title="Funktion">${f}</button>`).join("");
   $$("#eqVars [data-v]").forEach(b => b.addEventListener("click", async () => { try { await navigator.clipboard.writeText(b.dataset.v); toast(`„${b.dataset.v}“ kopiert.`); } catch (e) { /* ohne Zwischenablage */ } }));
 }
@@ -1779,6 +1959,7 @@ function sendToReport() {
       const list = scope === "kin" ? S.kin.ids.map(id => S.runs.find(r => r.id === id)).filter(Boolean) : scope === "all" ? S.runs : scope === "shown" ? shown : [o];
       const body = { items: list.map(s => ({ id: s.id, state: stateOf(s, scope !== "kin") })), lang, include, title };
       if ((scope === "kin" || S.kinRep) && S.kin && S.kin.res && S.kin.ids.every(id => list.some(r => r.id === id))) body.kinetics = { T_lo: S.kin.T_lo, T_hi: S.kin.T_hi, opts: S.kin.opts };
+      if (S.uncRep && list.length > 1 && scope !== "kin") body.unc_replicates = true;      // Mittelwert ± U der Wiederholungen
       return api("api/bundle", body);
     },
   });
@@ -1802,11 +1983,12 @@ function indexSteps() {
   const o = cur();
   if (!o || !o.data || !(o.data.steps || []).length) return toast("Keine Stufen ausgewertet.", true);
   const prov = { item: o.id, item_name: o.name };
+  const qu = (id, v) => { const r = uRes(id, o); return { value: +(+v).toFixed(3), unit: "%", ...(r && r.u > 0 ? { u: +r.u.toPrecision(3) } : {}) }; };
   const e = o.data.steps.map(s => ({ key: `${o.name}: Stufe ${s.no} Massenverlust`, label: `Stufe ${s.no}`, type: "measured",
-    quantity: { value: +(+s.loss).toFixed(3), unit: "%" }, provenance: prov,
+    quantity: qu(`step${s.no}-loss`, s.loss), provenance: prov,
     conditions: { T_onset: stepX(s, "onset"), T_peak: stepX(s, "peak"), T_endset: stepX(s, "endset") } }));
   if (o.data.residue && o.data.residue.end != null) e.push({ key: `${o.name}: Rückstand`, label: "Rückstand am Ende", type: "measured",
-    quantity: { value: +(+o.data.residue.end).toFixed(3), unit: "%" }, provenance: prov });
+    quantity: qu("residue", o.data.residue.end), provenance: prov });
   return LabIndex.addMany(api, toast, e, "Stufen in den Projektindex");
 }
 
@@ -1826,7 +2008,7 @@ const MENUS = [
     { label: "Zum Bericht …", enabled: () => !!window.Lab, act: sendToReport },
     { label: "Stufentabelle teilen (Elementrechner) …", act: shareSteps },
     { label: "Stufen in den Projektindex …", act: indexSteps },
-    { label: "Projektindex …", always: true, act: () => LabIndex.browse(api, toast) },
+    { label: "Projektindex …", always: true, act: () => LabIndex.browse(api, toast, TK ? TK.take : undefined) },
     "-",
     { label: "Schliessen", act: () => closeRun(S.sel) },
     { label: "Alle schliessen", act: async () => { if (confirm("Alle Läufe schliessen?")) { while (S.runs.length) await closeRun(0); } } },
@@ -1971,7 +2153,7 @@ function envSummary() {          // Kasten der Umgebung in der Übersicht
   return { title: S.runs.map(o => o.name).join(" · ").slice(0, 200), tags: tags.slice(0, 8), values, plots };
 }
 // ⇄: Kennwerte und Gleichungsergebnisse an andere Umgebungen weitergeben; übernommene Werte als Variablen (S.ext)
-function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.runs.map(o => ({ name: o.name, vars: o.data && o.data.variables, eqs: o.data && o.data.equations }))) : []; }
+function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.runs.map(o => ({ name: o.name, vars: o.data && o.data.variables, eqs: o.data && (TK ? TK.own(o.data.equations) : o.data.equations) }))) : []; }
 function shr(name) {
   if (!OV || !OV.shareButton) return "";
   const i = S.runs.indexOf(cur());
@@ -2090,6 +2272,7 @@ function bind() {
   $("#refNew").addEventListener("click", () => libAddSteps(false, true));
   $("#dBlank").addEventListener("click", () => derive("blank"));
   $("#dAvg").addEventListener("click", () => derive("avg"));
+  $("#cRep").addEventListener("change", (e) => { S.uncRep = e.target.checked; S.rep = null; updateCompare(); if (window.ENVS) ENVS.save(); });
 
   // Kinetik
   $("#kRun").addEventListener("click", runKin);
@@ -2147,7 +2330,7 @@ async function init() {
   if ((META.lib_errors || []).length) toast("Bibliotheken mit Fehlern: " + META.lib_errors.join("; "), true);
   await loadLibs();
   await loadEqs();
-  buildMenus(); buildTools(); bind(); renderParams();
+  buildMenus(); buildTools(); bind(); renderParams(); uncInit();
   updateAll(); sizeCanvas();
   if (window.Lab) { $("#labBtn").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
   // A2: Läufe und Arbeitsstand der Umgebung wiederherstellen
@@ -2155,18 +2338,19 @@ async function init() {
     api, toast, label: $("#envName"),
     keep: ["name", "pipeline", "redo", "color", "overlay", "stepOpts", "manual", "comp", "reactions", "calib", "deconv", "dcPeaks", "dcPreset", "dsc"],
     list: () => S.runs, sel: () => S.sel,
-    reset: () => { S.runs = []; S.sel = -1; S.ext = []; },
+    reset: () => { S.runs = []; S.sel = -1; S.ext = []; S.taken = []; },
     add: async (d, saved) => { const o = Object.assign(newRun(d), saved); S.runs.push(o); await refresh(o); },
-    extra: () => ({ kinSel: S.kinSel || null, ext: S.ext || [] }), summary: envSummary,
+    extra: () => ({ kinSel: S.kinSel || null, ext: S.ext || [], taken: S.taken || [], unc: uncSpecs(), uncMethod: S.uncMethod, uncRep: S.uncRep }), summary: envSummary,
     // Berichtsauftrag (alle Läufe, Kinetik wenn gerechnet), damit „Import“ im Bericht diese Umgebung lesen kann
     report: () => {
       if (!S.runs.length) return null;
       const body = { items: S.runs.map(s => ({ id: s.id, state: stateOf(s, true) })), lang: "de", include: {},
         title: "TGA " + (S.runs.length === 1 ? S.runs[0].name : `${S.runs.length} Läufe`) };
       if (S.kin && S.kin.res) body.kinetics = { T_lo: S.kin.T_lo, T_hi: S.kin.T_hi, opts: S.kin.opts };
+      if (S.uncRep && S.runs.length > 1) body.unc_replicates = true;
       return body;
     },
-    done: (sel, extra) => { S.sel = sel; if (extra && Array.isArray(extra.kinSel)) S.kinSel = extra.kinSel; S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.view = null; updateChips(); updateAll(); draw(); if (OV) setTimeout(() => OV.sync(), 0); },
+    done: (sel, extra) => { S.sel = sel; if (extra && Array.isArray(extra.kinSel)) S.kinSel = extra.kinSel; uncRestore(extra); S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.taken = (extra && Array.isArray(extra.taken)) ? extra.taken : []; S.extDirty = S.ext.length > 0; S.view = null; updateChips(); updateAll(); draw(); if (S.taken.length) refreshAllEq(); if (OV) setTimeout(() => OV.sync(), 0); },
   });
   await withBusy(() => ENVS.open());
   if (window.LabUI) { LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("tga"); if (LabUI.sizes) LabUI.sizes("tga"); LabUI.onLang(() => { buildMenus(); renderTabs(); updateFoldCounts(); }); }
@@ -2177,6 +2361,7 @@ async function init() {
       detail: [$("#menubar"), $("main")], crumbs: $("#crumbs"),
       values: { catalogue: valCatalogue, apply: applyExt, version: (META && META.version) || "" },
       imports: TG_IMP,                                                         // I-03: Datensatz → Lauf
+      index: () => LabIndex.browse(api, toast, TK ? (e) => { OV.showDetail(); TK.take(e); } : undefined),
       onView: (v) => { if (v === "detail") setTimeout(() => { sizeCanvas(); draw(); }, 0); },   // Canvas war verborgen
     });
     if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }

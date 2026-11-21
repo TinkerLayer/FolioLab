@@ -78,6 +78,15 @@ class State:
 STATE: State | None = None
 
 
+def _unc_ready():
+    """Eigene Messmittel der Suite für die Unsicherheitsrechnung bekannt machen (vor jeder Auswertung)."""
+    try:
+        import labunc
+        labunc.load_own(STATE.envs)
+    except ImportError:
+        pass
+
+
 def add_file(f, data: bytes, name: str, fid: str | None = None) -> dict:
     keep = fid is None
     fid = fid or uuid.uuid4().hex[:10]
@@ -109,6 +118,7 @@ def env_bundle(stored, report: dict, lang: str) -> dict:
     from .. import bundle as bundle_mod
     by_id = {fid: (raw, name) for fid, raw, name, _i, _n, _x in stored}
     results, raw, items = [], {}, []
+    _unc_ready()
     for item in report.get("items") or []:
         got = by_id.get(item.get("id"))
         if got is None:
@@ -319,9 +329,29 @@ def _own_row(d: dict, a) -> dict:
             "source": str(d.get("source") or "").strip()[:300], "curve": a.curve, "no_source": bool(d.get("no_source"))}
 
 
+def _decoded(al) -> dict:
+    """Entschlüsselte Normbezeichnung je Werkstoff (labcalc.designation; fehlt das Modul, bleibt es leer)."""
+    try:
+        from labcalc import designation as DG
+    except ImportError:
+        return {}
+    out = {}
+    for a in al:
+        if getattr(a, "own", False):
+            continue
+        try:
+            d = DG.decode_material(a.name, "de")
+        except Exception:  # noqa: BLE001 – nur ein Hinweis
+            continue
+        if d and d.get("found"):
+            out[a.name] = d.get("summary") or d["found"][0].get("summary") or ""
+    return out
+
+
 def meta_payload() -> dict:
     al = STATE.alloys
     return {
+        "decoded": _decoded(al),
         "shapes": SHAPES, "detents": YIELD_DETENTS, "defaults": Config().to_dict(),
         "alloys": [a.to_dict() for a in al], "categories": alloys_mod.categories(al),
         "groups": alloys_mod.groups(al), "default_group": alloys_mod.DEFAULT_GROUP,
@@ -358,7 +388,8 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path in ("/", "/index.html"):
             return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
-        if url.path in ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js"):   # UI-08, I-02
+        if url.path in ("/labref.js", "/labenv.js", "/labindex.js", "/labui.js", "/labboard.js", "/laboverview.js", "/labimport.js",
+                        "/labunc.js"):
             return self._send(200, labcite.web_asset(url.path[1:]), "text/javascript; charset=utf-8")
         if url.path == "/api/meta":
             return self._json(meta_payload())
@@ -372,6 +403,9 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         origin = self.headers.get("Origin")
         if origin and not re.match(r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$", origin):
+            n = int(self.headers.get("Content-Length") or 0)
+            if 0 < n <= 1 << 20:
+                self.rfile.read(n)                       # read the small body so the answer arrives cleanly
             return self._json({"error": "Fremde Herkunft abgelehnt"}, 403)
         try:
             if url.path == "/api/load":
@@ -405,11 +439,28 @@ class Handler(BaseHTTPRequestHandler):
                 if url.path.startswith("/api/index/"):
                     return self._json(labindex.route(STATE.envs, "zugversuch", flps_version, act, req))
                 return self._json(labprov.route(STATE.envs, act, req))
+            if url.path.startswith("/api/unc/"):          # Messunsicherheit: Messmittel, Vorschau, Verfahren (labunc)
+                import labunc
+                req = json.loads(self._body() or b"{}")
+                try:
+                    return self._json(labunc.route(STATE.envs, url.path.rsplit("/", 1)[1], req))
+                except EnvError as e:
+                    return self._json({"error": str(e)}, 400)
+            if url.path == "/api/unccompare":              # alle vier Verfahren für einen Kennwert
+                from .. import uncertainty as unc_mod
+                req = json.loads(self._body() or b"{}")
+                f = STATE.files.get(req.get("id"))
+                if f is None:
+                    return self._json({"error": "Datei nicht geladen"}, 404)
+                _unc_ready()
+                r = run(f, Config.from_dict(req.get("config")), STATE.alloys)
+                return self._json(_clean(unc_mod.compare(r, str(req.get("name") or "Rm"), req.get("lang"))))
             if url.path == "/api/analyse":
                 req = json.loads(self._body() or b"{}")
                 f = STATE.files.get(req.get("id"))
                 if f is None:
                     return self._json({"error": "Datei nicht geladen"}, 404)
+                _unc_ready()
                 cfg = Config.from_dict(req.get("config"))
                 r = run(f, cfg, STATE.alloys)
                 d = result_to_dict(r)
@@ -430,6 +481,7 @@ class Handler(BaseHTTPRequestHandler):
                 req = json.loads(self._body() or b"{}")
                 results, raw, items = [], {}, []
                 stored = None
+                _unc_ready()
                 if url.path == "/api/bundle":
                     for item in req.get("items", []):
                         f = STATE.files.get(item.get("id"))
@@ -462,6 +514,10 @@ class Handler(BaseHTTPRequestHandler):
                 request = {"items": items, "lang": req.get("lang", "de"), "include": req.get("include") or {},
                            "title": req.get("title") or None, "slug": req.get("slug") or None,
                            "own_materials": stored if stored is not None else own_used(results)}
+                # the hub's figure styles and the describe request for its editing window pass through (labbundle)
+                for k in ("styles", "describe_figures", "preview"):
+                    if k in req:
+                        request[k] = req[k]
                 try:
                     b = bundle_mod.build(results, raw, request, lang=request["lang"], include=request["include"],
                                          title=request["title"])
@@ -472,6 +528,7 @@ class Handler(BaseHTTPRequestHandler):
                 from ..export import write_comparison
                 req = json.loads(self._body() or b"{}")
                 results = []
+                _unc_ready()
                 for item in req.get("items", []):
                     f = STATE.files.get(item.get("id"))
                     if f is None:
@@ -493,6 +550,7 @@ class Handler(BaseHTTPRequestHandler):
                 if f is None:
                     return self._json({"error": "Datei nicht geladen"}, 404)
                 cfg = Config.from_dict(req.get("config"))
+                _unc_ready()
                 r = run(f, cfg, STATE.alloys)
                 folder = output_folder(r, STATE.out_root)
                 try:

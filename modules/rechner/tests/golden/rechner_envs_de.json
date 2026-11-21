@@ -98,7 +98,9 @@
     "\\[ \\frac{v}{t} = 2{,}5\\,\\mathrm{m}/\\mathrm{s}^{2} \\]",
     "\\[ k = 2\\,v = 40\\,\\mathrm{m}/\\mathrm{s} \\]",
     "\\[ \\frac{k}{2} = 72\\,\\mathrm{km}/\\mathrm{h} \\]",
-    "\\[ \\mathrm{RT} = R \\cdot 298{,}15 = 2478{,}957\\,\\mathrm{J}/(\\mathrm{mol}\\cdot \\mathrm{K}) \\quad \\mbox{\\cite{rf-codata2022}} \\]"
+    "\\[ \\mathrm{RT} = R \\cdot 298{,}15 = 2478{,}957\\,\\mathrm{J}/(\\mathrm{mol}\\cdot \\mathrm{K}) \\quad \\mbox{\\cite{rf-codata2022}} \\]",
+    "\\noindent\\textit{Energie}",
+    "\\[ \\frac{v}{t} = \\frac{20\\,\\mathrm{m}/\\mathrm{s}}{t} \\]"
    ],
    "type": "tex"
   },
@@ -141,6 +143,9 @@
    "file": "text-rechenweg.tex",
    "id": "rechenweg",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Rechenweg"
   },
   {
@@ -150,6 +155,12 @@
    "id": "groessen",
    "kind": "table",
    "label": "tab:berechnung-groessen",
+   "needs": {
+    "steps": [
+     "daten",
+     "unsicherheit"
+    ]
+   },
    "notes": ""
   },
   {
@@ -159,6 +170,9 @@
    "id": "diagramm1",
    "kind": "figure",
    "label": "fig:berechnung-diagramm1",
+   "needs": {
+    "steps": []
+   },
    "preview": "fig/diagramm1.png",
    "width": "0.9"
   },
@@ -243,6 +257,9 @@
    "file": "text-diagramm1-anpassung.tex",
    "id": "diagramm1-anpassung",
    "kind": "text",
+   "needs": {
+    "steps": []
+   },
    "title": "Parabel"
   },
   {
@@ -254,6 +271,12 @@
    "file": "text-nebenrechnungen.tex",
    "id": "nebenrechnungen",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "daten",
+     "unsicherheit"
+    ]
+   },
    "title": "Nebenrechnungen"
   },
   {

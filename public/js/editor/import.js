@@ -4,7 +4,7 @@
 // shared results / index values and uploaded ZIP or LaTeX projects (server/importer.js). Every import is stored as an
 // analysis result lab/<slug>/; the Lab dialog shows whether its source has changed since (live link).
 import { api, fileUrl, esc, h, icon, modal, toast } from '../ui.js';
-import { insertImported } from './lab.js';
+import { insertImported, customiseImported } from './lab.js';
 
 let ctx; // { projectId, refreshFiles(), openLab(slug) }
 export function initImport(c) {
@@ -48,8 +48,10 @@ export async function openImport() {
   let filter = '';
   let query = '';
   let openMod = folio.modules.some((m) => m.id === lastModule) ? lastModule : null;
-  let methods = true;
+  // methods text: Short = the steps the module marks as essential, Full = all, Steps = own ticks, None
+  let methods = { mode: 'short', steps: null, eq: false };
   const chosen = new Set();
+  const partsOff = {}; // figure id -> Set of part ids switched off before inserting (inserted as a live variant)
   let closeDialog = () => {};
 
   const body = h(`<div class="lab-dlg imp-dlg">
@@ -140,6 +142,8 @@ export async function openImport() {
   async function select(s) {
     current = s;
     chosen.clear();
+    for (const k of Object.keys(partsOff)) delete partsOff[k];
+    methods.steps = null;
     filter = '';
     query = '';
     renderSources();
@@ -193,12 +197,83 @@ export async function openImport() {
     return parts.join(' · ');
   }
 
+  /** The methods steps of the environment (first methods text with steps), or []. */
+  const methSteps = () => ((loaded && loaded.methods) || []).flatMap((m) => m.steps || []).filter((s) => !s.eq);
+  const hasEq = () => ((loaded && loaded.methods) || []).some((m) => (m.steps || []).some((s) => s.eq));
+  /** Which steps the chosen pieces need, as the hub decides it (server/lab.js stepScope): a declared piece needs its
+   *  steps and those of its parts that stay on, an undeclared one every step; steps no piece names are general.
+   *  reduced: no evaluation shown, so Short is the module's one sentence. */
+  function scope() {
+    const pcs = (loaded && loaded.pieces) || [];
+    const named = new Set();
+    const active = new Set();
+    let everything = !pcs.some((p) => chosen.has(p.key));
+    const partSteps = (p, onlyOn) => (p.parts || []).filter((x) => !onlyOn || !(partsOff[p.id] || new Set()).has(x.id)).flatMap((x) => x.steps || []);
+    for (const p of pcs) {
+      [...((p.needs || {}).steps || []), ...partSteps(p, false)].forEach((s) => named.add(s));
+      if (!chosen.has(p.key)) continue;
+      if (p.kind === 'value') ((p.needs || {}).steps || []).forEach((s) => active.add(s));
+      else if (['figure', 'table', 'text'].includes(p.kind)) {
+        if (!p.needs) everything = true;
+        else [...(p.needs.steps || []), ...partSteps(p, true)].forEach((s) => active.add(s));
+      }
+    }
+    const sid = (s) => s.of || s.id;
+    const ok = (s) => everything || !named.has(sid(s)) || active.has(sid(s));
+    const plainSt = methSteps().filter((s) => !s.brief && !s.eq);
+    const reduced = !everything && plainSt.some((s) => named.has(sid(s))) && !plainSt.some((s) => named.has(sid(s)) && active.has(sid(s)));
+    return { ok, reduced };
+  }
+  /** Ids of the steps the current choice shows (for the tick list). */
+  function stepIds() {
+    const st = methSteps();
+    const sc = scope();
+    if (methods.mode === 'custom' && methods.steps) return new Set(methods.steps.filter((id) => sc.ok(st.find((s) => s.id === id) || { id })));
+    if (methods.mode === 'none') return new Set();
+    const brief = st.find((s) => s.brief);
+    if (methods.mode === 'short' && sc.reduced && brief) return new Set([brief.id]);
+    return new Set(st.filter((s) => !s.brief && (methods.mode === 'full' || s.short) && sc.ok(s)).map((s) => s.id));
+  }
+  /** One sentence of the tick list: tick, title, pencil; the edit field opens under it. */
+  const stepRow = (s, on, ed, off) => `<div class="imp-steprow" data-row="${esc(s.id)}"><label class="imp-step ${on ? 'on' : ''}" title="${esc(off ? 'Only needed for pieces or parts you did not choose' : s.text || s.title)}"><input type="checkbox" data-step="${esc(s.id)}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''}><span>${esc(ed ? plain(ed.text) : s.title)}</span>${s.brief ? '<i class="hint">alone, when nothing is evaluated</i>' : s.short ? '<i class="hint">short</i>' : ''}${off ? '<i class="hint">not shown</i>' : ''}${ed ? '<i class="hint">edited</i>' : ''}</label>
+    ${s.text !== undefined ? `<button class="btn xs ghost" data-stepedit="${esc(s.id)}" title="Reword this sentence">${icon('edit')}</button>` : ''}
+    <div class="imp-stepedit" hidden><textarea class="input mono" rows="3">${esc(ed ? ed.text : s.text || '')}</textarea>
+      <div class="row"><button class="btn xs" data-stepok>Use</button><button class="btn xs ghost" data-stepundo ${ed ? '' : 'hidden'}>Module's wording</button></div></div></div>`;
+  /** Tick list of the methods steps: shown for "Steps…", folded otherwise. */
+  function stepList() {
+    const st = methSteps();
+    if (!st.length) return '';
+    const on = stepIds();
+    const sc = scope();
+    const n = st.filter((s) => on.has(s.id)).length;
+    return `<details class="imp-steps" ${methods.mode === 'custom' ? 'open' : ''}><summary>Methods text: ${n} of ${st.filter((s) => !s.brief).length} sentences${methods.eq && hasEq() ? ' + equations' : ''}</summary>
+      <div class="hint">Short keeps at most three sentences: what was measured, the standard and the software; a piece that shows no evaluation gets one sentence. Sentences about parts you did not choose (an envelope, a reference comparison) are left out with their sources. Tick any sentence to make your own selection, or use the pencil to reword one; the full text stays in the result's folder.</div>
+      <div class="imp-steplist">${st.map((s) => stepRow(s, on.has(s.id), (methods.edits || {})[s.id], !s.brief && !sc.ok(s))).join('')}</div>
+      ${hasEq() ? `<label class="imp-step"><input type="checkbox" data-eq ${methods.eq ? 'checked' : ''}> with the equations block</label>` : ''}</details>`;
+  }
+
+  /** Parts of the chosen figures (envelope, reference curves, field …) that can be left out before inserting: such a
+   *  figure goes in as a live variant without them, and their caption words, sources and methods sentences stay out. */
+  function partsBlock() {
+    if (!loaded.redraw || (modeSel && modeSel.value === 'copy')) return '';
+    const figs = (loaded.pieces || []).filter((p) => p.kind === 'figure' && chosen.has(p.key) && (p.parts || []).length);
+    if (!figs.length) return '';
+    const off = figs.reduce((n, p) => n + (partsOff[p.id] ? partsOff[p.id].size : 0), 0);
+    return `<details class="imp-steps imp-parts"><summary>What the chosen figures show: ${off ? `${off} part${off === 1 ? '' : 's'} left out` : 'everything'}</summary>
+      ${figs.map((p) => `<div class="hint">${esc(plain(p.title).slice(0, 90))}</div><div class="imp-steplist">${p.parts.map((x) => {
+        const on = !(partsOff[p.id] && partsOff[p.id].has(x.id));
+        const n = (x.cites || []).length;
+        return `<label class="imp-step ${on ? 'on' : ''}" title="${esc(n ? `Cites ${x.cites.map((c) => plain(c.title)).join('; ')}` : 'No own sources')}"><input type="checkbox" data-part="${esc(p.id)}|${esc(x.id)}" ${on ? 'checked' : ''}><span>${esc(x.label)}</span>${n ? `<i class="hint">${n} source${n === 1 ? '' : 's'}</i>` : ''}</label>`;
+      }).join('')}</div>`).join('')}
+      <div class="hint">Off: the figure goes in as a live variant without that part (later changes in Customise); the caption no longer names it and its sources and methods sentences stay out.</div></details>`;
+  }
+
   /** What an environment import brings along, shown folded under the pieces. */
   function comesWith() {
     const refs = loaded.references || [];
     const meth = loaded.methods || [];
     const bits = [`${refs.length} reference${refs.length === 1 ? '' : 's'}`];
-    if (meth.length) bits.push('methods text');
+    if (meth.length) bits.push(methods.mode === 'none' ? 'no methods text' : `methods text (${methods.mode === 'custom' ? 'own selection' : methods.mode})`);
     bits.push('all values of the result');
     return `<details class="imp-with"><summary>Comes with: ${esc(bits.join(' · '))}</summary>
       <div class="hint">The references go to <code>lab/references.bib</code> and are printed where the inserted pieces cite them.
@@ -252,7 +327,59 @@ export async function openImport() {
       ${rows.length ? `<div class="imp-pieces">${rows.map(pieceRow).join('')}</div>` : ''}
       ${vals.length ? `<div class="imp-valgrid">${vals.map((p) => `<button class="lab-val imp-val ${chosen.has(p.key) ? 'on' : ''}" data-key="${esc(p.key)}" title="\\labval{…}{${esc(p.id)}}"><span>${esc(plain(p.title))}</span><b>${esc(p.text || plain(p.latex))}</b></button>`).join('')}</div>` : ''}
       ${!shown.length ? `<div class="hint">${all.length ? 'Nothing matches.' : 'This source has nothing to import.'}</div>` : ''}
-      ${env ? comesWith() : ''}`;
+      ${env ? partsBlock() + stepList() + comesWith() : ''}`;
+    detailEl.querySelectorAll('[data-part]').forEach((el) => (el.onchange = () => {
+      const [fid, pid] = el.dataset.part.split('|');
+      const set = (partsOff[fid] ||= new Set());
+      if (el.checked) set.delete(pid);
+      else set.add(pid);
+      const d = el.closest('details');
+      syncMethods();
+      const again = detailEl.querySelector('.imp-parts');
+      if (again && d && d.open) again.open = true;
+    }));
+    detailEl.querySelectorAll('[data-step]').forEach((el) => (el.onchange = () => {
+      const on = stepIds();
+      if (el.checked) on.add(el.dataset.step);
+      else on.delete(el.dataset.step);
+      methods = { ...methods, mode: 'custom', steps: methSteps().map((s) => s.id).filter((id) => on.has(id)) };
+      syncMethods();
+    }));
+    detailEl.querySelectorAll('[data-stepedit]').forEach((b) => {
+      const row = b.closest('.imp-steprow');
+      const box = row.querySelector('.imp-stepedit');
+      const sid = b.dataset.stepedit;
+      const s = methSteps().find((x) => x.id === sid);
+      b.onclick = () => {
+        box.hidden = !box.hidden;
+        if (!box.hidden) box.querySelector('textarea').focus();
+      };
+      box.querySelector('[data-stepok]').onclick = () => {
+        const t = box.querySelector('textarea').value.trim();
+        const edits = { ...(methods.edits || {}) };
+        if (!t || t === String(s.text || '').trim()) delete edits[sid];
+        else edits[sid] = { text: t, orig: s.text || '' };
+        // an edited sentence is shown: tick it
+        const on = stepIds();
+        if (edits[sid] && !on.has(sid)) {
+          on.add(sid);
+          methods = { ...methods, mode: 'custom', steps: methSteps().map((x) => x.id).filter((id) => on.has(id)) };
+        }
+        methods = { ...methods, edits };
+        syncMethods();
+      };
+      box.querySelector('[data-stepundo]').onclick = () => {
+        const edits = { ...(methods.edits || {}) };
+        delete edits[sid];
+        methods = { ...methods, edits };
+        syncMethods();
+      };
+    });
+    const eqBox = detailEl.querySelector('[data-eq]');
+    if (eqBox) eqBox.onchange = () => {
+      methods = { ...methods, eq: eqBox.checked };
+      syncMethods();
+    };
     const search = detailEl.querySelector('.imp-search');
     if (search) {
       search.oninput = () => {
@@ -273,6 +400,7 @@ export async function openImport() {
       else chosen.add(key);
       el.classList.toggle('on', chosen.has(key));
       updateButton();
+      if (env) syncMethods();       // the methods text and the parts follow the chosen pieces
     };
     detailEl.querySelectorAll('.imp-tile, .imp-val').forEach((el) => (el.onclick = () => toggle(el.dataset.key, el)));
     detailEl.querySelectorAll('.imp-piece').forEach((row) => {
@@ -283,6 +411,7 @@ export async function openImport() {
         else chosen.delete(key);
         row.classList.toggle('on', e.target.checked);
         updateButton();
+        if (env) syncMethods();
       };
       row.querySelector('.imp-title').onclick = () => {
         const more = row.querySelector('.imp-more');
@@ -308,11 +437,29 @@ export async function openImport() {
   let importBtn = null;
   let modeSel = null;
   let methodsBox = null;
+  let methodsSel = null;
+  let customiseBox = null;
+  let customiseWrap = null;
+  /** Re-show the methods choice (footer select, tick list) after a change, keeping the scroll position. */
+  function syncMethods() {
+    if (methodsSel) methodsSel.value = methods.mode;
+    const top = detailEl.scrollTop;
+    renderDetail();
+    detailEl.scrollTop = top;
+  }
   function updateButton() {
     if (methodsBox) methodsBox.hidden = !(current && current.type === 'env' && (loaded.methods || []).length);
+    if (methodsSel) {
+      const steps = current && current.type === 'env' && methSteps().length;
+      methodsSel.querySelector('[value=short]').disabled = !steps;
+      methodsSel.querySelector('[value=custom]').disabled = !steps;
+      if (!steps && (methods.mode === 'short' || methods.mode === 'custom')) methods = { ...methods, mode: 'full', eq: true };
+      methodsSel.value = methods.mode;
+    }
     if (!importBtn) return;
     importBtn.disabled = !chosen.size;
     const env = current && current.type === 'env';
+    if (customiseWrap) customiseWrap.hidden = !(env && ((loaded && loaded.pieces) || []).some((p) => chosen.has(p.key) && ['figure', 'table', 'text'].includes(p.kind)));
     importBtn.innerHTML = `${icon('download')}${env ? 'Insert' : 'Import'}${chosen.size ? ` ${chosen.size}` : ''}`;
   }
 
@@ -320,14 +467,28 @@ export async function openImport() {
     const order = loaded.pieces.map((p) => p.key);
     const keys = [...chosen].sort((a, b) => order.indexOf(a) - order.indexOf(b));
     const r = await api('POST', `/api/projects/${ctx.projectId}/import`, { source: { type: 'env', stage: loaded.stage }, keys, mode, methods });
-    const man = r.results[0];
+    let man = r.results[0];
+    // figures with parts switched off go in as live variants without them (the hub then drops their sentences)
+    const variants = {};
+    if (mode !== 'copy' && loaded.redraw) {
+      for (const [fid, off] of Object.entries(partsOff)) {
+        if (!off.size || !keys.includes(`item:${fid}`)) continue;
+        try {
+          variants[fid] = await api('POST', `/api/projects/${ctx.projectId}/lab/${man.slug}/fork`, { item: fid, mode: 'live', style: { parts: Object.fromEntries([...off].map((p) => [p, { hidden: true }])) } });
+        } catch (e) {
+          toast(`${e.message} – the figure goes in with every part`, 'error', 8000);
+        }
+      }
+      if (Object.keys(variants).length) man = (await api('GET', `/api/projects/${ctx.projectId}/lab`)).find((b) => b.slug === man.slug) || man;
+    }
     await ctx.refreshFiles();
     closeDialog();
-    const res = await insertImported(man, keys, { methods: methods && (loaded.methods || []).length > 0 });
+    const res = await insertImported(man, keys, { methods: methods.mode !== 'none' && (loaded.methods || []).length > 0, variants });
     const nref = (loaded.references || []).length;
     toast(`${res.inserted ? 'Inserted' : 'Imported'} ${keys.length} piece${keys.length === 1 ? '' : 's'} from “${current.title}”${nref ? ` with ${nref} reference${nref === 1 ? '' : 's'}` : ''} · in the Lab dialog as “${plain(man.title)}”`, 'ok', 5000);
     if (res.data) toast('Data series are in the Lab dialog: choose the axes there and insert a plot.', 'info', 7000);
     if ((r.warnings || []).length) toast(r.warnings.slice(0, 4).join(' · '), 'info', 12000);
+    if (customiseBox && customiseBox.checked && res.inserted) await customiseImported(man, keys, variants);
     return true;
   }
 
@@ -390,12 +551,23 @@ export async function openImport() {
       const wrap = h(`<div class="imp-foot">
         <label class="imp-mode" title="${esc(MODE_HINT.live)}">Link
           <select class="input sm"><option value="live">Live</option><option value="pin">Pinned</option><option value="copy">Copy</option></select></label>
-        <label class="imp-methods" title="Adds the paragraph with the equations and assumptions of the evaluation after the pieces" hidden>
-          <input type="checkbox" checked> with methods text</label></div>`);
+        <label class="imp-methods" title="Methods text after the pieces (equations and assumptions of the evaluation). Short: the essential sentences; Full: all; Steps: tick sentences below. The full text always stays in the result's folder." hidden>Methods
+          <select class="input sm"><option value="short">Short</option><option value="full">Full</option><option value="custom">Steps…</option><option value="none">None</option></select></label>
+        <label class="imp-cus" title="After inserting, open the editing window for each chosen figure, table or text: journal layout, colours, axes, columns, caption. Saved as a variant; the original stays." hidden><input type="checkbox"> then customise</label></div>`);
+      customiseWrap = wrap.querySelector('.imp-cus');
+      customiseBox = customiseWrap.querySelector('input');
       modeSel = wrap.querySelector('select');
-      modeSel.onchange = () => (wrap.querySelector('.imp-mode').title = MODE_HINT[modeSel.value]);
+      modeSel.onchange = () => {
+        wrap.querySelector('.imp-mode').title = MODE_HINT[modeSel.value];
+        if (current && current.type === 'env') syncMethods();   // a copy cannot leave parts out (no redraw)
+      };
       methodsBox = wrap.querySelector('.imp-methods');
-      methodsBox.querySelector('input').onchange = (e) => (methods = e.target.checked);
+      methodsSel = methodsBox.querySelector('select');
+      methodsSel.onchange = () => {
+        const v = methodsSel.value;
+        methods = { mode: v, steps: v === 'custom' ? [...stepIds()] : null, eq: v === 'full' ? true : v === 'custom' ? methods.eq : false, ...(methods.edits ? { edits: methods.edits } : {}) };
+        syncMethods();
+      };
       footer.insertBefore(wrap, footer.firstChild);
       updateButton();
     },

@@ -1,6 +1,6 @@
 {
   "name": "folio-lab",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Folio Lab - local data analysis and report writing suite (Folio LaTeX editor + analysis modules)",
   "private": true,
   "main": "server/index.js",

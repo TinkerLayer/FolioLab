@@ -9,6 +9,7 @@ import re
 from fractions import Fraction
 
 import numpy as np
+from labcalc import deriv as D
 from labcalc import solve as SV
 
 from . import expr as E
@@ -37,34 +38,212 @@ def _result_tex(v, lang):
             sign = "+" if z.imag >= 0 else "-"
             return f"{R.num_tex(z.real, lang, 8)} {sign} {R.num_tex(abs(z.imag), lang, 8)}\\,\\mathrm{{i}}"
         return R.num_tex(z.real, lang, 8)
-    a = np.real(a)
     if a.ndim == 1:
         a = a.reshape(1, -1)
-    rows = [" & ".join(R.num_tex(float(x), lang, 6) for x in r) for r in a.tolist()]
+
+    def cell(x):
+        z = complex(x)
+        if abs(z.imag) <= 1e-14 * max(1, abs(z.real)):
+            return R.num_tex(z.real, lang, 6)
+        im = R.num_tex(abs(z.imag), lang, 6) + r"\,\mathrm{i}"
+        if abs(z.real) <= 1e-14 * max(1, abs(z.imag)):
+            return ("-" if z.imag < 0 else "") + im
+        return f"{R.num_tex(z.real, lang, 6)} {'+' if z.imag >= 0 else '-'} {im}"
+    rows = [" & ".join(cell(x) for x in r) for r in a.tolist()]
     return r"\left(\begin{array}{%s}" % ("c" * a.shape[1]) + r" \\ ".join(rows) + r"\end{array}\right)"
 
 
+def expand_derivs(node, ctx, out, lang="de"):
+    """f'(x), f''(x) und diff(…, x[, n]) durch ihre symbolische Ableitung ersetzen (labcalc.deriv); ohne Regel bleibt
+    eine numerische Ableitung stehen, die Zeile bekommt dann einen Hinweis."""
+    if not D.has_deriv(node):
+        return node
+    new, numeric = D.expand(node, ctx.funcs, ctx.angle)
+    out["deriv"] = True
+    if numeric:
+        _note(out, ctx, D.NUMERIC_NOTE.get(lang, D.NUMERIC_NOTE["de"]).format(t=", ".join(numeric)))
+    return D.simplify(new)
+
+
+def evaluate_safe(req: dict) -> dict:
+    """evaluate_line für die Schnittstelle: jeder Fehler kommt als {"error": …} zurück, nie als Ausnahme."""
+    try:
+        out = evaluate_line(req)
+    except Exception as e:  # noqa: BLE001 - die Seite zeigt die Meldung an der Zeile
+        return {"input": str(req.get("line", "")), "error": str(e) or type(e).__name__}
+    out.pop("_node", None)                                   # Syntaxbaum: nur für Folgezeilen im Prozess
+    return out
+
+
+def _split_names(name, known):
+    """AB -> [A, B], wenn der Name ganz aus bekannten Namen besteht (mindestens zwei); sonst None."""
+    def go(s):
+        if s in known:
+            return [s]
+        for k in range(len(s) - 1, 0, -1):
+            if s[:k] in known:
+                rest = go(s[k:])
+                if rest:
+                    return [s[:k], *rest]
+        return None
+    if name in known:
+        return None
+    parts = go(name)
+    return parts if parts and len(parts) >= 2 else None
+
+
+def split_product(st, defined):
+    """``AB = C`` (AB und C frei) oder ``C = AB`` (AB frei) mit lauter definierten Faktoren -> (Faktoren, Ziel)."""
+    if st[0] != "assign" or not re.fullmatch(r"[^\W\d]\w*", st[2].strip()):
+        return None
+    name, body = E.norm_name(st[1]), E.norm_name(st[2].strip())
+    if body in RESERVED or body in U.CONSTANTS or body in E.BUILTINS:
+        return None
+    if name in defined and body not in defined:              # AB gibt es schon: AB = C legt nur C an
+        return [name], body
+    left, right = _split_names(name, defined), _split_names(body, defined)
+    if left and not right and body not in defined:
+        return left, body
+    if right and not left:
+        return right, name
+    return None
+
+
+def product_note(parts, lang):
+    shown = "·".join(E.plain_name(p) for p in parts)
+    joined = "".join(E.plain_name(p) for p in parts)
+    return f"{joined} als Produkt {shown} gelesen" if lang == "de" else f"{joined} read as the product {shown}"
+
+
+def _product_statement(st, ctx, out, lang):
+    """AB = C mit definierten Matrizen A, B und ohne Namen AB: wie A*B = C."""
+    try:
+        hit = split_product(st, set(ctx.names))
+    except E.CalcError:
+        return st
+    if not hit or not any(np.ndim(ctx.names[p]) > 0 for p in hit[0]):
+        return st
+    if len(hit[0]) > 1:
+        out["notes"] = [product_note(hit[0], lang)]
+    return ("assign", hit[1], "*".join(hit[0]))
+
+
+_EVAL_ERRS = (E.CalcError, U.UnitError, E.DimError, ValueError, TypeError, ArithmeticError, IndexError, np.linalg.LinAlgError)
+
+
+def _assigns_right(L, Rn, ctx) -> bool:
+    """inv(A) = Q, det(A) = d: links steht ein fertiger Wert, rechts ein Name. Ein freier Name wird zugewiesen, ein
+    vorhandener nur bei Matrix oder Liste (wie A*B = C); eine Zahl = vorhandener Name bleibt eine Prüfung."""
+    if not isinstance(Rn, ast.Name) or Rn.id in RESERVED or Rn.id in U.CONSTANTS or SV.free_names(L, ctx):
+        return False
+    try:
+        v = E.evaluate(L, ctx)
+    except _EVAL_ERRS:
+        return False
+    if isinstance(v, str):
+        return False
+    return Rn.id not in ctx.names or np.ndim(v) > 0
+
+
+def solve_matrix(A, B, where, lang="de"):
+    """A·X = B (where="left") oder X·A = B (where="right") nach X; singuläre und widersprüchliche Fälle als Meldung."""
+    de = lang == "de"
+    A, B = np.asarray(A), np.asarray(B)
+    row = B.ndim == 1
+    Bm = B.reshape(-1, 1) if row and where == "left" else B.reshape(1, -1) if row else B
+    Am, Bm = (A, Bm) if where == "left" else (A.T, Bm.T)
+    if Am.shape[0] != Bm.shape[0]:
+        raise E.CalcError(f"Grössen passen nicht: {A.shape} und {B.shape}" if de else f"sizes do not fit: {A.shape} and {B.shape}")
+    ra, rb = int(np.linalg.matrix_rank(Am)), int(np.linalg.matrix_rank(np.hstack([Am, Bm])))
+    if rb > ra:
+        raise E.CalcError(f"Keine Lösung: das System ist widersprüchlich (Rang der Matrix {ra}, mit rechter Seite {rb})" if de
+                          else f"No solution: the system is inconsistent (rank {ra}, with right-hand side {rb})")
+    if ra < Am.shape[1]:
+        raise E.CalcError(f"Keine eindeutige Lösung: die Matrix ist singulär (Rang {ra} bei {Am.shape[1]} Spalten), "
+                          "es gibt unendlich viele Lösungen" if de else
+                          f"No unique solution: the matrix is singular (rank {ra} with {Am.shape[1]} columns), "
+                          "there are infinitely many solutions")
+    X = np.linalg.solve(Am, Bm) if Am.shape[0] == Am.shape[1] else np.linalg.lstsq(Am, Bm, rcond=None)[0]
+    size = float(np.max(np.abs(X))) if X.size else 0.0
+    X = np.where(np.abs(X) <= 1e-12 * size, 0.0, X)
+    if where == "right":
+        X = X.T
+    return X.ravel() if row else X
+
+
+def _matrix_unknown(L, Rn, ctx, lang, out, digits):
+    """A*X = B oder X*A = B mit freiem X: Ergebnis wie eine Zuweisung an X, sonst None."""
+    free = SV.free_names(SV.residual(L, Rn), ctx)
+    if len(free) != 1:
+        return None
+    x = free[0]
+    for side, other in ((L, Rn), (Rn, L)):
+        if not (isinstance(side, ast.BinOp) and isinstance(side.op, ast.Mult)) or SV._has(other, x):
+            continue
+        if isinstance(side.right, ast.Name) and side.right.id == x and not SV._has(side.left, x):
+            coef, where = side.left, "left"
+        elif isinstance(side.left, ast.Name) and side.left.id == x and not SV._has(side.right, x):
+            coef, where = side.right, "right"
+        else:
+            continue
+        try:
+            A, B = E.evaluate(coef, ctx), E.evaluate(other, ctx)
+        except _EVAL_ERRS:
+            return None
+        if isinstance(A, str) or isinstance(B, str) or np.ndim(A) != 2 or np.ndim(B) == 0:
+            return None
+        X = solve_matrix(A, B, where, lang)
+        (tl, hl), (tr_, hr) = _input_render(L, lang), _input_render(Rn, lang)
+        out.update(kind="assign", name=x, result=E.describe(X, digits), store=E.to_json(X),
+                   html=f"{hl} = {hr} ⇒ {R.sym_html(x)}", tex=rf"{tl} = {tr_} \;\Rightarrow\; {R.sym_tex(x)}",
+                   result_tex=_result_tex(X, lang))
+        if _has_dims(coef, ctx) or _has_dims(other, ctx):
+            da, db = node_dims(coef, ctx), node_dims(other, ctx)
+            d = U.ddiv(db, da) if da is not None and db is not None else None
+            if d is None:
+                out["unit"] = UNKNOWN_UNIT
+                _note(out, ctx, UNKNOWN_NOTE)
+            elif not U.deq(d, U.D0):
+                out["unit"], out["dims"] = _si_text(d), list(d)
+                out["result_tex"] += r"\," + R.unit_tex(unit_plain(out["unit"]))
+        _note(out, ctx)
+        return out
+    return None
+
+
 def evaluate_line(req: dict) -> dict:
-    line = str(req.get("line", "")).strip()
+    typed = str(req.get("line", "")).strip()
     lang = req.get("lang", "de")
-    if not line:
+    if not typed:
         raise E.CalcError("Leere Eingabe")
     ctx = P.make_ctx(req)
     if "ans" in (req.get("vars") or {}):
         ctx.names["ans"] = E.from_json(req["vars"]["ans"])
+    line = E.rewrite_ddx(typed, set(ctx.names) | set(ctx.funcs))     # d/dx(x^3) -> diff(x^3, x)
     st = E.split_statement(line)
-    out = {"input": line}
+    out = {"input": typed}
     callables = ctx.callables()
+    symb = {k: v for k, v in (req.get("symbolic") or {}).items() if k not in ctx.names}   # RC-01 (nur im Prozess)
+    if req.get("products", True):                            # die Blätter entscheiden das vorab für die ganze Seite
+        st = _product_statement(st, ctx, out, lang)
     if st[0] == "system":                                    # S-02: x + y = 3; x − y = 1
         pairs = [(E.parse(a, callables), E.parse(b, callables)) for a, b in st[1]]
         return solve_system_line(pairs, ctx, req, lang, out)
     if st[0] == "equation":                                  # S-01: x^2 − 3 + x = 0
         _, ls, rs, extras, unit = st
-        return solve_line(E.parse(ls, callables), E.parse(rs, callables), extras, unit, ctx, req, lang, out, callables)
+        L, Rn = E.parse(ls, callables), E.parse(rs, callables)
+        if not extras and unit is None and _assigns_right(L, Rn, ctx):
+            st = ("assign", Rn.id, ls)                       # inv(A) = Q: Zuweisung nach rechts
+        else:
+            if not extras and unit is None:
+                done = _matrix_unknown(L, Rn, ctx, lang, out, int(req.get("digits", 10)))
+                if done is not None:
+                    return done
+            return solve_line(L, Rn, extras, unit, ctx, req, lang, out, callables)
     if st[0] == "assign":                                    # x = 2x − 3, x^2 = x: Gleichung, wenn sonst nichts ginge
         _, name, body = st
         try:
-            nm, bnode = E.norm_name(name), E.parse(body, callables)
+            nm, bnode = E.norm_name(name), inline_symbolic(E.parse(body, callables), symb)
         except E.CalcError:
             nm = bnode = None
         if bnode is not None and SV.free_names(bnode, ctx):
@@ -74,6 +253,9 @@ def evaluate_line(req: dict) -> dict:
                 for g, n in E.GREEK.items():
                     s = s.replace(g, n)
                 L, Rn = (nn, bnode) if E.ASSIGN.match(s) else (bnode, nn)
+                done = _matrix_unknown(L, Rn, ctx, lang, out, int(req.get("digits", 10)))      # A*X = B
+                if done is not None:
+                    return done
                 return solve_line(L, Rn, [], None, ctx, req, lang, out, callables)
     if st[0] == "func":
         _, name, args, body = st
@@ -82,6 +264,13 @@ def evaluate_line(req: dict) -> dict:
             raise E.CalcError(f"„{name}“ ist eine eingebaute Funktion")
         node = E.parse(body, callables | {name})
         tex, html = _input_render(node, lang)
+        if D.has_deriv(node):                                # g(x) = f'(x): die Ableitung gleich dahinter zeigen
+            try:
+                dn = expand_derivs(node, ctx, out, lang)
+                dt, dh = _input_render(dn, lang)
+                tex, html = f"{tex} = {dt}", f"{html} = {dh}"
+            except E.CalcError:
+                pass
         arg_html = ", ".join(R.sym_html(a) for a in args)
         out.update(kind="func", name=name, args=args, body=body,
                    html=f"{R.sym_html(name).replace('<i>', '').replace('</i>', '')}({arg_html}) = {html}",
@@ -93,10 +282,14 @@ def evaluate_line(req: dict) -> dict:
         name = E.norm_name(name)
         if name in RESERVED or name in U.CONSTANTS:
             raise E.CalcError(f"„{name}“ ist reserviert")
-        node = E.parse(body, callables)
+        shown = E.parse(body, callables)
+        node = expand_derivs(inline_symbolic(shown, symb), ctx, out, lang)
+        free = SV.free_names(node, ctx)
+        if free:                                                 # RC-01: noch nicht definierte Namen bleiben stehen
+            return _symbolic(out, name, node, free, ctx, lang, shown)
         val = E.evaluate(node, ctx)
         d = E.describe(val, int(req.get("digits", 10)))
-        tex, html = _input_render(node, lang)
+        tex, html = _input_render(shown if out.get("deriv") else node, lang)
         out.update(kind="assign", name=name, result=d, store=E.to_json(val),
                    html=f"{R.sym_html(name)} = {html}", tex=f"{R.sym_tex(name)} = {tex}",
                    result_tex=_result_tex(val, lang))
@@ -132,7 +325,7 @@ def evaluate_line(req: dict) -> dict:
                       if target == "°C" else f"als Temperaturdifferenz umgerechnet (ohne Nullpunkt, Faktor {E.fmt_num(1 / f, 6)})")
             elif w is None or abs(w - 1) > 1e-12:
                 _note(out, ctx, f"als Temperatur umgerechnet (mit Nullpunkt); für eine Differenz „-> Δ{target}“ schreiben")
-        conv = U.from_si(np.asarray(val, dtype=float), target, diff)
+        conv = U.from_si(E.real_values(val, "Umrechnung"), target, diff)
         dd = E.describe(conv, int(req.get("digits", 10)))
         tex, html = _input_render(node, lang)
         shown = ("Δ" + target) if diff and off else target
@@ -140,10 +333,14 @@ def evaluate_line(req: dict) -> dict:
                    tex=tex, result_tex=_result_tex(conv, lang) + r"\," + (r"\Delta " if diff and off else "") + R.unit_tex(target))
         _note(out, ctx)
         return out
-    node = E.parse(st[1], callables)
+    shown = E.parse(st[1], callables)
+    node = expand_derivs(inline_symbolic(shown, symb), ctx, out, lang)
+    free = SV.free_names(node, ctx) if symb or req.get("partial") or out.get("deriv") else []
+    if free and _symbolic(out, None, node, free, ctx, lang, shown) is not None:
+        return out
     val = E.evaluate(node, ctx)
     d = E.describe(val, int(req.get("digits", 10)))
-    tex, html = _input_render(node, lang)
+    tex, html = _input_render(shown if out.get("deriv") else node, lang)
     out.update(kind="expr", result=d, store=E.to_json(val) if not isinstance(val, str) else None, html=html, tex=tex,
                result_tex=_result_tex(val, lang))
     unit = _dims_unit(node, ctx)
@@ -157,6 +354,92 @@ def evaluate_line(req: dict) -> dict:
     _add_parts(out, node, ctx, val, lang)
     _parts_known(out)
     _note(out, ctx)
+    return out
+
+
+# ----------------------------------------------------------------------------- RC-01: Teilauswertung
+_KEEP_SYM = {"pi", "e"}
+
+
+def inline_symbolic(node, symbolic):
+    """Namen, die eine Zeile davor nur symbolisch bestimmt hat (z = y + x, x offen), durch ihren Ausdruck ersetzen."""
+    if not symbolic:
+        return node
+
+    class _In(ast.NodeTransformer):
+        def visit_Call(self, n):
+            n.args = [self.visit(a) for a in n.args]             # Funktionsnamen nie ersetzen
+            return n
+
+        def visit_Name(self, n):
+            if n.id in symbolic:
+                return copy.deepcopy(symbolic[n.id])
+            return n
+    return _In().visit(copy.deepcopy(node))
+
+
+def partial(node, ctx, lang="de", digits=5, free=None, subs=None):
+    """(tex, html) des Ausdrucks mit allen bekannten Teilen ausgerechnet (Zahl mit SI-Einheit); Namen ohne Wert
+    bleiben stehen: z = y + x mit y = 5 -> 5 + x. `subs`: Namen, die mit eigener Darstellung eingesetzt werden
+    (Formelkarte: Wert in der eingegebenen Einheit)."""
+    free = set(free if free is not None else SV.free_names(node, ctx))
+    subs = dict(subs or {})
+    count = [0]
+
+    def names(n):
+        funcs = {id(c.func) for c in ast.walk(n) if isinstance(c, ast.Call)}
+        return [m.id for m in ast.walk(n) if isinstance(m, ast.Name) and id(m) not in funcs]
+
+    def fold(n):
+        if isinstance(n, ast.Constant):
+            return n
+        if isinstance(n, ast.Name) and n.id in subs:
+            return n
+        ns = names(n)
+        if not (set(ns) & free) and not set(ns) <= _KEEP_SYM:
+            try:
+                v = E.evaluate(n, ctx)
+            except (E.CalcError, TypeError, ValueError, ZeroDivisionError, OverflowError):
+                v = None
+            if v is not None and not isinstance(v, str) and np.ndim(v) == 0 and abs(np.imag(complex(v))) < 1e-14 * max(1.0, abs(complex(v))):
+                v = float(np.real(complex(v)))
+                unit = _dims_unit(n, ctx)
+                u = "" if unit in (None, UNKNOWN_UNIT) else unit_plain(unit)
+                count[0] += 1
+                key = f"_k{count[0]}"
+                subs[key] = (R.qty_tex(v, u, lang, digits) if u else R.num_tex(v, lang, digits),
+                             R.qty_html(v, u, lang, digits) if u else R.num_html(v, lang, digits),
+                             R.P_NEG if v < 0 else (R.P_MUL if u else R.P_ATOM))
+                return ast.Name(id=key, ctx=ast.Load())
+            return n                                            # Liste oder nicht auswertbar: so stehen lassen
+        if isinstance(n, ast.Call):
+            n.args = [fold(a) for a in n.args]
+            return n
+        for field, old in ast.iter_fields(n):
+            if isinstance(old, list):
+                setattr(n, field, [fold(x) if isinstance(x, ast.expr) else x for x in old])
+            elif isinstance(old, ast.expr):
+                setattr(n, field, fold(old))
+        return n
+    return R.render(fold(copy.deepcopy(node)), subs, lang)
+
+
+def _symbolic(out, name, node, free, ctx, lang, shown=None):
+    """Ergebnis einer Zeile mit noch nicht definierten Namen: der Ausdruck mit allem Bekannten eingesetzt."""
+    tex, html = _input_render(shown if shown is not None else node, lang)
+    pt, ph = partial(node, ctx, lang, free=free)
+    if not name and pt == tex:
+        return None                                           # nichts eingesetzt: Ausdruckszeile bleibt ein Fehler
+    lt, lh = (R.sym_tex(name) + " = ", R.sym_html(name) + " = ") if name else ("", "")
+    names = ", ".join(free)
+    if out.get("deriv"):                                      # f'(x) mit offenem x: die Ableitung als Term
+        text = f"symbolische Ableitung, {names} ohne Wert" if lang == "de" else f"symbolic derivative, {names} without a value"
+    else:
+        text = (f"{names} noch nicht definiert: Ergebnis mit {names}" if lang == "de"
+                else f"{names} not defined yet: result in terms of {names}")
+    out.update(kind="symbolic", name=name, free=list(free), html=lh + html, tex=lt + tex,
+               partial_html=ph, partial_tex=pt, result_tex=pt, same=pt == tex, text=text)
+    out["_node"] = node                                       # für spätere Zeilen (nur im Prozess, nicht als JSON)
     return out
 
 
@@ -328,18 +611,18 @@ def _sets_for(groups, unk, dims, pick):
     dl = {u: (list(dims[u]) if dims.get(u) is not None and not U.deq(dims[u], U.D0) else None) for u in unk}
     if len(groups) == 1:
         for u, v in zip(unk, groups[0]):
-            sets.append({"name": u, "store": E.to_json(v), "dims": dl[u]})
+            sets.append({"name": u, "store": E.to_json(v), "dims": dl[u], "unit": U.dims_text(dl[u]) if dl[u] else ""})
         return sets, None
     for k, g in enumerate(groups, 1):
         for u, v in zip(unk, g):
-            sets.append({"name": f"{u}_{k}", "store": E.to_json(v), "dims": dl[u]})
+            sets.append({"name": f"{u}_{k}", "store": E.to_json(v), "dims": dl[u], "unit": U.dims_text(dl[u]) if dl[u] else ""})
     try:
         p = int(pick) if pick is not None else None
     except (TypeError, ValueError):
         p = None
     if p is not None and 1 <= p <= len(groups):
         for u, v in zip(unk, groups[p - 1]):
-            sets.append({"name": u, "store": E.to_json(v), "dims": dl[u]})
+            sets.append({"name": u, "store": E.to_json(v), "dims": dl[u], "unit": U.dims_text(dl[u]) if dl[u] else ""})
         return sets, p
     return sets, None
 
@@ -358,6 +641,8 @@ def solve_line(L, Rn, extras, unit, ctx, req, lang, out, callables):
     for w in want:                                           # „…, x“: nach x lösen, auch wenn x schon einen Wert hat
         ctx.names.pop(w, None)
         ctx.dims.pop(w, None)
+    L0, R0 = L, Rn                                           # f'(x) = 3: mit der Ableitung rechnen, so zeigen
+    L, Rn = expand_derivs(L, ctx, out, lang), expand_derivs(Rn, ctx, out, lang)
     free = SV.free_names(SV.residual(L, Rn), ctx)
     if want:
         rest = [f for f in free if f not in want]
@@ -368,7 +653,7 @@ def solve_line(L, Rn, extras, unit, ctx, req, lang, out, callables):
         bad = [f for f in SV.free_names(c, ctx) if f not in free]
         if bad:
             raise E.CalcError(f"Unbekannter Name „{bad[0]}“ in der Bedingung")
-    (tl, hl), (tr_, hr) = _input_render(L, lang), _input_render(Rn, lang)
+    (tl, hl), (tr_, hr) = _input_render(L0, lang), _input_render(R0, lang)
     cr = [_input_render(c, lang) for c in conds]
     out["html"] = f"{hl} = {hr}" + "".join(f", {h}" for _, h in cr)
     out["tex"] = f"{tl} = {tr_}" + "".join(r",\quad " + t for t, _ in cr)
@@ -406,7 +691,7 @@ def solve_line(L, Rn, extras, unit, ctx, req, lang, out, callables):
         items[-1]["tex"] = f"{R.sym_tex(nm)} = " + (f"{ex_tex} \\approx {num}" if ex_tex else num)
         vals.append(v)
     sets, picked = _sets_for([[v] for v in vals], [x], {x: dims}, req.get("pick"))
-    notes = list(res.get("notes") or [])
+    notes = list(out.get("notes") or []) + list(res.get("notes") or [])
     if any(it["mult"] > 1 for it in items):
         notes.append("doppelte Lösung" if all(it["mult"] <= 2 for it in items) else "mehrfache Lösung")
     if res["method"] == "numeric" and n:

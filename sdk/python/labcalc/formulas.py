@@ -68,14 +68,20 @@ def check_name(sym: str, reserved=()) -> str | None:
     return None
 
 
-def evaluate(defs, variables: dict, functions: dict | None = None, lang: str = "de") -> list[dict]:
+def evaluate(defs, variables: dict, functions: dict | None = None, lang: str = "de", unc: dict | None = None) -> list[dict]:
     """Gleichungen der Reihe nach auswerten.
 
-    variables: Name -> Zahl oder {"value", "unit", "label"}; functions: Name -> Python-Funktion (Zahlen rein, Zahl raus).
-    Ergebnis je Gleichung: sym, label, expr, unit, digits, source, value (float|None), text, error, tex (Gleichung),
-    tex_value (eingesetztes Ergebnis), html.
+    variables: Name -> Zahl oder {"value", "unit", "label", "u"?, "unc"?}; functions: Name -> Python-Funktion (Zahlen
+    rein, Zahl raus). Ergebnis je Gleichung: sym, label, expr, unit, digits, source, value (float|None), text, error,
+    tex (Gleichung), tex_value (eingesetztes Ergebnis), html.
+
+    Messunsicherheit: trägt eine verwendete Variable ``u`` (Standardunsicherheit) oder ``unc`` ({"parts": [...]} wie in
+    ``labcalc.uncertainty``), bekommt die Zeile ``unc`` (Ergebnis des Verfahrens, Standard GUM) und ``text_pm``.
+    ``unc``: {"method": "gum"|"mc"|"gauss"|"worst"|"off", "p", "k", "corr"}. Frühere Gleichungen werden im Modell
+    nachgerechnet, damit gemeinsame Eingangsgrössen richtig korreliert bleiben.
     """
     names = {}
+    uspec = {}
     for k, v in (variables or {}).items():
         val = v.get("value") if isinstance(v, dict) else v
         if val is None:
@@ -84,6 +90,12 @@ def evaluate(defs, variables: dict, functions: dict | None = None, lang: str = "
             names[k] = float(val)
         except (TypeError, ValueError):
             continue
+        sp = _unc_spec(k, names[k], v)
+        if sp:
+            uspec[k] = sp
+    umeth = (unc or {}).get("method") or "gum"
+    chain = []                                     # (sym, node) der bisher gültigen Gleichungen
+    base_names = dict(names)
     funcs = dict(functions or {})
     callables = E.Ctx().callables() | frozenset(funcs)
     reserved = set(variables or {}) | set(funcs)
@@ -116,12 +128,69 @@ def evaluate(defs, variables: dict, functions: dict | None = None, lang: str = "
                 row["text"] = fmt(f, d["digits"], lang)
                 row["tex_value"] = R.num_tex(f, lang, d["digits"]) + (r"\," + R.unit_tex(d["unit"]) if d["unit"] else "")
                 names[d["sym"]] = f
+                chain.append((d["sym"], node, d["expr"]))
+                if uspec and umeth != "off":
+                    _propagate(row, chain, base_names, uspec, funcs, umeth, unc or {}, lang)
             except (E.CalcError, U.UnitError, ValueError, TypeError, ZeroDivisionError, OverflowError,
                     np.linalg.LinAlgError) as e:
                 err = str(e)
         row["error"] = err
         out.append(row)
     return out
+
+
+_TOKEN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+
+
+def _unc_spec(name: str, value: float, v) -> dict | None:
+    """Unsicherheitsangabe einer Variablen als Eingangsgrösse für labcalc.uncertainty (oder None)."""
+    if not isinstance(v, dict):
+        return None
+    sp = v.get("unc")
+    parts = sp.get("parts") if isinstance(sp, dict) else None
+    if not parts:
+        try:
+            u = float(v.get("u"))
+        except (TypeError, ValueError):
+            return None
+        if not (u > 0 and math.isfinite(u)):
+            return None
+        parts = [{"kind": "u", "u": u, **({"dof": v["dof"]} if v.get("dof") not in (None, "", "inf") else {})}]
+    return {"name": name, "value": value, "unit": str(v.get("unit") or ""), "label": str(v.get("label") or name),
+            "parts": parts, "source": v.get("source") if isinstance(v.get("source"), dict) else None}
+
+
+def _propagate(row, chain, base_names, uspec, funcs, method, opts, lang):
+    from . import uncertainty as UN
+    # verwendete Eingangsgrössen: Namen im Ausdruck, über frühere Gleichungen aufgelöst
+    exprs = {s: ex for s, _n, ex in chain}
+    used, todo = set(), [chain[-1][0]]
+    while todo:
+        s = todo.pop()
+        for t in _TOKEN.findall(exprs.get(s, "")):
+            if t in exprs and t not in used and t != s:
+                todo.append(t)
+            used.add(t)
+    ins = [uspec[k] for k in uspec if k in used]
+    if not ins:
+        return
+    nodes = list(chain)
+
+    def model(vals):
+        loc = {**base_names, **vals}
+        y = None
+        for sym, node, _ex in nodes:
+            y = E.evaluate(node, E.Ctx(names=dict(loc)), dict(funcs))
+            loc[sym] = y
+        return y
+    try:
+        r = UN.evaluate(model, ins, method, corr=opts.get("corr"), p=opts.get("p") or UN.P_DEFAULT, k=opts.get("k"),
+                        lang=lang, unit=row.get("unit") or "", label=row.get("label") or row["sym"], name=f"eq-{_key(row['sym'])}")
+    except (UN.UncError, E.CalcError, U.UnitError, ValueError, TypeError, ZeroDivisionError) as e:
+        row["unc_error"] = str(e)
+        return
+    row["unc"] = r
+    row["text_pm"] = r["text"]
 
 
 def fmt(v: float, digits: int = 4, lang: str = "de") -> str:
@@ -164,6 +233,14 @@ def merge_ext(variables: dict, ext, reserved=()) -> dict:
         label = str(x.get("label") or key).strip()[:100]
         variables[name] = {"value": val, "unit": str(x.get("unit") or "")[:30],
                            "label": f"{label} (aus {src})" if src else label, "ext": True, "from": src, "key": key}
+        try:                                              # Unsicherheit reist mit (Standardunsicherheit u)
+            u = float(str(x.get("u")).replace(",", "."))
+            if u > 0 and math.isfinite(u):
+                variables[name]["u"] = u
+                if isinstance(x.get("unc"), dict):
+                    variables[name]["unc_info"] = {k: x["unc"].get(k) for k in ("method", "U", "k", "p", "dof")}
+        except (TypeError, ValueError):
+            pass
         taken.add(name)
     return variables
 
@@ -173,7 +250,8 @@ def variables_doc(variables: dict) -> list[dict]:
     out = []
     for k, v in (variables or {}).items():
         if isinstance(v, dict):
-            out.append({"name": k, "value": v.get("value"), "unit": v.get("unit", ""), "label": v.get("label", "")})
+            out.append({"name": k, "value": v.get("value"), "unit": v.get("unit", ""), "label": v.get("label", ""),
+                        **({"u": v["u"]} if v.get("u") is not None else {})})
         else:
             out.append({"name": k, "value": v, "unit": "", "label": ""})
     return out
@@ -205,17 +283,30 @@ def to_report(b, results: list[dict], lang: str = "de", prefix: str = "", cite_p
         key = f"{prefix}eq-{_key(r['sym'])}"
         label = r.get("label") or r["sym"]
         latex = R.num_tex(r["value"], lang, r["digits"]) + (r"\," + R.unit_tex(r["unit"]) if r["unit"] else "")
-        vals.append((key, tex_escape(label), latex, r["text"] + (" " + r["unit"] if r["unit"] else "")))
+        vals.append((key, tex_escape(label), f"${latex}$", r["text"] + (" " + r["unit"] if r["unit"] else "")))  # \labval steht im Text
         ck = []
         if r.get("source"):
             ck = [C.to_bib(b, C.key_for(cite_prefix, r["source"], r["sym"]), r["source"])]
             cites += ck
+        if isinstance(r.get("unc"), dict) and r["unc"].get("method") in ("gum", "gauss"):
+            from . import uncertainty as UN
+            ys, us, _ = UN.round_pm(r["unc"]["value"], r["unc"]["U"])
+            loc = (lambda t: t.replace(".", "{,}")) if lang == "de" else (lambda t: t)
+            latex = f"({loc(ys)} \\pm {loc(us)})" + (r"\," + R.unit_tex(r["unit"]) if r["unit"] else "")
         rows.append([f"${R.sym_tex(r['sym'])}$" + (" " + tex_escape(r["label"]) if r.get("label") else ""),
                      f"${r['tex']}$" + (cite(ck) if ck else ""), f"${latex}$"])
         maths.append(r"\[ " + r["tex"] + " = " + latex + r" \]" + (cite(ck, sep=" ") if ck else ""))
     b.add_values(vals)
-    b.add_table(f"{prefix}gleichungen", booktabs(L["h"], rows, escape_header=True), caption=L["tab"] + ".")
+    b.add_table(f"{prefix}gleichungen", booktabs(L["h"], rows, escape_header=True), caption=L["tab"] + ".", steps=[])
     text = L["intro"] + ":\n" + "\n".join(maths) + "\n"
+    ur = [dict(r["unc"], name=f"{prefix}eq-{_key(r['sym'])}") for r in ok if isinstance(r.get("unc"), dict)]
+    if ur:                                              # Messunsicherheit: Wert ± U, Budget, Methodentext
+        from . import uncertainty as UN
+        uo = UN.to_report(b, ur, lang)
+        cites += uo["cites"]
+        text += uo["latex"] + "\n"
+        return {"values": [v[0] for v in vals] + uo["values"], "cites": list(dict.fromkeys(cites)), "latex": text,
+                "tables": uo["tables"]}
     return {"values": [v[0] for v in vals], "cites": cites, "latex": text}
 
 

@@ -695,7 +695,8 @@ def solve_equation(lhs, rhs, x, ctx, conds=()):
     try:
         probe = np.asarray(E.evaluate(node, ctx, {x: 1.2345}))
         if probe.ndim:
-            raise SolveError("Die Gleichung ergibt eine Liste oder Matrix – lösen lassen sich nur Zahlen")
+            raise SolveError("Die Gleichung ergibt eine Liste oder Matrix – lösen lassen sich nur Zahlen; "
+                             "für eine Matrix als Unbekannte A*X = B oder X*A = B schreiben")
     except SolveError:
         raise
     except _ERRS:

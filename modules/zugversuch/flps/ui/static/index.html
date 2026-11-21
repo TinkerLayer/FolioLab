@@ -51,6 +51,11 @@ main > * { min-width: 0; }
 label { display: block; font-size: 12px; color: var(--muted); margin: 6px 0 2px; }
 input[type=text], input[type=number], select, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 5px 7px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* Messunsicherheit: kleiner ±-Knopf (labunc.js) neben dem Eingabefeld */
+.lu-wrap { display: flex; align-items: center; gap: 2px; }
+.lu-wrap > input { flex: 1; min-width: 0; }
+#uncTable tr.clk { cursor: pointer; }
+#uncTable tr.sel td { background: var(--soft); }
 .a0box { margin-top: 8px; padding: 8px; border-radius: 6px; background: var(--key); }
 .a0box input { font-size: 22px; font-weight: 700; padding: 4px 8px; }
 .a0box .src { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; align-items: center; margin-top: 3px; }
@@ -349,6 +354,25 @@ body.lov-board header .lov-only { display: block; flex: 1; }
       <details><summary>Linearer Abschnitt und Fliessbeginn je Schwelle</summary><div class="tablewrap"><table id="fitTable"></table></div></details>
     </div>
 
+    <!-- Messunsicherheit: ± an den Eingaben der Maske, hier Verfahren, Messmittelklassen und Budgets (auf Abruf) -->
+    <div class="panel" id="uncPanel">
+      <details class="lab-fold ph" data-fold="unc"><summary><span data-i18n="zv.f_unc">Messunsicherheit</span> <span class="small" id="uncSum"></span></summary>
+      <label style="display:flex;gap:6px;align-items:center;color:var(--ink);font-size:13px"><input type="checkbox" id="uncOn" style="width:auto"> <span data-i18n="zv.unc_on">Messunsicherheit der Kennwerte berechnen</span></label>
+      <div id="uncBody" hidden>
+        <div class="small" data-i18n="zv.unc_hint">± an Abmessungen, L₀ und v in der Maske (A₀ nur, wenn direkt eingegeben). Modelle nach ISO 6892-1, Anhang J.</div>
+        <div id="uncMeth" style="margin:6px 0"></div>
+        <div class="row2" style="max-width:640px">
+          <div><label for="uncForce" data-i18n="zv.unc_force">Kraftmesseinrichtung (ISO 7500-1)</label><select id="uncForce"></select></div>
+          <div><label for="uncExt" data-i18n="zv.unc_ext">Längenänderung (ISO 9513)</label><select id="uncExt"></select></div>
+        </div>
+        <div class="tablewrap" style="margin-top:6px"><table id="uncTable"></table></div>
+        <div id="uncRes" style="margin-top:6px"></div>
+        <div class="btnrow"><button type="button" id="uncOwnBtn" data-i18n="zv.unc_own">Eigene Messmittel …</button></div>
+        <div class="small" id="uncSrc" style="margin-top:4px"></div>
+      </div>
+      </details>
+    </div>
+
     <div class="panel" id="pkPanel" hidden>
       <details class="lab-fold ph" data-fold="pk"><summary><span data-i18n="zv.f_pk">Lastspitzen</span> <span class="small" id="pkSum"></span></summary>
       <div class="row2" style="max-width:520px">
@@ -365,6 +389,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
 
     <div class="panel" id="eqPanel">
       <details class="lab-fold ph" data-fold="eq"><summary><span data-i18n="zv.f_eq">Eigene Gleichungen</span> <span class="small" id="eqSum"></span></summary>
+      <div id="eqTaken" hidden></div>
       <div class="tablewrap" id="eqRes"></div>
       <details><summary>Gleichungen und Variablen</summary>
         <div class="eqlist" id="eqList"></div>
@@ -408,6 +433,7 @@ body.lov-board header .lov-only { display: block; flex: 1; }
 <script src="labboard.js"></script>
 <script src="laboverview.js"></script>
 <script src="labimport.js"></script>
+<script src="labunc.js"></script>
 <script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
    Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
 (function (g) {
@@ -478,6 +504,12 @@ const ZV_T = {
     "zv.q_force": "Kraft", "zv.q_stress": "Spannung", "zv.q_length": "Weg", "zv.q_strain": "Dehnung", "zv.q_time": "Zeit",
     "zv.imp_done": "„{t}“ aus dem Datensatz ausgewertet ({n} Punkte).", "zv.imp_newer": "„{t}“: neuere Version v{v} des Datensatzes verfügbar (festgehalten).",
     "zv.imp_upd": "{n} Messung(en) aus Datensätzen auf die neueste Version gebracht.",
+    "zv.f_unc": "Messunsicherheit", "zv.unc_on": "Messunsicherheit der Kennwerte berechnen",
+    "zv.unc_hint": "± an Abmessungen, L₀ und v in der Maske (A₀ nur, wenn direkt eingegeben). Modelle nach ISO 6892-1, Anhang J.",
+    "zv.unc_force": "Kraftmesseinrichtung (ISO 7500-1)", "zv.unc_ext": "Längenänderung (ISO 9513)", "zv.unc_none": "nicht berücksichtigt",
+    "zv.unc_own": "Eigene Messmittel …", "zv.unc_q": "Kennwert", "zv.unc_r": "Ergebnis", "zv.unc_model": "Modell",
+    "zv.unc_src": "Quellen der Modelle: ISO 6892-1:2019, Anhang J; UNCERT Code of Practice 07 (Angaben nicht am Original geprüft). Typ A der Steigung aus der Regression, Fusspunkt t₀ als exakt.",
+    "zv.unc_off": "aus",
   },
   en: {
     "zv.title": "FLPS evaluation", "zv.open": "Open file …", "zv.more_t": "Manage environments, project index, values to the index",
@@ -510,6 +542,12 @@ const ZV_T = {
     "zv.q_force": "force", "zv.q_stress": "stress", "zv.q_length": "displacement", "zv.q_strain": "strain", "zv.q_time": "time",
     "zv.imp_done": "“{t}” evaluated from the dataset ({n} points).", "zv.imp_newer": "“{t}”: newer version v{v} of the dataset available (kept).",
     "zv.imp_upd": "{n} measurement(s) from datasets brought to the latest version.",
+    "zv.f_unc": "Measurement uncertainty", "zv.unc_on": "Evaluate the measurement uncertainty of the key values",
+    "zv.unc_hint": "± on the dimensions, L₀ and v in the form (A₀ only if entered directly). Models after ISO 6892-1, Annex J.",
+    "zv.unc_force": "Force-measuring system (ISO 7500-1)", "zv.unc_ext": "Extensometer (ISO 9513)", "zv.unc_none": "not included",
+    "zv.unc_own": "Own instruments …", "zv.unc_q": "Key value", "zv.unc_r": "Result", "zv.unc_model": "Model",
+    "zv.unc_src": "Sources of the models: ISO 6892-1:2019, Annex J; UNCERT Code of Practice 07 (details not checked against the original). Type A of the slope from the regression, foot point t₀ treated as exact.",
+    "zv.unc_off": "off",
   },
 };
 if (window.LabUI) LabUI.strings(ZV_T);
@@ -623,7 +661,9 @@ function scheduleAnalyse() {
 async function analyse(fobj) {
   const my = ++seq;
   fobj.cfg.equations = activeEqs();   // vollständige Einträge: der Bericht rechnet sie später genauso nach
-  fobj.cfg.ext_values = S.ext && S.ext.length ? S.ext : null;        // Werte anderer Umgebungen (Verbindung)
+  const extV = TK ? TK.ext(S.ext) : (S.ext || []);                    // Indexwerte und Werte anderer Umgebungen (Verbindung)
+  fobj.cfg.ext_values = extV.length ? extV : null;
+  if (fobj.cfg.unc) fobj.cfg.unc.lang = uiLang();                     // Bezeichnungen der Budgets in der Sprache der Seite
   const j = await api("api/analyse", { id: fobj.id, config: fobj.cfg });
   if (j.error) { flash(j.error); return; }
   if (fobj === S.files[S.sel] && my !== seq) return; // veraltete Antwort
@@ -724,9 +764,13 @@ function renderRefInfo(name) {
   const a = alloyByName(name), el = $("#refInfo");
   if (!a) { el.textContent = "Keiner gewählt: Rangliste ohne Referenz, Vergleichsgruppe Aluminium."; return; }
   const span = (a.rm_min !== null && a.rm_max !== null) ? ` (${f(a.rm_min, 0)}–${f(a.rm_max, 0)})` : "";
-  el.innerHTML = `<b>${esc(a.name)}</b>${a.own ? '<span class="ownbadge">eigen</span>' : ""}${a.curve ? '<span class="ownbadge">Kurve aus Quelle</span>' : ""} · ${esc(a.category)}<br>Rm <b>${f(a.rm, 0, "MPa")}</b>${span} · ${a.rp ? "Rp " + f(a.rp, 0, "MPa") : "kein Rp"} · A ${f(a.a_pct, 0, "%")} · E ${f(a.e_gpa, a.e_gpa < 10 ? 2 : 0, "GPa")}` +
+  const dec = (META.decoded || {})[a.name];
+  el.innerHTML = `<b>${esc(a.name)}</b>${a.own ? '<span class="ownbadge">eigen</span>' : ""}${a.curve ? '<span class="ownbadge">Kurve aus Quelle</span>' : ""} · ${esc(a.category)}` +
+    (dec ? `<br><span class="small" title="Normbezeichnung entschlüsselt">${esc(dec)}</span>` : "") + `<br>Rm <b>${f(a.rm, 0, "MPa")}</b>${span} · ${a.rp ? "Rp " + f(a.rp, 0, "MPa") : "kein Rp"} · A ${f(a.a_pct, 0, "%")} · E ${f(a.e_gpa, a.e_gpa < 10 ? 2 : 0, "GPa")}` +
     (a.basis ? `<br>Basis: ${esc(a.basis)}` : "") +
-    (a.source ? `<br><span class="small">Quelle: ${esc(a.source)}${a.year && !a.cite ? " (" + esc(a.year) + ")" : ""}${srcLink(a)}</span>` : "");
+    (a.source ? `<br><span class="small">Quelle: ${esc(a.source)}${a.year && !a.cite ? " (" + esc(a.year) + ")" : ""}${srcLink(a)}</span>` : "") +
+    // im Hub: Struktur (Gitter, Zellen, Gefüge, Wärmebehandlung) dieses Werkstoffs im Modul Werkstoffe
+    (!a.own && location.pathname.startsWith("/m/") ? `<br><a href="/m/werkstoffe/?struktur=${encodeURIComponent(a.name)}#umgebung" target="_blank" rel="noopener" title="Gitter, Elementarzellen, Gefüge und Wärmebehandlung dieses Werkstoffs im Modul Werkstoffe">Struktur ansehen ↗</a>` : "");
 }
 function fillAlloyOptions() {
   const cats = new Map();
@@ -756,7 +800,7 @@ function optGroups(sel, groups, emptyLabel) {
   if (emptyLabel !== null) { const o = document.createElement("option"); o.value = ""; o.textContent = emptyLabel; sel.appendChild(o); }
   for (const [g, items] of groups) {
     const og = document.createElement("optgroup"); og.label = g;
-    for (const [v, t] of items) { const o = document.createElement("option"); o.value = v; o.textContent = t; og.appendChild(o); }
+    for (const [v, t] of items) { const o = document.createElement("option"); o.value = v; o.textContent = t; const d = (META.decoded || {})[v]; if (d) o.title = d; og.appendChild(o); }
     sel.appendChild(og);
   }
 }
@@ -1182,12 +1226,12 @@ function renderKV() {
     const r = o.res; if (!r) return;
     const kv = r.kv, st = r.mode === "Spannung";
     const both = (F, y) => st ? `${f(y, 0, "MPa")}<br><span class="small">${f(F, 1, "N")}</span>` : f(F, 1, "N");
-    const e = r.e_schein_gpa !== null ? `${f(r.e_schein_gpa, 1, "GPa")}${shrI("E", i)} <span class="badge warn" title="Weg aus der Traverse: enthält die Nachgiebigkeit von Einspannung und Rahmen (7.2)">scheinbar</span>` : `<span class="small">entfällt</span>`;
+    const e = r.e_schein_gpa !== null ? `${f(r.e_schein_gpa, 1, "GPa")}${shrI("E", i)}${uncPm(r, "E")} <span class="badge warn" title="Weg aus der Traverse: enthält die Nachgiebigkeit von Einspannung und Rahmen (7.2)">scheinbar</span>` : `<span class="small">entfällt</span>`;
     h += `<tr class="clk ${i === S.sel ? "sel" : ""}" data-i="${i}">
       <td><span class="chip" style="padding:2px 8px;cursor:inherit"><span class="dot" style="background:${o.color}"></span>${esc(o.name)}</span></td>
       <td>${r.mode}</td><td class="n">${r.a0 ? f(r.a0, 4) : "fehlt"}</td>
       <td class="n">${kv.yield ? both(kv.yield.F, kv.yield.y) + `<br><span class="small">Schwelle ${f(kv.yield.schwelle * 100, 1)} %</span>` : "–"}</td>
-      <td class="n key">${both(kv.max.F, kv.max.y)}${shrI(st && r.a0 ? "Rm" : "Fmax", i)}</td>
+      <td class="n key">${both(kv.max.F, kv.max.y)}${shrI(st && r.a0 ? "Rm" : "Fmax", i)}${uncPm(r, st && r.a0 ? "Rm" : "Fmax")}</td>
       <td class="n">${kv.break ? both(kv.break.F, kv.break.y) : "kein Bruch"}</td>
       <td class="n">${kv.drop ? `${f(kv.drop.abs_F, 1, "N")}<br><span class="small">${f(kv.drop.pct, 1, "%")} in ${f(kv.drop.dauer, 1, "s")}</span>` : "–"}</td>
       <td class="n">${f(kv.hold.dauer, 1)}</td><td class="n">${f(kv.ratio, 2)}</td><td class="n">${e}</td></tr>`;
@@ -1398,7 +1442,7 @@ function renderAll(mask = true) {
   if (!mask) { // Anzeige der Quelle von A0 nachziehen
     const fobj = S.files[S.sel]; if (fobj && fobj.res) { $("#a0src").textContent = fobj.res.a0 ? fobj.res.a0_source : "fehlt: Auswertung nur in Kraft"; }
   }
-  drawChart(); renderKV(); renderPeaks(); renderEq(); renderCmp(); renderDev();
+  drawChart(); renderKV(); renderUnc(); renderPeaks(); renderEq(); renderCmp(); renderDev();
   const fobj = S.files[S.sel];
   $("#sketch").innerHTML = fobj && fobj.res && fobj.res.sketch_svg ? fobj.res.sketch_svg : "";
   renderTabs(); updateFoldSums();
@@ -1457,13 +1501,110 @@ function envSummary() {          // Kasten der Umgebung in der Übersicht
   return { title: S.files.map(o => o.name).join(" · ").slice(0, 200), tags: tags.slice(0, 8), values, plots };
 }
 // ⇄: Kennwerte und Gleichungsergebnisse an andere Umgebungen; übernommene Werte als Variablen (S.ext)
-function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.files.map(o => ({ name: o.name, vars: o.res && o.res.variables, eqs: o.res && o.res.equations }))) : []; }
+function valCatalogue() { return window.LabOverview && LabOverview.runsCatalogue ? LabOverview.runsCatalogue(S.files.map(o => ({ name: o.name, vars: o.res && o.res.variables, eqs: o.res && (TK ? TK.own(o.res.equations) : o.res.equations) }))) : []; }
 function shrI(name, i) { return OV && OV.shareButton && i >= 0 ? OV.shareButton(String(name).slice(0, 21) + (i > 0 ? "_" + (i + 1) : "")) : ""; }
 async function applyExt(rows) {
   const r = LabOverview.extValues(S.ext, rows);
   if (!r.changed && !S.extDirty) return;                              // extDirty: Umgebung eben geöffnet, Auswertung noch ohne
   S.ext = r.list; S.extDirty = false;
   await refreshAllEq();
+}
+
+// ---------- Messunsicherheit (labunc.js; Modelle und Rechnung im Server, flps/uncertainty.py) ----------
+// Eingabefelder mit ±: Schlüssel wie in Config.unc.specs, Einheit für das ±-Fenster
+const UNC_KEYS = { width_mm: "mm", thickness_mm: "mm", diameter_mm: "mm", outer_d_mm: "mm", wall_mm: "mm", a0: "mm²", l0_mm: "mm", speed_mm_min: "mm/min" };
+const UNC_DEF = { force: ["kraft-iso7500-05", "kraft-iso7500-1", "kraft-iso7500-2"], ext: ["extenso-iso9513-02", "extenso-iso9513-05", "extenso-iso9513-1", "extenso-iso9513-2"] };
+let UNC_M = null, UNC_SEL = "Rm";
+const uiLang = () => (window.LabUI && LabUI.lang ? LabUI.lang() : "de");
+function uncCfg(fobj, create) {
+  if (!fobj) return null;
+  if (!fobj.cfg.unc && create) fobj.cfg.unc = fobj.uncOff || { method: "gum", p: 0.95, k: null, force_class: null, ext_class: null, specs: {} };
+  if (fobj.cfg.unc) fobj.uncOff = null;
+  return fobj.cfg.unc || null;
+}
+function uncPm(r, name) {                       // ±U unter einem Kennwert der Tabelle (nur mit Messunsicherheit)
+  const x = r && r.unc && r.unc.results ? r.unc.results[name] : null;
+  if (!x || x.error || !window.LabUnc) return "";
+  let t;
+  if (x.method === "gum" || x.method === "gauss") t = "± " + ((LabUnc.text(x).split(" ± ")[1] || "").split(" (")[0]);
+  else {                                         // Monte Carlo, Grösstfehler: Intervall
+    const d = Math.max(0, LabUnc.roundPm(x.value, Math.max(x.hi - x.value, x.value - x.lo))[2]);
+    t = `[${f(x.lo, d)}; ${f(x.hi, d)}]`;
+  }
+  return `<br><span class="small" title="${esc(LabUnc.text(x))}">${esc(t)}</span>`;
+}
+async function uncInstr(force) {                 // Klassen der Kraft- und Längenänderungs-Messeinrichtung (eingebaut und eigene)
+  if (!window.LabUnc) return;
+  let items = [];
+  try { const j = await api("api/unc/instruments", { lang: uiLang() }); if (!j.error) items = j.items || []; } catch (e) { items = []; }
+  const fill = (sel, ids, unit, group) => {
+    const keep = sel.value;
+    const list = items.filter(x => ids.includes(x.id) || (x.own && x.unit === unit) || (group && x.group === group && !ids.includes(x.id) && x.id.startsWith(group === "kraft" ? "kraft" : "extenso")));
+    const opts = list.length ? list : ids.map(id => ({ id, name: id }));
+    sel.innerHTML = `<option value="">${esc(tr("zv.unc_none"))}</option>` + opts.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join("");
+    sel.value = keep;
+  };
+  fill($("#uncForce"), UNC_DEF.force, "N", "kraft");
+  fill($("#uncExt"), UNC_DEF.ext, "mm", "weg");
+  if (force !== false) renderUnc();
+}
+function bindUnc() {
+  if (!window.LabUnc) { $("#uncPanel").hidden = true; return; }
+  for (const [id, unit] of Object.entries(UNC_KEYS)) {
+    const inp = document.getElementById(id); if (!inp) continue;
+    const w = document.createElement("span"); w.className = "lu-wrap";
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    const lab = document.querySelector(`label[for=${id}]`);
+    LabUnc.attach(inp, { key: id, label: lab ? lab.textContent : id, unit });
+  }
+  LabUnc.onChange((key, spec) => {
+    const fobj = S.files[S.sel]; if (!fobj || !(key in UNC_KEYS)) return;
+    const u = uncCfg(fobj, !!spec); if (!u) return;
+    u.specs = u.specs || {};
+    if (spec) u.specs[key] = spec; else delete u.specs[key];
+    renderUnc(); scheduleAnalyse();
+  });
+  UNC_M = LabUnc.methodPicker($("#uncMeth"), { onChange: (m) => {
+    const u = uncCfg(S.files[S.sel], true); if (!u) return;
+    Object.assign(u, m); scheduleAnalyse();
+  } });
+  $("#uncOn").addEventListener("change", () => {
+    const fobj = S.files[S.sel]; if (!fobj) return;
+    if ($("#uncOn").checked) uncCfg(fobj, true);
+    else { fobj.uncOff = fobj.cfg.unc; fobj.cfg.unc = null; }
+    renderUnc(); scheduleAnalyse();
+  });
+  for (const [id, k] of [["#uncForce", "force_class"], ["#uncExt", "ext_class"]]) {
+    $(id).addEventListener("change", () => { const u = uncCfg(S.files[S.sel], true); if (!u) return; u[k] = $(id).value || null; scheduleAnalyse(); });
+  }
+  $("#uncOwnBtn").addEventListener("click", async () => { await LabUnc.instrumentsDialog(); await uncInstr(); scheduleAnalyse(); });
+  uncInstr(false);
+}
+function renderUnc() {
+  if (!window.LabUnc) return;
+  const fobj = S.files[S.sel], u = fobj ? fobj.cfg.unc : null;
+  LabUnc.load(u && u.specs ? u.specs : {});
+  $("#uncOn").checked = !!u; $("#uncOn").disabled = !fobj; $("#uncBody").hidden = !u;
+  if (UNC_M) UNC_M.set(u ? { method: u.method || "gum", p: u.p || 0.95, k: u.k || null } : { method: "gum", p: 0.95, k: null });
+  $("#uncForce").value = (u && u.force_class) || ""; $("#uncExt").value = (u && u.ext_class) || "";
+  const ru = fobj && fobj.res && fobj.res.unc ? fobj.res.unc : null, res = ru ? ru.results || {} : {};
+  const names = Object.keys(res);
+  if (names.length && !res[UNC_SEL]) UNC_SEL = names.includes("Rm") ? "Rm" : names[0];
+  $("#uncTable").innerHTML = names.length ? `<tr><th>${esc(tr("zv.unc_q"))}</th><th class="n">${esc(tr("zv.unc_r"))}</th></tr>` +
+    names.map(n => `<tr class="clk${n === UNC_SEL ? " sel" : ""}" data-n="${esc(n)}"><td>${esc(res[n].label || n)}</td><td class="n">${esc(LabUnc.text(res[n]))}</td></tr>`).join("") : "";
+  $("#uncTable").querySelectorAll("tr.clk").forEach(row => row.addEventListener("click", () => { UNC_SEL = row.dataset.n; renderUnc(); }));
+  const cur = res[UNC_SEL];
+  const el = $("#uncRes");
+  if (ru && ru.error) el.innerHTML = `<div class="small">⚠ ${esc(ru.error)}</div>`;
+  else LabUnc.result(el, cur || null, { label: true, compare: cur && !cur.error ? async () => {
+    const j = await api("api/unccompare", { id: fobj.id, config: fobj.cfg, name: cur.name, lang: uiLang() });
+    if (j.error) throw new Error(j.error);
+    return j;
+  } : null });
+  if (cur && cur.model) el.insertAdjacentHTML("afterbegin", `<div class="small">${esc(tr("zv.unc_model"))}: ${esc(cur.model)}</div>`);
+  $("#uncSrc").textContent = u ? tr("zv.unc_src") : "";
+  const top = res.Rm || res.Fmax;
+  $("#uncSum").textContent = !u ? "" : (top && !top.error ? LabUnc.text(top).split(" (")[0] : (u.method || "gum").toUpperCase());
 }
 
 // ---------- Export ----------
@@ -1685,8 +1826,16 @@ async function ownManage() {
 
 // ---------- Eigene Gleichungen ----------
 function activeEqs() {
-  return S.eqs.filter(e => (S.eqOn || []).includes(e.id)).map(e => ({ sym: e.sym, label: e.label, expr: e.expr, unit: e.unit, digits: e.digits, source: e.source }));
+  return [...S.eqs.filter(e => (S.eqOn || []).includes(e.id)).map(e => ({ sym: e.sym, label: e.label, expr: e.expr, unit: e.unit, digits: e.digits, source: e.source })),
+    ...(TK ? TK.defs() : [])];                                         // Indexwerte: je eine Zeile für den Bericht
 }
+// Werte aus dem Projektindex als benannte Variablen (mit Einheit, u und Herkunft)
+const curRes = () => (S.files[S.sel] || {}).res || {};
+const TK = window.LabIndex && LabIndex.taker ? LabIndex.taker({ api: (p, b) => api(p, b), toast: (m, e) => flash(m, e),
+  get: () => S.taken || [], set: (l) => { S.taken = l; },
+  names: () => [...(curRes().variables || []).map(x => x.name), ...S.eqs.map(e => e.sym)], vars: () => curRes().variables || [],
+  refresh: () => refreshAllEq(), save: () => { if (window.ENVS) ENVS.save(); }, el: () => $("#eqTaken"),
+  reveal: () => { const d = $('details[data-fold="eq"]'); if (d) d.open = true; } }) : null;
 async function refreshAllEq() { for (const o of S.files) await analyse(o); renderAll(false); }
 function renderEq() {
   const fobj = S.files[S.sel], r = fobj && fobj.res;
@@ -1701,7 +1850,8 @@ function renderEq() {
     const j = await api("api/equations/delete", { id: b.dataset.rm }); if (j.error) return flash(j.error);
     S.eqs = j.items; await refreshAllEq();
   }));
-  const res = (r && r.equations) || [];
+  const res = TK ? TK.own(r && r.equations) : (r && r.equations) || [];
+  if (TK) TK.render();
   $("#eqRes").innerHTML = res.length ? `<table><tr><th>Name</th><th>Bedeutung</th><th class="n">Wert</th><th>Einheit</th></tr>${res.map(x => `<tr><td><code>${esc(x.sym)}</code></td><td>${esc(x.label || "")}</td><td class="n">${x.error ? `<span style="color:var(--err-ink)">${esc(x.error)}</span>` : `<b>${esc(x.text)}</b>${shrI(x.sym, S.sel)}`}</td><td>${esc(x.unit || "")}</td></tr>`).join("")}</table>`
     : `<div class="small">${S.eqs.length ? "Keine Gleichung aktiv." : "Eigene Formeln über die Kennwerte der Messung, z. B. Verhältnis zur Referenz oder Arbeit je Volumen; sie gehen mit Quelle in den Bericht."}</div>`;
   $("#eqVars").innerHTML = ((r && r.variables) || []).map(x => `<button type="button" title="${esc(x.label)}: ${f(x.value, 4)} ${esc(x.unit || "")}" data-v="${esc(x.name)}"${x.ext ? ' style="border-style:dashed"' : ""}>${x.ext ? "← " : ""}${esc(x.name)}</button>`).join("") || `<span class="small">Erst eine Messung laden.</span>`;
@@ -1749,6 +1899,7 @@ async function init() {
   if (!Array.isArray(S.eqOn)) S.eqOn = S.eqs.map(e => e.id);
   if ((META.own_errors || []).length) flash("Eigene Werkstoffe: " + META.own_errors.join("; "));
   bindMask();
+  bindUnc();
   $("#eqNewBtn").addEventListener("click", () => eqDialog(null));
   $("#eqExpBtn").addEventListener("click", async () => { const j = await api("api/equations/export", {}); if (!j.error) download(j.filename, j.text); });
   $("#eqImpBtn").addEventListener("click", () => pickJson(async (data) => {
@@ -1776,8 +1927,8 @@ async function init() {
   $("#cmpReportBtn").addEventListener("click", () => doCompareReport(false));
   $("#copyBtn").addEventListener("click", async () => {
     const src = S.files[S.sel].cfg;
-    const keys = ["specimen_mode", "shape", "section", "width_mm", "thickness_mm", "diameter_mm", "outer_d_mm", "wall_mm", "a0_mm2", "l0_mm", "speed_mm_min", "displacement_source", "material", "material_ref", "compare_group", "extra_refs", "batch", "operator", "slope_window_s", "tol_stress_mpa", "tol_force_n", "yield_threshold", "elastic_plastic", "break_upper", "break_lower", "hold_threshold"];
-    for (const o of S.files) { if (o.cfg === src) continue; keys.forEach(k => o.cfg[k] = Array.isArray(src[k]) ? [...src[k]] : src[k]); await analyse(o); }
+    const keys = ["specimen_mode", "shape", "section", "width_mm", "thickness_mm", "diameter_mm", "outer_d_mm", "wall_mm", "a0_mm2", "l0_mm", "speed_mm_min", "displacement_source", "material", "material_ref", "compare_group", "extra_refs", "batch", "operator", "slope_window_s", "tol_stress_mpa", "tol_force_n", "yield_threshold", "elastic_plastic", "break_upper", "break_lower", "hold_threshold", "unc"];
+    for (const o of S.files) { if (o.cfg === src) continue; keys.forEach(k => o.cfg[k] = Array.isArray(src[k]) ? [...src[k]] : (src[k] && typeof src[k] === "object" ? JSON.parse(JSON.stringify(src[k])) : src[k])); await analyse(o); }
     renderAll();
   });
   $("#themeBtn").addEventListener("click", () => {
@@ -1793,7 +1944,7 @@ async function init() {
     api, toast: (m) => flash(m), label: $("#envName"),
     keep: ["name", "cfg", "color", "ds"],
     list: () => S.files, sel: () => S.sel,
-    reset: () => { S.files = []; S.sel = -1; S.ext = []; },
+    reset: () => { S.files = []; S.sel = -1; S.ext = []; S.taken = []; },
     add: async (d, saved) => {
       const o = { id: d.id, name: d.name.replace(/\.flps$/i, ""), cfg: JSON.parse(JSON.stringify(META.defaults)), res: null,
         color: FILE_COLORS[S.files.length % FILE_COLORS.length], ...saved };
@@ -1803,13 +1954,13 @@ async function init() {
     // Berichtsauftrag (alle Messungen der Umgebung), damit „Import“ im Bericht diese Umgebung lesen kann
     report: () => S.files.length ? { items: S.files.map(o => ({ id: o.id, config: o.cfg })), lang: "de", include: {},
       title: "Zugversuch " + (S.files.length === 1 ? S.files[0].name : `${S.files.length} Messungen`) } : null,
-    extra: () => ({ ext: S.ext || [] }),
-    done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.extDirty = S.ext.length > 0; S.sel = sel; renderAll(); if (OV) setTimeout(() => OV.sync(), 0); zvDsFollow(); },
+    extra: () => ({ ext: S.ext || [], taken: S.taken || [] }),
+    done: (sel, extra) => { S.ext = (extra && Array.isArray(extra.ext)) ? extra.ext : []; S.taken = (extra && Array.isArray(extra.taken)) ? extra.taken : []; S.extDirty = S.ext.length > 0; S.sel = sel; renderAll(); if (S.taken.length) refreshAllEq(); if (OV) setTimeout(() => OV.sync(), 0); zvDsFollow(); },
   });
   $("#envBtn").addEventListener("click", () => ENVS.dialog());
   // A7: Projektindex – durchsuchen und Kennwerte der gewählten Messung eintragen (gemessen, mit Datei als Herkunft)
   const fl = (m, err) => flash(m, err);
-  $("#indexBtn").addEventListener("click", () => LabIndex.browse(api, fl));
+  $("#indexBtn").addEventListener("click", () => LabIndex.browse(api, fl, TK ? TK.take : undefined));
   $("#indexAdd").addEventListener("click", () => {
     const cur = S.files[S.sel];
     if (!cur || !cur.res) return flash("Zuerst eine Messung laden und auswählen.", true);
@@ -1822,7 +1973,7 @@ async function init() {
   await ENVS.open();
   if (window.LabUI) {
     LabUI.langSwitch($("#langSw")); LabUI.apply(); LabUI.folds("zugversuch");
-    LabUI.onLang(() => { renderTabs(); updateFoldSums(); renderCmp(); });
+    LabUI.onLang(() => { renderTabs(); updateFoldSums(); renderCmp(); uncInstr(); const o = S.files[S.sel]; if (o && o.cfg.unc) scheduleAnalyse(); });
     // UR: Maske, Diagramme und Skizze ziehbar; Diagramme mit gezogener Höhe (oder eben zurückgesetzt) neu zeichnen
     LabUI.sizes("zugversuch");
     const fit = (w, fn) => LabUI.onResize(w, () => { const s = w.querySelector("svg.plot"); if (w.style.height || (s && s._fit)) fn(); });
@@ -1838,6 +1989,7 @@ async function init() {
       detail: [$("main")], crumbs: $("#crumbs"),
       values: { catalogue: valCatalogue, apply: applyExt, version: (META && META.version) || "" },
       imports: ZV_IMP,                                                         // I-03: Datensatz → ganzer Zugversuch
+      index: () => LabIndex.browse(api, fl, TK ? (e) => { OV.showDetail(); TK.take(e); } : undefined),
       onView: (v) => { if (v === "detail") setTimeout(drawChart, 0); },
     });
     if (OV && OV.ok) { $("#dsBtn").hidden = false; $("#dsBtn").addEventListener("click", () => { $("#hMore").open = false; OV.importDataset(); }); }

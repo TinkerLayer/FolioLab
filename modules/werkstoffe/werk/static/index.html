@@ -42,6 +42,10 @@ label.chk { display: flex; gap: 6px; align-items: center; color: var(--ink); fon
 label .u { color: var(--muted); font-size: 11px; }
 code { font-size: 12px; background: var(--soft); padding: 0 3px; border-radius: 3px; }
 .small { font-size: 12px; color: var(--muted); }
+/* ±-Knopf der Messunsicherheit neben dem Feld statt darunter */
+#pane div:has(> input + .lu-btn) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 4px; align-items: center; }
+#pane div:has(> input + .lu-btn) > label { grid-column: 1 / -1; }
+#pane div:has(> input + .lu-btn) > .lu-btn { margin: 0; }
 .row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 8px; }
@@ -77,10 +81,13 @@ main { display: grid; grid-template-columns: 52px minmax(0, 1fr) var(--lab-side,
 #tools button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .viewer { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 #opts { display: flex; align-items: center; gap: 10px; padding: 5px 10px; background: var(--soft); border-bottom: 1px solid var(--line); min-height: 36px; font-size: 12px; flex-wrap: wrap; }
-#opts .hint { color: var(--muted); flex: 1; min-width: 160px; }
+#opts .hint { flex: 1; min-width: 100px; }
+.kplink { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--muted); padding: 1px 4px; font-size: 12px; }
+.kplink:hover:not(:disabled) { color: var(--accent); }
 #stage { position: relative; flex: 1; min-height: 0; background: var(--plot); overflow: hidden; }
 #plot { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; user-select: none; }
-#plot text { font: 11px system-ui, sans-serif; fill: var(--ink); }
+#plotFade { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; opacity: 0; }
+#plot text, #plotFade text { font: 11px system-ui, sans-serif; fill: var(--ink); }
 #plot .ax text { fill: var(--muted); }
 #plot .pk { cursor: pointer; }
 #plot .drag { cursor: grab; }
@@ -91,6 +98,25 @@ main { display: grid; grid-template-columns: 52px minmax(0, 1fr) var(--lab-side,
 #empty .box b { font-size: 15px; color: var(--ink); display: block; margin-bottom: 6px; }
 #empty button { margin: 12px 4px 0; }
 #stage.drop { outline: 2px dashed var(--accent); outline-offset: -8px; }
+#selCard { position: absolute; left: 76px; top: 14px; width: min(300px, 46%); max-height: calc(100% - 70px); overflow: auto; overflow-x: hidden; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid #2f9e5b; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 10px 12px; z-index: 6; font-size: 12.5px; }
+#selCard h3 { margin: 0 22px 2px 0; font-size: 14.5px; }
+#selCard .x { position: absolute; right: 4px; top: 2px; border: 0; background: transparent; font-size: 18px; line-height: 1; padding: 4px 7px; color: var(--muted); }
+#selCard .mut { color: var(--muted); margin-top: 2px; }
+.dec { margin: 6px 0; padding: 6px 8px; background: var(--soft); border-radius: 6px; font-size: 12.5px; }
+.dec dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; margin: 4px 0; }
+.dec dt { font-weight: 600; font-family: ui-monospace, monospace; }
+.dec dd { margin: 0; }
+.dec hr { border: 0; border-top: 1px solid var(--line); margin: 6px 0; }
+.decbox:empty { display: none; }
+#selCard table.sc { width: 100%; border-collapse: collapse; margin-top: 6px; }
+#selCard.right { left: auto; right: 14px; }
+#selCard table.sc { table-layout: auto; }
+#selCard table.sc td:first-child { overflow-wrap: anywhere; }
+#selCard table.sc td, #selCard table.sc th { padding: 2px 4px; border-bottom: 1px solid var(--line); text-align: left; font-weight: normal; }
+#selCard table.sc th { color: var(--muted); font-size: 11.5px; }
+#selCard table.sc .num { text-align: right; white-space: nowrap; }
+#selCard table.sc .rng { color: var(--muted); }
+#selCard .acts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
 .tag { position: absolute; right: 12px; bottom: 8px; font-style: italic; font-size: 11.5px; color: var(--muted); pointer-events: none; }
 
 aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
@@ -134,6 +160,21 @@ table.cmp th button.link { font-size: 11px; font-weight: 400; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .seg button { border: 0; border-radius: 0; padding: 3px 9px; font-size: 12px; }
 .seg button.sel { background: var(--accent); color: var(--accent-ink); }
+.tslide { position: relative; margin: 4px 0 46px; }
+.strplayer button[data-strstep] { padding: 4px 8px; }
+.strcap { margin-top: 4px; padding: 6px 8px; border-left: 3px solid var(--accent2); background: var(--soft); border-radius: 4px; min-height: 2.6em; }
+.strcap:empty { display: none; }
+.tslide input[type=range] { width: 100%; margin: 0; position: relative; }
+.tzones { position: absolute; left: 0; right: 0; top: 2px; height: 14px; pointer-events: none; }
+.tzones span { position: absolute; top: 0; bottom: 0; background: var(--accent-soft); border-radius: 4px; }
+.tmarks { position: relative; height: 0; }
+.tmarks button { position: absolute; top: 4px; border: 0; background: none; padding: 0 2px; font-size: 10.5px; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.tmarks button::before { content: ""; position: absolute; left: 50%; top: -6px; width: 1px; height: 5px; background: var(--muted); }
+.tmarks button.r1 { top: 17px; }
+.tmarks button.r2 { top: 30px; }
+.tmarks button:hover { color: var(--ink); }
+ul.stm { margin: 8px 0 4px; padding-left: 18px; font-size: 12.5px; }
+ul.stm li { margin: 2px 0; }
 .badge { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; border: 1px solid currentColor; white-space: nowrap; color: var(--muted); }
 .badge.model { color: var(--warn-ink); }
 .list { border: 1px solid var(--line); border-radius: 6px; margin-top: 6px; max-height: 240px; overflow-y: auto; }
@@ -167,6 +208,60 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
 .toast { padding: 9px 12px; border-radius: 8px; background: var(--ok-bg); color: var(--ok-ink); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.15); font-size: 12.5px; white-space: pre-line; }
 .toast.err { background: var(--err-bg); color: var(--err-ink); }
 
+#finder { position: relative; flex: none; width: min(250px, 24vw); }
+@media (max-width: 1100px) { header { flex-wrap: wrap; row-gap: 6px; } }
+#findQ { padding: 3px 8px; }
+#findPop { position: absolute; top: calc(100% + 4px); right: 0; width: min(480px, calc(100vw - 24px)); max-height: 72vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; z-index: 60; }
+#findPop h5 { margin: 7px 8px 2px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+#findPop h5 span { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.fhit { display: flex; align-items: baseline; gap: 8px; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+.fhit.on, .fhit:hover { background: var(--accent-soft); }
+.fhit b { flex: none; max-width: 62%; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fhit small { flex: 1; min-width: 0; color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fhit .alt { flex: none; font-size: 11px; color: var(--accent); border: 1px solid var(--line); border-radius: 9px; padding: 0 6px; }
+#kpBtn { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+#kpWin { position: fixed; top: 48px; right: 14px; bottom: 34px; width: min(860px, calc(100vw - 28px)); z-index: 45; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 16px 48px rgba(0,0,0,.28); }
+#kpWin .head { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+#kpWin .head b { font-size: 13.5px; }
+#kpWin .head input { flex: 1; min-width: 0; }
+#kpWin .head button { padding: 2px 8px; }
+.kpbody { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
+#kpList { overflow-y: auto; padding: 4px; border-right: 1px solid var(--line); font-size: 12.5px; }
+#kpList summary { padding: 4px 6px; font-weight: 600; font-size: 12px; color: var(--muted); cursor: pointer; }
+#kpList button { display: block; width: 100%; border: 0; background: transparent; text-align: left; padding: 3px 8px 3px 14px; border-radius: 5px; line-height: 1.3; }
+#kpList button small { display: block; color: var(--muted); font-size: 11px; }
+#kpList button:hover { background: var(--soft); }
+#kpList button.sel { background: var(--accent-soft); color: var(--accent); }
+#kpEntry { overflow-y: auto; padding: 10px 18px 18px; font-size: 13px; line-height: 1.5; }
+#kpEntry h3 { margin: 0 0 2px; font-size: 16px; }
+#kpEntry h4 { margin: 14px 0 3px; font-size: 13px; }
+#kpEntry p { margin: 5px 0; }
+#kpSvg { display: block; width: 100%; height: 320px; margin-top: 8px; background: var(--plot); border: 1px solid var(--line); border-radius: 6px; }
+#kpSvg text { font: 11px system-ui, sans-serif; fill: var(--ink); }
+.kpsec { padding-left: 8px; border-left: 2px solid transparent; }
+.kpsec.on { border-left-color: var(--accent); }
+.kpacts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.kpacts select { width: auto; max-width: 100%; }
+#kpWin .head select { flex: none; width: auto; max-width: 150px; }
+#kpList .kpsub { padding: 5px 8px 1px 14px; font-size: 11px; color: var(--muted); }
+.kpstat { margin: 3px 0 6px; font-size: 11.5px; color: var(--muted); }
+.kpstat b { font-weight: 600; color: var(--ink); }
+.kpcite { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.kpopen { color: var(--warn-ink); font-size: 11px; white-space: nowrap; }
+#kpEntry details > summary { cursor: pointer; font-size: 12.5px; font-weight: 600; margin-top: 10px; }
+table.kpv { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 12.5px; }
+table.kpv th { text-align: left; font-weight: 500; color: var(--muted); font-size: 11.5px; }
+table.kpv th, table.kpv td { padding: 2px 6px 2px 0; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+table.kpv .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kpchips { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; margin: 4px 0; font-size: 12px; }
+.kpchips > span:first-child { color: var(--muted); font-size: 11.5px; min-width: 76px; }
+.kpchips button { padding: 0 7px; border-radius: 9px; font-size: 11.5px; }
+.kpchips .plain { font-size: 11.5px; }
+.kpparts { display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; margin: 2px 0 8px; font-size: 12px; }
+.kpparts dt { font-weight: 600; font-family: ui-monospace, monospace; }
+.kpparts dd { margin: 0; }
+@media (max-width: 700px) { .kpbody { grid-template-columns: 1fr; grid-template-rows: 32% minmax(0, 1fr); } #kpList { border-right: 0; border-bottom: 1px solid var(--line); } #finder { width: 100%; order: 8; } }
+
 @media (max-width: 980px) {
   body { overflow: auto; height: auto; }
   main { grid-template-columns: 52px minmax(0, 1fr); }
@@ -185,6 +280,9 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
   <span id="crumbs"></span>
   <div class="chips" id="chips" data-lov-detail></div>
   <span class="hsp lov-only"></span>
+  <div id="finder" data-lov-detail role="search"><input id="findQ" type="text" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="findPop"><div id="findPop" role="listbox" hidden></div></div>
+  <button id="kpBtn" type="button" data-lov-detail><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg><span id="kpBtnT">Kompendium</span></button>
+  <button id="ibBtn" type="button" hidden data-lov-detail aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6l-1 7 4 4H6l4-4z"/><path d="M12 14v7"/></svg><span class="t">Infotafel</span><span class="n"></span></button>
   <span id="langSw"></span>
   <button id="labBtn" class="primary" hidden data-lov-detail data-i18n="ws.lab" data-i18n-title="ws.lab_t" title="Diagramme, Tabellen, Kennwerte und Quellen in einen Folio Lab Bericht übernehmen">Zum Bericht …</button>
 </header>
@@ -201,9 +299,11 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
     </div>
     <div id="stage">
       <svg id="plot"></svg>
+      <svg id="plotFade" aria-hidden="true"></svg>
       <div id="html" hidden></div>
       <div id="empty" hidden><div class="box" id="emptyBox"></div></div>
       <div id="tip" hidden></div>
+      <div id="selCard" hidden></div>
       <div class="tag" id="stageTag"></div>
     </div>
   </div>
@@ -220,6 +320,11 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
   <span id="busy" hidden>rechnet …</span>
 </footer>
 
+<div id="kpWin" role="dialog" aria-labelledby="kpTitle" hidden>
+  <div class="head"><b id="kpTitle">Kompendium</b><input id="kpQ" type="text" autocomplete="off" spellcheck="false"><select id="kpFilter"></select><button id="kpClose" type="button">✕</button></div>
+  <div class="kpbody"><nav id="kpList"></nav><article id="kpEntry"></article></div>
+</div>
+
 <input type="file" id="file" multiple hidden>
 <dialog id="dlg"><form method="dialog"><h3 id="dlgTitle"></h3><div class="body" id="dlgBody"></div><div class="foot" id="dlgFoot"></div></form></dialog>
 <div id="toasts" aria-live="polite"></div>
@@ -231,6 +336,8 @@ dialog .foot .left { margin-right: auto; display: flex; gap: 8px; align-items: c
 <script src="labboard.js"></script>
 <script src="laboverview.js"></script>
 <script src="labimport.js"></script>
+<script src="labunc.js"></script>
+<script src="infoboard.js"></script>
 <script>/* Rückfall: Modulserver älter als die Seite (vor einer Aktualisierung gestartet) liefert labenv.js/labindex.js nicht.
    Die Seite arbeitet dann ohne Umgebungen und Projektindex weiter und meldet, dass ein Neustart nötig ist. */
 (function (g) {
@@ -335,7 +442,7 @@ const I = () => S.inp[S.tool];
 function fld(k, label, o = {}) {
   const v = getp(I(), k);
   const val = v === null || v === undefined ? "" : (typeof v === "number" ? String(v).replace(".", EN() ? "." : ",") : v);
-  return `<label>${esc(label)}${o.u ? ` <span class="u">[${esc(o.u)}]</span>` : ""}</label><input type="text" inputmode="${o.text ? "text" : "decimal"}" data-k="${k}"${o.text ? " data-text" : ""} value="${esc(val)}"${o.ph ? ` placeholder="${esc(o.ph)}"` : ""}${o.title ? ` title="${esc(o.title)}"` : ""}>`;
+  return `<label>${esc(label)}${o.u ? ` <span class="u">[${esc(o.u)}]</span>` : ""}</label><input type="text" inputmode="${o.text ? "text" : "decimal"}" data-k="${k}"${o.text ? " data-text" : ` data-u="${esc(o.u || "")}" data-lab="${esc(label)}"`} value="${esc(val)}"${o.ph ? ` placeholder="${esc(o.ph)}"` : ""}${o.title ? ` title="${esc(o.title)}"` : ""}>`;
 }
 function sel(k, label, opts, o = {}) {
   const v = String(getp(I(), k) ?? "");
@@ -353,14 +460,20 @@ function grid(k, cols, o = {}) {
     ? `<td style="text-align:center"><input type="checkbox" data-g="${k}" data-r="${i}" data-c="${c.k}"${r[c.k] ? " checked" : ""}></td>`
     : c.text
     ? `<td><input type="text" data-g="${k}" data-r="${i}" data-c="${c.k}" data-txt="1"${c.ph ? ` placeholder="${esc(c.ph)}"` : ""} value="${esc(r[c.k] === null || r[c.k] === undefined ? "" : String(r[c.k]))}"${c.w ? ` style="min-width:${c.w}px"` : ""}></td>`
-    : `<td><input type="text" inputmode="decimal" data-g="${k}" data-r="${i}" data-c="${c.k}" value="${esc(r[c.k] === null || r[c.k] === undefined ? "" : String(r[c.k]).replace(".", EN() ? "." : ","))}"></td>`).join("")}<td><button type="button" data-gdel="${k}" data-r="${i}" title="${esc(L("Zeile löschen", "Delete row"))}">✕</button></td></tr>`).join("");
+    : `<td><input type="text" inputmode="decimal" data-g="${k}" data-r="${i}" data-c="${c.k}"${c.noidx ? "" : ` data-u="${esc(c.u || "")}" data-lab="${esc(c.label)}"`} value="${esc(r[c.k] === null || r[c.k] === undefined ? "" : String(r[c.k]).replace(".", EN() ? "." : ","))}"></td>`).join("")}<td><button type="button" data-gdel="${k}" data-r="${i}" title="${esc(L("Zeile löschen", "Delete row"))}">✕</button></td></tr>`).join("");
   return `<div class="tw" style="max-height:${o.h || 220}px"><table class="res grid"><thead><tr>${head}<th></th></tr></thead><tbody>${body}</tbody></table></div>
     <div class="row"><button type="button" data-gadd="${k}">+ ${esc(L("Zeile", "Row"))}</button><button type="button" data-gpaste="${k}" title="${esc(L("Spalten aus der Zwischenablage (Excel, Tab oder Semikolon) einfügen", "Paste columns from the clipboard (Excel, tab or semicolon)"))}">${esc(L("Einfügen", "Paste"))}</button>${o.file ? `<button type="button" data-gfile="${k}">${esc(L("Aus Datei …", "From file …"))}</button>` : ""}<button type="button" data-gclr="${k}">${esc(L("Leeren", "Clear"))}</button>${o.extra || ""}</div>`;
 }
 function refsHtml(refs) {
   if (!refs || !refs.length) return "";
   const un = refs.some(r => r.unchecked);
-  return fold("refs", L("Quellen", "Sources"), `<ol class="refs">${refs.map(r => `<li>${esc(r.text)}${r.unchecked ? " †" : ""}</li>`).join("")}</ol>` +
+  // Quellen der Ansicht auf dem Bildschirm zuerst, danach die übrigen des Werkzeugs
+  const vk = S.vkeys || [], a = refs.filter(r => vk.includes(r.key)), b = refs.filter(r => !vk.includes(r.key));
+  const li = (r) => `<li>${esc(r.text)}${r.unchecked ? " †" : ""}</li>`;
+  const list = a.length && b.length
+    ? `<div class="small"><b>${esc(L("Diese Ansicht", "This view"))}</b></div><ol class="refs">${a.map(li).join("")}</ol><div class="small"><b>${esc(L("Weitere Quellen des Werkzeugs", "Other sources of the tool"))}</b></div><ol class="refs" start="${a.length + 1}">${b.map(li).join("")}</ol>`
+    : `<ol class="refs">${refs.map(li).join("")}</ol>`;
+  return fold("refs", L("Quellen", "Sources"), list +
     (un ? `<div class="small">† ${esc(L("nicht gegen das Original geprüft (aus dem Gedächtnis nach der genannten Quelle)", "not checked against the original (from memory after the cited source)"))}</div>` : ""), `(${refs.length})`);
 }
 function tbl(head, rows, o = {}) {
@@ -375,6 +488,7 @@ const PL = { spec: null, view: null, key: "", hits: [], drag: null, tx: null };
 const SVGNS = "http://www.w3.org/2000/svg";
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const PAL = ["#3d5f70", "#b45309", "#15803d", "#a21caf", "#be123c", "#0e7490", "#4d7c0f", "#7c3aed", "#c2410c", "#0369a1"];
+const SEL_C = "#2f9e5b";   // gewählter Werkstoff im Ashby-Diagramm (blasses Grün)
 const CLS_COL = { metall: "#3d5f70", polymer: "#15803d", keramik: "#b45309", glas: "#0e7490", verbund: "#7c3aed", faser: "#be123c", halbleiter: "#a16207", naturstoff: "#4d7c0f" };
 function niceTicks(a, b, n = 6) {
   const span = b - a; if (!(span > 0)) return [a];
@@ -432,8 +546,9 @@ function el(tag, attrs, parent) {
   return e;
 }
 function drawPlot() {
+  if (window.InfoBoard) InfoBoard.chrome();
   const svg = $("#plot"), st = $("#stage");
-  svg.innerHTML = ""; PL.hits = [];
+  svg.innerHTML = ""; PL.hits = []; PL.labs = [];
   const sp = PL.spec;
   $("#stageTag").textContent = sp && sp.tag ? sp.tag : "";
   if (!sp) return;
@@ -507,7 +622,7 @@ function drawPlot() {
       for (let i = 0; i < l.x.length; i++) {
         if (!okx(l.x[i]) || !oky(l.y[i])) continue;
         const X = tx(l.x[i]), Y = ty(l.y[i]);
-        const a = { fill: l.hollow ? "none" : c, stroke: c, "stroke-width": l.hollow ? 1.5 : 0.8 };
+        const a = { fill: l.hollow ? "none" : c, stroke: c, "stroke-width": l.sw || (l.hollow ? 1.5 : 0.8) };
         const sh = (l.shapes && l.shapes[i]) || l.shape;
         let m;
         if (sh === "tri") m = el("path", { d: `M${X} ${Y - r - 1}L${X + r + 1} ${Y + r}L${X - r - 1} ${Y + r}Z`, ...a }, g);
@@ -536,6 +651,41 @@ function drawPlot() {
         const at = l.at ? [tx(l.at[0]), ty(l.at[1])] : [cx, cy];
         const t = el("text", { x: at[0], y: at[1] + 4, "text-anchor": "middle", "font-size": 12, "font-weight": 600 }, g); t.textContent = l.label;
       }
+    } else if (l.t === "ell") {
+      // Ashby-Blasen: je Werkstoff eine blasse Ellipse über die Spanne (mindestens 6 px)
+      for (let i = 0; i < l.x.length; i++) {
+        if (!okx(l.xlo[i]) || !okx(l.xhi[i]) || !oky(l.lo[i]) || !oky(l.hi[i])) continue;
+        const X0 = tx(l.xlo[i]), X1 = tx(l.xhi[i]), Y0 = ty(l.lo[i]), Y1 = ty(l.hi[i]);
+        el("ellipse", { cx: (X0 + X1) / 2, cy: (Y0 + Y1) / 2, rx: Math.max(3, Math.abs(X1 - X0) / 2), ry: Math.max(3, Math.abs(Y1 - Y0) / 2), fill: c, "fill-opacity": l.fop ?? 0.1, stroke: c, "stroke-opacity": 0.35, "stroke-width": 0.8 }, g);
+      }
+    } else if (l.t === "rect") {
+      // Spanne eines Werkstoffs: blasses Rechteck, mindestens 12 px gross (fehlt eine Spanne, bleibt es ein Streifen)
+      if (!okx(l.x0) || !okx(l.x1) || !oky(l.y0) || !oky(l.y1)) return;
+      let X0 = Math.min(tx(l.x0), tx(l.x1)), X1 = Math.max(tx(l.x0), tx(l.x1)), Y0 = Math.min(ty(l.y0), ty(l.y1)), Y1 = Math.max(ty(l.y0), ty(l.y1));
+      const mn = l.min || 12;
+      if (X1 - X0 < mn) { const m = (X0 + X1) / 2; X0 = m - mn / 2; X1 = m + mn / 2; }
+      if (Y1 - Y0 < mn) { const m = (Y0 + Y1) / 2; Y0 = m - mn / 2; Y1 = m + mn / 2; }
+      el("rect", { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0, rx: 4, fill: c, "fill-opacity": l.fop ?? 0.18, stroke: c, "stroke-width": l.w || 1.4, "stroke-opacity": 0.85 }, g);
+    } else if (l.t === "blob") {
+      // Umriss einer Gruppe (Ashby-Blase): konvexe Hülle der Punkte in Bildkoordinaten, gepolstert, gerundet
+      const pad = l.pad || 11, P = [];
+      for (const [x, y] of l.pts) if (okx(x) && oky(y)) { const X = tx(x), Y = ty(y); for (let k = 0; k < 24; k++) { const a = k * Math.PI / 12; P.push([X + pad * Math.cos(a), Y + pad * Math.sin(a)]); } }
+      if (P.length < 3) return;
+      P.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+      const lo = [], hi = [];
+      for (const p of P) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+      for (let k = P.length - 1; k >= 0; k--) { const p = P[k]; while (hi.length >= 2 && cr(hi[hi.length - 2], hi[hi.length - 1], p) <= 0) hi.pop(); hi.push(p); }
+      const Hl = lo.slice(0, -1).concat(hi.slice(0, -1));
+      // die gepolsterte Hülle ist an den Ecken schon fein abgetastet; eine Spline darüber schiesst an langen Kanten über
+      const d = "M" + Hl.map(p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join("L");
+      el("path", { d: d + "Z", fill: c, "fill-opacity": l.fop ?? 0.07, stroke: c, "stroke-width": l.w || 1.3, "stroke-linejoin": "round", "stroke-dasharray": l.dash ?? "5 4", "stroke-opacity": 0.8 }, g);
+      const top_ = Hl.reduce((a, p) => (p[1] < a[1] ? p : a), Hl[0]);
+      // Namen ohne Überlappung (l.noclash): ein Name, der einen schon gesetzten überdeckt, entfällt (Hinweis bleibt)
+      const bw = String(l.label || "").length * 5.6 + 4, box = [top_[0] - bw / 2, top_[1] - 15, top_[0] + bw / 2, top_[1] - 2];
+      const clash = l.noclash && (PL.labs || []).some(b => box[0] < b[2] && b[0] < box[2] && box[1] < b[3] && b[1] < box[3]);
+      if (l.label && !clash) { const t = el("text", { x: top_[0], y: top_[1] - 4, "text-anchor": "middle", fill: c, "font-size": 10.5, "font-style": "italic" }, g); t.textContent = l.label; if (l.noclash) (PL.labs = PL.labs || []).push(box); }
+      if (l.tip || l.pick) PL.hits.push({ X: top_[0], Y: top_[1] - 8, tip: l.tip, li, i: 0 });      // Hinweis und Klick am Namen
     } else if (l.t === "seg") {
       if (okx(l.x1) && okx(l.x2) && oky(l.y1) && oky(l.y2)) el("line", { x1: tx(l.x1), x2: tx(l.x2), y1: ty(l.y1), y2: ty(l.y2), stroke: c, "stroke-width": l.w || 1.5, "stroke-dasharray": l.dash }, g);
     } else if (l.t === "hline" || l.t === "vline") {
@@ -859,37 +1009,346 @@ function drawSlice(svg, W, H) {
   const t = el("text", { x: 14, y: H - 12, fill: muted, "font-size": 12 }, g);
   t.textContent = L(`Atomlage (${i.slice}) durch die Mitte, Dicke ±${fmt(w, 2)} Å, Atome in wahrer Grösse (Metallradius)`, `Atomic layer (${i.slice}) through the centre, thickness ±${fmt(w, 2)} Å, atoms at true size (metallic radius)`) + (r.gb ? L(" · Korngrenze: Ebene des unteren Korns", " · grain boundary: plane of the lower grain") : "");
 }
+// ---------------------------------------------------------------- Struktur: Szenen (3D, ziehen dreht) und Gefügeskizzen (2D)
+const STR = { rx: -0.3, ry: 0.55, zoom: 1, play: 0 };
+const SPRE = {};                                  // je Werkstoff aus der letzten T-Antwort: Bereich, Übergänge, Wärmebehandlungen
+let CLIPN = 0;
+const spk = (mid) => mid + "|" + lang();
+const isHex = (c) => /^#[0-9a-f]{6}$/i.test(String(c || ""));
+function strPanels(r) {
+  if (!r) return [];
+  if (r.frames) {
+    const f = r.frames[Math.min(S.inp.struktur.frame || 0, r.frames.length - 1)]; if (!f) return [];
+    // Zwischenbild: eigenes Gefüge, die übrigen Ansichten vom Schlüsselbild
+    if (f.base != null && r.frames[f.base]) { const own = f.panels || [], b = r.frames[f.base].panels || [];
+      return b.map(p => own.find(q => q.id === p.id) || p).concat(own.filter(q => !b.some(p => p.id === q.id))); }
+    return f.panels || [];
+  }
+  return r.panels || [];
+}
+const strPanel = (r, v) => { const ps = strPanels(r); return ps.find(p => p.id === v) || ps[0]; };
+const strFrame = (r) => r && r.frames ? r.frames[Math.min(S.inp.struktur.frame || 0, r.frames.length - 1)] : null;
+function drawScene(svg, W, H, sc) {
+  if (!sc || W < 50 || H < 50) return;
+  const ink = css("--ink"), muted = css("--muted"), acc = css("--accent2"), panel = css("--panel");
+  const lat = !!sc.frame;                          // Szene aus gitter.build: r ist der Metallradius
+  const shrink = lat ? 0.45 : 1;
+  const kinds = sc.kinds.map(k => ({ ...k, color: isHex(k.color) ? k.color : "#8a8f98" }));
+  latDefs(svg, kinds);
+  const g = el("g", {}, svg);
+  const A = sc.atoms || [];
+  const cen = sc.center || (A.length ? [0, 1, 2].map(k => A.reduce((s, a) => s + a[k], 0) / A.length) : [0, 0, 0]);
+  let span = 0;
+  for (const a of A) span = Math.max(span, Math.hypot(a[0] - cen[0], a[1] - cen[1], a[2] - cen[2]));
+  if (sc.cell) for (const c of sc.cell.corners) span = Math.max(span, Math.hypot(c[0] - cen[0], c[1] - cen[1], c[2] - cen[2]));
+  span = Math.max(span * 2.1, 3);
+  const cx = Math.cos(STR.rx), sx = Math.sin(STR.rx), cy = Math.cos(STR.ry), sy = Math.sin(STR.ry);
+  const s = Math.min(W - 40, H - 30) / span * STR.zoom;
+  // Bild: x rechts, z oben (Kettenachse senkrecht), y in die Tiefe
+  const P = (p) => { const x = p[0] - cen[0], y = p[2] - cen[2], z = p[1] - cen[1];
+    const x1 = cy * x + sy * z, z1 = -sy * x + cy * z; const y2 = cx * y - sx * z1, z2 = sx * y + cx * z1; return [W / 2 + x1 * s, H / 2 - y2 * s, z2]; };
+  const Q = A.map(P);
+  const dz = Math.max(1, ...Q.map(q => Math.abs(q[2])));
+  const items = A.map((a, n) => ({ z: Q[n][2], n }));
+  for (const [i, j] of sc.bonds || []) if (Q[i] && Q[j]) items.push({ z: (Q[i][2] + Q[j][2]) / 2 - 0.4, b: [i, j] });
+  for (const p of sc.polys || []) for (const f of p.faces || []) {
+    const pts = f.map(k => Q[p.v[k]]); if (pts.some(x => !x)) continue;
+    items.push({ z: pts.reduce((a, q) => a + q[2], 0) / pts.length - 0.2, f: pts, c: isHex(p.color) ? p.color : muted });
+  }
+  const hostR = (kinds.find(k => k.role === "host") || kinds[0] || { r: 1 }).r;
+  for (const v of sc.vacancies || []) { const q = P(v); items.push({ z: q[2], vac: q }); }
+  items.sort((a, b) => a.z - b.z);
+  const bondW = Math.max(1, Math.min(4.5, s * 0.13));
+  for (const it of items) {
+    if (it.f) { el("path", { d: "M" + it.f.map(q => q[0].toFixed(1) + " " + q[1].toFixed(1)).join("L") + "Z", fill: it.c, "fill-opacity": 0.2, stroke: it.c, "stroke-opacity": 0.55, "stroke-width": 0.8, "stroke-linejoin": "round" }, g); continue; }
+    if (it.vac) { el("circle", { cx: it.vac[0], cy: it.vac[1], r: Math.max(2, hostR * s * shrink), fill: "none", stroke: ink, "stroke-width": 1.2, "stroke-dasharray": "2 2", opacity: 0.9 }, g); continue; }
+    if (it.b) {
+      const [i, j] = it.b, p = Q[i], q = Q[j], m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+      for (const [a, e, k] of [[p, m, kinds[A[i][3]]], [m, q, kinds[A[j][3]]]])
+        el("line", { x1: a[0], y1: a[1], x2: e[0], y2: e[1], stroke: hexMix(k.color, "#7a7a7a", 0.45), "stroke-width": bondW, "stroke-linecap": "round", opacity: k.role === "out" ? 0.4 : 0.95 }, g);
+      continue;
+    }
+    const a = A[it.n], k = kinds[a[3]], q = Q[it.n], depth = 0.88 + 0.12 * (q[2] / dz);
+    const out = k.role === "out", occ = k.role === "occ";
+    const c = el("circle", { cx: q[0], cy: q[1], r: Math.max(1.5, k.r * s * shrink * depth), fill: `url(#lg${a[3]})`, stroke: occ ? ink : panel,
+      "stroke-width": occ ? 0.9 : 0.6, "stroke-dasharray": occ ? "2 2" : null, opacity: out ? 0.4 : occ ? 0.75 : 1 }, g);
+    if (A.length < 2500) c.appendChild(el("title")).textContent = k.name;
+  }
+  if (sc.cell) for (const [a, b] of sc.cell.edges) { const p = P(sc.cell.corners[a]), q = P(sc.cell.corners[b]); el("line", { x1: p[0], y1: p[1], x2: q[0], y2: q[1], stroke: acc, "stroke-width": 2, opacity: 0.9 }, g); }
+  for (const lb of sc.labels || []) { const q = P(lb.p); const t = el("text", { x: q[0], y: q[1], fill: ink, "font-size": 12, "text-anchor": "middle", stroke: panel, "stroke-width": 3, "paint-order": "stroke" }, g); t.textContent = lb.text; }
+  // Legende: gleiche Namen zusammenfassen
+  const counts = kinds.map(() => 0), first = {};
+  A.forEach(a => { const nm = kinds[a[3]].name; const k0 = first[nm] ?? (first[nm] = a[3]); counts[k0]++; });
+  const extra = [];
+  if ((sc.vacancies || []).length) extra.push([L(`Leerstelle · ${sc.vacancies.length}`, `Vacancy · ${sc.vacancies.length}`), (x, y) => el("circle", { cx: x, cy: y, r: 6, fill: "none", stroke: ink, "stroke-dasharray": "2 2" }, g)]);
+  if ((sc.polys || []).length) extra.push([L("Koordinationspolyeder", "Coordination polyhedra"), (x, y) => el("path", { d: `M${x - 6} ${y + 5}L${x} ${y - 6}L${x + 6} ${y + 5}Z`, fill: muted, "fill-opacity": 0.25, stroke: muted }, g)]);
+  if (sc.cell) extra.push([L("Elementarzelle", "Unit cell"), (x, y) => el("line", { x1: x - 7, y1: y, x2: x + 7, y2: y, stroke: acc, "stroke-width": 2 }, g)]);
+  if (kinds.some(k => k.role === "occ")) extra.push([L("teilweise besetzt", "partially occupied"), (x, y) => el("circle", { cx: x, cy: y, r: 6, fill: "none", stroke: ink, "stroke-dasharray": "2 2" }, g)]);
+  if (kinds.some(k => k.role === "out")) extra.push([L("blass: ausserhalb der Zelle", "faint: outside the cell"), (x, y) => el("circle", { cx: x, cy: y, r: 6, fill: muted, opacity: 0.4 }, g)]);
+  latLegend(g, { kinds }, counts, extra);
+  const t = el("text", { x: 14, y: H - 12, fill: muted, "font-size": 12 }, g);
+  t.textContent = L("Ziehen dreht, Rad zoomt", "Drag rotates, wheel zooms") + (lat ? ` · ${L("Atome ×0,45", "atoms ×0.45")}` : "");
+}
+// Schliffbild: Graustufen mit etwas Wärme, harter Kontrast, Korn und ungleichmässige Ausleuchtung, Randabschattung
+function etchFilter(defs) {
+  const id = "etch" + (++CLIPN);
+  const f = el("filter", { id, x: 0, y: 0, width: 1, height: 1, "color-interpolation-filters": "sRGB" }, defs);
+  el("feColorMatrix", { in: "SourceGraphic", type: "saturate", values: 0, result: "g" }, f);
+  const ct = el("feComponentTransfer", { in: "g", result: "c" }, f);
+  for (const ch of ["feFuncR", "feFuncG", "feFuncB"]) el(ch, { type: "gamma", amplitude: 1.1, exponent: 1.45, offset: -0.05 }, ct);
+  el("feColorMatrix", { in: "c", type: "matrix", values: "1 0 0 0 0.01  0 0.975 0 0 0.005  0 0 0.92 0 0  0 0 0 1 0", result: "t" }, f);
+  el("feGaussianBlur", { in: "t", stdDeviation: 0.5, result: "b" }, f);
+  el("feTurbulence", { type: "fractalNoise", baseFrequency: 0.85, numOctaves: 2, seed: 7, result: "n1" }, f);
+  el("feColorMatrix", { in: "n1", type: "matrix", values: "1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1", result: "n1g" }, f);
+  el("feTurbulence", { type: "fractalNoise", baseFrequency: 0.006, numOctaves: 1, seed: 3, result: "n2" }, f);
+  el("feColorMatrix", { in: "n2", type: "matrix", values: "1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1", result: "n2g" }, f);
+  el("feComposite", { in: "b", in2: "n1g", operator: "arithmetic", k1: 0, k2: 1, k3: 0.13, k4: -0.065, result: "s1" }, f);
+  el("feComposite", { in: "s1", in2: "n2g", operator: "arithmetic", k1: 0, k2: 1, k3: 0.12, k4: -0.06 }, f);
+  return `url(#${id})`;
+}
+function drawSketch(svg, W, H, sk, opt = {}) {
+  if (!sk || W < 50 || H < 50) return;
+  const ink = css("--ink"), muted = css("--muted"), leg = sk.legend || [];
+  let side = Math.min(W - Math.min(260, W * 0.32) - 36, H - 44), x0 = 18, y0 = (H - side) / 2 - 6, below = false;
+  if (side < 180) { below = true; side = Math.max(60, Math.min(W - 36, H - 40 - 18 * leg.length)); x0 = (W - side) / 2; y0 = 12; }
+  const X = (x) => x0 + x * side, Y = (y) => y0 + (1 - y) * side;
+  const pts = (ps) => ps.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join(" ");
+  const wf = Math.max(0.6, side / 520);            // Strichstärken der Skizze gelten für ≈ 520 px
+  const defs = el("defs", {}, svg);
+  const clipOf = (poly) => { const id = "skc" + (++CLIPN); el("polygon", { points: pts(poly) }, el("clipPath", { id }, defs)); return `url(#${id})`; };
+  const outer = el("g", { "clip-path": clipOf([[0, 0], [1, 0], [1, 1], [0, 1]]) }, svg);
+  const root = el("g", { filter: opt.etch ? etchFilter(defs) : null }, outer);
+  el("rect", { x: x0, y: y0, width: side, height: side, fill: "#ffffff" }, root);
+  const draw = (it, g) => {
+    const sw = (it.sw ?? 1) * wf, op = it.op ?? null;
+    if (it.t === "poly") el("polygon", { points: pts(it.p), fill: it.fill || "none", stroke: it.stroke && it.stroke !== "none" ? it.stroke : "none", "stroke-width": sw, opacity: op, "stroke-linejoin": "round" }, g);
+    else if (it.t === "circle") el("circle", { cx: X(it.c[0]), cy: Y(it.c[1]), r: Math.max(0.6, it.r * side), fill: it.fill || "none", stroke: it.stroke || null, "stroke-width": it.stroke ? sw : null, opacity: op }, g);
+    else if (it.t === "line") el("line", { x1: X(it.p[0][0]), y1: Y(it.p[0][1]), x2: X(it.p[1][0]), y2: Y(it.p[1][1]), stroke: it.stroke || ink, "stroke-width": sw, opacity: op, "stroke-linecap": "round" }, g);
+    else if (it.t === "pline") el("polyline", { points: pts(it.p), fill: "none", stroke: it.stroke || ink, "stroke-width": sw, opacity: op, "stroke-linejoin": "round", "stroke-linecap": "round" }, g);
+    else if (it.t === "dots") { const gg = el("g", { fill: it.fill, opacity: op }, g), rr = Math.max(0.6, it.r * side); for (const p of it.p) el("circle", { cx: X(p[0]), cy: Y(p[1]), r: rr }, gg); }
+    else if (it.t === "dashes") { const gg = el("g", { stroke: it.stroke, "stroke-width": sw, "stroke-linecap": "round", opacity: op }, g), h = it.len / 2;
+      for (const p of it.p) { const dx = Math.cos(p[2]) * h, dy = Math.sin(p[2]) * h; el("line", { x1: X(p[0] - dx), y1: Y(p[1] - dy), x2: X(p[0] + dx), y2: Y(p[1] + dy) }, gg); } }
+    else if (it.t === "hatch") {
+      const gg = el("g", { "clip-path": clipOf(it.poly), stroke: it.stroke, "stroke-width": sw, opacity: op }, g);
+      const c = [0, 1].map(k => it.poly.reduce((a, v) => a + v[k], 0) / it.poly.length);
+      const R = Math.max(...it.poly.map(v => Math.hypot(v[0] - c[0], v[1] - c[1]))) * 1.1, d = [Math.cos(it.a), Math.sin(it.a)], n = [-d[1], d[0]];
+      for (let u = -R + (it.o || 0) * it.s; u < R; u += it.s) el("line", { x1: X(c[0] + n[0] * u - d[0] * R), y1: Y(c[1] + n[1] * u - d[1] * R), x2: X(c[0] + n[0] * u + d[0] * R), y2: Y(c[1] + n[1] * u + d[1] * R) }, gg);
+    }
+    else if (it.t === "clip") { const gg = el("g", { "clip-path": clipOf(it.poly) }, g); for (const x of it.items || []) draw(x, gg); }
+    else if (it.t === "text") { const tt = el("text", { x: X(it.p[0]), y: Y(it.p[1]), fill: it.fill || ink, "font-size": 12, "text-anchor": it.anchor || "middle" }, g); tt.textContent = it.text; }
+  };
+  for (const it of sk.items || []) draw(it, root);
+  if (opt.etch) {                                   // Randabschattung des Mikroskops
+    const gid = "vig" + (++CLIPN), rg = el("radialGradient", { id: gid, cx: "50%", cy: "50%", r: "72%" }, defs);
+    el("stop", { offset: "55%", "stop-color": "#000", "stop-opacity": 0 }, rg); el("stop", { offset: "100%", "stop-color": "#000", "stop-opacity": 0.32 }, rg);
+    el("rect", { x: x0, y: y0, width: side, height: side, fill: `url(#${gid})` }, outer);
+  }
+  el("rect", { x: x0, y: y0, width: side, height: side, fill: "none", stroke: muted, "stroke-width": 1 }, svg);
+  if (sk.scale) {
+    const L0 = sk.scale.len * side, bx = x0 + 12, by = y0 + side - 14;
+    el("rect", { x: bx - 5, y: by - 19, width: Math.max(L0, 40) + 10, height: 27, fill: "#ffffff", opacity: 0.85, rx: 3 }, svg);
+    el("line", { x1: bx, y1: by, x2: bx + L0, y2: by, stroke: "#1f1d24", "stroke-width": 3 }, svg);
+    const t = el("text", { x: bx, y: by - 7, fill: "#1f1d24", "font-size": 11 }, svg); t.textContent = sk.scale.label;
+  }
+  let lx = below ? x0 : x0 + side + 18, ly = below ? y0 + side + 20 : y0 + 10;
+  for (const e of leg) {
+    if (!e.label) continue;
+    el("rect", { x: lx, y: ly - 9, width: 13, height: 13, fill: e.color, stroke: muted, "stroke-width": 0.6, rx: 2, style: opt.etch ? "filter:grayscale(1) contrast(1.3)" : null }, svg);
+    const t = el("text", { x: lx + 20, y: ly + 2, fill: ink, "font-size": 12 }, svg); t.textContent = e.label;
+    ly += 19;
+  }
+  return below ? null : { x: lx, y: ly };
+}
+function drawMiniPath(svg, W, H, r, at) {
+  if (!r || !r.frames || !r.profile || W < 380 || H < 260) return;
+  const w = 200, h = 86, prof = r.profile, f = strFrame(r);
+  let x0 = W - w - 14, y0 = H - h - 30;
+  if (at && at.x + w <= W - 4 && at.y + 10 + h <= H - 24) { x0 = at.x; y0 = at.y + 10; }       // Skizze: unter der Legende
+  const t1 = Math.max(...prof.map(p => p[0]), 1e-6), T0 = Math.min(...prof.map(p => p[1]), 0), T1 = Math.max(...prof.map(p => p[1]));
+  const X = (t) => x0 + 8 + (t / t1) * (w - 16), Y = (T) => y0 + h - 10 - (T - T0) / Math.max(T1 - T0, 1) * (h - 24);
+  const g = el("g", {}, svg);
+  el("rect", { x: x0, y: y0, width: w, height: h, rx: 6, fill: css("--panel"), stroke: css("--line"), opacity: 0.95 }, g);
+  el("polyline", { points: prof.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join(" "), fill: "none", stroke: PAL[0], "stroke-width": 1.6 }, g);
+  for (const q of r.frames) el("circle", { cx: X(q.t), cy: Y(q.T), r: q === f ? 4.5 : q.inter ? 1.3 : 2.2, fill: q === f ? css("--accent2") : css("--muted") }, g);
+  const t = el("text", { x: x0 + 8, y: y0 + 13, fill: css("--ink"), "font-size": 11 }, g);
+  t.textContent = `${f.label} · ${fmt(f.T, 0)} °C · t = ${fmt(f.t, 2)} h`;
+}
+function strPathSpec(r, i) {
+  const fr = r.frames, k = Math.min(i.frame || 0, fr.length - 1);
+  return { key: "stweg", xlab: "t [h]", ylab: "T [°C]", tag: L("Weg der Wärmebehandlung; Aufheiz- und Abkühlzeiten angenommen", "Heat-treatment path; heating and cooling times assumed"), layers: [
+    { t: "line", x: r.profile.map(p => p[0]), y: r.profile.map(p => p[1]), c: PAL[0], w: 2, name: L("Temperatur", "Temperature") },
+    { t: "pts", x: fr.map(f => f.t), y: fr.map(f => f.T), c: css("--accent2"), r: 5, name: L("Bilder (anklicken)", "Frames (click)"), labels: fr.map((f, n) => f.inter ? "" : `${n + 1}`),
+      tips: fr.map((f, n) => `${n + 1}. ${f.label}\nt = ${fmt(f.t, 2)} h · T = ${fmt(f.T, 0)} °C`), pick: (n) => { strGo(n, false); saveSoon(); } },
+    { t: "pts", x: [fr[k].t], y: [fr[k].T], c: css("--ink"), r: 9, hollow: true, nolegend: true }] };
+}
+function strFrameSync() {
+  const r = S.res.struktur, i = S.inp.struktur; if (!r || !r.frames) return;
+  i.frame = Math.min(i.frame || 0, r.frames.length - 1);
+  const s = $("[data-strframe]"); if (s) s.value = i.frame;
+  const l = $("#strFrameLab"), f = r.frames[i.frame]; if (l) l.textContent = `${i.frame + 1} / ${r.frames.length} · ${f.label}${f.T != null ? ` · ${fmt(f.T, 0)} °C` : ""}`;
+  const c = $("#strFrameCap"); if (c) c.textContent = f.caption || "";
+}
+// Überblenden: das alte Bild liegt kurz über dem neuen und wird durchsichtig (Bildwechsel ohne Sprung)
+function fadeSnap(ms) {
+  const f = $("#plotFade"), p = $("#plot");
+  if (!f || !p || ms <= 0 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  f.innerHTML = p.innerHTML;
+  f.style.transition = "none"; f.style.opacity = "1";
+  void f.getBoundingClientRect();
+  f.style.transition = `opacity ${ms}ms ease-in-out`; f.style.opacity = "0";
+  clearTimeout(STR.fadeT); STR.fadeT = setTimeout(() => { f.innerHTML = ""; }, ms + 60);
+}
+const STR_SPEED = [[0.5, "0,5×", "0.5×"], [1, "1×", "1×"], [2, "2×", "2×"], [4, "4×", "4×"]];
+const strDt = () => 1500 / (S.inp.struktur.speed || 1);
+function strGo(k, fade = true) {                    // Bild k zeigen, mit Überblenden
+  const r = S.res.struktur, i = S.inp.struktur; if (!r || !r.frames) return;
+  const n = Math.max(0, Math.min(r.frames.length - 1, k));
+  if (n === (i.frame || 0)) return;
+  if (fade) fadeSnap(Math.min(700, strDt() * 0.6));
+  i.frame = n; strFrameSync(); showTool();
+}
+function strPlay(on) {
+  clearTimeout(STR.play); STR.play = 0;
+  const tick = () => {
+    const r = S.res.struktur, i = S.inp.struktur;
+    if (S.tool !== "struktur" || !r || !r.frames) return strPlay(false);
+    strGo(((i.frame || 0) + 1) % r.frames.length);
+    // am Ende kurz stehen bleiben, dann von vorn
+    STR.play = setTimeout(tick, (i.frame === r.frames.length - 1 ? 2.2 : 1) * strDt());
+  };
+  if (on) STR.play = setTimeout(tick, 250);
+  const b = $("[data-strplay]"); if (b) b.textContent = STR.play ? "❚❚ " + L("Anhalten", "Pause") : "▶ " + L("Abspielen", "Play");
+}
+const STR_TYP = { metall: ["Metalle", "Metals"], polymer: ["Thermoplaste", "Thermoplastics"], elastomer: ["Elastomere", "Elastomers"], duroplast: ["Duroplaste", "Thermosets"],
+  kristall: ["Keramik und Kristalle", "Ceramics and crystals"], glas: ["Gläser", "Glasses"], glaskeramik: ["Glaskeramik", "Glass-ceramics"], verbund: ["Verbundwerkstoffe", "Composites"],
+  kohlenstofffaser: ["Kohlenstofffasern", "Carbon fibres"], holz: ["Holz", "Wood"], papier: ["Papier", "Paper"], beton: ["Beton", "Concrete"] };
+function strSig(i) { const p = SPRE[spk(i.material)], r = S.res.struktur; return [i.material, i.mode, p ? p.range.join() + "/" + p.transitions.length + "/" + p.temper.length : "-", r && r.frames ? r.frames.length : 0].join("|"); }
+function strDynHtml(i) {
+  const pre = SPRE[spk(i.material)];
+  const hasT = !!(pre && pre.temper.length);
+  let h = hasT ? `<div style="margin:10px 0 2px">${segH("mode", [["T", L("Temperatur", "Temperature")], ["temper", L("Wärmebehandlung", "Heat treatment")]])}</div>` : "";
+  if (i.mode !== "temper" || !hasT) {
+    h += fld("T", L("Temperatur", "Temperature"), { u: "°C" });
+    if (pre) {
+      const [lo, hi] = pre.range, M = STR.map = strMap(pre), pos = (T) => M.toPos(T) / 10;
+      const last = [-99, -99, -99];                 // Beschriftungen in bis zu drei Zeilen, damit nahe Marken lesbar bleiben
+      const marks = pre.transitions.filter(m => m.T >= lo && m.T <= hi).sort((a, b) => a.T - b.T).map(m => { const x = pos(m.T);
+        const w = 2 + 1.9 * String(m.label).length; let row = last.findIndex(e => x - w / 2 > e + 1); if (row < 0) row = last.indexOf(Math.min(...last)); last[row] = x + w / 2;
+        return `<button type="button" data-strmark="${m.T}" class="r${row}" style="left:${x.toFixed(1)}%;transform:translateX(${x < 12 ? "-4%" : x > 88 ? "-96%" : "-50%"})" title="${esc(m.label)}: ${fmt(m.T, 0)} °C">${esc(m.label)}</button>`; }).join("");
+      const zones = M.zones.map(([a, b]) => `<span style="left:${pos(a).toFixed(1)}%;width:${(pos(b) - pos(a)).toFixed(1)}%"></span>`).join("");
+      h += `<div class="tslide"><div class="tzones" aria-hidden="true">${zones}</div><input type="range" data-strT min="0" max="1000" step="1" value="${Math.round(M.toPos(+i.T || 20))}" aria-label="${esc(L("Temperatur", "Temperature"))}" aria-valuetext="${fmt(+i.T || 20, 0)} °C"><div class="tmarks">${marks}</div></div>`;
+    }
+    return h;
+  }
+  if (!(i.steps || []).length) { const p0 = pre.temper[0]; i.steps = clone(p0.steps); i.preset = p0.id; i.kind = p0.kind; i.frame = 0; }
+  h += `<label>${esc(L("Vorschlag", "Preset"))}</label><select data-strpre><option value="">${esc(L("– eigener Weg –", "– own path –"))}</option>${pre.temper.map(p => `<option value="${esc(p.id)}"${p.id === i.preset ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select>`;
+  h += `<h4 class="sub">${esc(L("Schritte", "Steps"))}</h4>` + grid("steps", [{ k: "name", label: L("Schritt", "Step"), text: true, w: 92 }, { k: "T", label: "T", u: "°C" }, { k: "t", label: L("Halten", "Hold"), u: "h" }, { k: "quench", label: L("abschr.", "quench"), chk: true }], { h: 190 });
+  const r = S.res.struktur;
+  if (r && r.frames) h += strPlayer(r, i);
+  return h;
+}
+// Temperaturregler (Runde N): stückweise lineare Abbildung Regler 0…1000 ↔ T. Fenster um die Übergänge (nahe Marken
+// zusammengefasst, z. B. Ac1…Ac3 oder Solidus…Liquidus) bekommen 80 % des Wegs, ruhige Strecken den Rest (jede
+// mindestens 3 %, damit alles erreichbar bleibt).
+function strMap(pre) {
+  const [lo, hi] = pre.range, span = hi - lo;
+  const ts = pre.transitions.map(m => +m.T).filter(T => T >= lo && T <= hi).sort((a, b) => a - b);
+  if (!(span > 0) || !ts.length) return { range: [lo, hi], zones: [], toPos: (T) => Math.max(0, Math.min(1000, (T - lo) / (span || 1) * 1000)), toT: (p) => lo + p / 1000 * span };
+  const d = Math.max(8, 0.03 * span), gap = 0.12 * span, zones = [];
+  for (const T of ts) { const z = zones[zones.length - 1]; if (z && T - d <= z[1] + gap) z[1] = Math.min(hi, T + d); else zones.push([Math.max(lo, T - d), Math.min(hi, T + d)]); }
+  const segs = []; let x = lo;                           // [a, b, aktiv]
+  for (const [a, b] of zones) { if (a > x) segs.push([x, a, false]); segs.push([a, b, true]); x = b; }
+  if (x < hi) segs.push([x, hi, false]);
+  const wA = segs.filter(q => q[2]).reduce((s, q) => s + q[1] - q[0], 0), wQ = span - wA;
+  const nQ = segs.filter(q => !q[2]).length, shareQ = nQ ? Math.max(0.2, 0.03 * nQ) : 0, shareA = 1 - shareQ;
+  const len = segs.map(q => q[2] ? (wA ? (q[1] - q[0]) / wA * shareA : 0) : (wQ ? Math.max(0.03, (q[1] - q[0]) / wQ * shareQ) : 0));
+  const p0 = []; let acc = 0; for (const l of len) { p0.push(acc); acc += l; }
+  const toPos = (T) => { T = Math.max(lo, Math.min(hi, T)); const k = segs.findIndex(q => T <= q[1]); const q = segs[k < 0 ? segs.length - 1 : k], i = k < 0 ? segs.length - 1 : k;
+    return 1000 * (p0[i] + (q[1] > q[0] ? (T - q[0]) / (q[1] - q[0]) : 0) * len[i]) / acc; };
+  const toT = (p) => { const f = Math.max(0, Math.min(1, p / 1000)) * acc; let i = p0.findIndex((v, j) => f <= v + len[j]); if (i < 0) i = segs.length - 1;
+    const q = segs[i]; return q[0] + (len[i] ? (f - p0[i]) / len[i] : 0) * (q[1] - q[0]); };
+  return { range: [lo, hi], zones, toPos, toT };
+}
+// Abspielleiste: zurück, Abspielen, vor, Regler, Tempo; darunter Bildtitel und was gerade passiert
+function strPlayer(r, i) {
+  const sp = i.speed || 1;
+  return `<div class="strplayer"><div class="row" style="margin-top:8px;align-items:center;gap:6px">
+    <button type="button" data-strstep="-1" title="${esc(L("Bild zurück (←)", "Previous frame (←)"))}" aria-label="${esc(L("Bild zurück", "Previous frame"))}">‹</button>
+    <button type="button" data-strplay>${STR.play ? "❚❚ " + esc(L("Anhalten", "Pause")) : "▶ " + esc(L("Abspielen", "Play"))}</button>
+    <button type="button" data-strstep="1" title="${esc(L("Bild vor (→)", "Next frame (→)"))}" aria-label="${esc(L("Bild vor", "Next frame"))}">›</button>
+    <input type="range" data-strframe min="0" max="${r.frames.length - 1}" step="1" value="${Math.min(i.frame || 0, r.frames.length - 1)}" style="flex:1;min-width:60px" aria-label="${esc(L("Bild", "Frame"))}">
+    <select data-strspeed title="${esc(L("Tempo", "Speed"))}" aria-label="${esc(L("Tempo", "Speed"))}" style="width:auto">${STR_SPEED.map(([v, de, en]) => `<option value="${v}"${v === sp ? " selected" : ""}>${EN() ? en : de}</option>`).join("")}</select></div>
+    <div class="small" id="strFrameLab"></div><div class="small strcap" id="strFrameCap"></div></div>`;
+}
+function strDynRefresh() {
+  const d = $("#strDyn"); if (!d || S.tool !== "struktur") return;
+  const i = S.inp.struktur, sg = strSig(i), lk = $("#strKp");
+  if (lk) lk.dataset.kp = `material:${i.material}#bezeichnung`;
+  if (d.dataset.sig !== sg) { d.innerHTML = strDynHtml(i); d.dataset.sig = sg; if (window.LabUI) LabUI.folds("werkstoffe", d); wirePane(d); }
+  const s = $("[data-strT]", d); if (s && document.activeElement !== s && STR.map) { s.value = Math.round(STR.map.toPos(+i.T)); s.setAttribute("aria-valuetext", fmt(+i.T, 0) + " °C"); }
+  strFrameSync();
+}
+const STR_PEND = new Set();
+function strEnsurePre(mid) {                      // Bereich, Übergänge und Vorschläge auch dann, wenn nur ein Wärmebehandlungs-Ergebnis vorliegt
+  const r = S.res.struktur;
+  if (!mid || SPRE[spk(mid)] || STR_PEND.has(mid)) return;
+  if (r && !r.frames && strMid(r) === mid) { SPRE[spk(mid)] = { range: r.range, transitions: r.transitions || [], temper: r.temper || [] }; return; }
+  STR_PEND.add(mid);
+  api("api/tool/struktur", { material: mid, T: 20, n: 3, lang: lang() }).then(j => {
+    STR_PEND.delete(mid);
+    if (j && !j.error) { SPRE[spk(mid)] = { range: j.range, transitions: j.transitions || [], temper: j.temper || [] }; strDynRefresh(); }
+  });
+}
+const strMid = (r) => r && r.material && typeof r.material === "object" ? r.material.id : r && r.material;
+function strAfter(j) {
+  const i = S.inp.struktur;
+  const mid = strMid(j);
+  const fk = j.frames ? "t:" + mid : "";      // neue Bildfolge: vorn anfangen
+  if (STR.fk !== undefined && fk !== STR.fk && j.frames) { i.frame = 0; strPlay(false); }
+  STR.fk = fk;
+  if (!j.error && !j.frames && mid) {
+    const had = SPRE[spk(mid)];
+    SPRE[spk(mid)] = { range: j.range, transitions: j.transitions || [], temper: j.temper || [] };
+    if (!had && i.mode === "temper" && SPRE[spk(mid)].temper.length && mid === i.material) { strDynRefresh(); runSoon(0); return; }
+  }
+  strDynRefresh();
+}
+function wireStr(root) {
+  const i = S.inp.struktur;
+  const setT = (s, T) => { i.T = T; s.setAttribute("aria-valuetext", fmt(T, 0) + " °C"); const f = $('[data-k="T"]', $("#pane")); if (f) f.value = String(T).replace(".", EN() ? "." : ","); runSoon(140); };
+  $$("[data-strT]", root).forEach(s => {
+    s.addEventListener("input", () => { if (STR.map) setT(s, Math.round(STR.map.toT(+s.value))); });
+    s.addEventListener("keydown", (e) => {              // Pfeiltasten: genau 1 °C bzw. 10 °C, unabhängig von der Stauchung
+      const d = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key]; if (!d || !STR.map) return;
+      e.preventDefault(); const [lo, hi] = STR.map.range;
+      const T = Math.max(lo, Math.min(hi, Math.round(+i.T || 0) + d * (e.shiftKey ? 10 : 1)));
+      s.value = Math.round(STR.map.toPos(T)); setT(s, T);
+    });
+  });
+  $$("[data-strmark]", root).forEach(b => b.addEventListener("click", () => { i.T = +b.dataset.strmark; const f = $('[data-k="T"]', $("#pane")); if (f) f.value = String(i.T).replace(".", EN() ? "." : ","); strDynRefresh(); runSoon(0); }));
+  $$("[data-strpre]", root).forEach(s => s.addEventListener("change", () => {
+    const p = ((SPRE[spk(i.material)] || {}).temper || []).find(x => x.id === s.value); i.preset = s.value;
+    if (p) { i.steps = clone(p.steps); i.kind = p.kind; }
+    i.frame = 0; strPlay(false); renderPane(); runSoon(0);
+  }));
+  $$("[data-strframe]", root).forEach(s => s.addEventListener("input", () => { strGo(+s.value, true); saveSoon(); }));
+  $$("[data-strplay]", root).forEach(b => b.addEventListener("click", () => strPlay(!STR.play)));
+  $$("[data-strstep]", root).forEach(b => b.addEventListener("click", () => { strPlay(false); strGo((i.frame || 0) + +b.dataset.strstep); saveSoon(); }));
+  $$("[data-strspeed]", root).forEach(s => s.addEventListener("change", () => { i.speed = +s.value; saveSoon(); }));
+}
+
 const normEl = (s) => { const t = String(s || "").trim(); return t ? t[0].toUpperCase() + t.slice(1).toLowerCase() : ""; };
 
 const parseTriple = (s) => { const m = String(s || "").trim().match(/^\s*(-?\d+)[\s,]*(-?\d+)[\s,]*(-?\d+)\s*$/) || String(s || "").trim().match(/^(-?\d)(-?\d)(-?\d)$/); return m ? [+m[1], +m[2], +m[3]] : null; };
 
 // ---------------------------------------------------------------- Werkzeuge
-const GROUPS = [
-  { id: "auswahl", de: "Auswahl", en: "Selection", tools: ["auswahl", "karten"],
-    icon: '<circle cx="7" cy="16" r="1.6"/><circle cx="11" cy="11" r="1.6"/><circle cx="16" cy="7" r="1.6"/><path d="M4 20L20 4" opacity=".5"/>' },
-  { id: "kristall", de: "Kristall", en: "Crystal", tools: ["kristall", "gitter", "xrd"],
-    icon: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>' },
-  { id: "phasen", de: "Phasen", en: "Phases", tools: ["phasen", "stahl"],
-    icon: '<path d="M3 20h18M4 5c4 0 6 10 8 10s4-6 8-6"/><path d="M4 12h16" opacity=".5"/>' },
-  { id: "mechanik", de: "Mechanik", en: "Mechanics", tools: ["laminat", "ermuedung", "weibull", "haerte", "bruch", "korrosion", "kriechen"], main: ["laminat", "ermuedung", "weibull", "haerte"],
-    icon: '<path d="M4 4v16h16"/><path d="M6 8c3 0 4 3 7 6s4 3 6 3"/>' },
-];
-const NAMES = {
-  auswahl: ["Auswahl", "Selection", "Ashby-Diagramm, Kennzahl, Rangliste", "Ashby chart, index, ranking"],
-  karten: ["Karten", "Cards", "Kennwerte vergleichen, mit Quellen", "Compare properties, with sources"],
-  kristall: ["Kristall", "Crystal", "Zelle, Netzebenen, berechnetes Pulvermuster", "Cell, planes, computed powder pattern"],
-  gitter: ["Gitter", "Lattice", "Atome bei T: Zelle, Fremdatome, Leerstellen, Fehler", "Atoms at T: cell, solutes, vacancies, defects"],
-  xrd: ["XRD", "XRD", "Diffraktogramm auswerten", "Evaluate a diffractogram"],
-  phasen: ["Diagramm", "Diagram", "Zustandsdiagramm, Hebelgesetz, Abkühlung", "Phase diagram, lever rule, cooling"],
-  stahl: ["Stahl", "Steel", "CE, Ms, Ac1/Ac3, Vorwärmen, Anlassen, Aufkohlen", "CE, Ms, Ac1/Ac3, preheat, tempering, carburising"],
-  laminat: ["Laminat", "Laminate", "Klassische Laminattheorie, Erstversagen", "Classical laminate theory, first-ply failure"],
-  ermuedung: ["Ermüdung", "Fatigue", "Wöhlerlinie, Mittelspannung, Rainflow, Miner", "S–N curve, mean stress, rainflow, Miner"],
-  weibull: ["Weibull", "Weibull", "Festigkeitsstreuung, Vertrauensbereich, Grösseneffekt", "Strength scatter, confidence, size effect"],
-  haerte: ["Härte", "Hardness", "HV, HBW, HK, Korngrösse, Hall–Petch", "HV, HBW, HK, grain size, Hall–Petch"],
-  bruch: ["Bruch", "Fracture", "K_Q nach ASTM E399, kritische Risslänge", "K_Q per ASTM E399, critical crack length"],
-  korrosion: ["Korrosion", "Corrosion", "Tafel-Auswertung, Korrosionsrate", "Tafel analysis, corrosion rate"],
-  kriechen: ["Kriechen", "Creep", "Larson–Miller, Norton", "Larson–Miller, Norton"],
+const GROUP_ICON = {                                // Gruppen und Namen kommen aus data/kompendium.json (META)
+  auswahl: '<circle cx="7" cy="16" r="1.6"/><circle cx="11" cy="11" r="1.6"/><circle cx="16" cy="7" r="1.6"/><path d="M4 20L20 4" opacity=".5"/>',
+  struktur: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+  pruefen: '<path d="M4 4v16h16"/><path d="M6 8c3 0 4 3 7 6s4 3 6 3"/>',
 };
+const GROUPS = [], NAMES = {};
+const BOOK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg>`;
 const tname = (t) => NAMES[t][EN() ? 1 : 0];
 
 const EX = {                                         // Beispieldaten (synthetisch, keine Messungen)
@@ -902,10 +1361,11 @@ const EX = {                                         // Beispieldaten (synthetis
 };
 
 const DEF = {
-  auswahl: { x: "rho", y: "E", index: "beam_E", classes: [], mp: false, limits: [], custom: false, expo: [{ p: "E", e: 0.5 }, { p: "rho", e: -1 }], anchor: null, eigen: [], eigen_ax: null },
-  karten: { names: [], q: "" },
+  auswahl: { x: "rho", y: "E", index: "beam_E", classes: [], mp: false, limits: [], custom: false, expo: [{ p: "E", e: 0.5 }, { p: "rho", e: -1 }], anchor: null, eigen: [], eigen_ax: null, sel: null, shared: {}, groups: false, fam: null },
+  karten: { names: [], q: "", dec: "" },
   kristall: { phase: "cu", tube: "Cu", tth_min: 10, tth_max: 120, fwhm: 0.1, hkl: "1 1 1", uvw: "1 1 0", hkl2: "1 0 0",
               cust: { on: false, name: "", system: "cubic", centring: "F", a: 4.05, b: "", c: "", alpha: 90, beta: 90, gamma: 90, atoms: "Al 0 0 0" } },
+  struktur: { material: "c45e-qt", T: 20, n: 5, seed: 1, mode: "T", preset: "", kind: "", steps: [], frame: 0, speed: 1, etch: false },
   gitter: { host: "Fe", T: 20, unit: "wt", sols: [{ el: "C", c: 0.45 }], n: 5, seed: 1, scale: 0.45, cellHl: true, slice: "",
             fx: { vac: true, vib: true, distort: true, precip: true, disl: false, sf: false, gb: false }, boost: 1, vib_boost: 1, gb_angle: 16 },
   xrd: { item: "", tube: "file", mono: false, opt: { min_rel: 2, smooth: 0, bg: true, bg_width: 2, strip_ka2: false, K: 0.9, inst_fwhm: 0, tol: 0.2, index_min: 3,
@@ -925,6 +1385,7 @@ const DEF = {
 };
 const VIEWS = {
   kristall: [["lines", "Linien", "Lines"], ["cell", "Zelle", "Cell"]],
+  struktur: (r) => strPanels(r).map(p => [p.id, p.title, p.title]).concat(r && r.frames && r.profile ? [["weg", "Weg T(t)", "Path T(t)"]] : []),
   gitter: [["3d", "Gitter", "Lattice"], ["cell", "Elementarzelle", "Unit cell"], ["slice", "Schnitt", "Slice"]],
   xrd: [["pattern", "Diffraktogramm", "Pattern"], ["wh", "Williamson–Hall", "Williamson–Hall"], ["nr", "Nelson–Riley", "Nelson–Riley"]],
   phasen: [["diagram", "Diagramm", "Diagram"], ["cooling", "Abkühlung", "Cooling"]],
@@ -933,12 +1394,19 @@ const VIEWS = {
   haerte: [["ind", "Eindrücke", "Indents"], ["hp", "Hall–Petch", "Hall–Petch"]],
   kriechen: [["lmp", "Larson–Miller", "Larson–Miller"], ["norton", "Norton", "Norton"]],
 };
-const view = () => S.view[S.tool] || (VIEWS[S.tool] ? VIEWS[S.tool][0][0] : "");
+const viewsOf = (t) => typeof VIEWS[t] === "function" ? VIEWS[t](S.res[t], S.inp[t]) : (VIEWS[t] || []);
+const view = () => {
+  const t = S.tool;
+  if (typeof VIEWS[t] !== "function") return S.view[t] || (VIEWS[t] ? VIEWS[t][0][0] : "");
+  const vs = viewsOf(t), v = S.view[t];               // Ansichten je Ergebnis: gewählte Ansicht, sonst die erste
+  return vs.some(x => x[0] === v) ? v : (vs[0] ? vs[0][0] : "");
+};
 
 // ---- Anfragen je Werkzeug
 const nz = (v) => (v === "" || v === undefined ? null : v);
 const ownRows = (i) => (i.eigen || []).filter(p => String(p.name || "").trim() || nz(p.x) !== null || nz(p.y) !== null);
 const ownAxesOk = (i) => !i.eigen_ax || (i.eigen_ax[0] === i.x && i.eigen_ax[1] === i.y);
+const CELL_FREE = { cubic: ["a"], tetragonal: ["a", "c"], hexagonal: ["a", "c"], orthorhombic: ["a", "b", "c"], monoclinic: ["a", "b", "c", "beta"], triclinic: ["a", "b", "c", "alpha", "beta", "gamma"] };
 const REQ = {
   auswahl: (i) => {
     const r = { x: i.x, y: i.y, classes: i.classes, mp: !!i.mp, limits: (i.limits || []).filter(l => l.prop && (l.min !== null && l.min !== "" || l.max !== null && l.max !== "")).map(l => ({ prop: l.prop, min: nz(l.min), max: nz(l.max) })) };
@@ -949,6 +1417,7 @@ const REQ = {
     if (!own.length) i.eigen_ax = [i.x, i.y];
     const full = own.filter(p => typeof p.x === "number" && typeof p.y === "number");   // halbe Zeilen erst, wenn x und y stehen
     if (full.length && ownAxesOk(i)) r.own = full.map(p => ({ name: String(p.name || "").trim(), x: p.x, y: p.y, src: String(p.src || "").trim() }));
+    r.view = { groups: !!i.groups, fam: i.fam || null, sel: i.sel ? i.sel.id : null };     // Darstellung (nur Bericht)
     return r;
   },
   karten: (i) => ({ names: i.names }),
@@ -956,13 +1425,19 @@ const REQ = {
     const r = { tube: i.tube, tth_min: i.tth_min, tth_max: i.tth_max, fwhm: i.fwhm, hkl: parseTriple(i.hkl), uvw: parseTriple(i.uvw), hkl2: parseTriple(i.hkl2) };
     if (i.cust.on) {
       const c = i.cust, sys = c.system;
-      const cell = { a: c.a, b: sys === "cubic" ? c.a : (c.b || c.a), c: ["cubic"].includes(sys) ? c.a : (c.c || c.a), alpha: c.alpha || 90, beta: c.beta || 90, gamma: sys === "hexagonal" ? 120 : (c.gamma || 90) };
-      if (sys === "tetragonal") cell.b = c.a;
-      if (sys === "hexagonal") { cell.b = c.a; cell.alpha = 90; cell.beta = 90; }
+      const fr = CELL_FREE[sys] || CELL_FREE.triclinic, v = (k, d) => (fr.includes(k) ? (c[k] || d) : d);   // nur freie Parameter zählen
+      const cell = { a: c.a, b: v("b", c.a), c: v("c", c.a), alpha: v("alpha", 90), beta: v("beta", 90), gamma: sys === "hexagonal" ? 120 : v("gamma", 90) };
       const atoms = String(c.atoms || "").split("\n").map(l => l.trim().split(/[\s;,]+/)).filter(p => p.length >= 4 && p[0]).map(p => ({ el: p[0], x: pnum(p[1]) || 0, y: pnum(p[2]) || 0, z: pnum(p[3]) || 0, occ: p[4] ? pnum(p[4]) : 1 }));
       r.custom = { name: c.name || L("Eigene Zelle", "Own cell"), system: sys, centring: c.centring, cell, atoms };
     } else r.phase = i.phase;
     return r;
+  },
+  struktur: (i) => {
+    const pre = SPRE[spk(i.material)];
+    const steps = (i.steps || []).filter(s => typeof s.T === "number").map(s => ({ name: String(s.name || ""), T: s.T, t: typeof s.t === "number" ? s.t : 0, quench: !!s.quench }));
+    const show = S.tool === "struktur" ? view() : (S.view.struktur || "");      // für den Bericht: diese Ansicht zuerst
+    if (i.mode === "temper" && pre && pre.temper.length && steps.length) return { material: i.material, seed: i.seed, temper: { steps, kind: i.kind || null }, show };
+    return { material: i.material, T: i.T, seed: i.seed, n: i.n, show };
   },
   gitter: (i) => {
     const rows = (i.sols || []).filter(s => normEl(s.el) && pnum(s.c) !== null && pnum(s.c) > 0);
@@ -1028,12 +1503,12 @@ const READY = {
 const EMPTY = {
   xrd: () => [L("Diffraktogramm öffnen", "Open a diffractogram"), L("xy/xye, CSV/TXT, PANalytical .xrdml, Bruker .brml und .raw (RAW1.01), Rigaku .ras, .uxd. Ohne Wellenlänge in der Datei wird Cu Kα1/Kα2 angenommen (einstellbar).", "xy/xye, CSV/TXT, PANalytical .xrdml, Bruker .brml and .raw (RAW1.01), Rigaku .ras, .uxd. Without a wavelength in the file, Cu Kα1/Kα2 is assumed (adjustable)."), "file"],
   karten: () => [L("Werkstoffe vergleichen", "Compare materials"), L("Rechts suchen und hinzufügen, oder im Ashby-Diagramm auf Punkte klicken.", "Search and add on the right, or click points in the Ashby chart."), ""],
-  ermuedung: () => [L("Wöhlerversuch auswerten", "Evaluate S–N tests"), L("Rechts σa, σm und N eintragen oder aus Excel einfügen. Durchläufer werden als zensiert gewertet (Maximum-Likelihood).", "Enter σa, σm and N on the right or paste from Excel. Run-outs are treated as censored (maximum likelihood)."), "ex"],
-  weibull: () => [L("Festigkeiten auswerten", "Evaluate strengths"), L("Rechts mindestens drei Festigkeitswerte eintragen.", "Enter at least three strength values on the right."), "ex"],
+  ermuedung: () => [L("Wöhlerversuch auswerten", "Evaluate S–N tests"), L("Rechts σa, σm und N eintragen oder aus Excel einfügen.", "Enter σa, σm and N on the right or paste from Excel."), ""],
+  weibull: () => [L("Festigkeiten auswerten", "Evaluate strengths"), L("Rechts mindestens drei Festigkeitswerte eintragen.", "Enter at least three strength values on the right."), ""],
   bruch: () => [L("Bruchzähigkeit", "Fracture toughness"), L("Rechts Kraft und Probenmasse für K_Q eintragen, oder K_Ic und Spannung für die kritische Risslänge.", "Enter force and specimen dimensions for K_Q, or K_Ic and stress for the critical crack length."), ""],
-  haerte: () => [L("Härteeindrücke auswerten", "Evaluate hardness indents"), L("Rechts Prüfkraft und Diagonalen (bzw. Durchmesser) eintragen.", "Enter test force and diagonals (or diameters) on the right."), "ex"],
+  haerte: () => [L("Härteeindrücke auswerten", "Evaluate hardness indents"), L("Rechts Prüfkraft und Diagonalen (bzw. Durchmesser) eintragen.", "Enter test force and diagonals (or diameters) on the right."), ""],
   korrosion: () => [L("Polarisationskurve auswerten", "Evaluate a polarisation curve"), L("Tabelle mit Potential und Strom öffnen (CSV/TXT) oder aus einem Datensatz übernehmen.", "Open a table with potential and current (CSV/TXT) or take it from a dataset."), "table"],
-  kriechen: () => [L("Zeitstandversuche auswerten", "Evaluate creep-rupture tests"), L("Rechts σ, T und Bruchzeit (für Larson–Miller) oder Kriechrate (für Norton) eintragen.", "Enter σ, T and rupture time (Larson–Miller) or creep rate (Norton) on the right."), "ex"],
+  kriechen: () => [L("Zeitstandversuche auswerten", "Evaluate creep-rupture tests"), L("Rechts σ, T und Bruchzeit (für Larson–Miller) oder Kriechrate (für Norton) eintragen.", "Enter σ, T and rupture time (Larson–Miller) or creep rate (Norton) on the right."), ""],
 };
 
 // ---- Eingabebereiche
@@ -1041,7 +1516,7 @@ const supU = (u) => String(u || "").replace(/\^(-?\d+)/g, (m, e) => supNum(e));
 const propOf = (k) => (EN() ? META.props_en : META.props).find(p => p.key === k) || { key: k, label: k, unit: "" };
 function ownPane(i) {
   const ax = i.eigen_ax || [i.x, i.y], px = propOf(ax[0]), py = propOf(ax[1]);
-  let h = `<div class="small" style="margin-bottom:4px">${esc(L("Eigene Werkstoffe als Rauten im Diagramm, z. B. aus einer eigenen Messung oder einem Datenblatt. Die Quelle erscheint im Tooltip und als Literaturangabe im Bericht.", "Own materials as diamonds in the chart, e.g. from your own test or a data sheet. The source shows in the tooltip and as a reference in the report."))}</div>`;
+  let h = "";
   if (!ownAxesOk(i)) h += `<div class="note warn" style="margin-bottom:4px">${esc(L(`Die eigenen Werte gelten für ${py.label} über ${px.label} und werden bei diesen Achsen nicht gezeigt.`, `The own values are for ${py.label} versus ${px.label} and are not shown with these axes.`))} <button type="button" data-act="ownax">${esc(L("Achsen zurückstellen", "Restore axes"))}</button></div>`;
   return h + grid("eigen", [{ k: "name", label: L("Name", "Name"), text: true, w: 90 }, { k: "x", label: px.label, u: supU(px.unit) }, { k: "y", label: py.label, u: supU(py.unit) },
     { k: "src", label: L("Quelle", "Source"), text: true, w: 130, ph: L("z. B. Datenblatt, DOI", "e.g. data sheet, DOI") }], { h: 170 });
@@ -1052,17 +1527,20 @@ const PANE = {
     const idx = Object.entries(META.indices).map(([k, v]) => [k, EN() ? v.en : v.de]);
     const cls = Object.entries(META.classes).map(([k, v]) => `<label class="chk"><input type="checkbox" data-cls="${k}"${i.classes.includes(k) ? " checked" : ""}><span class="sw" style="background:${CLS_COL[k] || "#888"}"></span>${esc(EN() ? v.en : v.de)}</label>`).join("");
     return `<div class="row2"><div>${sel("x", L("x-Achse", "x axis"), propOpts())}</div><div>${sel("y", L("y-Achse", "y axis"), propOpts())}</div></div>
+      ${chk("groups", L("Familien zeigen", "Show families"), L("Gesamtbereich jeder Werkstofffamilie als Umriss; Punkte erscheinen nach Klick auf eine Familie", "Overall range of each material family as an outline; points appear after a click on a family"))}
       ${i.custom ? "" : sel("index", L("Kennzahl (grösser = besser)", "Performance index (larger = better)"), [["", L("keine", "none")], ...idx])}
       ${chk("custom", L("Eigene Kennzahl", "Own index"))}
-      ${i.custom ? grid("expo", [{ k: "p", label: L("Eigenschaft (Schlüssel)", "Property (key)") }, { k: "e", label: L("Exponent", "Exponent") }], { h: 140 }) + `<div class="small">${esc(L("Schlüssel wie in der Datenbank, z. B. E, rho, Rp, KIc, lambda, alpha", "Keys as in the database, e.g. E, rho, Rp, KIc, lambda, alpha"))}</div>` : ""}
+      ${i.custom ? grid("expo", [{ k: "p", label: L("Eigenschaft (Schlüssel)", "Property (key)"), text: true, w: 90, ph: "E, rho, Rp …" }, { k: "e", label: L("Exponent", "Exponent") }], { h: 140 }) : ""}
       ${META.has_mp ? chk("mp", L("Materials Project einblenden (berechnet, DFT)", "Show Materials Project (computed, DFT)"), L("Berechnete Werte, nicht gemessen; eigene Markierung im Diagramm", "Computed values, not measured; own marker in the chart")) : ""}
-      ${fold("cls", L("Werkstoffklassen", "Material classes"), cls + `<div class="small">${esc(L("Keine Auswahl = alle", "None selected = all"))}</div>`, i.classes.length ? `(${i.classes.length})` : "")}
-      ${fold("lim", L("Grenzwerte", "Limits"), grid("limits", [{ k: "prop", label: L("Eigenschaft", "Property") }, { k: "min", label: "min" }, { k: "max", label: "max" }], { h: 150 }) + `<div class="small">${esc(L("In den Anzeigeeinheiten der Eigenschaft; Schlüssel wie oben.", "In the display units of the property; keys as above."))}</div>`, (i.limits || []).length ? `(${i.limits.length})` : "")}
+      ${fold("cls", L("Werkstoffklassen", "Material classes"), cls, i.classes.length ? `(${i.classes.length})` : "")}
+      ${fold("lim", L("Grenzwerte", "Limits"), grid("limits", [{ k: "prop", label: L("Eigenschaft", "Property"), text: true, w: 90, ph: "E, rho, Rp …" }, { k: "min", label: "min", noidx: true }, { k: "max", label: "max", noidx: true }], { h: 150 }), (i.limits || []).length ? `(${i.limits.length})` : "")}
       ${fold("eigen", L("Eigene Werte", "Own values"), ownPane(i), ownRows(i).length ? `(${ownRows(i).length})` : "")}
       <div id="res"></div>`;
   },
   karten: (i) => `<label>${esc(L("Werkstoff suchen", "Search material"))}</label><input type="text" id="kQ" data-k="q" data-text value="${esc(i.q)}" placeholder="${esc(L("Name, Nummer, Familie …", "Name, number, family …"))}">
       <div class="list" id="kHits" style="max-height:200px"><div class="empty">${esc(L("Mindestens zwei Zeichen eingeben", "Type at least two characters"))}</div></div>
+      ${fold("decf", L("Bezeichnung entschlüsseln", "Decode a designation"), `<input type="text" id="decQ" value="${esc(i.dec || "")}" placeholder="${esc(L("z. B. EN AW-1050A H14, 42CrMo4, X5CrNi18-10, 1.4301", "e.g. EN AW-1050A H14, 42CrMo4, X5CrNi18-10, 1.4301"))}" aria-label="${esc(L("Bezeichnung", "Designation"))}">
+        <div id="decOut" class="decbox"></div>`)}
       <h4 class="sub">${esc(L("Im Vergleich", "In the comparison"))} (${i.names.length})</h4>
       <div class="list">${i.names.length ? i.names.map((n, k) => `<div class="it"><span class="nm">${esc(n)}</span><button type="button" data-kup="${k}" title="${esc(L("nach oben", "move up"))}">↑</button><button type="button" data-kdel="${k}">✕</button></div>`).join("") : `<div class="empty">${esc(L("noch leer", "empty"))}</div>`}</div>
       <div id="res"></div>`,
@@ -1073,32 +1551,38 @@ const PANE = {
     return `${c.on ? "" : sel("phase", L("Phase", "Phase"), ph)}
       <div class="row2"><div>${sel("tube", L("Röhre", "Tube"), tubes)}</div><div>${fld("fwhm", L("Linienbreite FWHM", "Line width FWHM"), { u: "°" })}</div></div>
       <div class="row2"><div>${fld("tth_min", "2θ min", { u: "°" })}</div><div>${fld("tth_max", "2θ max", { u: "°" })}</div></div>
-      ${fold("planes", L("Ebenen und Richtungen", "Planes and directions"), `<div class="row3"><div>${fld("hkl", "(hkl)", { text: true })}</div><div>${fld("uvw", "[uvw]", { text: true })}</div><div>${fld("hkl2", L("2. Ebene", "2nd plane"), { text: true })}</div></div>
-        <div class="small">${esc(L("Die Ebene (hkl) wird in der Zellansicht gezeigt.", "The plane (hkl) is shown in the cell view."))}</div>`)}
+      ${fold("planes", L("Ebenen und Richtungen", "Planes and directions"), `<div class="row3"><div>${fld("hkl", "(hkl)", { text: true })}</div><div>${fld("uvw", "[uvw]", { text: true })}</div><div>${fld("hkl2", L("2. Ebene", "2nd plane"), { text: true })}</div></div>`)}
       ${fold("cust", L("Eigene Zelle", "Own cell"), `${chk("cust.on", L("Eigene Zelle statt Phase", "Own cell instead of a phase"))}
         ${c.on ? `${fld("cust.name", L("Name", "Name"), { text: true })}
         <div class="row2"><div>${sel("cust.system", L("Kristallsystem", "Crystal system"), [["cubic", L("kubisch", "cubic")], ["tetragonal", L("tetragonal", "tetragonal")], ["hexagonal", L("hexagonal", "hexagonal")], ["orthorhombic", L("orthorhombisch", "orthorhombic")], ["monoclinic", L("monoklin", "monoclinic")], ["triclinic", L("triklin", "triclinic")]])}</div>
         <div>${sel("cust.centring", L("Zentrierung", "Centring"), [["P", "P"], ["I", "I"], ["F", "F"], ["C", "C"], ["R", "R"]])}</div></div>
-        <div class="row3"><div>${fld("cust.a", "a", { u: "Å" })}</div><div>${fld("cust.b", "b", { u: "Å" })}</div><div>${fld("cust.c", "c", { u: "Å" })}</div></div>
-        <div class="row3"><div>${fld("cust.alpha", "α", { u: "°" })}</div><div>${fld("cust.beta", "β", { u: "°" })}</div><div>${fld("cust.gamma", "γ", { u: "°" })}</div></div>
+        <div class="row3">${[["a", "a"], ["b", "b"], ["c", "c"]].filter(x => (CELL_FREE[c.system] || []).includes(x[0])).map(x => `<div>${fld("cust." + x[0], x[1], { u: "Å" })}</div>`).join("")}</div>
+        <div class="row3">${[["alpha", "α"], ["beta", "β"], ["gamma", "γ"]].filter(x => (CELL_FREE[c.system] || []).includes(x[0])).map(x => `<div>${fld("cust." + x[0], x[1], { u: "°" })}</div>`).join("")}</div>
         ${area("cust.atoms", L("Atome (Element x y z [Besetzung], je Zeile; Zentrierung wird ergänzt)", "Atoms (element x y z [occupancy], one per line; centring is added)"))}` : ""}`)}
       <div class="row"><button type="button" data-act="cif">${esc(L("CIF öffnen …", "Open CIF …"))}</button></div>
+      <div id="res"></div>`;
+  },
+  struktur: (i) => {
+    const ms = ((META.struktur || {})[EN() ? "en" : "de"]) || [];
+    const typs = [...new Set(ms.map(m => m.typ))];
+    strEnsurePre(i.material);
+    const opts = typs.map(ty => `<optgroup label="${esc((STR_TYP[ty] || [ty, ty])[EN() ? 1 : 0])}">${ms.filter(m => m.typ === ty).map(m => `<option value="${esc(m.id)}"${m.id === i.material ? " selected" : ""}>${esc(m.name)}</option>`).join("")}</optgroup>`).join("");
+    return `<div id="strMat"><label>${esc(L("Werkstoff", "Material"))}</label><select data-k="material" data-text>${opts}</select>
+      <button type="button" id="strKp" class="kplink" data-kp="material:${esc(i.material)}#bezeichnung" title="${esc(L("Bezeichnung, Kennwerte und Quellen dieses Werkstoffs", "Designation, properties and sources of this material"))}">${BOOK}${esc(L("Bezeichnung im Kompendium", "Designation in the compendium"))}</button></div>
+      <div id="strDyn" data-sig="${esc(strSig(i))}">${strDynHtml(i)}</div>
+      ${fold("sshow", L("Darstellung", "Display"), `${chk("etch", L("Gefüge als Schliffbild (geätzt, grau)", "Microstructure as a micrograph (etched, grey)"), L("Graustufen, Korn und Rauschen wie unter dem Auflichtmikroskop; die Skizze bleibt schematisch.", "Greyscale, grain and noise as under a reflected-light microscope; the drawing stays schematic."))}<div class="row2"><div>${fld("n", L("Zellen je Kante (Gitter)", "Cells per edge (lattice)"), { title: "3–7" })}</div><div>${fld("seed", L("Startwert (Zufall)", "Seed (random)"))}</div></div>`)}
       <div id="res"></div>`;
   },
   gitter: (i) => {
     const G = META.gitter || { hosts: [], solutes: [], examples: [] };
     const hosts = G.hosts.map(h => [h.el, `${h.el} · ${h.forms.map(f => `${f.name} (${f.gitter})`).join(", ")} · Tₘ ${fmt(h.Tm, 0)} °C`]);
-    const ex = (EN() ? G.examples_en : G.examples) || [];
     const r = S.res.gitter;
     const fx = (k, de, en, title) => chk("fx." + k, L(de, en), title);
-    return `<label>${esc(L("Beispiel", "Example"))}</label><select data-gex><option value="">${esc(L("– wählen –", "– choose –"))}</option>${ex.map((x, k) => `<option value="${k}">${esc(x.name)}</option>`).join("")}</select>
-      <div class="row2"><div>${sel("host", L("Grundelement", "Base element"), hosts)}</div><div>${fld("T", L("Temperatur", "Temperature"), { u: "°C" })}</div></div>
+    return `<div class="row2"><div>${sel("host", L("Grundelement", "Base element"), hosts)}</div><div>${fld("T", L("Temperatur", "Temperature"), { u: "°C" })}</div></div>
       <h4 class="sub">${esc(L("Fremdatome", "Solute atoms"))}</h4>
       ${grid("sols", [{ k: "el", label: L("Element", "Element"), text: true, w: 44, ph: "C" }, { k: "c", label: L("Gehalt", "Content"), u: i.unit === "at" ? L("At.-%", "at%") : L("Gew.-%", "wt%") },
         { k: "lim", label: L("eigene Löslichkeit", "own solubility"), u: L("Gew.-%", "wt%") }, { k: "src", label: L("Quelle dazu", "its source"), text: true, w: 100 }], { h: 150 })}
       ${segH("unit", [["wt", L("Gewichtsprozent", "weight per cent")], ["at", L("Atomprozent", "atomic per cent")]])}
-      <div class="small">${esc(L(`H, B, C, N, O sitzen auf Zwischengitterplätzen, alle anderen auf Gitterplätzen. Bekannt: ${G.solutes.join(", ")}. „Eigene Löslichkeit“ nur, wenn weder Zustandsdiagramm noch lückenlose Mischbarkeit hinterlegt sind; der Überschuss erscheint dann als Ausscheidung.`,
-        `H, B, C, N, O sit on interstitial sites, all others on lattice sites. Known: ${G.solutes.join(", ")}. “Own solubility” only when neither a phase diagram nor complete miscibility is available; the excess then shows as a precipitate.`))}</div>
       ${fold("gfx", L("Effekte", "Effects"), `${fx("vac", "Leerstellen (Gleichgewicht)", "Vacancies (equilibrium)")}
         ${fx("vib", "Gitterschwingung (Debye)", "Thermal vibration (Debye)")}
         ${fx("distort", "Verzerrung um Fremdatome", "Distortion around solutes")}
@@ -1108,8 +1592,7 @@ const PANE = {
         ${fx("gb", "Korngrenze (schematisch)", "Grain boundary (schematic)")}
         <div class="row2"><div>${fld("boost", L("Leerstellen überhöhen ×", "Exaggerate vacancies ×"), { title: L("1 = wahre Anzahl; jede Überhöhung steht im Bild und im Bericht", "1 = true count; any exaggeration is labelled in the view and the report") })}</div>
         <div>${fld("vib_boost", L("Schwingung überhöhen ×", "Exaggerate vibration ×"), { title: L("1 bis 10", "1 to 10") })}</div></div>
-        ${i.fx.gb ? fld("gb_angle", L("Kippwinkel der Korngrenze", "Tilt angle of the grain boundary"), { u: "°" }) : ""}
-        <div class="small">${esc(L("Ohne Überhöhung zeigt der Ausschnitt die wahre erwartete Zahl (bei Raumtemperatur meist keine Leerstelle).", "Without exaggeration the cell shows the true expected number (usually no vacancy at room temperature)."))}</div>`, Object.values(i.fx).filter(Boolean).length + "/7")}
+        ${i.fx.gb ? fld("gb_angle", L("Kippwinkel der Korngrenze", "Tilt angle of the grain boundary"), { u: "°" }) : ""}`, Object.values(i.fx).filter(Boolean).length + "/7")}
       ${fold("gshow", L("Darstellung", "Display"), `<div class="row2"><div>${fld("n", L("Zellen je Kante", "Cells per edge"), { title: "2–14" })}</div><div>${fld("seed", L("Startwert (Zufall)", "Seed (random)"))}</div></div>
         <div class="row2"><div>${sel("scale", L("Atomgrösse", "Atom size"), [[0.3, L("klein (×0,3)", "small (×0.3)")], [0.45, L("mittel (×0,45)", "medium (×0.45)")], [0.7, "×0,7"], [1, L("wahr (Metallradius)", "true (metallic radius)")]], { num: true })}</div>
         <div>${sel("slice", L("Schnitt (Ansicht „Schnitt“)", "Slice (view “Slice”)"), SLICE_OPTS(r ? r.phase.gitter_id : (i.host === "Mg" || i.host === "Zn" || i.host === "Co" || i.host === "Ti" ? "hdp" : "")))}</div></div>
@@ -1133,24 +1616,25 @@ const PANE = {
         ${fld("opt.index_min", L("Indizierung ab", "Index from"), { u: "% I" })}
         ${chk("opt.bg", L("Untergrund abziehen", "Subtract background"))}${chk("opt.strip_ka2", L("Kα2 abziehen (Rachinger)", "Strip Kα2 (Rachinger)"))}`)}
       ${fold("xov", L("Strichmuster einblenden", "Overlay stick patterns"), multi("overlay"), o.overlay.length ? `(${o.overlay.length})` : "")}
-      ${fold("xq", L("Mengenanteile (berechnete RIR)", "Phase fractions (computed RIR)"), multi("quant_ids") + `<div class="small">${esc(L("Halbquantitativ: Referenz-Intensitätsverhältnisse aus den Strukturen berechnet, nicht gemessen.", "Semi-quantitative: reference intensity ratios computed from the structures, not measured."))}</div>`, o.quant_ids.length ? `(${o.quant_ids.length})` : "")}
+      ${fold("xq", L("Mengenanteile (berechnete RIR)", "Phase fractions (computed RIR)"), multi("quant_ids"), o.quant_ids.length ? `(${o.quant_ids.length})` : "")}
       <div id="res"></div>`;
   },
   phasen: (i) => {
-    const sy = (EN() ? META.systems_en : META.systems).map(s => [s.id, s.name]);
+    const syl = EN() ? META.systems_en : META.systems;
     const comp = (META.systems || []).find(s => s.id === i.system);
     const isC = comp && comp.kind === "computed";
-    return `${sel("system", L("System", "System"), sy)}
+    // nach Gruppen (Lehrsysteme, Aluminium, …, Keramik, Modell), innerhalb alphabetisch
+    const grs = [...new Set(syl.map(s => s.group || ""))];
+    const sysSel = `<label>${esc(L("System", "System"))} <span class="small">(${syl.length})</span></label><select data-k="system" data-text>${grs.map(g => `<optgroup label="${esc(g || L("Weitere", "Other"))}">${syl.filter(s => (s.group || "") === g).sort((a, b) => a.name.localeCompare(b.name)).map(s => `<option value="${esc(s.id)}"${s.id === i.system ? " selected" : ""}>${esc(s.name)}</option>`).join("")}</optgroup>`).join("")}</select>`;
+    return `${sysSel}
       ${isC ? `<div class="row2"><div>${fld("mx", L("Zusammensetzung", "Composition"), { u: i.unit === "at" ? "At.-% B" : L("Gew.-% B", "wt% B") })}</div><div>${fld("mT", L("Temperatur", "Temperature"), { u: "°C" })}</div></div>
         ${sel("unit", L("Einheit", "Unit"), [["wt", L("Gewichtsprozent", "weight per cent")], ["at", L("Atomprozent", "atomic per cent")]])}
         ${fold("model", L("Modell (Lösungsmodell)", "Model (solution model)"), `<div class="row2"><div>${fld("model.A", "A", { text: true })}</div><div>${fld("model.B", "B", { text: true })}</div></div>
           <div class="row2"><div>${fld("model.TmA", "T_m,A", { u: "°C" })}</div><div>${fld("model.TmB", "T_m,B", { u: "°C" })}</div></div>
           <div class="row2"><div>${fld("model.HA", "ΔH_m,A", { u: "kJ/mol" })}</div><div>${fld("model.HB", "ΔH_m,B", { u: "kJ/mol" })}</div></div>
           <div class="row2"><div>${fld("model.MA", "M_A", { u: "g/mol" })}</div><div>${fld("model.MB", "M_B", { u: "g/mol" })}</div></div>
-          <div class="row2"><div>${fld("model.omega_L", "Ω_L", { u: "kJ/mol" })}</div><div>${fld("model.omega_S", "Ω_S", { u: "kJ/mol" })}</div></div>
-          <div class="small">${esc(L("Ω = 0: ideale Lösung; Ω ≠ 0: reguläre Lösung. Vorgabe Cu–Ni nach CRC; das berechnete Diagramm weicht vom gemessenen um bis zu etwa 25 K ab.", "Ω = 0: ideal solution; Ω ≠ 0: regular solution. Cu–Ni default after CRC; the computed diagram deviates from the measured one by up to about 25 K."))}</div>`)}`
+          <div class="row2"><div>${fld("model.omega_L", "Ω_L", { u: "kJ/mol" })}</div><div>${fld("model.omega_S", "Ω_S", { u: "kJ/mol" })}</div></div>`)}`
       : `<div class="row2"><div>${fld("x", L("Zusammensetzung", "Composition"), { u: L("Gew.-%", "wt%") })}</div><div>${fld("T", L("Temperatur", "Temperature"), { u: "°C" })}</div></div>`}
-      <div class="small">${esc(L("Klick ins Diagramm setzt Zusammensetzung und Temperatur.", "Click in the diagram to set composition and temperature."))}</div>
       <div id="res"></div>`;
   },
   stahl: (i) => {
@@ -1165,6 +1649,7 @@ const PANE = {
       ${fold("carb", L("Aufkohlen (Fick, erf-Lösung)", "Carburising (Fick, erf solution)"), `${chk("carb.on", L("berechnen", "calculate"))}
         <div class="row2"><div>${fld("carb.T", "T", { u: "°C" })}</div><div>${fld("carb.t", "t", { u: "h" })}</div></div>
         <div class="row3"><div>${fld("carb.c0", "c₀", { u: "%" })}</div><div>${fld("carb.cs", "c_s", { u: "%" })}</div><div>${fld("carb.limit", L("Grenze", "Limit"), { u: "%" })}</div></div>`)}
+      ${uncFold("stahl", i)}
       <div id="res"></div>`;
   },
   laminat: (i) => {
@@ -1174,8 +1659,7 @@ const PANE = {
       ${chk("own", L("Eigene Lagenwerte", "Own ply values"))}
       ${fold("ply", L("Lagenkennwerte", "Ply properties"), `<div class="row3">${p("E1", "E₁", "GPa")}${p("E2", "E₂", "GPa")}${p("G12", "G₁₂", "GPa")}</div>
         <div class="row3">${p("nu12", "ν₁₂", "")}${p("Xt", "X_t", "MPa")}${p("Xc", "X_c", "MPa")}</div>
-        <div class="row3">${p("Yt", "Y_t", "MPa")}${p("Yc", "Y_c", "MPa")}${p("S12", "S₁₂", "MPa")}</div>
-        <div class="small">${esc(L("Leere Felder: Werte des gewählten Werkstoffs.", "Empty fields: values of the chosen material."))}</div>`)}
+        <div class="row3">${p("Yt", "Y_t", "MPa")}${p("Yc", "Y_c", "MPa")}${p("S12", "S₁₂", "MPa")}</div>`)}
       <div class="row2"><div>${fld("layup", L("Lagenaufbau", "Layup"), { text: true, ph: "[0/±45/90]s" })}</div><div>${fld("t", L("Lagendicke", "Ply thickness"), { u: "mm" })}</div></div>
       <h4 class="sub">${esc(L("Belastung", "Loading"))}</h4>
       <div class="row3"><div>${fld("Nx", "N_x", { u: "N/mm" })}</div><div>${fld("Ny", "N_y", { u: "N/mm" })}</div><div>${fld("Nxy", "N_xy", { u: "N/mm" })}</div></div>
@@ -1183,7 +1667,7 @@ const PANE = {
       ${fold("lcrit", L("Kriterien", "Criteria"), `<div class="row2"><div>${fld("F12", "F₁₂* (Tsai–Wu)")}</div><div>${fld("ST", L("S_T (Hashin)", "S_T (Hashin)"), { u: "MPa", ph: "Y_c/2" })}</div></div>`)}
       <div id="res"></div>`;
   },
-  ermuedung: (i) => `${grid("rows", [{ k: "sa", label: "σa", u: "MPa" }, { k: "sm", label: "σm", u: "MPa" }, { k: "N", label: "N" }, { k: "runout", label: L("Durchl.", "Run-out"), chk: true }], { file: true, extra: `<button type="button" class="link" data-ex="ermuedung">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button>` })}
+  ermuedung: (i) => `${grid("rows", [{ k: "sa", label: "σa", u: "MPa" }, { k: "sm", label: "σm", u: "MPa" }, { k: "N", label: "N" }, { k: "runout", label: L("Durchl.", "Run-out"), chk: true }], { file: true })}
       <div class="row3"><div>${fld("mat.Rm", "R_m", { u: "MPa" })}</div><div>${fld("mat.Re", "R_e", { u: "MPa" })}</div><div>${fld("mat.sigma_f", "σ′_f", { u: "MPa", title: L("nur für Morrow", "only for Morrow") })}</div></div>
       <div class="row2"><div>${sel("model", L("Mittelspannung", "Mean stress"), [["none", L("keine", "none")], ["goodman", "Goodman"], ["gerber", "Gerber"], ["soderberg", "Soderberg"], ["morrow", "Morrow"], ["swt", "Smith–Watson–Topper"]])}</div><div>${fld("N_target", L("σ bei N", "σ at N"), { ph: "1e6" })}</div></div>
       ${fold("marin", L("Dauerfestigkeit (Marin)", "Endurance limit (Marin)"), `${chk("marin.on", L("aus R_m schätzen", "estimate from R_m"))}
@@ -1196,7 +1680,7 @@ const PANE = {
         ${chk("miner_cutoff", L("Zyklen unter S_e nicht zählen", "Do not count cycles below S_e"))}`)}
       <div id="res"></div>`,
   weibull: (i) => `${area("values", L("Festigkeiten", "Strengths") + " [MPa]", "312 341 355 …")}
-      <div class="row"><button type="button" class="link" data-ex="weibull">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button><button type="button" data-act="wbfile">${esc(L("Aus Datei …", "From file …"))}</button></div>
+      <div class="row"><button type="button" data-act="wbfile">${esc(L("Aus Datei …", "From file …"))}</button></div>
       <label>${esc(L("Schätzung", "Estimate"))}</label>${segH("method", [["mle", "Maximum-Likelihood"], ["lsq", L("Regression (Median-Ränge)", "Regression (median ranks)")]])}
       ${fold("boot", L("Vertrauensbereich (Bootstrap)", "Confidence (bootstrap)"), `${chk("boot", L("berechnen", "calculate"))}<div class="row3"><div>${fld("B", L("Stichproben", "Resamples"))}</div><div>${fld("level", L("Niveau", "Level"))}</div><div>${fld("seed", "Seed")}</div></div>`)}
       ${fold("size", L("Grösseneffekt", "Size effect"), `${chk("size.on", L("berechnen", "calculate"))}
@@ -1212,21 +1696,22 @@ const PANE = {
       ${fld("kq.Rp", "R_p0,2", { u: "MPa" })}
       <h4 class="sub">${esc(L("Kritische Risslänge", "Critical crack length"))}</h4>
       <div class="row3"><div>${fld("crack.KIc", "K_Ic", { u: "MPa√m" })}</div><div>${fld("crack.sigma", "σ", { u: "MPa" })}</div><div>${fld("crack.Y", L("Geometriefaktor Y", "Geometry factor Y"))}</div></div>
+      ${uncFold("bruch", i)}
       <div id="res"></div>`,
   haerte: (i) => {
     const tabs = [["", L("keine (nur Faustregel)", "none (rule of thumb only)")], ...S.items.filter(x => x.kind === "hardtable").map(x => [x.id, x.name])];
     const hs = i.method === "HBW";
     const sc = (S.res.haerte && S.res.haerte.table && S.res.haerte.table.scales) || [];
     return `${segH("method", [["HV", "Vickers HV"], ["HBW", "Brinell HBW"], ["HK", "Knoop HK"]])}
-      ${grid("rows", [{ k: "F", label: "F", u: "N" }, { k: "d1", label: hs ? "d₁" : (i.method === "HK" ? L("Diagonale", "Diagonal") : "d₁"), u: "mm" }, ...(i.method === "HK" ? [] : [{ k: "d2", label: "d₂", u: "mm" }]), ...(hs ? [{ k: "D", label: "D", u: "mm" }] : [])], { file: true, extra: `<button type="button" class="link" data-ex="haerte">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button>` })}
+      ${grid("rows", [{ k: "F", label: "F", u: "N" }, { k: "d1", label: hs ? "d₁" : (i.method === "HK" ? L("Diagonale", "Diagonal") : "d₁"), u: "mm" }, ...(i.method === "HK" ? [] : [{ k: "d2", label: "d₂", u: "mm" }]), ...(hs ? [{ k: "D", label: "D", u: "mm" }] : [])], { file: true })}
       ${hs ? fld("D", L("Kugeldurchmesser (Vorgabe)", "Ball diameter (default)"), { u: "mm" }) : ""}
       ${fold("conv", L("Umwertung", "Conversion"), `${sel("table", L("Umwertungstabelle (eigene Kopie der Norm)", "Conversion table (own copy of the standard)"), tabs)}
         <div class="row"><button type="button" data-act="hardtable">${esc(L("Tabelle laden …", "Load table …"))}</button></div>
-        ${i.table && sc.length ? `<div class="row2"><div>${sel("from", L("von", "from"), sc.map(s => [s, s]))}</div><div>${sel("to", L("nach", "to"), [["", "–"], ...sc.map(s => [s, s])])}</div></div>` : ""}
-        <div class="small">${esc(L("Normtabellen (ISO 18265, ASTM E140) werden nicht mitgeliefert. Eine CSV mit Kopfzeile der Skalen (z. B. HV;HRC;Rm) und optional „# Quelle: …“ laden; ohne Tabelle nur die gekennzeichnete Faustregel Rm ≈ 3,3·HV.", "Standard tables (ISO 18265, ASTM E140) are not included. Load a CSV with a header of scales (e.g. HV;HRC;Rm) and optionally “# Source: …”; without a table only the labelled rule of thumb Rm ≈ 3.3·HV."))}</div>`)}
+        ${i.table && sc.length ? `<div class="row2"><div>${sel("from", L("von", "from"), sc.map(s => [s, s]))}</div><div>${sel("to", L("nach", "to"), [["", "–"], ...sc.map(s => [s, s])])}</div></div>` : ""}`)}
       ${fold("grain", L("Korngrösse (ASTM E112)", "Grain size (ASTM E112)"), `${segH("grain.mode", [["L", L("Linienschnitt", "Intercept")], ["NA", L("Planimetrisch", "Planimetric")]])}
         ${i.grain.mode === "NA" ? fld("grain.NA", "N_A", { u: L("Körner/mm²", "grains/mm²") }) : `<div class="row3"><div>${fld("grain.L", L("Linienlänge", "Line length"), { u: "mm" })}</div><div>${fld("grain.N", L("Schnittpunkte", "Intercepts"))}</div><div>${fld("grain.M", L("Vergrösserung", "Magnification"))}</div></div>`}`)}
-      ${fold("hp", "Hall–Petch", grid("hp", [{ k: "d", label: L("Korngrösse d", "Grain size d"), u: "µm" }, { k: "s", label: "σ_y", u: "MPa" }], { h: 160, extra: `<button type="button" class="link" data-ex="hp">${esc(L("Beispiel", "Example"))}</button>` }), (i.hp || []).length ? `(${i.hp.length})` : "")}
+      ${fold("hp", "Hall–Petch", grid("hp", [{ k: "d", label: L("Korngrösse d", "Grain size d"), u: "µm" }, { k: "s", label: "σ_y", u: "MPa" }], { h: 160 }), (i.hp || []).length ? `(${i.hp.length})` : "")}
+      ${uncFold("haerte", i)}
       <div id="res"></div>`;
   },
   korrosion: (i) => {
@@ -1242,7 +1727,7 @@ const PANE = {
         ${chk("bv", L("Butler–Volmer-Anpassung zusätzlich", "Also fit Butler–Volmer"))}${fld("eta_fit", L("Bereich Butler–Volmer ±", "Butler–Volmer range ±"), { u: "V" })}`)}
       <div id="res"></div>`;
   },
-  kriechen: (i) => `${grid("rows", [{ k: "s", label: "σ", u: "MPa" }, { k: "T", label: "T", u: "°C" }, { k: "t", label: "t_r", u: "h" }, { k: "rate", label: "ε̇", u: "1/h" }], { file: true, extra: `<button type="button" class="link" data-ex="kriechen">${esc(L("Beispiel (synthetisch)", "Example (synthetic)"))}</button>` })}
+  kriechen: (i) => `${grid("rows", [{ k: "s", label: "σ", u: "MPa" }, { k: "T", label: "T", u: "°C" }, { k: "t", label: "t_r", u: "h" }, { k: "rate", label: "ε̇", u: "1/h" }], { file: true })}
       <div class="row3"><div>${fld("C", L("Konstante C", "Constant C"))}</div><div>${sel("deg", L("Polynomgrad", "Polynomial degree"), [[1, "1"], [2, "2"], [3, "3"]], { num: true })}</div><div style="align-self:end">${chk("fitC", L("C anpassen", "fit C"))}</div></div>
       <h4 class="sub">${esc(L("Vorhersage", "Prediction"))}</h4>
       <div class="row2"><div>${fld("ps", "σ", { u: "MPa" })}</div><div>${fld("pT", "T", { u: "°C" })}</div></div>
@@ -1253,7 +1738,7 @@ const PANE = {
 const dag = (u) => u ? " †" : "";
 const RES = {
   auswahl: (r, i) => {
-    let h = `<div class="small" style="margin-top:8px">${esc(L(`${r.points.length} Werkstoffe im Diagramm.`, `${r.points.length} materials in the chart.`))} ${esc(L("Klick auf einen Punkt: zum Vergleich.", "Click a point: add to the comparison."))}</div>`;
+    let h = `<div class="small" style="margin-top:8px">${esc(L(`${r.points.length} Werkstoffe im Diagramm.`, `${r.points.length} materials in the chart.`))}</div>`;
     if (r.rank) {
       h += `<h4 class="sub">${esc(L("Rangliste", "Ranking"))} · ${r.rank.n_ok}</h4>` +
         tbl(["#", L("Werkstoff", "Material"), "M"], r.rank.ranked.slice(0, 40).map(x => [x.rank, esc(x.name) + dag(x.unchecked) + (x.mp ? ` <span class="badge model">DFT</span>` : "") + (x.own ? ` <span class="badge">${esc(L("eigen", "own"))}</span>` : ""), sig(x.M, 4)]), { click: true, left: [1], h: 280 });
@@ -1279,6 +1764,26 @@ const RES = {
       tbl(["hkl", "2θ [°]", "d [Å]", "m", "I_rel"], r.lines.map(x => [x.hkl, fmt(x.tth, 3), fmt(x.d, 4), x.m, fmt(x.Irel, 1)]), { h: 260 });
     return h + refsHtml(r.refs);
   },
+  struktur: (r, i) => {
+    const f = strFrame(r), st = f ? f.statements : r.statements;
+    let h = f ? kv([[L("Bild", "Frame"), `${(i.frame || 0) + 1} / ${r.frames.length} · ${esc(f.label)}`], ["t", `${fmt(f.t, 2)} h`], ["T", `${fmt(f.T, 0)} °C`]])
+      : kv([[L("Temperatur", "Temperature"), `${fmt(r.T, 0)} °C`], [L("Bereich", "Range"), `${fmt(r.range[0], 0)} … ${fmt(r.range[1], 0)} °C`]]);
+    if ((st || []).length) h += `<ul class="stm">${st.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    const p = strPanel(r, view());
+    if (p) {
+      h += `<h4 class="sub">${esc(p.title)}</h4>`;
+      if (p.caption) h += `<div class="small">${esc(p.caption)}</div>`;
+      const ph = p.phase;
+      if (ph) { const c = ph.cell || {};
+        h += kv([[L("Phase", "Phase"), esc(ph.name || "") + (ph.formula ? ` · ${esc(ph.formula)}` : "")], ph.spacegroup && [L("Raumgruppe", "Space group"), esc(ph.spacegroup) + (ph.system ? " · " + esc(sysName(ph.system)) : "")],
+          c.a && ["a, b, c", [c.a, c.b ?? c.a, c.c ?? c.a].map(x => fmt(x, 3)).join(", ") + " Å" + (c.beta && c.beta !== 90 ? ` · β = ${fmt(c.beta, 1)}°` : "") + (c.gamma && c.gamma !== 90 ? ` · γ = ${fmt(c.gamma, 0)}°` : "")],
+          [L("Daten", "Data"), ph.cod ? `COD ${esc(String(ph.cod))}` : ph.art === "lit" ? L("Literatur", "literature") + (ph.unchecked ? " †" : "") : L("eingebaut", "built-in")],
+          ph.T_messung != null && [L("gemessen bei", "measured at"), `${fmt(ph.T_messung, 0)} °C`]]);
+      }
+    }
+    for (const n of r.notes || []) h += note(esc(typeof n === "string" ? n : n.text || ""), "warn");
+    return h + refsHtml(r.refs);
+  },
   gitter: (r, i) => {
     const sup = (x) => { if (!x) return "0"; const e = Math.floor(Math.log10(Math.abs(x))); return Math.abs(e) < 3 ? sig(x, 3) : `${fmt(x / 10 ** e, 2)}·10${supNum(e)}`; };
     const Tm = r.Tm, TK = r.T + 273.15;
@@ -1298,7 +1803,7 @@ const RES = {
     if ((r.second || []).length) h += `<h4 class="sub">${esc(L("Zweite Phase (Hebelgesetz)", "Second phase (lever rule)"))}</h4>` + tbl([L("Phase", "Phase"), L("Massenanteil", "Mass fraction"), L("Atome", "Atoms"), L("Form", "Shape")],
       r.second.map(s => [esc(s.name), fmt(100 * s.frac, 1) + " %", s.atoms ?? 0, esc(s.geom ? (s.geom === "kugel" ? L("Kugel", "sphere") : L("Lamelle", "lamella")) : "–")]));
     for (const n of r.notes || []) h += note(esc(n), "warn");
-    h += `<div class="small" style="margin-top:6px">${esc(L("Modell, kein Messbild: Lage und Form von Ausscheidungen, Versetzung, Stapelfehler und Korngrenze sind schematisch; Zahl der Fremdatome und Leerstellen, Gitterparameter und Schwingungsamplitude sind berechnet.", "Model, not a micrograph: position and shape of precipitates, dislocation, stacking fault and grain boundary are schematic; the number of solutes and vacancies, the lattice parameter and the vibration amplitude are computed."))}</div>`;
+    h += `<div class="small" style="margin-top:6px">${esc(L("Modell, kein Messbild.", "Model, not a micrograph."))}</div>`;
     return h + refsHtml(r.refs);
   },
   xrd: (r, i) => {
@@ -1321,8 +1826,7 @@ const RES = {
     if (r.wh) h += `<h4 class="sub">Williamson–Hall</h4>` + kv([[L("Kristallitgrösse", "Crystallite size"), `${fmt(r.wh.D_nm, 1)} ± ${fmt(r.wh.s_D, 1)} nm`], [L("Mikrodehnung", "Microstrain"), `${sig(r.wh.strain, 3)} ± ${sig(r.wh.s_strain, 2)}`], ["R²", fmt(r.wh.r2, 4)]]);
     if (r.search && r.search.length) {
       h += `<h4 class="sub">${esc(L("Phasensuche", "Phase search"))}</h4>` + tbl([L("Phase", "Phase"), L("Wert", "Score"), L("Linien", "Lines"), L("erklärt", "explained")],
-        r.search.slice(0, 12).map(s => [esc(s.name), fmt(s.score, 1), fmt(s.coverage * 100, 0) + " %", fmt(s.explained * 100, 0) + " %"]), { click: true, h: 200, hl: (k) => i.opt.overlay.includes(r.search[k].id) }) +
-        `<div class="small">${esc(L("Klick blendet das Strichmuster ein. Vergleich mit berechneten Mustern aus Strukturen, keine ICDD-Daten.", "Click to overlay the stick pattern. Compared with patterns computed from structures, no ICDD data."))}</div>`;
+        r.search.slice(0, 12).map(s => [esc(s.name), fmt(s.score, 1), fmt(s.coverage * 100, 0) + " %", fmt(s.explained * 100, 0) + " %"]), { click: true, h: 200, hl: (k) => i.opt.overlay.includes(r.search[k].id) });
     }
     if (r.quant && r.quant.rows && r.quant.rows.length) h += `<h4 class="sub">${esc(L("Mengenanteile (berechnete RIR)", "Phase fractions (computed RIR)"))}</h4>` +
       tbl([L("Phase", "Phase"), L("Masse", "Mass"), L("Volumen", "Volume")], r.quant.rows.map(q => [esc(q.name), fmt(q.mass * 100, 1) + " %", fmt(q.vol * 100, 1) + " %"]));
@@ -1332,10 +1836,19 @@ const RES = {
     let h = "";
     if (r.computed) h += note(esc(L("Berechnet: Lösungsmodell (ideal oder regulär) mit den Werten links; kein gemessenes Diagramm.", "Computed: solution model (ideal or regular) with the values on the left; not a measured diagram.")), "warn");
     else h += note(esc(L("Schematisch: aus den zitierten Eckpunkten gezeichnet; Linien zwischen den Punkten sind gerade bzw. geglättet.", "Schematic: drawn from the cited key points; lines between the points are straight or smoothed.")), "warn");
+    if (r.diagram && r.diagram.hinweis) h += fold("pdhw", L("Datengrundlage dieses Diagramms", "Data behind this diagram"), `<div class="small">${esc(r.diagram.hinweis)}</div>`);
     const lv = r.lever;
     if (lv) {
       h += `<h4 class="sub">${esc(L("Hebelgesetz", "Lever rule"))}</h4>` + kv([[L("Gebiet", "Region"), esc(lv.region || "–")], ["x, T", `${fmt(lv.x, 3)} · ${fmt(lv.T, 1)} °C`]]);
       if (lv.phases && lv.phases.length) h += tbl([L("Phase", "Phase"), L("Zusammensetzung", "Composition"), L("Anteil", "Fraction")], lv.phases.map(p => [esc(p.name), fmt(p.x, 3), fmt(p.frac * 100, 1) + " %"]));
+    }
+    if (r.micro) {                                     // Gefüge am gewählten Punkt (Skizze aus dem Gefügeatlas)
+      const m = r.micro, nl = (m.sketch.legend || []).filter(e => e.label).length;
+      h += `<h4 class="sub">${esc(L("Gefüge an diesem Punkt", "Microstructure at this point"))}${m.name ? " · " + esc(m.name) : ""}</h4>
+        <svg id="phMicro" width="100%" height="${250 + 19 * nl}" role="img" aria-label="${esc(L("Gefügeskizze", "Microstructure sketch"))}"></svg>
+        <div class="small">${esc(m.caption)}</div><div class="small" style="color:var(--muted)">${esc(m.note)}</div>` +
+        (m.cid ? `<div class="row" style="margin-top:4px"><button type="button" data-atlas="${esc(m.cid)}">${esc(L("Im Kompendium (Gefügeatlas)", "In the compendium (atlas)"))}</button></div>` : "");
+      setTimeout(() => { const sv = $("#phMicro"); if (!sv) return; sv.innerHTML = ""; drawSketch(sv, sv.clientWidth || 280, 250 + 19 * nl, m.sketch, { etch: S.inp.struktur.etch }); }, 0);
     }
     for (const c of r.constituents || []) h += `<h4 class="sub">${esc(L("Gefüge unter", "Microstructure below"))} ${fmt(c.T, 0)} °C</h4><div class="small">${esc(c.reaction)}</div>` +
       tbl([L("Bestandteil", "Constituent"), L("Anteil", "Fraction")], c.parts.map(p => [esc(p.name), fmt(p.frac * 100, 1) + " %"]));
@@ -1426,18 +1939,58 @@ const RES = {
 };
 const lamSrc = (s) => EN() ? ({ "Datei": "file", "Einstellung": "setting" }[s] || String(s).replace("angenommen", "assumed")) : s;
 
+// Ashby: Familienumrisse (Ecken der Spannen aller Mitglieder) und Treffer einer Familie per Klick
+const famCorners = (list) => { const fp = []; for (const p of list) { fp.push([p.x, p.y]); const xs = p.xmin != null && p.xmax != null ? [p.xmin, p.xmax] : [p.x], ys = p.ymin != null && p.ymax != null ? [p.ymin, p.ymax] : [p.y]; for (const x of xs) for (const y of ys) fp.push([x, y]); } return fp.filter(q => q[0] > 0 && q[1] > 0); };
+const famName = (f) => ((META.families || {})[f] || {})[EN() ? "en" : "de"] || f || "";
+const famGroups = (r) => { const g = {}; r.points.filter(p => !p.mp && p.familie).forEach(p => { (g[p.familie] = g[p.familie] || []).push(p); }); return g; };
+function famAt(r, x, y) {
+  // Familie unter dem Klick, in Bildpunkten wie der gezeichnete Umriss: Hülle plus Polster (11 px) und 3 px Toleranz
+  const T = PL.tx, C = [T.tx(x), T.ty(y)], G = famGroups(r), REACH = 14;
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const segD = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((C[0] - a[0]) * dx + (C[1] - a[1]) * dy) / l)) : 0; return Math.hypot(C[0] - a[0] - t * dx, C[1] - a[1] - t * dy); };
+  let hit = null, ia = Infinity;
+  for (const [f, list] of Object.entries(G)) {
+    const P = famCorners(list).map(q => [T.tx(q[0]), T.ty(q[1])]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    if (!P.length) continue;
+    const lo = [], hi = [];
+    for (const q of P) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+    for (let k = P.length - 1; k >= 0; k--) { const q = P[k]; while (hi.length >= 2 && cr(hi[hi.length - 2], hi[hi.length - 1], q) <= 0) hi.pop(); hi.push(q); }
+    const H = lo.slice(0, -1).concat(hi.slice(0, -1)), n = H.length || 1;
+    if (!H.length) H.push(P[0]);
+    const inHull = n >= 3 && H.every((q, k) => cr(q, H[(k + 1) % n], C) >= 0);
+    if (!inHull && Math.min(...H.map((q, k) => segD(q, H[(k + 1) % n]))) > REACH) continue;
+    let a = 0; for (let k = 0; k < n; k++) { const p1 = H[k], p2 = H[(k + 1) % n]; a += p1[0] * p2[1] - p2[0] * p1[1]; }
+    if (Math.abs(a) < ia) { ia = Math.abs(a); hit = f; }                 // verschachtelt: die kleinste Familie gewinnt
+  }
+  return hit;
+}
 const PLOT = {
   auswahl: (r, i) => {
     const px = (EN() ? META.props_en : META.props).find(p => p.key === r.x.key) || r.x, py = (EN() ? META.props_en : META.props).find(p => p.key === r.y.key) || r.y;
     const rk = {}; if (r.rank) r.rank.ranked.forEach(x => { rk[x.id] = x.rank; });
-    const pts = r.points.filter(p => !p.mp), mp = r.points.filter(p => p.mp);
-    const layers = [{ t: "err", x: pts.map(p => p.x), y: pts.map(p => p.y), xlo: pts.map(p => p.xmin), xhi: pts.map(p => p.xmax), lo: pts.map(p => p.ymin), hi: pts.map(p => p.ymax), c: css("--muted"), nofit: true }];
+    const sel = i.sel ? r.points.find(p => p.id === i.sel.id) : null;
+    const G = famGroups(r), famN = (f) => (r.families || {})[f] || f;
+    const fam = i.groups ? (sel ? sel.familie : (i.fam && G[i.fam] ? i.fam : null)) : null;
+    // Übersicht: nur Punkte. Familien an: Umrisse, Punkte erst nach Wahl einer Familie (nur deren Mitglieder)
+    const vis = (p) => !i.groups || (fam && p.familie === fam) || (sel && p.id === sel.id);
+    const pts = r.points.filter(p => !p.mp && vis(p)), mp = i.groups ? [] : r.points.filter(p => p.mp);
+    // Achsen immer über alle Werkstoffe (unsichtbar), damit das Umschalten das Diagramm nicht verschiebt
+    const all = r.points.filter(p => !p.mp || !i.groups);
+    const layers = [{ t: "fit", x: all.map(p => p.x), y: all.map(p => p.y), nolegend: true }];
+    // grosse Familien zuerst (ihre Namen haben Vorrang), die gewählte immer beschriftet
+    if (i.groups) for (const [f, list] of Object.entries(G).sort((a, b) => (b[0] === fam) - (a[0] === fam) || b[1].length - a[1].length)) {
+      const k = list[0].klasse, on = f === fam;
+      layers.push({ t: "blob", pts: famCorners(list), c: CLS_COL[k] || "#888", nofit: true, noclash: true, fop: on ? 0.16 : (fam ? 0.04 : 0.1), w: on ? 2 : 1.1, dash: on ? "" : "5 4",
+        label: `${famN(f)}${list.length > 1 ? ` (${list.length})` : ""}`, tip: `${famN(f)} · ${list.length} ${L(list.length === 1 ? "Werkstoff" : "Werkstoffe", list.length === 1 ? "material" : "materials")}\n${L("Klick: Werkstoffe der Familie zeigen", "Click: show the family's materials")}`, pick: () => selectFam(f) });
+    }
+    if (sel) layers.push({ t: "rect", x0: sel.xmin ?? sel.x, x1: sel.xmax ?? sel.x, y0: sel.ymin ?? sel.y, y1: sel.ymax ?? sel.y, c: SEL_C, nofit: true });
     const byC = {}; pts.forEach(p => { (byC[p.klasse] = byC[p.klasse] || []).push(p); });
-    for (const [k, list] of Object.entries(byC)) layers.push({ t: "pts", name: (META.classes[k] || {})[EN() ? "en" : "de"] || k, c: CLS_COL[k] || "#888", x: list.map(p => p.x), y: list.map(p => p.y),
-      tips: list.map(p => `${p.name}${p.unchecked ? " †" : ""}\n${px.label}: ${sig(p.x, 4)} ${supU(px.unit)}\n${py.label}: ${sig(p.y, 4)} ${supU(py.unit)}${rk[p.id] ? `\n${L("Rang", "Rank")} ${rk[p.id]}` : ""}`),
-      labels: list.map(p => (rk[p.id] && rk[p.id] <= 10 ? String(rk[p.id]) : "")), pick: (k2) => addCmp(list[k2].name) });
+    for (const [k, list] of Object.entries(byC)) layers.push({ t: "pts", name: (META.classes[k] || {})[EN() ? "en" : "de"] || k, nolegend: !!i.groups, c: CLS_COL[k] || "#888", x: list.map(p => p.x), y: list.map(p => p.y),
+      tips: list.map(p => `${p.name}${p.unchecked ? " †" : ""}\n${px.label}: ${sig(p.x, 4)} ${supU(px.unit)}${p.xmin != null && p.xmax != null ? ` (${sig(p.xmin, 3)}–${sig(p.xmax, 3)})` : ""}\n${py.label}: ${sig(p.y, 4)} ${supU(py.unit)}${p.ymin != null && p.ymax != null ? ` (${sig(p.ymin, 3)}–${sig(p.ymax, 3)})` : ""}${rk[p.id] ? `\n${L("Rang", "Rank")} ${rk[p.id]}` : ""}${p.range_only ? `\n${L("nur Spanne bekannt: Punkt in der Mitte", "range only: point at its centre")}` : ""}\n${L("Klick: Karte", "Click: card")}`),
+      labels: list.map(p => (rk[p.id] && rk[p.id] <= 10 ? String(rk[p.id]) : "")), pick: (k2) => selectMat(list[k2]) });
     if (mp.length) layers.push({ t: "pts", name: L("berechnet (DFT)", "computed (DFT)"), shape: "tri", hollow: true, c: css("--accent2"), x: mp.map(p => p.x), y: mp.map(p => p.y),
-      tips: mp.map(p => `${p.name}\n${L("berechnet (DFT), Materials Project", "computed (DFT), Materials Project")}\n${px.label}: ${sig(p.x, 4)}\n${py.label}: ${sig(p.y, 4)}`), pick: (k2) => addCmp(mp[k2].name) });
+      tips: mp.map(p => `${p.name}\n${L("berechnet (DFT), Materials Project", "computed (DFT), Materials Project")}\n${px.label}: ${sig(p.x, 4)}\n${py.label}: ${sig(p.y, 4)}`), pick: (k2) => selectMat(mp[k2]) });
+    if (sel) layers.push({ t: "pts", x: [sel.x], y: [sel.y], r: 8.5, hollow: true, sw: 2.6, c: SEL_C, nolegend: true });
     const own = r.own || [];
     if (own.length) layers.push({ t: "pts", name: L("eigene Werte", "own values"), shape: "dia", hollow: true, r: 4.5, c: css("--ink"), x: own.map(p => p.x), y: own.map(p => p.y),
       tips: own.map(p => `${p.name} · ${L("eigener Wert", "own value")}\n${px.label}: ${sig(p.x, 4)} ${supU(px.unit)}\n${py.label}: ${sig(p.y, 4)} ${supU(py.unit)}\n${L("Quelle", "Source")}: ${p.src || L("nicht angegeben", "not given")}${rk[p.id] ? `\n${L("Rang", "Rank")} ${rk[p.id]}` : ""}`),
@@ -1452,6 +2005,7 @@ const PLOT = {
       layers.push({ t: "handle", x: an[0], y: an[1], c: css("--accent2"), title: L("Linie verschieben", "Move the line"), onDrag: (x, y) => { i.anchor = [x, y]; plot(PLOT.auswahl(r, i)); }, onDrop: () => saveSoon() });
     }
     return { key: "ash" + r.x.key + r.y.key + i.mp, xlog: true, ylog: true, xlab: `${px.label} [${supU(px.unit) || "–"}]`, ylab: `${py.label} [${supU(py.unit) || "–"}]`, layers, legendPos: "br",
+      onClick: (x, y) => { if (i.groups) { const f = famAt(r, x, y); if (f && f !== fam) return selectFam(f); if (f && f === fam && !i.sel) return; } if (i.sel || i.fam) clearSel(true); },
       tag: mp.length ? L("Dreiecke: berechnet (DFT), nicht gemessen", "Triangles: computed (DFT), not measured") : "" };
   },
   kristall: (r, i, v) => {
@@ -1463,6 +2017,17 @@ const PLOT = {
     layers.push({ t: "sticks", x: r.lines.map(l => l.tth), h: r.lines.map(l => l.Irel), c: css("--accent2"), name: L("Reflexe", "Reflections"), labels: r.lines.map(l => l.Irel > 8 ? l.hkl : ""), tips: r.lines.map(l => `(${l.hkl})  2θ = ${fmt(l.tth, 3)}°\nd = ${fmt(l.d, 4)} Å · m = ${l.m} · I = ${fmt(l.Irel, 1)}`) });
     if (r.plane) layers.push({ t: "vline", v: r.plane.tth, c: css("--muted"), label: `(${r.plane.hkl.join(" ")})` });
     return { key: "kr" + r.name + i.tube, zoom: "x", xlab: "2θ [°]", ylab: L("Intensität (relativ)", "Intensity (relative)"), layers, yr: [0, 112], tag: L("berechnet aus der Struktur", "computed from the structure") };
+  },
+  struktur: (r, i, v) => {
+    if (r.frames && r.profile && v === "weg") return strPathSpec(r, i);
+    const p = strPanel(r, v); if (!p) return null;
+    const f = strFrame(r);
+    const tag = (p.kind === "sketch" ? L("Skizze, schematisch, nicht massstäblich", "Sketch, schematic, not to scale") : p.phase ? L("Elementarzelle aus Strukturdaten", "Unit cell from structure data") : L("Modell", "Model")) +
+      (r.atlas ? ` · ${L("Bildausschnitt", "field of view")} ${(r.info || {}).scale || ""}` : f ? ` · ${f.label}${f.T != null ? ` · ${fmt(f.T, 0)} °C` : ""}` : ` · ${fmt(r.T, 0)} °C`);
+    const draw = (svg, W, H) => { const at = p.kind === "sketch" ? drawSketch(svg, W, H, p.sketch, { etch: i.etch }) : drawScene(svg, W, H, p.scene); drawMiniPath(svg, W, H, r, at); };
+    if (p.kind === "sketch") return { key: "st" + p.id, custom: draw, tag };
+    return { key: "st" + p.id, custom: draw, tag, down: () => {}, move: (dx, dy) => { STR.ry += dx * 0.01; STR.rx += dy * 0.01; latRedraw(); },
+      wheel: (d) => { STR.zoom *= d < 0 ? 1.1 : 1 / 1.1; latRedraw(); }, reset: () => { STR.rx = -0.3; STR.ry = 0.55; STR.zoom = 1; } };
   },
   gitter: (r, i, v) => {
     const ctl = { down: () => {}, move: (dx, dy) => { LAT.ry += dx * 0.01; LAT.rx += dy * 0.01; latRedraw(); }, wheel: (d) => { LAT.zoom *= d < 0 ? 1.1 : 1 / 1.1; latRedraw(); }, reset: () => { LAT.rx = -0.32; LAT.ry = 0.62; LAT.zoom = 1; } };
@@ -1518,7 +2083,11 @@ const PLOT = {
     }
     const d = r.diagram, layers = [];
     const fills = ["#93c5fd", "#fcd34d", "#86efac", "#f9a8d4", "#c4b5fd", "#fdba74", "#99f6e4", "#d9f99d", "#fca5a5", "#a5b4fc", "#fde68a", "#bbf7d0"];
-    d.regions.forEach((g, k) => layers.push({ t: "poly", pts: g.poly, label: g.label, c: css("--muted"), fill: fills[k % fills.length], fop: 0.28, w: 1 }));
+    const hasL = (d.lines || []).length > 0;          // Format 2: Gebiete blass, die benannten Linien kräftig darüber
+    d.regions.forEach((g, k) => layers.push({ t: "poly", pts: g.poly, label: g.label, c: hasL ? css("--line") : css("--muted"), fill: fills[k % fills.length], fop: 0.28, w: hasL ? 0.5 : 1 }));
+    const LK = { liquidus: L("Liquidus", "Liquidus"), solidus: L("Solidus", "Solidus"), solvus: L("Solvus", "Solvus"), eutektoid: L("Eutektoid", "Eutectoid") };
+    for (const ln of d.lines || []) layers.push({ t: "line", x: ln.pts.map(p => p[0]), y: ln.pts.map(p => p[1]), c: css("--ink"), w: ln.kind === "solvus" || ln.kind === "hilfslinie" ? 1.1 : 1.6,
+      dash: ln.kind === "hilfslinie" || ln.kind === "magnetisch" ? "4 3" : undefined, nolegend: true, nofit: true, name: ln.label || LK[ln.kind] || ln.kind || "" });
     for (const inv of d.invariants || []) layers.push({ t: "hline", v: inv.T, from: inv.x[0], to: inv.x[2], c: css("--ink"), dash: "", w: 1.4 });
     layers.push({ t: "pts", x: (d.points || []).map(p => p.x), y: (d.points || []).map(p => p.T), r: 2.5, c: css("--ink"), nolegend: true,
       tips: (d.points || []).map(p => `${EN() && p.label_en ? p.label_en : p.label}\nx = ${fmt(p.x, 3)} · T = ${fmt(p.T, 0)} °C`) });
@@ -1632,32 +2201,111 @@ async function runTool(t) {
   const i = S.inp[t];
   if (READY[t] && !READY[t](i)) { S.res[t] = null; S.err[t] = null; if (t === S.tool) showTool(); return; }
   const seq = (S.seq[t] = (S.seq[t] || 0) + 1);
-  const j = await withBusy(() => api("api/tool/" + t, { ...REQ[t](i), lang: lang() }));
+  const j = await withBusy(() => api("api/tool/" + t, { ...reqOf(t), lang: lang() }));
   if (seq !== S.seq[t]) return;
   if (j.error) { S.err[t] = j.error; S.res[t] = null; }
   else { S.err[t] = null; delete j._status; S.res[t] = j; }
+  if (t === "struktur") strAfter(j);
   if (t === S.tool && t === "haerte" && j.table && !$('[data-k="to"]', $("#pane"))) renderPane();     // Skalen der Tabelle erst jetzt bekannt
   if (t === S.tool) showTool();
   saveSoon();
 }
+// ---- Messunsicherheit: ±-Knopf neben den Eingaben, Verfahren im Aufklapper, Ergebnis mit Budget unter den Werten
+const UNC_KEYS = {
+  bruch: ["kq.P", "kq.B", "kq.W", "kq.a", "kq.S", "crack.KIc", "crack.sigma", "crack.Y"],
+  stahl: ["comp.C", "comp.Si", "comp.Mn", "comp.Cr", "comp.Mo", "comp.V", "comp.Ni", "comp.Cu", "comp.B", "preheat.d", "preheat.HD", "preheat.Q"],
+  haerte: ["F", "d"],
+};
+function reqOf(t) {
+  const r = REQ[t](S.inp[t]);
+  if (!UNC_KEYS[t] || !window.LabUnc) return r;
+  const all = LabUnc.all(), unc = {};
+  for (const [k, v] of Object.entries(all)) if (k.startsWith(t + ".")) unc[k] = v;
+  return { ...r, unc, unc_method: S.uncM || { method: "gum", p: 0.95, k: null } };
+}
+function uncFold(t, i) {
+  if (!window.LabUnc) return "";
+  let extra = "";
+  if (t === "haerte") {
+    const rows = (i.rows || []).filter(x => x.F !== null && x.F !== "" && x.d1 !== null && x.d1 !== "");
+    const mean = (a) => a.length ? a.reduce((s, x) => s + x, 0) / a.length : "";
+    const F = mean(rows.map(x => +x.F)), d = mean(rows.map(x => (x.d2 !== null && x.d2 !== "" && x.d2 !== undefined) ? (+x.d1 + +x.d2) / 2 : +x.d1));
+    const ro = (k, lab, u, v) => `<label>${esc(lab)} <span class="u">[${u}]</span></label><input type="text" readonly data-unck="${k}" value="${v === "" ? "" : esc(fmt(v, 4))}" title="${esc(L("Mittelwert der Eindrücke", "mean of the indents"))}">`;
+    extra = `<div class="row2"><div>${ro("F", L("Prüfkraft", "Test force"), "N", F)}</div><div>${ro("d", L("Diagonale bzw. Durchmesser", "Diagonal or diameter"), "mm", d)}</div></div>`;
+  }
+  return fold("unc", L("Messunsicherheit", "Measurement uncertainty"), `${extra}<div data-uncm style="margin-top:6px"></div>
+    <div class="row"><button type="button" class="link" data-uncinst>${esc(L("Eigene Messmittel …", "Own instruments …"))}</button></div>`);
+}
+function uncWirePane(pane) {
+  const t = S.tool, keys = UNC_KEYS[t];
+  if (!keys || !window.LabUnc) return;
+  const changed = () => { saveSoon(); runSoon(0); };
+  for (const k of keys) {
+    const inp = $(`[data-k="${k}"]`, pane) || $(`[data-unck="${k}"]`, pane);
+    if (!inp) continue;
+    const lab = inp.previousElementSibling && inp.previousElementSibling.tagName === "LABEL" ? inp.previousElementSibling : null;
+    const um = lab && lab.querySelector(".u") ? lab.querySelector(".u").textContent.replace(/[[\]]/g, "") : (t === "stahl" && k.startsWith("comp.") ? "%" : "");
+    const name = lab ? lab.childNodes[0].textContent.trim() : k;
+    LabUnc.attach(inp, { key: t + "." + k, label: name, unit: um, onChange: changed });
+  }
+  const m = $("[data-uncm]", pane);
+  if (m) LabUnc.methodPicker(m, { ...(S.uncM || {}), onChange: (v) => { S.uncM = v; changed(); } });
+  const b = $("[data-uncinst]", pane);
+  if (b) b.addEventListener("click", async () => { await LabUnc.instrumentsDialog(); changed(); });
+}
+function uncRes(el) {
+  const t = S.tool, r = S.res[t];
+  if (!el || !r || !r.unc || !window.LabUnc) return;
+  const ent = Object.entries(r.unc).filter(([, v]) => v);
+  if (!ent.length) return;
+  const box = document.createElement("div");
+  box.innerHTML = `<h4 class="sub">${esc(L("Messunsicherheit", "Measurement uncertainty"))}</h4>`;
+  for (const [key, v] of ent) {
+    const d = document.createElement("div"); d.style.marginBottom = "8px";
+    box.appendChild(d);
+    LabUnc.result(d, v, { label: true, compare: async () => {
+      const j = await api("api/tool/" + t, { ...reqOf(t), lang: lang(), unc_compare: v.name || key });
+      if (j.error) throw new Error(j.error);
+      return j.unc && j.unc[key] && j.unc[key].compare;
+    } });
+  }
+  el.appendChild(box);
+  if (window.LabUI) LabUI.folds("werkstoffe", box);
+}
+// ---- Quellen der Ansicht und ihr Eintrag im Kompendium
+function viewInfo(t, r) {
+  const vi = r && r.views_info; if (!vi) return null;
+  const v = view();
+  if (t === "struktur") {
+    if (v === "weg") return vi.weg ? { e: vi.weg, keys: vi.weg.keys } : null;
+    const p = strPanels(r).find(x => x.id === v); if (!p || !vi[p.cat]) return null;
+    let keys = p.refs_keys || vi[p.cat].keys;
+    const f = r.frames && r.frames[Math.min(S.inp.struktur.frame || 0, r.frames.length - 1)];
+    if (f && f.refs_keys && p.cat === "gefuege") keys = [...new Set([...keys, ...f.refs_keys])];
+    return { e: vi[p.cat], keys };
+  }
+  const e = vi[v] || vi._; if (!e) return null;
+  return { e, keys: e.keys || [] };
+}
 function showTool() {
   const t = S.tool, r = S.res[t], i = S.inp[t], resEl = $("#res");
   // Ansichten
-  const vs = VIEWS[t] || [];
+  const vs = viewsOf(t);
   $("#viewSeg").innerHTML = vs.map(([id, de, en]) => `<button type="button" data-view="${id}"${view() === id ? ' class="sel"' : ""}>${esc(EN() ? en : de)}</button>`).join("");
   $("#viewSeg").hidden = vs.length < 2 || (t === "phasen" && r && !r.cooling);
-  $("#optHint").textContent = NAMES[t][EN() ? 3 : 2];
-  if (resEl) resEl.innerHTML = S.err[t] ? note(esc(S.err[t]), "err") : (r ? RES[t] ? RES[t](r, i) : "" : "");
+  const vx = !S.err[t] && r ? viewInfo(t, r) : null; S.vkeys = vx ? vx.keys : [];
+  $("#optHint").innerHTML = `<button type="button" class="kplink" data-kp="${esc((vx && vx.e.entry) || "tool:" + t)}" title="${esc(NAMES[t][EN() ? 3 : 2])}">${BOOK}${esc(L("im Kompendium", "in the compendium"))}</button>`;
+  if (resEl) resEl.innerHTML = S.err[t] ? note(esc(S.err[t]), "err") : (r && RES[t] ? RES[t](r, i) : "");
   if (resEl && window.LabUI) LabUI.folds("werkstoffe", resEl);
   wireRes(resEl);
+  renderSelCard();
   if (t === "laminat" && r && r.ply) $$('[data-k^="ply."]', $("#pane")).forEach(e => { e.placeholder = fmt(r.ply[e.dataset.k.slice(4)], 4); });
   if (t === "karten") return showCards();
   if (!r) {
     const e = EMPTY[t] && EMPTY[t]();
     if (e) {
       const btn = e[2] === "file" ? `<div><button class="primary" data-eact="open">${esc(L("Diffraktogramm öffnen …", "Open diffractogram …"))}</button></div>` :
-        e[2] === "table" ? `<div><button class="primary" data-eact="table">${esc(L("Tabelle öffnen …", "Open table …"))}</button></div>` :
-        e[2] === "ex" ? `<div><button data-eact="ex">${esc(L("Beispieldaten (synthetisch)", "Example data (synthetic)"))}</button></div>` : "";
+        e[2] === "table" ? `<div><button class="primary" data-eact="table">${esc(L("Tabelle öffnen …", "Open table …"))}</button></div>` : "";
       stageMode("empty", `<b>${esc(e[0])}</b>${esc(e[1])}${btn}`);
     } else stageMode("empty", `<b>${esc(tname(t))}</b>${esc(S.err[t] || L("Eingaben rechts ergänzen.", "Complete the inputs on the right."))}`);
     plot(null);
@@ -1674,11 +2322,121 @@ function showTool() {
 function wireRes(el) {
   if (!el) return;
   const t = S.tool, r = S.res[t];
+  uncRes(el);
   $$("tr[data-row]", el).forEach(tr => tr.addEventListener("click", () => {
     const k = +tr.dataset.row;
-    if (t === "auswahl" && !r.rank.ranked[k].own) addCmp(r.rank.ranked[k].name);
+    if (t === "auswahl" && !r.rank.ranked[k].own) selectMat(r.rank.ranked[k]);
     if (t === "xrd") { const id = r.search[k].id, o = S.inp.xrd.opt.overlay; const p = o.indexOf(id); if (p >= 0) o.splice(p, 1); else o.push(id); renderPane(); runSoon(0); }
   }));
+}
+// ---- Ashby: gewählter Werkstoff (Karte neben dem Diagramm, blasse Spanne und Familie im Diagramm)
+const KEY_PROPS = ["rho", "E", "Rp", "Rm", "A", "sigma_f", "sigma_c", "KIc", "HV", "Tm", "Tg", "lambda", "alpha", "cp", "rho_el"];
+const matTag = (id) => { let t = String(id).replace(/^(en-aw-|en-)/, "").replace(/[^a-z0-9]/gi, "").slice(0, 12); return /^[a-z]/i.test(t) ? t : "w" + t.slice(0, 11); };
+function selectMat(p) {
+  const i = S.inp.auswahl;
+  if (i.sel && i.sel.id === p.id) return;
+  i.sel = { id: p.id, name: p.name };
+  saveSoon(); redrawAuswahl(); renderSelCard();
+}
+function selectFam(f) { const i = S.inp.auswahl; i.fam = f; i.sel = null; S.selCard = null; saveSoon(); redrawAuswahl(); renderSelCard(); }
+// step: einen Schritt zurück (Werkstoff → seine Familie → nichts); sonst alles aufheben
+function clearSel(step) {
+  const i = S.inp.auswahl, p = i.sel && S.res.auswahl ? S.res.auswahl.points.find(q => q.id === i.sel.id) : null;
+  i.fam = step && i.groups && p && p.familie ? p.familie : null;
+  i.sel = null; S.selCard = null; saveSoon(); redrawAuswahl(); renderSelCard();
+}
+function redrawAuswahl() { if (S.tool === "auswahl" && S.res.auswahl) plot(PLOT.auswahl(S.res.auswahl, S.inp.auswahl)); }
+function selVals(d) {
+  const tag = matTag(d.card.id);
+  return (d.card.werte || []).filter(w => w.v != null && isFinite(w.v)).map(w => ({ sym: `${tag}_${w.prop}`, prop: w.prop, label: w.label, value: +(+w.v).toPrecision(6), unit: w.unit || "", min: w.min, max: w.max, src: w.source || "", rsrc: w.range_source || "" }));
+}
+function keepShared() {
+  const d = S.selCard && S.selCard.data; if (!d) return;
+  const i = S.inp.auswahl; i.shared = i.shared || {};
+  i.shared[d.card.id] = { name: d.card.name, vals: selVals(d).map(({ sym, label, value, unit }) => ({ sym, label, value, unit })) };
+  saveSoon(); if (OV) setTimeout(() => OV.changed && OV.changed(), 0);
+}
+function selCatalogue() {
+  const out = [], seen = new Set(), i = S.inp.auswahl || {};
+  const add = (name, vals) => { for (const v of vals || []) if (!seen.has(v.sym)) { seen.add(v.sym); out.push({ sym: v.sym, label: `${name}: ${v.label}`, value: v.value, unit: v.unit, kind: "literature" }); } };
+  for (const m of Object.values(i.shared || {})) add(m.name, m.vals);
+  const d = S.selCard && S.selCard.data; if (d) add(d.card.name, selVals(d));
+  return out;
+}
+async function renderSelCard() {
+  const box = $("#selCard"), i = S.inp.auswahl;
+  if (!i || !i.sel || S.tool !== "auswahl") { box.hidden = true; box.innerHTML = ""; return; }
+  const key = i.sel.id + "|" + lang();
+  if (!S.selCard || S.selCard.key !== key) {
+    S.selCard = { key, data: null };
+    box.hidden = false; box.innerHTML = `<b>${esc(i.sel.name)}</b><div class="small">${esc(L("lädt …", "loading …"))}</div>`;
+    const j = await api("api/tool/werkstoff", { id: i.sel.id, lang: lang() });
+    if (!S.selCard || S.selCard.key !== key) return;
+    if (j.error) { box.innerHTML = `<b>${esc(i.sel.name)}</b><div class="small">${esc(j.error)}</div>`; return; }
+    S.selCard.data = j;
+  }
+  const d = S.selCard.data; if (!d) return;
+  const c = d.card, vals = selVals(d), byP = Object.fromEntries(vals.map(v => [v.prop, v]));
+  const r = S.res.auswahl, inChart = r && r.points.some(p => p.id === c.id);
+  const sh = (sym) => (OV && OV.shareButton ? OV.shareButton(sym) : "");
+  const hasR = (c.werte || []).some(w => w.min != null && w.max != null);
+  const row = (w) => { const v = byP[w.prop]; const rng = w.min != null && w.max != null ? `${sig(w.min, 3)}–${sig(w.max, 3)}` : "";
+    return `<tr title="${esc(L("Quelle", "Source"))}: ${esc(w.source || "–")}${w.range_source ? `\n${esc(L("Spanne", "Range"))}: ${esc(w.range_source)}` : ""}"><td>${esc(w.label)}</td><td class="num">${esc(w.text)}${w.nicht_geprueft ? " †" : ""}</td>${hasR ? `<td class="num rng">${esc(rng)}</td>` : ""}<td>${v ? sh(v.sym) : ""}</td></tr>`; };
+  const key_ = (c.werte || []).filter(w => KEY_PROPS.includes(w.prop)), rest = (c.werte || []).filter(w => !KEY_PROPS.includes(w.prop));
+  const dec = d.decode && (d.decode.found || []).length ? d.decode : null;
+  const cls = (META.classes[c.klasse] || {})[EN() ? "en" : "de"] || c.klasse;
+  box.hidden = false;
+  box.innerHTML = `<button type="button" class="x" data-sc="close" title="${esc(L("Auswahl aufheben (Esc)", "Clear the selection (Esc)"))}">×</button>
+    <h3>${esc(c.name)}</h3><div class="small mut">${esc(cls)}${c.familie ? " · " + esc(famName(c.familie)) : ""}${c.aliase && c.aliase.length ? " · " + esc(c.aliase.slice(0, 3).join(", ")) : ""}</div>
+    <button type="button" class="kplink" data-kp="material:${esc(c.id)}" title="${esc(L("Bezeichnung, alle Kennwerte mit Quelle und Prüfstatus, Phasen und Mechanismen", "Designation, all properties with source and check status, phases and mechanisms"))}">${BOOK}${esc(L("Im Kompendium", "In the compendium"))}</button>
+    ${inChart ? "" : `<div class="small mut">${esc(L("Mit diesen Achsen nicht im Diagramm.", "Not in the chart with these axes."))}</div>`}
+    <table class="sc"><thead><tr><th>${esc(L("Kennwert", "Property"))}</th><th class="num">${esc(L("Wert", "Value"))}</th>${hasR ? `<th class="num">${esc(L("Spanne", "Range"))}</th>` : ""}<th>${vals.length && sh(matTag(c.id) + "_*") ? sh(matTag(c.id) + "_*") : ""}</th></tr></thead><tbody>${key_.map(row).join("")}</tbody></table>
+    ${rest.length ? fold("scmore", L("Weitere Werte", "More values"), `<table class="sc"><tbody>${rest.map(row).join("")}</tbody></table>`, `(${rest.length})`) : ""}
+    ${c.nicht_geprueft ? `<div class="small mut" title="${esc(c.nicht_geprueft)}">† ${esc(L("nicht gegen die Quelle geprüft (Maus: mehr)", "not checked against the source (hover: more)"))}</div>` : ""}
+    <div class="acts"><button type="button" data-sc="cmp" title="${esc(L("Zum Vergleich in „Karten“", "Add to the comparison in “Cards”"))}">${esc(L("Vergleichen", "Compare"))}</button>
+      <button type="button" data-sc="copy" title="${esc(L("Alle Werte mit Spanne und Quelle als Tabelle in die Zwischenablage", "All values with range and source as a table to the clipboard"))}">${esc(L("Kopieren", "Copy"))}</button>
+      ${window.Lab ? `<button type="button" data-sc="rep" title="${esc(L("Karte in den Bericht (über „Karten“)", "Card to the report (via “Cards”)"))}">${esc(L("Zum Bericht …", "To report …"))}</button>` : ""}
+      ${d.struktur ? `<button type="button" data-sc="str" title="${esc(L("Gefüge und Gitter dieses Werkstoffs", "Microstructure and lattice of this material"))}">${esc(L("Struktur", "Structure"))}</button>` : ""}
+      ${window.InfoBoard && InfoBoard.ready ? `<button type="button" data-sc="ib" aria-pressed="${InfoBoard.isSel(c.id)}" title="${esc(L("Werkstoff für die Infotafel vormerken; die Reihe lässt sich im Kompendium durchgehen", "Mark this material for the info board; the series can be walked through in the compendium"))}">${esc(InfoBoard.isSel(c.id) ? L("✓ In der Reihe", "✓ In the series") : L("Zur Reihe", "Add to series"))}</button>` : ""}</div>`;
+  setTimeout(placeSelCard, 0);
+  $$("[data-sc]", box).forEach(b => b.addEventListener("click", () => {
+    const a = b.dataset.sc;
+    if (a === "close") clearSel();
+    else if (a === "cmp") addCmp(c.name);
+    else if (a === "copy") {
+      const lines = [c.name, ...(dec ? [dec.summary || ""] : []), [L("Kennwert", "Property"), L("Wert", "Value"), L("Einheit", "Unit"), "min", "max", L("Quelle", "Source"), L("Quelle der Spanne", "Range source")].join("\t"),
+        ...(c.werte || []).map(w => [w.label, w.v != null ? sig(w.v, 6) : w.text, w.unit || "", w.min != null ? sig(w.min, 4) : "", w.max != null ? sig(w.max, 4) : "", w.source || "", w.range_source || ""].join("\t"))];
+      navigator.clipboard.writeText(lines.join("\n")).then(() => toast(L("Werte kopiert (Tabelle, tabulatorgetrennt).", "Values copied (tab-separated table).")), () => toast(L("Kopieren nicht möglich.", "Copy failed."), true));
+    } else if (a === "rep") { if (!S.inp.karten.names.includes(c.name)) { S.inp.karten.names.push(c.name); delete S.res.karten; saveSoon(); } sendToReport(); }
+    else if (a === "str") { Object.assign(S.inp.struktur, { material: c.id, steps: [], preset: "", kind: "", frame: 0, mode: "T" }); strPlay(false); delete S.res.struktur; delete S.err.struktur; switchTool("struktur"); }
+    else if (a === "ib") { InfoBoard.toggle(c.id); renderSelCard(); }
+  }));
+}
+// ---- Bezeichnungen entschlüsseln (EN AW-1050A, 42CrMo4, X5CrNi18-10, PA6-GF30 …)
+function decodeHtml(dec) {
+  const found = (dec && dec.found) || [];
+  if (!found.length) return dec && (dec.unknown || []).length ? `<div class="small">${esc(L("Nicht erkannt", "Not recognised"))}: ${esc(dec.unknown.join(", "))}</div>` : "";
+  const cv = (v) => Array.isArray(v) ? v.map(x => typeof x === "number" ? fmt(x, 2) : x).join("–") : typeof v === "number" ? fmt(v, 2) : String(v);
+  const one = (f, solo) => `<div class="small"><b>${esc(f.code)}</b>${f.system ? " · " + esc(f.system) : ""}${f.family ? " · " + esc(f.family) : ""}</div>
+    ${f.summary && !solo ? `<div>${esc(f.summary)}</div>` : ""}<dl>${(f.parts || []).map(p => `<dt>${esc(p.code)}</dt><dd>${esc(p.meaning)}</dd>`).join("")}${(dec.qualifiers || []).map(p => `<dt>${esc(p.code)}</dt><dd>${esc(p.meaning)}</dd>`).join("")}</dl>
+    ${f.composition && Object.keys(f.composition).length ? `<div class="small">${esc(L("Zusammensetzung nach Norm", "Composition per standard"))} [${esc(L("Gew.-%", "wt%"))}]: ${esc(Object.entries(f.composition).map(([k, v]) => `${k} ${cv(v)}`).join(" · "))}</div>` : ""}`;
+  const head = dec.summary || found[0].summary || "";
+  const body = found.map(f => one(f, found.length === 1)).join("<hr>") + ((dec.notes || []).length ? `<div class="small">${esc(dec.notes.join(" "))}</div>` : "") +
+    ((dec.unknown || []).length ? `<div class="small">${esc(L("Nicht entschlüsselt", "Not decoded"))}: ${esc(dec.unknown.join(", "))}</div>` : "");
+  return `<div class="dec"><div style="margin-bottom:4px">${esc(head)}</div>${body}</div>`;
+}
+const DEC = {};                                    // Cache: Text → Antwort
+async function decodeText(text) {
+  const k = lang() + "|" + text;
+  if (!DEC[k]) DEC[k] = api("api/tool/bezeichnung", { text, lang: lang() }).catch(() => ({ found: [] }));
+  return DEC[k];
+}
+// Karte auf die Seite, die vom gewählten Punkt weiter weg ist
+function placeSelCard() {
+  const box = $("#selCard"), ring = [...$$('#plot circle')].reverse().find(e => e.getAttribute("stroke") === SEL_C);
+  if (box.hidden || !ring) return;
+  const st = $("#stage").getBoundingClientRect(), rr = ring.getBoundingClientRect();
+  box.classList.toggle("right", rr.left + rr.width / 2 - st.left < st.width / 2);
 }
 function addCmp(name) {
   const n = S.inp.karten.names;
@@ -1696,7 +2454,7 @@ async function showCards() {
     if (S.tool === "karten" && $("#res")) $("#res").innerHTML = RES.karten(r);
   }
   const cards = r.cards || [];
-  const head = `<tr><th></th>${cards.map((c, k) => `<th>${esc(c.name)}<small>${esc(c.familie || "")}${c.aliase && c.aliase.length ? " · " + esc(c.aliase.slice(0, 2).join(", ")) : ""}</small><button type="button" class="link" data-kdel2="${k}">${esc(L("entfernen", "remove"))}</button></th>`).join("")}</tr>`;
+  const head = `<tr><th></th>${cards.map((c, k) => `<th>${esc(c.name)}<small>${esc(famName(c.familie))}${c.aliase && c.aliase.length ? " · " + esc(c.aliase.slice(0, 2).join(", ")) : ""}</small><button type="button" class="kplink" data-kp="material:${esc(c.id)}" title="${esc(c.decoded || L("Bezeichnung und Quellen", "Designation and sources"))}">${BOOK}${esc(L("Kompendium", "Compendium"))}</button><button type="button" class="link" data-kdel2="${k}">${esc(L("entfernen", "remove"))}</button></th>`).join("")}</tr>`;
   const rows = (r.rows || []).map(row => `<tr><td><b>${esc(row.label)}</b><small>${esc(supU(row.unit))}</small></td>${cards.map((c, k) => { const x = row.cells[k]; return `<td>${x ? esc(x.text) + (x.nicht_geprueft ? " †" : "") + `<small>${esc(x.art || "")}${x.art && x.source ? " · " : ""}${esc(x.source || "")}</small>` : "–"}</td>`; }).join("")}</tr>`).join("");
   const anyU = (r.rows || []).some(row => row.cells.some(x => x && x.nicht_geprueft));
   stageMode("html", `<table class="cmp"><thead>${head}</thead><tbody>${rows}</tbody></table>` + (anyU ? `<p class="small">† ${esc(L("nicht gegen das Original geprüft", "not checked against the original"))}</p>` : ""));
@@ -1705,12 +2463,14 @@ async function showCards() {
 
 // ---------------------------------------------------------------- Bereich und Tabs
 function renderTools() {
-  $("#tools").innerHTML = GROUPS.map(g => `<button type="button" data-grp="${g.id}" title="${esc(EN() ? g.en : g.de)}"${S.grp === g.id ? ' class="sel"' : ""}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g.icon}</svg>${esc(EN() ? g.en : g.de)}</button>`).join("");
+  $("#tools").innerHTML = GROUPS.map(g => `<button type="button" data-grp="${g.id}" title="${esc(EN() ? g.en : g.de)}"${S.grp === g.id ? ' class="sel"' : ""}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g.icon}</svg>${esc(g.rail[EN() ? 1 : 0])}</button>`).join("");
   $$("#tools [data-grp]").forEach(b => b.addEventListener("click", () => { const g = GROUPS.find(x => x.id === b.dataset.grp); S.grp = g.id; switchTool(S.last && S.last[g.id] && g.tools.includes(S.last[g.id]) ? S.last[g.id] : g.tools[0]); }));
 }
 function renderTabs() {
   const g = GROUPS.find(x => x.id === S.grp);
-  const main = g.main || g.tools, shown = g.tools.filter(t => main.includes(t) || t === S.tool), rest = g.tools.filter(t => !shown.includes(t));
+  // zuletzt benutzte zuerst; die Reihenfolge wird beim Betreten der Gruppe festgelegt, damit kein Reiter unter dem Zeiger springt
+  if (S.tabGrp !== g.id || !S.tabOrd) { const rk = (t) => { const k = (S.recent || []).indexOf(t); return k < 0 ? 100 + g.tools.indexOf(t) : k; }; S.tabGrp = g.id; S.tabOrd = [...g.tools].sort((a, b) => rk(a) - rk(b)); }
+  const nMain = (g.main || g.tools).length, shown = S.tabOrd.filter((t, k) => k < nMain || t === S.tool), rest = S.tabOrd.filter(t => !shown.includes(t));
   $("#tabs").innerHTML = shown.map(t => `<button type="button" data-tab="${t}"${t === S.tool ? ' class="sel"' : ""} title="${esc(NAMES[t][EN() ? 3 : 2])}">${esc(tname(t))}</button>`).join("") +
     (rest.length ? `<button type="button" class="more" id="tabMore">${esc(L("Mehr ▾", "More ▾"))}</button>` : "");
   $$("#tabs [data-tab]").forEach(b => b.addEventListener("click", () => switchTool(b.dataset.tab)));
@@ -1720,11 +2480,17 @@ function renderTabs() {
     p.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) { LabUI.closePop(); switchTool(b.dataset.go); } });
   });
 }
+document.addEventListener("click", (e) => {        // Verweise ins Kompendium (Ansicht, Gefüge im Zustandsdiagramm)
+  if (!e.target.closest) return;
+  const k = e.target.closest("[data-kp]"); if (k) return kpOpen(k.dataset.kp);
+  const b = e.target.closest("[data-atlas]"); if (b) kpOpen("atlas:" + b.dataset.atlas);
+});
 function switchTool(t) {
   S.tool = t; S.grp = GROUPS.find(g => g.tools.includes(t)).id;
   S.last = S.last || {}; S.last[S.grp] = t;
+  S.recent = [t, ...(S.recent || []).filter(x => x !== t)];
   renderTools(); renderTabs(); renderPane();
-  $("#tip").hidden = true;
+  $("#tip").hidden = true; renderSelCard();
   S.seen = S.seen || {}; S.seen[t] = 1;
   if (S.res[t] === undefined && t !== "karten") {
     // altes Diagramm nicht stehen lassen, bis die Antwort da ist
@@ -1738,10 +2504,12 @@ function renderPane() {
   pane.innerHTML = PANE[t](S.inp[t]);
   if (window.LabUI) LabUI.folds("werkstoffe", pane);
   wirePane(pane);
+  uncWirePane(pane);
   pane.scrollTop = top;
   const resEl = $("#res");
   if (resEl) { resEl.innerHTML = S.err[t] ? note(esc(S.err[t]), "err") : (S.res[t] && RES[t] ? RES[t](S.res[t], S.inp[t]) : ""); if (window.LabUI) LabUI.folds("werkstoffe", resEl); wireRes(resEl); }
 }
+const LOCAL_KEYS = new Set(["struktur.etch", "auswahl.groups"]);
 // Felder, deren Änderung den Eingabebereich neu aufbaut (andere Felder erscheinen)
 const REBUILD = new Set(["custom", "cust.on", "cust.system", "own", "material", "system", "unit", "metal", "item", "tube", "marin.on", "size.kind1", "size.kind2", "kq.geom", "table", "method", "grain.mode", "phase"]);
 function wirePane(pane) {
@@ -1761,7 +2529,9 @@ function wirePane(pane) {
       if (t === "korrosion" && k === "item") { i.data = null; loadKcols(); }
       if (t === "haerte" && k === "table") { i.from = ""; i.to = ""; }
       if (t === "phasen" && k === "system") { i.x = ""; i.T = ""; }
+      if (t === "struktur" && k === "material") { i.steps = []; i.preset = ""; i.kind = ""; i.frame = 0; i.mode = "T"; strPlay(false); }
       if (REBUILD.has(k) || (t === "auswahl" && (k === "x" || k === "y"))) renderPane();
+      if (LOCAL_KEYS.has(t + "." + k)) { showTool(); saveSoon(); return; }        // nur Darstellung, keine neue Rechnung
       runSoon(e.type === "checkbox" || e.tagName === "SELECT" ? 0 : 450);
     });
   });
@@ -1790,17 +2560,16 @@ function wirePane(pane) {
     catch (e) { toast(L("Zwischenablage nicht lesbar; in eine Zelle klicken und Strg+V drücken.", "Clipboard not readable; click a cell and press Ctrl+V."), true); }
   }));
   $$("[data-gfile]", pane).forEach(b => b.addEventListener("click", () => pickFile(".csv,.txt,.tsv,.dat", async (f) => { const d = await loadFile(f, "table"); if (d) gridFromTable(b.dataset.gfile, d.id); })));
-  $$("[data-ex]", pane).forEach(b => b.addEventListener("click", () => loadExample(b.dataset.ex)));
-  $$("[data-gex]", pane).forEach(s => s.addEventListener("change", () => {
-    const x = ((EN() ? META.gitter.examples_en : META.gitter.examples) || [])[+s.value]; if (!x) return;
-    Object.assign(i, { host: x.wirt, T: x.T, unit: (x.geloest[0] || {}).einheit === "at" ? "at" : "wt", sols: x.geloest.map(g => ({ el: g.el, c: g.c })) });
-    renderPane(); runSoon(0);
-  }));
   $$("[data-act]", pane).forEach(b => b.addEventListener("click", () => act(b.dataset.act)));
   // Karten
   $$("[data-kdel]", pane).forEach(b => b.addEventListener("click", () => { i.names.splice(+b.dataset.kdel, 1); renderPane(); showTool(); saveSoon(); }));
   $$("[data-kup]", pane).forEach(b => b.addEventListener("click", () => { const k = +b.dataset.kup; if (k > 0) { [i.names[k - 1], i.names[k]] = [i.names[k], i.names[k - 1]]; renderPane(); showTool(); saveSoon(); } }));
   if (t === "karten" && (i.q || "").length >= 2) kSearch();
+  if (t === "karten") { const q = $("#decQ", pane); if (q) { let tm = 0;
+    const go = async () => { const tx = q.value.trim(); i.dec = q.value; saveSoon(); const o = $("#decOut"); if (!o) return;
+      if (!tx) { o.innerHTML = ""; return; } const d = await decodeText(tx); if (q.value.trim() === tx) o.innerHTML = d.error ? note(esc(d.error), "err") : (decodeHtml(d) || `<div class="small">${esc(L("Nichts erkannt.", "Nothing recognised."))}</div>`) + (d.refs ? refsHtml(d.refs) : ""); };
+    q.addEventListener("input", () => { clearTimeout(tm); tm = setTimeout(go, 250); }); if (q.value.trim()) go(); } }
+  if (t === "struktur") wireStr(pane);
 }
 function pasteInto(k, text, r0, c0) {
   const i = I();
@@ -1826,6 +2595,7 @@ function gridCols(k) {
   if (t === "auswahl" && k === "limits") return [{ k: "prop" }, { k: "min" }, { k: "max" }];
   if (t === "auswahl" && k === "expo") return [{ k: "p" }, { k: "e" }];
   if (t === "gitter") return [{ k: "el" }, { k: "c" }, { k: "lim" }, { k: "src" }];
+  if (t === "struktur") return [{ k: "name" }, { k: "T" }, { k: "t" }, { k: "quench", chk: true }];
   return [];
 }
 const ROLES = {
@@ -1949,7 +2719,7 @@ function kSearch() {
     if (q.trim().length < 2) { box.innerHTML = `<div class="empty">${esc(L("Mindestens zwei Zeichen eingeben", "Type at least two characters"))}</div>`; return; }
     const j = await api("api/tool/suche", { q, lang: lang() });
     if (j.error) { box.innerHTML = `<div class="empty">${esc(j.error)}</div>`; return; }
-    box.innerHTML = j.rows.length ? j.rows.map((x, k) => `<div class="it"><span class="nm">${esc(x.name)} <span class="cv">${esc(x.familie || "")}${x.teil === "materials_mp" ? " · DFT" : ""}</span></span><button type="button" data-kadd="${k}" title="${esc(L("hinzufügen", "add"))}">+</button></div>`).join("") : `<div class="empty">${esc(L("nichts gefunden", "nothing found"))}</div>`;
+    box.innerHTML = j.rows.length ? j.rows.map((x, k) => `<div class="it"><span class="nm">${esc(x.name)} <span class="cv">${esc(famName(x.familie))}${x.teil === "materials_mp" ? " · DFT" : ""}</span></span><button type="button" data-kadd="${k}" title="${esc(L("hinzufügen", "add"))}">+</button></div>`).join("") : `<div class="empty">${esc(L("nichts gefunden", "nothing found"))}</div>`;
     $$("[data-kadd]", box).forEach(b => b.addEventListener("click", () => { addCmp(j.rows[+b.dataset.kadd].name); renderPane(); showTool(); }));
   }, 250);
 }
@@ -2005,22 +2775,24 @@ function sendToReport() {
     ],
     build: ({ scope, lang: lg, include, title }) => {
       const list = scope === "cur" ? [S.tool] : done;
-      return api("api/bundle", { sections: list.map(t => ({ tool: t, req: REQ[t](S.inp[t]) })), lang: lg, include, title });
+      return api("api/bundle", { sections: list.map(t => ({ tool: t, req: reqOf(t) })), lang: lg, include, title });
     },
   });
 }
+// Standardunsicherheit u und Verfahren zum Wert (Wertekanal, Projektindex)
+const uq = (r, k) => { const x = r && r.unc && r.unc[k]; return x && !x.error && x.u != null ? { u: +(+x.u).toPrecision(3), unc: x.method } : {}; };
 function indexEntries() {
   const e = [], prov = (t) => ({ item: t, item_name: tname(t) });
   const R = S.res;
-  if (R.xrd && R.xrd.cubic_refined) e.push({ key: `XRD: a (${(S.items.find(x => x.id === S.inp.xrd.item) || {}).name || ""})`, label: L("Gitterkonstante", "Lattice parameter"), type: "measured", quantity: { value: +R.xrd.cubic_refined.a.toFixed(5), unit: "Å" }, provenance: prov("xrd") });
+  if (R.xrd && R.xrd.cubic_refined) e.push({ key: `XRD: a (${(S.items.find(x => x.id === S.inp.xrd.item) || {}).name || ""})`, label: L("Gitterkonstante", "Lattice parameter"), type: "measured", quantity: { value: +R.xrd.cubic_refined.a.toFixed(5), unit: "Å", ...(R.xrd.cubic_refined.s_a > 0 ? { u: +R.xrd.cubic_refined.s_a.toPrecision(3), unc: "gum" } : {}) }, provenance: prov("xrd") });
   if (R.xrd && R.xrd.wh) e.push({ key: "XRD: D (Williamson–Hall)", label: L("Kristallitgrösse", "Crystallite size"), type: "measured", quantity: { value: +R.xrd.wh.D_nm.toFixed(2), unit: "nm" }, provenance: prov("xrd") });
   if (R.weibull) { const b = R.weibull[R.weibull.method]; e.push({ key: "Weibull: m", label: L("Weibull-Modul", "Weibull modulus"), type: "measured", quantity: { value: +b.m.toFixed(3), unit: "" }, provenance: prov("weibull") }, { key: "Weibull: σ0", label: L("Charakteristische Festigkeit", "Characteristic strength"), type: "measured", quantity: { value: +b.sigma0.toFixed(2), unit: "MPa" }, provenance: prov("weibull") }); }
-  if (R.haerte && R.haerte.stats) e.push({ key: `${L("Härte", "Hardness")}: ${R.haerte.rows.find(x => x.scale) ? R.haerte.rows.find(x => x.scale).scale : R.haerte.method}`, label: L("Mittelwert", "Mean"), type: "measured", quantity: { value: +R.haerte.stats.mean.toFixed(1), unit: "" }, provenance: prov("haerte") });
-  if (R.bruch && R.bruch.kq) e.push({ key: R.bruch.kq.valid_KIc ? "K_Ic" : "K_Q", label: L("Bruchzähigkeit", "Fracture toughness"), type: "measured", quantity: { value: +R.bruch.kq.K.toFixed(2), unit: "MPa·m^0.5" }, provenance: prov("bruch") });
+  if (R.haerte && R.haerte.stats) e.push({ key: `${L("Härte", "Hardness")}: ${R.haerte.rows.find(x => x.scale) ? R.haerte.rows.find(x => x.scale).scale : R.haerte.method}`, label: L("Mittelwert", "Mean"), type: "measured", quantity: { value: +R.haerte.stats.mean.toFixed(1), unit: "", ...uq(R.haerte, "haerte") }, provenance: prov("haerte") });
+  if (R.bruch && R.bruch.kq) e.push({ key: R.bruch.kq.valid_KIc ? "K_Ic" : "K_Q", label: L("Bruchzähigkeit", "Fracture toughness"), type: "measured", quantity: { value: +R.bruch.kq.K.toFixed(2), unit: "MPa·m^0.5", ...uq(R.bruch, "kq") }, provenance: prov("bruch") });
   if (R.korrosion) e.push({ key: "i_corr (Tafel)", label: L("Korrosionsstromdichte", "Corrosion current density"), type: "measured", quantity: { value: +R.korrosion.icorr.toPrecision(4), unit: "µA/cm²" }, provenance: prov("korrosion") });
   if (R.korrosion && R.korrosion.rate) e.push({ key: L("Korrosionsrate", "Corrosion rate"), label: "ASTM G102", type: "calculated", quantity: { value: +R.korrosion.rate.mm_a.toPrecision(4), unit: "mm/a" }, provenance: prov("korrosion") });
   if (R.ermuedung && R.ermuedung.fit) { const b = R.ermuedung.fit.mle || R.ermuedung.fit.lsq; e.push({ key: "Basquin: σ′f", label: L("Schwingfestigkeitskoeffizient", "Fatigue strength coefficient"), type: "measured", quantity: { value: +b.sigma_f.toFixed(1), unit: "MPa" }, provenance: prov("ermuedung") }, { key: "Basquin: b", label: L("Basquin-Exponent", "Basquin exponent"), type: "measured", quantity: { value: +b.b.toFixed(4), unit: "" }, provenance: prov("ermuedung") }); }
-  if (R.stahl) e.push({ key: "CE (IIW)", label: L("Kohlenstoffäquivalent", "Carbon equivalent"), type: "calculated", quantity: { value: +R.stahl.CE.toFixed(3), unit: "" }, provenance: prov("stahl") });
+  if (R.stahl) e.push({ key: "CE (IIW)", label: L("Kohlenstoffäquivalent", "Carbon equivalent"), type: "calculated", quantity: { value: +R.stahl.CE.toFixed(3), unit: "", ...uq(R.stahl, "CE") }, provenance: prov("stahl") });
   if (R.laminat) e.push({ key: `${L("Laminat", "Laminate")} ${S.inp.laminat.layup}: E_x`, label: "E_x", type: "calculated", quantity: { value: +R.laminat.eng.Ex.toFixed(2), unit: "GPa" }, provenance: prov("laminat") });
   if (R.kriechen && R.kriechen.predict) e.push({ key: `t_r (σ = ${S.inp.kriechen.ps} MPa, T = ${S.inp.kriechen.pT} °C)`, label: "Larson–Miller", type: "estimated", quantity: { value: +R.kriechen.predict.t_h.toPrecision(3), unit: "h" }, provenance: prov("kriechen") });
   return e;
@@ -2031,7 +2803,8 @@ function indexAll() {
   return LabIndex.addMany(api, toast, e, L("Ergebnisse in den Projektindex", "Results to the project index"));
 }
 function valCatalogue() {
-  return indexEntries().map(x => ({ sym: x.key.replace(/[^A-Za-z0-9_]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 24) || "wert", label: x.key, value: x.quantity.value, unit: x.quantity.unit, kind: x.type }));
+  return indexEntries().map(x => ({ sym: x.key.replace(/[^A-Za-z0-9_]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 24) || "wert", label: x.key, value: x.quantity.value, unit: x.quantity.unit, kind: x.type, ...(x.quantity.u != null ? { u: x.quantity.u, unc: x.quantity.unc } : {}) }))
+    .concat(selCatalogue());
 }
 function envSummary() {
   const done = reportable();
@@ -2046,6 +2819,322 @@ function envSummary() {
   return { title: tags.length ? (L("Werkstoffe: ", "Materials: ") + tags.slice(0, 4).join(" · ")) : L("Werkstoffe", "Materials"), tags: tags.slice(0, 8), values, plots: plots.slice(0, 2) };
 }
 
+// ---------------------------------------------------------------- Suche (Strg+K)
+const FD = { items: [], k: 0, seq: 0, t: 0, dirty: false };
+function findHome() {
+  const it = (t) => ({ title: tname(t), sub: NAMES[t][EN() ? 3 : 2], act: { tool: t } });
+  const rec = (S.recent || []).slice(0, 4);
+  return [...(rec.length ? [{ label: L("Zuletzt benutzt", "Recently used"), items: rec.map(it) }] : []), ...GROUPS.map(g => ({ label: EN() ? g.en : g.de, items: g.tools.map(it) }))];
+}
+const findSeriesLabel = (id) => esc(InfoBoard.isSel(id) ? L("✓ Reihe", "✓ Series") : L("+ Reihe", "+ Series"));
+function findSeries(k) {                            // Treffer zur Reihe der Infotafel; die Liste bleibt offen, damit mehrere nacheinander gehen
+  const x = FD.items[k]; if (!x || !x.act || !x.act.material || !window.InfoBoard || !InfoBoard.ready) return;
+  InfoBoard.toggle(x.act.material);
+  const c = $(`#fh${k} [data-fiib]`); if (c) c.textContent = InfoBoard.isSel(x.act.material) ? L("✓ Reihe", "✓ Series") : L("+ Reihe", "+ Series");
+}
+function findRender(groups) {
+  const p = $("#findPop"); FD.items = []; FD.k = 0;
+  p.innerHTML = groups.length ? groups.map(g => `<h5>${esc(g.label)}${g.more ? ` <span>+${g.more}</span>` : ""}</h5>` + g.items.map(x => { const n = FD.items.push(x) - 1;
+    return `<div class="fhit${n ? "" : " on"}" id="fh${n}" role="option" data-fi="${n}"><b>${esc(x.title)}</b><small>${esc(x.sub || "")}</small>${x.act && x.act.material && x.act.struktur ? `<span class="alt" data-fialt title="${esc(L("In der Struktur öffnen (Umschalt+Enter)", "Open in Structure (Shift+Enter)"))}">${esc(L("Struktur", "Structure"))}</span>` : ""}${x.act && x.act.kp ? `<span class="alt" data-fikp title="${esc(L("Eintrag im Kompendium", "Entry in the compendium"))}">${esc(L("Kompendium", "Compendium"))}</span>` : ""}${x.act && x.act.material && window.InfoBoard && InfoBoard.ready ? `<span class="alt" data-fiib title="${esc(L("Zur Reihe der Infotafel (Alt+Enter)", "Add to the info board series (Alt+Enter)"))}">${findSeriesLabel(x.act.material)}</span>` : ""}</div>`; }).join("")).join("")
+    : `<div class="small" style="padding:8px">${esc(L("Nichts gefunden", "Nothing found"))}</div>`;
+  p.hidden = false; $("#findQ").setAttribute("aria-expanded", "true");
+}
+async function findRun() {
+  clearTimeout(FD.t);
+  const q = $("#findQ").value.trim(), n = ++FD.seq;
+  if (!q) { FD.dirty = false; return findRender(findHome()); }
+  const j = await api("api/tool/finden", { q, lang: lang() });
+  if (n !== FD.seq) return;
+  FD.dirty = false;
+  if (j.error) { $("#findPop").innerHTML = note(esc(j.error), "err"); $("#findPop").hidden = false; FD.items = []; return; }
+  if (document.activeElement === $("#findQ")) findRender(j.groups);
+}
+function findClose() { FD.seq++; $("#findPop").hidden = true; $("#findQ").setAttribute("aria-expanded", "false"); }
+function findMove(d) {
+  if (!FD.items.length) return;
+  FD.k = (FD.k + d + FD.items.length) % FD.items.length;
+  $$(".fhit", $("#findPop")).forEach((x, n) => x.classList.toggle("on", n === FD.k));
+  const c = $("#fh" + FD.k); if (c) { c.scrollIntoView({ block: "nearest" }); $("#findQ").setAttribute("aria-activedescendant", c.id); }
+}
+function openStruktur(mid) {
+  Object.assign(S.inp.struktur, { material: mid, steps: [], preset: "", kind: "", frame: 0, mode: "T" });
+  strPlay(false); delete S.res.struktur; delete S.err.struktur; switchTool("struktur");
+}
+function findGo(x, alt) {
+  const a = (x && x.act) || {}; if (!x) return;
+  $("#findQ").value = ""; findClose(); $("#findQ").blur();
+  if (a.entry) return kpOpen(a.entry);
+  if (a.material) {
+    if (a.struktur && (alt || S.tool === "struktur")) return openStruktur(a.material);
+    if (S.tool === "karten") { addCmp(a.name); renderPane(); showTool(); return; }
+    S.inp.auswahl.sel = { id: a.material, name: a.name }; S.selCard = null;
+    return switchTool("auswahl");
+  }
+  if (a.system) { Object.assign(S.inp.phasen, { system: a.system, x: "", T: "" }); delete S.res.phasen; delete S.err.phasen; return switchTool("phasen"); }
+  if (a.phase) { S.inp.kristall.phase = a.phase; S.inp.kristall.cust.on = false; delete S.res.kristall; delete S.err.kristall; return switchTool("kristall"); }
+  if (a.mode && S.inp[a.tool].mode !== a.mode) { S.inp[a.tool].mode = a.mode; delete S.res[a.tool]; }
+  if (a.view) S.view[a.tool] = a.view;
+  switchTool(a.tool);
+}
+function findBind() {
+  const q = $("#findQ"), p = $("#findPop");
+  q.addEventListener("focus", findRun);
+  q.addEventListener("input", () => { FD.dirty = true; clearTimeout(FD.t); FD.t = setTimeout(findRun, 120); });
+  q.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== q) findClose(); }, 120));
+  q.addEventListener("keydown", async (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); findMove(e.key === "ArrowDown" ? 1 : -1); }
+    else if (e.key === "Escape") { e.preventDefault(); q.value = ""; findClose(); q.blur(); }
+    else if (e.key === "Enter" && e.altKey) { e.preventDefault(); if (FD.dirty) await findRun(); findSeries(FD.k); }
+    else if (e.key === "Enter") { e.preventDefault(); if (FD.dirty) await findRun(); findGo(FD.items[FD.k], e.shiftKey); }
+  });
+  p.addEventListener("mousedown", (e) => e.preventDefault());       // der Fokus bleibt im Feld
+  p.addEventListener("click", (e) => { const r = e.target.closest("[data-fi]"); if (!r) return; const x = FD.items[+r.dataset.fi]; if (e.target.closest("[data-fiib]")) return findSeries(+r.dataset.fi); if (e.target.closest("[data-fikp]")) return findGo({ act: { entry: x.act.kp } }); findGo(x, !!e.target.closest("[data-fialt]")); });
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { if (!$("#finder").offsetParent || $("#dlg").open) return; e.preventDefault(); q.focus(); q.select(); }
+    else if (e.key === "Escape" && !$("#kpWin").hidden && !$("#dlg").open && e.target !== q) { e.stopPropagation(); kpClose(); }
+  }, true);
+}
+
+// ---------------------------------------------------------------- Kompendium
+const KPW = { index: null, lang: "", cur: "", entry: null, elang: "", hits: null, seq: 0, qseq: 0, t: 0, mech: null, frame: 0, play: 0, panel: null, filter: "" };
+function kpClose() { kpPlay(false); KPW.mech = null; $("#kpWin").hidden = true; }
+async function kpLoadIndex() {
+  if (KPW.index && KPW.lang === lang()) return KPW.index;
+  const j = await api("api/tool/kompendium", { lang: lang() });
+  if (j.error) { toast(j.error, true); return null; }
+  KPW.index = j.index; KPW.lang = lang(); KPW.entry = null;
+  return j.index;
+}
+async function kpOpen(id) {
+  $("#kpWin").hidden = false;
+  if (!(await kpLoadIndex())) return;
+  await kpShow(id || KPW.cur || "tool:" + S.tool);
+}
+const KP_KIND = () => [["", "Alle Einträge", "All entries"], ["material", "Werkstoffe", "Materials"], ["tool", "Werkzeuge", "Tools"], ["atlas", "Gefügeatlas", "Atlas"], ["mech", "Mechanismen", "Mechanisms"], ["topic", "Themen", "Topics"], ["open", "Mit offenen Aussagen", "With open statements"]].map(([v, de, en]) => [v, L(de, en)]);
+const kpPass = (e) => { const f = KPW.filter; return !f || (f === "open" ? e.open > 0 : e.kind === f); };
+const kpHits = () => { const by = Object.fromEntries(KPW.index.map(e => [e.id, e])); return (KPW.hits || []).filter(h => { const e = by[h.id.split("#")[0]]; return !e || kpPass(e); }); };
+function kpListRender() {
+  const box = $("#kpList"), base = (KPW.cur || "").split("#")[0];
+  if (KPW.hits) {
+    const hits = kpHits();
+    box.innerHTML = hits.length ? hits.map(h => `<button type="button" data-kpid="${esc(h.id)}"${h.id === KPW.cur ? ' class="sel"' : ""}>${esc(h.title)}<small>${esc(h.sub || "")}</small></button>`).join("")
+      : `<div class="small" style="padding:8px">${esc(L("Nichts gefunden", "Nothing found"))}</div>`;
+    if (window.InfoBoard) InfoBoard.decorateList(box);
+    return;
+  }
+  const was = new Set($$("details[open]", box).map(d => d.dataset.g)), list = KPW.index.filter(kpPass), gs = [...new Set(list.map(e => e.group))];
+  const item = (e) => `<button type="button" data-kpid="${esc(e.id)}"${e.id === base ? ' class="sel"' : ""}>${esc(e.title)}</button>`;
+  box.innerHTML = gs.map(g => { const es = list.filter(e => e.group === g), subs = [...new Set(es.map(e => e.sub || ""))];
+    const inner = subs.length > 1 ? subs.map(s => `<div class="kpsub">${esc(s)}</div>${es.filter(e => (e.sub || "") === s).map(item).join("")}`).join("") : es.map(item).join("");
+    return `<details data-g="${esc(g)}"${was.has(g) || gs.length === 1 || es.some(e => e.id === base) ? " open" : ""}><summary>${esc(g)} <span class="small">${es.length}</span></summary>${inner}</details>`; }).join("")
+    || `<div class="small" style="padding:8px">${esc(L("Keine Einträge", "No entries"))}</div>`;
+  if (window.InfoBoard) InfoBoard.decorateList(box);
+}
+const KP_MARK = { unchecked: "†", mixed: "†", partial: "◐" };
+function kpStatus(st) {
+  if (!st || !st.n) return "";
+  return `<div class="kpstat" title="${esc(L("† stützt sich ganz oder teilweise auf Quellen, die nicht am Original geprüft sind. Kein Zeichen heisst: kein Prüfvermerk, nicht: geprüft.", "† rests fully or partly on sources not checked against the original. No mark means no check on record, not: checked."))}"><b>${st.n}</b> ${esc(L("Aussagen", "statements"))} · ${st.cited} ${esc(L("zitiert", "cited"))}${st.open ? ` · <span class="kpopen">${st.open} ${esc(L("ohne Quelle", "without source"))}</span>` : ""}${st.only_unchecked ? ` · ${st.only_unchecked} ${esc(L("nur auf ungeprüften Quellen †", "on unchecked sources only †"))}` : ""}${st.sources ? ` · ${st.sources} ${esc(L("Quellen", "sources"))}, ${st.sources_unchecked} ${esc(L("ungeprüft", "unchecked"))}` : ""}</div>`;
+}
+const kpAllSt = (e) => [...(e.facts || []), ...(e.statements || []), ...(e.sections || []).flatMap(s => s.statements || [])];
+function kpEntryHtml(e) {
+  const refs = e.refs || [], pos = Object.fromEntries(refs.map((q, k) => [q.key, k + 1]));
+  const num = (k) => pos[k] ? pos[k] + (KP_MARK[refs[pos[k] - 1].status] || "") : "";
+  const cite = (keys, basis) => { const n = (keys || []).map(num).filter(Boolean); return n.length ? ` <span class="kpcite"${basis === "entry" ? ` title="${esc(L("Quellen des Eintrags; die Zuordnung zu diesem Satz steht noch aus", "Sources of the entry; assignment to this sentence is pending"))}"` : ""}>[${n.join(", ")}]${basis === "entry" ? "*" : ""}</span>` : ""; };
+  const flag = (s) => s.unsourced === "open" ? ` <span class="kpopen" title="${esc(L("Keine nachvollziehbare Quelle; offen für die Quellenprüfung", "No traceable source; open for the source check"))}">${esc(L("ohne Quelle", "no source"))}</span>` : "";
+  const line = (s) => `<p data-sid="${esc(s.id)}">${esc(s.text)}${cite(s.keys, s.basis)}${flag(s)}</p>`;
+  const isSw = (s) => s.unsourced === "software";
+  const secs = e.sections || [], own = e.statements || [];
+  let h = `<h3>${esc(e.title)}</h3>`;
+  if (e.kind === "tool" || e.kind === "topic" || e.kind === "material") h += `<div class="small">${esc(e.short || "")}</div>`;
+  h += kpStatus(e.stats);
+  if (e.media === "mech") h += `<svg id="kpSvg" role="img" aria-label="${esc(e.title)}"></svg><div class="row" style="align-items:center"><button type="button" data-kpstep="-1" aria-label="${esc(L("Bild zurück", "Previous frame"))}">‹</button><button type="button" id="kpPlayB">▶ ${esc(L("Abspielen", "Play"))}</button><button type="button" data-kpstep="1" aria-label="${esc(L("Bild vor", "Next frame"))}">›</button><input type="range" id="kpFrame" min="0" max="0" value="0" style="flex:1;min-width:80px" aria-label="${esc(L("Bild", "Frame"))}"></div><div class="small" id="kpFrameLab"></div><div class="small strcap" id="kpFrameCap"></div>`;
+  if (e.media === "atlas") h += `<svg id="kpSvg" role="img" aria-label="${esc(e.title)}"></svg>`;
+  if (e.media) h += `<label class="chk"><input type="checkbox" id="kpEtch"${S.inp.struktur.etch ? " checked" : ""}> ${esc(L("Als Schliffbild (geätzt, grau)", "As a micrograph (etched, grey)"))}</label>`;
+  if (e.facts && e.facts.length) h += kv(e.facts.map(f => [esc(f.label), `<span data-sid="${esc(f.id)}">${esc(f.text)}${cite(f.keys, f.basis)}</span>`]));
+  if (e.kind === "material") {
+    const vals = own.filter(s => s.prop), key = vals.filter(s => KEY_PROPS.includes(s.prop)), rest = vals.filter(s => !KEY_PROPS.includes(s.prop));
+    const mk = (st) => KP_MARK[st] ? " " + KP_MARK[st] : "";
+    const row = (s) => `<tr data-sid="${esc(s.id)}"><td>${esc(s.label)}${s.art ? ` <span class="small">${esc(s.art)}</span>` : ""}</td><td class="num">${esc(s.shown)}${(s.value_keys || []).length ? mk(s.value_status) : ""}</td><td class="num"${s.range_note ? ` title="${esc(s.range_note)}"` : ""}>${s.range ? `${sig(s.range[0], 4)}–${sig(s.range[1], 4)}${mk(s.range_status)}` : ""}</td><td class="kpcite">${[...new Set([...(s.value_keys || []), ...(s.range_keys || [])])].map(num).filter(Boolean).join(", ")}${flag(s)}</td></tr>`;
+    const table = (rows) => `<table class="kpv"><thead><tr><th>${esc(L("Kennwert", "Property"))}</th><th class="num">${esc(L("Wert", "Value"))}</th><th class="num">${esc(L("Spanne", "Range"))}</th><th>${esc(L("Quelle", "Source"))}</th></tr></thead><tbody>${rows.map(row).join("")}</tbody></table>`;
+    h += table(key.length ? key : rest);
+    if (key.length && rest.length) h += `<details><summary>${esc(L("Weitere Kennwerte", "More properties"))} (${rest.length})</summary>${table(rest)}</details>`;
+    const lk = e.links || {}, chip = (x) => `<button type="button" data-kp="${esc(x.id)}">${esc(x.title)}</button>`;
+    const phase = (p) => p.builtin ? `<button type="button" data-kpact="phase:${esc(p.id)}" title="${esc(L("Im Werkzeug Kristall öffnen", "Open in the Crystal tool"))}">${esc(p.name)}</button>` : `<span class="plain">${esc(p.name)}${cite(p.keys)}</span>`;
+    const lrow = (lab, html) => html ? `<div class="kpchips"><span>${esc(lab)}</span>${html}</div>` : "";
+    h += lrow(L("Phasen", "Phases"), (lk.phases || []).map(phase).join("")) + lrow(L("Gefüge", "Microstructure"), (lk.atlas || []).map(chip).join("")) + lrow(L("Mechanismen", "Mechanisms"), (lk.mech || []).map(chip).join(""));
+    for (const s of secs) h += `<details class="kpsec" data-kpsec="${esc(s.id)}"><summary>${esc(s.title)}</summary>${(s.statements || []).map(x => line(x) + (x.parts && x.parts.length ? `<dl class="kpparts">${x.parts.map(p => `<dt>${esc(p.code)}</dt><dd>${esc(p.meaning)}</dd>`).join("")}</dl>` : "")).join("")}</details>`;
+    if (e.data_note || e.hint) h += `<details><summary>${esc(L("Anmerkung zur Datenlage", "Note on the data"))}</summary>${e.data_note ? `<p class="small">${esc(e.data_note)}</p>` : ""}${e.hint ? `<p class="small">${esc(e.hint)}</p>` : ""}</details>`;
+  } else {
+    if (e.media === "mech") { const steps = [...new Set(own.map(s => s.step))]; h += `<details><summary>${esc(L("Alle Schritte", "All steps"))}</summary><ol class="refs">${steps.map(n => `<li>${own.filter(s => s.step === n).map(line).join("")}</li>`).join("")}</ol></details>`; }
+    else h += own.filter(s => !isSw(s)).map(line).join("");
+    h += secs.map(s => { const body = (s.statements || []).filter(x => !isSw(x)); return `<section class="kpsec" data-kpsec="${esc(s.id)}">${body.length ? `${s.view === "_" ? "" : `<h4>${esc(s.title)}</h4>`}${body.map(line).join("")}` : ""}</section>`; }).join("");
+    const sw = [...own.filter(isSw), ...secs.flatMap(s => (s.statements || []).filter(isSw))];
+    if (sw.length && e.media !== "mech") h += `<details><summary>${esc(L("Verhalten des Programms", "Program behaviour"))} (${sw.length})</summary>${sw.map(line).join("")}</details>`;
+  }
+  if (e.note) h += `<p class="small">${esc(e.note)}</p>`;
+  const acts = (e.actions || []).map(a => a.id === "ex:gitter"
+    ? `<select data-kpgex aria-label="${esc(a.label)}"><option value="">${esc(L("Beispiel laden …", "Load example …"))}</option>${(((EN() ? META.gitter.examples_en : META.gitter.examples)) || []).map((x, k) => `<option value="${k}">${esc(x.name)}</option>`).join("")}</select>`
+    : `<button type="button" data-kpact="${esc(a.id)}">${esc(a.label)}</button>`).join("");
+  const matActs = e.kind === "material" ? `<button type="button" data-kpact="card:${esc(e.material)}">${esc(L("Karte in der Auswahl", "Card in Selection"))}</button>${e.struktur ? `<button type="button" data-kpact="str:${esc(e.material)}">${esc(L("Struktur", "Structure"))}</button>` : ""}` : "";
+  const rep = e.media && window.Lab ? `<button type="button" data-kpreport>${esc(L("Zum Bericht …", "To report …"))}</button>` : "";
+  if (acts || rep || matActs) h += `<div class="kpacts">${acts}${matActs}${rep}</div>`;
+  if (refs.length) {
+    const mark = (q) => q.status === "unchecked" ? " †" : q.status === "partial" ? " ◐" : "";
+    h += `<h4>${esc(L("Quellen", "Sources"))}</h4><ol class="refs">${refs.map(q => `<li data-ref="${esc(q.key)}">${esc(q.text)}${mark(q)}</li>`).join("")}</ol>` +
+      `<div class="small">${refs.some(q => q.status === "unchecked") ? `† ${esc(L("nicht am Original geprüft", "not checked against the original"))} · ` : ""}${refs.some(q => q.status === "partial") ? `◐ ${esc(L("teilweise geprüft, siehe Vermerk", "partly checked, see note"))} · ` : ""}${esc(L("ohne Zeichen: kein Prüfvermerk", "no mark: no check on record"))}${kpAllSt(e).some(s => s.basis === "entry") ? ` · * ${esc(L("Quelle des Eintrags, Satzzuordnung offen", "source of the entry, sentence assignment open"))}` : ""}</div>`;
+  }
+  return h;
+}
+async function kpShow(id) {
+  kpPlay(false); KPW.mech = null; KPW.panel = null;
+  const n = ++KPW.seq, base = id.split("#")[0];
+  let e = KPW.entry && KPW.entry.id === base && KPW.elang === lang() ? KPW.entry : null;
+  if (!e) {
+    const j = await api("api/tool/kompendium", { id: base, lang: lang() });
+    if (n !== KPW.seq) return;
+    if (j.error) { $("#kpEntry").innerHTML = note(esc(j.error), "err"); return; }
+    e = KPW.entry = j.entry; KPW.elang = lang();
+  }
+  KPW.cur = id; kpListRender();
+  const box = $("#kpEntry"); box.innerHTML = kpEntryHtml(e); box.scrollTop = 0;
+  if (window.InfoBoard) InfoBoard.decorateEntry(box, e);
+  const sec = $$("[data-kpsec]", box).find(x => x.dataset.kpsec === id);
+  if (sec) { if (sec.tagName === "DETAILS") sec.open = true; sec.classList.add("on"); sec.scrollIntoView({ block: "start" }); }
+  if (e.media === "atlas") {
+    const j = await api("api/tool/struktur", { mode: "atlas", gef: e.gef, seed: 1, lang: lang() });
+    if (n === KPW.seq && !j.error) { KPW.panel = j.panels[0]; kpDraw(); }
+  }
+  if (e.media === "mech") {
+    const j = await api("api/tool/struktur", { mode: "mech", mech: e.mech, seed: 1, frames: 24, lang: lang() });
+    if (n === KPW.seq && !j.error) { KPW.mech = j; $("#kpFrame").max = j.frames.length - 1; kpFrame(0); }
+  }
+}
+function kpDraw() {
+  const sv = $("#kpSvg"), p = KPW.panel; if (!sv || !p) return;
+  sv.innerHTML = "";
+  const W = sv.clientWidth || 560, H = sv.clientHeight || 320, c = $("#kpEtch");
+  if (p.kind === "sketch") drawSketch(sv, W, H, p.sketch, { etch: !!(c && c.checked) }); else drawScene(sv, W, H, p.scene);
+}
+function kpFrame(k) {
+  const m = KPW.mech; if (!m) return;
+  const N = m.frames.length; KPW.frame = ((k % N) + N) % N;
+  const f = m.frames[KPW.frame]; KPW.panel = f.panels[0]; kpDraw();
+  const s = $("#kpFrame"), l = $("#kpFrameLab"), c = $("#kpFrameCap");
+  if (s) s.value = KPW.frame; if (l) l.textContent = `${KPW.frame + 1} / ${N} · ${f.label}`; if (c) c.textContent = f.caption || "";
+  if (window.InfoBoard) InfoBoard.figChanged();
+}
+function kpPlay(on) {
+  clearTimeout(KPW.play); KPW.play = 0;
+  if (on && KPW.mech) { const tick = () => { if (!KPW.mech || $("#kpWin").hidden) return kpPlay(false); kpFrame(KPW.frame + 1); KPW.play = setTimeout(tick, KPW.frame === KPW.mech.frames.length - 1 ? 1400 : 420); }; KPW.play = setTimeout(tick, 200); }
+  const b = $("#kpPlayB"); if (b) b.textContent = KPW.play ? "❚❚ " + L("Anhalten", "Pause") : "▶ " + L("Abspielen", "Play");
+}
+function kpAction(id) {
+  const [k, v] = id.split(":");
+  kpClose();
+  if (k === "open") return switchTool(v);
+  if (k === "ex") { const t = v === "hp" ? "haerte" : v; if (S.tool !== t) switchTool(t); loadExample(v); }
+  if (k === "phase") { S.inp.kristall.phase = v; S.inp.kristall.cust.on = false; delete S.res.kristall; delete S.err.kristall; switchTool("kristall"); }
+  if (k === "str") openStruktur(v);
+  if (k === "card") { S.inp.auswahl.sel = { id: v, name: KPW.entry && KPW.entry.material === v ? KPW.entry.title : v }; S.selCard = null; switchTool("auswahl"); }
+}
+function kpToReport(e) {                            // Mechanismus oder Gefüge als eigener Abschnitt im Bericht
+  const req = e.media === "mech" ? { mode: "mech", mech: e.mech, seed: 1 } : { mode: "atlas", gef: e.gef, seed: 1 };
+  window.Lab.sendToReport({
+    module: "werkstoffe", title: L("Werkstoffe: ", "Materials: ") + e.title, scopes: [{ id: "cur", label: e.title }],
+    include: [{ id: "figures", label: L("Abbildungen", "Figures") }, { id: "tables", label: L("Tabellen", "Tables") }, { id: "citations", label: L("Quellen", "Sources") }, { id: "text", label: L("Textbausteine", "Text blocks") }],
+    build: ({ lang: lg, include, title }) => api("api/bundle", { sections: [{ tool: "struktur", req }], lang: lg, include, title }),
+  });
+}
+function kpBind() {
+  $("#kpBtn").addEventListener("click", () => ($("#kpWin").hidden ? kpOpen() : kpClose()));
+  $("#kpClose").addEventListener("click", kpClose);
+  $("#kpList").addEventListener("click", (e) => { const b = e.target.closest("[data-kpid]"); if (b) kpShow(b.dataset.kpid); });
+  $("#kpFilter").addEventListener("change", (e) => { KPW.filter = e.target.value; if (KPW.index) kpListRender(); });
+  const q = $("#kpQ");
+  const run = async () => {
+    const tx = q.value.trim(), n = ++KPW.qseq;
+    if (!tx) { KPW.hits = null; return kpListRender(); }
+    const j = await api("api/tool/finden", { q: tx, lang: lang(), kinds: ["entry"], limit: 60 });
+    if (n !== KPW.qseq || j.error) return;
+    KPW.hits = (j.groups[0] || { items: [] }).items; kpListRender();
+  };
+  q.addEventListener("input", () => { clearTimeout(KPW.t); KPW.t = setTimeout(run, 140); });
+  q.addEventListener("keydown", (e) => { if (e.key !== "Enter" || !KPW.hits) return; const h = kpHits()[0]; if (h) { e.preventDefault(); kpShow(h.id); } });
+  const box = $("#kpEntry");
+  box.addEventListener("click", (e) => {
+    const a = e.target.closest("[data-kpact]"); if (a) return kpAction(a.dataset.kpact);
+    const st = e.target.closest("[data-kpstep]"); if (st) { kpPlay(false); return kpFrame(KPW.frame + +st.dataset.kpstep); }
+    if (e.target.closest("[data-kpreport]") && KPW.entry) return kpToReport(KPW.entry);
+    if (e.target.closest("#kpPlayB")) kpPlay(!KPW.play);
+  });
+  box.addEventListener("input", (e) => { if (e.target.id === "kpFrame") { kpPlay(false); kpFrame(+e.target.value); } });
+  box.addEventListener("change", (e) => {
+    if (e.target.id === "kpEtch") kpDraw();
+    if (e.target.matches("[data-kpgex]")) {
+      const x = ((EN() ? META.gitter.examples_en : META.gitter.examples) || [])[+e.target.value]; if (!x) return;
+      Object.assign(S.inp.gitter, { host: x.wirt, T: x.T, unit: (x.geloest[0] || {}).einheit === "at" ? "at" : "wt", sols: x.geloest.map(g => ({ el: g.el, c: g.c })) });
+      delete S.res.gitter; kpClose(); switchTool("gitter");
+    }
+  });
+}
+// ---- Infotafel: was die Seite ihr zeigt (Logik und Fläche in infoboard.js)
+function ibFigSpec() {
+  const e = KPW.entry; if (!e) return null;
+  if (e.media === "atlas") return { kind: "figure", fig: "atlas", gef: e.gef };
+  return e.media === "mech" ? { kind: "figure", fig: "mech", mech: e.mech, frame: KPW.mech ? KPW.frame : 0 } : null;
+}
+function ibChartSpec() {                            // das Kennwertdiagramm in der aktuellen Ansicht; PL.view steht bei log-Achsen in log10
+  const sp = PL.spec, v = PL.view;
+  if (S.tool !== "auswahl" || !S.res.auswahl || S.err.auswahl || !sp || sp.custom) return null;
+  const { view, lang: _lang, ...req } = reqOf("auswahl");
+  const ax = (a, log) => +(log ? 10 ** a : a).toPrecision(6);
+  return { kind: "figure", fig: "chart", req, view: view || {}, limits: v ? [ax(v.x0, sp.xlog), ax(v.x1, sp.xlog), ax(v.y0, sp.ylog), ax(v.y1, sp.ylog)] : null };
+}
+function ibChartFamily() {
+  const i = S.inp.auswahl, r = S.res.auswahl;
+  if (S.tool !== "auswahl" || !r || !i || !i.fam) return null;
+  const ids = r.points.filter(p => p.familie === i.fam && !p.own && !p.mp).map(p => p.id);
+  return ids.length ? { name: famName(i.fam), ids } : null;
+}
+function ibStart() {
+  if (!window.InfoBoard || !META.infoboard) return;  // Modulserver älter als die Seite: kein Einstieg, kein Fehler
+  InfoBoard.init({ api, L, esc, lang, toast, dialog, kpOpen, kpShow, kpEntry: () => KPW.entry, figSpec: ibFigSpec, chartSpec: ibChartSpec, chartFamily: ibChartFamily });
+}
+function chromeText() {
+  $("#findQ").placeholder = L("Suchen … (Strg+K)", "Search … (Ctrl+K)");
+  $("#findQ").setAttribute("aria-label", L("Werkzeuge, Werkstoffe, Ansichten und Kompendium durchsuchen", "Search tools, materials, views and the compendium"));
+  $("#kpBtnT").textContent = L("Kompendium", "Compendium"); $("#kpTitle").textContent = L("Kompendium", "Compendium");
+  $("#kpQ").placeholder = L("Im Kompendium suchen …", "Search the compendium …");
+  $("#kpQ").setAttribute("aria-label", L("Im Kompendium suchen", "Search the compendium"));
+  $("#kpClose").setAttribute("aria-label", L("Schliessen", "Close"));
+  const kf = $("#kpFilter"); kf.setAttribute("aria-label", L("Einträge filtern", "Filter entries"));
+  kf.innerHTML = KP_KIND().map(([v, l]) => `<option value="${v}"${KPW.filter === v ? " selected" : ""}>${esc(l)}</option>`).join("");
+}
+
+// ---------------------------------------------------------------- Projektindex: Wert ins zuletzt benutzte Zahlenfeld
+const LASTNUM = {};                                 // je Werkzeug das zuletzt benutzte Zahlenfeld
+function numBind() {
+  $("#pane").addEventListener("focusin", (e) => {
+    const x = e.target;
+    if (!x || x.tagName !== "INPUT" || x.getAttribute("inputmode") !== "decimal" || !x.hasAttribute("data-u")) return;
+    const d = x.dataset;
+    LASTNUM[S.tool] = d.g ? { g: d.g, r: d.r, c: d.c, u: d.u, lab: d.lab || d.c } : { k: d.k, u: d.u, lab: d.lab || d.k };
+  });
+}
+async function takeIndex(x) {
+  const f = LASTNUM[S.tool], q = (x && x.quantity) || {};
+  if (!f) return toast(L("Zuerst in das Zahlenfeld klicken, das den Wert bekommen soll.", "First click the numeric field that should receive the value."), true);
+  const inp = f.g ? $(`[data-g="${CSS.escape(f.g)}"][data-r="${CSS.escape(f.r)}"][data-c="${CSS.escape(f.c)}"]`, $("#pane")) : $(`[data-k="${CSS.escape(f.k)}"]`, $("#pane"));
+  if (!inp) return toast(L(`Das Feld „${f.lab}“ ist gerade nicht sichtbar.`, `The field “${f.lab}” is not visible right now.`), true);
+  const j = await api("api/tool/einheit", { value: q.value, from: q.unit || "", to: f.u });
+  if (!j || j.error) return toast(L(`Nicht übernommen (${f.lab}): `, `Not taken (${f.lab}): `) + ((j && j.error) || L("Fehler", "error")), true);
+  inp.value = String(j.value).replace(".", EN() ? "." : ",");
+  inp.dispatchEvent(new Event("input", { bubbles: true }));
+  inp.focus();
+  const was = `${q.value}${q.unit ? " " + q.unit : ""}`, now = `${inp.value}${f.u ? " " + f.u : ""}`;
+  toast(`${f.lab} = ${now}` + (j.converted ? L(` (aus ${was})`, ` (from ${was})`) : "") + (q.u != null ? L("; Unsicherheit nicht übernommen", "; uncertainty not taken") : ""));
+}
+
 // ---------------------------------------------------------------- Menüs
 const MENUS = [
   { label: () => L("Datei", "File"), items: [
@@ -2058,7 +3147,7 @@ const MENUS = [
     "-",
     { label: () => L("Zum Bericht …", "To report …"), enabled: () => !!window.Lab && reportable().length > 0, act: sendToReport },
     { label: () => L("Ergebnisse in den Projektindex …", "Results to the project index …"), enabled: () => indexEntries().length > 0, act: indexAll },
-    { label: () => L("Projektindex …", "Project index …"), act: () => LabIndex.browse(api, toast) },
+    { label: () => L("Projektindex …", "Project index …"), act: () => LabIndex.browse(api, toast, takeIndex) },
     { label: () => L("Ansicht als SVG speichern", "Save view as SVG"), enabled: () => !!PL.spec && $("#plot").style.display !== "none", act: saveSvg },
     "-",
     { label: () => L("Alle Dateien schliessen", "Close all files"), enabled: () => S.items.length > 0, act: async () => { if (confirm(L("Alle geladenen Dateien schliessen?", "Close all loaded files?"))) { for (const x of [...S.items]) await removeItem(x.id); } } },
@@ -2069,6 +3158,9 @@ const MENUS = [
     { label: () => L("Fenstergrössen zurücksetzen", "Reset window sizes"), enabled: () => !!(window.LabUI && LabUI.resetSizes), act: () => LabUI.resetSizes("werkstoffe") },
   ] },
   { label: () => L("Hilfe", "Help"), items: [
+    { label: () => L("Suchen …", "Search …"), key: "Strg+K", act: () => { $("#findQ").focus(); } },
+    { label: () => L("Kompendium …", "Compendium …"), act: () => kpOpen() },
+    "-",
     { label: () => L("Kennzeichnungen …", "Labels …"), act: () => dialog(L("Kennzeichnungen", "Labels"), `<p>${esc(L("† nicht gegen das Original geprüft (aus dem Gedächtnis nach der genannten Quelle).", "† not checked against the original (from memory after the cited source)."))}</p>
       <p>${esc(L("„schematisch“: Zustandsdiagramm aus zitierten Eckpunkten gezeichnet. „berechnet“: aus einem Modell (Lösungsmodell, Struktur, Formel), nicht gemessen. „berechnet (DFT)“: Materials Project, Dichtefunktionaltheorie.", "“schematic”: phase diagram drawn from cited key points. “computed”: from a model (solution model, structure, formula), not measured. “computed (DFT)”: Materials Project, density functional theory."))}</p>
       <p>${esc(L("Härte-Umwertung nur mit einer eigenen Tabelle (eigene Kopie der Norm); sonst nur die gekennzeichnete Faustregel. Keine ICDD-Daten: Vergleichsmuster werden aus Strukturen berechnet.", "Hardness conversion only with an own table (own copy of the standard); otherwise only the labelled rule of thumb. No ICDD data: reference patterns are computed from structures."))}</p>`, [{ value: "ok", label: "OK", primary: true }]) },
@@ -2118,8 +3210,7 @@ function bind() {
   $("#file").addEventListener("change", (e) => { const fs = [...e.target.files]; e.target.value = ""; const cb = pickCb; pickCb = null; if (fs.length && cb) cb(fs); });
   $("#stage").addEventListener("click", (e) => {
     const b = e.target.closest("[data-eact]"); if (!b) return;
-    const a = b.dataset.eact;
-    if (a === "ex") loadExample(S.tool); else act(a);
+    act(b.dataset.eact);
   });
   const stage = $("#stage");
   stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.classList.add("drop"); });
@@ -2134,16 +3225,24 @@ function bind() {
     if (e.target.closest("input,textarea,select") || $("#dlg").open) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") { e.preventDefault(); act("open"); }
     else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === "0") resetView();
+    else if (e.key === "Escape" && S.tool === "auswahl" && (S.inp.auswahl.sel || S.inp.auswahl.fam)) clearSel(true);
+    else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && !e.ctrlKey && !e.metaKey && !e.altKey && S.tool === "struktur" && S.res.struktur && S.res.struktur.frames) {
+      e.preventDefault(); strPlay(false); strGo((S.inp.struktur.frame || 0) + (e.key === "ArrowLeft" ? -1 : 1)); saveSoon();
+    }
   });
+  // ⇄ in der Karte: der Werkstoff bleibt im Wertekatalog, damit geteilte Werte nicht verschwinden, wenn die Wahl wechselt
+  $("#selCard").addEventListener("pointerdown", (e) => { if (e.target.closest("[data-lov-shr]")) keepShared(); }, true);
 }
 async function init() {
   META = await api("api/meta");
   if (META.error) { toast(META.error, true); return; }
+  if (!META.groups) { $("#empty").hidden = false; $("#emptyBox").innerHTML = `<b>${esc(L("Modul neu starten", "Restart the module"))}</b>${esc(L("Der laufende Modulserver ist älter als diese Seite.", "The running module server is older than this page."))}`; return; }
+  Object.assign(NAMES, META.names); GROUPS.push(...META.groups.map(g => ({ ...g, icon: GROUP_ICON[g.id] })));
   for (const [t, d] of Object.entries(DEF)) S.inp[t] = clone(d);
   if (META.plies && META.plies.length) S.inp.laminat.material = META.plies.find(n => /AS4|CFK|carbon/i.test(n)) || META.plies[0];
   S.items = META.items || [];
   await loadPhases();
-  bind(); buildMenus(); renderTools(); renderTabs(); renderPane(); renderChips();
+  bind(); findBind(); kpBind(); numBind(); chromeText(); buildMenus(); renderTools(); renderTabs(); renderPane(); renderChips();
   if (window.Lab) { $("#labBtn").hidden = false; $("#labBtn").addEventListener("click", sendToReport); }
   window.ENVS = LabEnv.create({
     api, toast, label: $("#envName"),
@@ -2151,13 +3250,17 @@ async function init() {
     list: () => S.items, sel: () => 0,
     reset: () => { S.items = []; S.res = {}; S.err = {}; },
     add: async (d) => { S.items.push(d); },
-    extra: () => ({ tool: S.tool, inp: S.inp, view: S.view, last: S.last || {}, seen: S.seen || {} }), summary: envSummary,
+    extra: () => ({ tool: S.tool, inp: S.inp, view: S.view, last: S.last || {}, recent: S.recent || [], seen: S.seen || {}, unc: window.LabUnc ? LabUnc.all() : {}, unc_method: S.uncM }), summary: envSummary,
     // Berichtsauftrag aller berechneten Werkzeuge, damit „Import“ im Bericht diese Umgebung lesen kann
-    report: () => { const done = reportable(); return done.length ? { sections: done.map(t => ({ tool: t, req: REQ[t](S.inp[t]) })), lang: lang(), include: {}, title: L("Werkstoffe: ", "Materials: ") + done.map(tname).join(", ") } : null; },
+    report: () => { const done = reportable(); return done.length ? { sections: done.map(t => ({ tool: t, req: reqOf(t) })), lang: lang(), include: {}, title: L("Werkstoffe: ", "Materials: ") + done.map(tname).join(", ") } : null; },
     done: async (_sel, extra) => {
       for (const [t, d] of Object.entries(DEF)) S.inp[t] = merge(d, extra && extra.inp ? extra.inp[t] : undefined);
       if (!S.inp.laminat.material && META.plies && META.plies.length) S.inp.laminat.material = META.plies.find(n => /AS4|CFK|carbon/i.test(n)) || META.plies[0];
       S.view = (extra && extra.view) || {}; S.last = (extra && extra.last) || {}; S.seen = (extra && extra.seen) || {};
+      S.recent = ((extra && extra.recent) || []).filter(t => NAMES[t]); S.tabGrp = null;
+      if (!["T", "temper"].includes(S.inp.struktur.mode)) S.inp.struktur.mode = "T";     // Mechanismen und Atlas stehen jetzt im Kompendium
+      if (window.LabUnc) LabUnc.load((extra && extra.unc) || {});
+      S.uncM = (extra && extra.unc_method) || { method: "gum", p: 0.95, k: null };
       S.res = {}; S.err = {};
       await loadPhases();
       renderChips();
@@ -2167,13 +3270,15 @@ async function init() {
       // übrige Werkzeuge mit eigenen Eingaben im Hintergrund nachrechnen (Bericht „alle“, Übersicht)
       (async () => { for (const t of Object.keys(DEF)) if (t !== cur && t !== "karten" && (S.seen[t] || JSON.stringify(S.inp[t]) !== JSON.stringify(DEF[t])) && (!READY[t] || READY[t](S.inp[t]))) await runTool(t); })();
       if (OV) setTimeout(() => OV.sync(), 0);
+      if (window.InfoBoard) InfoBoard.sync();
     },
   });
   await withBusy(() => ENVS.open());
   if (!ENVS.ready) switchTool(S.tool);
+  ibStart();
   if (window.LabUI) {
     LabUI.langSwitch($("#langSw")); LabUI.apply(); if (LabUI.sizes) LabUI.sizes("werkstoffe");
-    LabUI.onLang(async () => { buildMenus(); renderTools(); renderTabs(); await loadPhases(); for (const t of Object.keys(S.res)) delete S.res[t]; renderPane(); runTool(S.tool); });
+    LabUI.onLang(async () => { chromeText(); KPW.index = null; KPW.entry = null; KPW.hits = null; $("#kpQ").value = ""; if (!$("#kpWin").hidden) kpOpen(KPW.cur); if (window.InfoBoard) InfoBoard.relabel(); buildMenus(); renderTools(); renderTabs(); await loadPhases(); for (const t of Object.keys(S.res)) delete S.res[t]; renderPane(); runTool(S.tool); });
   }
   if (window.LabOverview) {
     OV = LabOverview.create({
@@ -2181,10 +3286,25 @@ async function init() {
       detail: [$("#menubar"), $("main")], crumbs: $("#crumbs"),
       values: { catalogue: valCatalogue, apply: (rows) => { S.ext = LabOverview.extValues(S.ext, rows).list; }, version: META.version || "" },
       imports: WS_IMP,
-      onView: (v) => { if (v === "detail") setTimeout(drawPlot, 0); },
+      onView: (v) => { if (v === "detail") setTimeout(drawPlot, 0); else { kpClose(); if (window.InfoBoard) InfoBoard.close(); } },
     });
     if (OV) { OV.start(); if (OV.ok) $("#envName").remove(); }
   }
+  linkStruktur();
+}
+// Verweis aus dem Zugversuch: ?struktur=<id oder Name> öffnet die Strukturansicht dieses Werkstoffs (einmalig)
+function linkStruktur() {
+  let q = ""; try { q = new URLSearchParams(location.search).get("struktur") || ""; } catch (e) { return; }
+  if (!q) return;
+  try { const u = new URL(location.href); u.searchParams.delete("struktur"); history.replaceState(null, "", u.pathname + u.search + u.hash); } catch (e) { /* egal */ }
+  const norm = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+  const all = [...(((META.struktur || {}).de) || []), ...(((META.struktur || {}).en) || [])];
+  const m = all.find(x => x.id === q) || all.find(x => norm(x.name) === norm(q));
+  if (!m) { toast(L(`„${q}“ hat keinen Strukturdatensatz.`, `“${q}” has no structure record.`), true); return; }
+  const i = S.inp.struktur;
+  Object.assign(i, { material: m.id, steps: [], preset: "", kind: "", frame: 0, mode: "T" });
+  strPlay(false); delete S.res.struktur; delete S.err.struktur;
+  switchTool("struktur");
 }
 init();
 </script>

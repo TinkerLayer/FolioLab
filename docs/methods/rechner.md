@@ -12,10 +12,10 @@ For how to use the page, see the [module README](../../modules/rechner/README.md
 
 State the software and the module version:
 
-> Calculated with Folio Lab 0.4.0, module Rechner 1.5.0.
+> Calculated with Folio Lab 0.5.0, module Rechner 1.8.0.
 
 - The Folio Lab version is `version` in the top-level `package.json`.
-- The module version is `version` in `modules/rechner/module.json` (`"1.4.0"`). It is identical to `__version__` in
+- The module version is `version` in `modules/rechner/module.json` (`"1.6.0"`). It is identical to `__version__` in
   `modules/rechner/rechner/__init__.py`.
 - Every report bundle writes a `bundle.json` with a `provenance` block. It records `suite_version` (Folio Lab), `module_id`, `module_version` and
   `source_sha256` (the SHA-256 hash of each source file attached to the bundle), plus a `result_id` and a `revision`.
@@ -46,7 +46,9 @@ State the software and the module version:
 13. [Matrices](#13-matrices)
 14. [Chemistry lookup functions](#14-chemistry-lookup-functions)
 15. [Materials database and lookup functions](#15-materials-database-and-lookup-functions)
-15. [Known limitations](#known-limitations)
+16. [Line order, open names, ranges and sliders](#16-line-order-open-names-ranges-and-sliders)
+17. [Measurement uncertainty in calculation lines](#17-measurement-uncertainty-in-calculation-lines)
+18. [Known limitations](#known-limitations)
 
 Test paths are relative to the project root. SDK tests run with `python -m unittest discover -s tests` from
 `sdk/python`. Module tests run with the same command from `modules/rechner`.
@@ -56,7 +58,8 @@ Test paths are relative to the project root. SDK tests run with `python -m unitt
 ## 1. Evaluation and number display
 
 **What is computed.** Each input is parsed into a restricted Python syntax tree and evaluated with numpy
-(`sdk/python/labcalc/expr.py`). `eval` is never used. Unknown names are an error.
+(`sdk/python/labcalc/expr.py`). `eval` is never used. Unknown names are an error, except where
+[section 16](#16-line-order-open-names-ranges-and-sliders) keeps them as symbols.
 
 **Notation.** Implicit multiplication (`2(3+4)`, `a b`), `^` for powers, `!` for factorial, `e` notation for powers
 of ten. Trigonometric functions use the DEG/RAD setting of the page. Formula cards always calculate in radians.
@@ -430,7 +433,11 @@ If exactly one variable has no value, it is calculated. The target can also be s
 **Algorithm.**
 1. **Insert values.** A sheet variable is inserted if symbol and kind of quantity both match. If there is exactly one
    user value of a kind (not the kind "number") and exactly one variable of that kind in the equation, it is inserted
-   too. `pi`, `e`, `MPa1` and `c_std` are never replaced by user values.
+   too. `pi`, `e`, `MPa1` and `c_std` are never replaced by user values. Since 1.8.0 a scalar from a calculation line
+   of the same sheet (or passed on from another sheet) is inserted if its name equals the symbol and its dimension
+   fits the kind; a number without a unit counts in the SI unit of the kind. Order: value typed in the card, sheet
+   variable, line value, other cards and derived values. When line values change a card result, the lines are
+   calculated once more with the new result.
 2. **Symbolic isolation.** The equation is rearranged for the target if the target occurs exactly once. Inverse
    functions use their principal branch. For an even power, the negative root is added unless the kind of quantity is
    positive.
@@ -480,6 +487,9 @@ significant digits. No uncertainty is propagated.
 | `modules/rechner/tests/test_rechner.py::Sheet::test_numeric_and_units` | s = v0·t + a·t²/2 solved numerically for t: (−5 + √425)/2 s (8 places) |
 | `modules/rechner/tests/test_rechner.py::Sheet::test_card_cycle_marked` | two cards that need each other are marked as a circular reference |
 | `modules/rechner/tests/test_rechner.py::Sheet::test_missing` | missing variable is reported |
+| `modules/rechner/tests/test_calc_flow.py::CardButtons` | F, m and a of F = m·a each solved through the target button path |
+| `modules/rechner/tests/test_calc_flow.py::PageValues` | `m = 2 kg` feeds a card; typed value and sheet variable take precedence; wrong dimension is not inserted; result flows back into lines |
+| `modules/rechner/tests/test_calc_flow.py::Exports` | card results and solved quantities reach other sheets with their unit; line values keep u |
 | `modules/rechner/tests/test_rechner.py::Sheet::test_goal` | search lists equations for power and for K_I |
 | `modules/rechner/tests/test_rechner.py::Sheet::test_curve` | formula curve over σ has the requested points and falls |
 | `modules/rechner/tests/test_science.py::CardCheck::test_rounding_of` | `2.50` → 0.002; `1.5e3` → 50/1500; `7` exact |
@@ -847,6 +857,23 @@ Code: `sdk/python/labcalc/expr.py`.
 - A note is shown if the estimated relative error exceeds 10⁻⁶, or "keine verlässliche Fehlerschätzung (Funktion an
   der Stelle nicht glatt?)" if no estimate is possible.
 
+**Symbolic derivatives: `f'(x)`, `f''(x)`, `diff(expr, x)`, `diff(expr, x, n)`** (since 1.8.0; `labcalc/deriv.py`,
+own implementation without a computer-algebra library). Orders 1 to 10.
+- Rules (Stewart, *Calculus*, 8th ed., Cengage 2016, ch. 3 and §§ 6.2–6.7): constant, sum, product, quotient and chain
+  rule; power rule u^c, exponential c^v and the general form u^v = exp(v·ln u), so d/dx x^x = x^x (ln x + 1).
+- Outer derivatives for sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, exp, ln, log, log10, log2, sqrt, cbrt, root,
+  abs (sign x), erf, erfc, atan2, hypot, deg, rad. sign, floor, ceil and round count as 0 between their jumps.
+- In DEG mode the trigonometric rules carry the factor π/180 (inverse functions 180/π): d/dx sin x = (π/180)·cos x.
+- User functions are differentiated through their body with the chain rule. `if` is differentiated branch by branch;
+  `integral` uses the Leibniz rule, `sum` term by term.
+- The result is simplified: numbers are combined exactly as fractions, like terms and powers are merged, common factors
+  of a fraction cancel. The simplifier does not produce a unique normal form.
+- **Where no rule exists** (for example `gamma`), that part becomes the numerical estimate `deriv_est` at the current
+  value, for orders 1 and 2, and the line shows the note "Ableitung numerisch (zentrale Differenz), keine Regel für: …".
+- Unit: unit of the expression divided by (unit of the variable)ⁿ.
+- `diff(list)` stays the list of differences of neighbouring values. `A'` of a matrix stays the transpose: a prime
+  counts as a derivative only directly after a function name and before `(`.
+
 **`nsolve(equation, x, start)`.** Newton's method from the start value (at most 100 iterations, tolerance 10⁻¹²).
 If that fails, a sign-change scan over growing spans (1 to 10⁶, 401 points each) followed by bisection (tolerance
 10⁻¹³, 200 iterations). With two start values the root is bracketed between them.
@@ -877,6 +904,8 @@ unit of x, sum → unit of the terms (see [section 2](#2-units-and-conversion)).
 - The derivative is a numerical estimate; at kinks and discontinuities the value is the mean of both sides with a
   note.
 - `nsolve` returns one root; which one depends on the start value.
+- A symbolic derivative is valid where the function is differentiable: at kinks and jumps (`abs` at 0, `floor`) the
+  formula gives a value the true derivative does not have. Domains are not checked symbolically.
 
 **Validation.**
 
@@ -893,6 +922,10 @@ unit of x, sum → unit of the terms (see [section 2](#2-units-and-conversion)).
 | `sdk/python/tests/test_numerics.py::Derivative::test_one_sided_at_domain_boundary` | x^1.5 at 0: 0 (one-sided) |
 | `sdk/python/tests/test_numerics.py::Derivative::test_kink_gets_note` | \|x\| at 0 gives a note |
 | `sdk/python/tests/test_numerics.py::Derivative::test_render_not_defined` | NaN and ±∞ are rendered ("nicht definiert") instead of raising |
+| `sdk/python/tests/test_deriv.py::KnownAnswers` | x² → 2x, x³ → 3x², sin → cos, sin(x²) → 2x cos(x²), quotient, ln, exp, x^x, second derivatives, DEG factor, f′(3), Γ′(2) = 1 − γ through the numeric fallback |
+| `sdk/python/tests/test_deriv.py::AgainstCentralDifference` | 27 functions, first and second derivative, equal a five-point central difference |
+| `modules/rechner/tests/test_calc_flow.py::Derivatives` | f′, f″ and diff in lines, f′ at a value equals `deriv`, equations with f′, units, note on the fallback |
+| `modules/rechner/tests/test_calc_flow.py::GraphDerivatives` | f′ and f″ as curves, derived term in row and report legend |
 
 ---
 
@@ -926,10 +959,15 @@ is on (see [section 6](#6-equations-in-calculation-lines)).
 | `A/B` | A · inv(B) |
 | `A^n` | `numpy.linalg.matrix_power`, integer n only |
 | `det`, `inv`, `eig`, `eigvec`, `svd`, `pinv`, `cond`, `rank`, `norm` | numpy / LAPACK |
+| `cof(A)`, `adj(A)` | cofactor matrix from the minors (numpy `det`); adjugate = transpose of the cofactors, so A·adj(A) = det(A)·E also for singular A. Results of integer matrices are rounded to integers |
 | `rref` | Gauss–Jordan elimination, tolerance 10⁻¹² |
 | `linsolve(A, b)` | numpy linear solver |
 
 A singular matrix in `inv` or `linsolve` is an error.
+
+**Storing results.** `D = adj(A)` or `A*B = C` in the Matrices tab stores the result under a free name; an existing name
+is kept until **Store** overwrites it. In a calculation line `A*B = C` is an ordinary assignment and redefines `C` from
+that line on. Scalars (`det(A)`, `rank(A)`) can be stored as named values.
 
 **Reference.** No external reference; standard textbook method.
 
@@ -943,6 +981,7 @@ be misjudged; check with `rank` and `cond`.
 |---|---|
 | `modules/rechner/tests/test_rechner.py::Expressions::test_matrices` | A·A, transpose, inv([[1,2],[3,4]]) = [[−2, 1], [1.5, −0.5]], det = −2, linsolve([[2,1],[1,3]], [3,5]) = [0.8, 1.4], rref, singular matrix is an error |
 | `modules/rechner/tests/test_rechner.py::ConsoleAndPlots::test_console` | `b = inv(A)` in a calculation line |
+| `modules/rechner/tests/test_calc_flow.py::MatrixResults` | adj([[1,2],[3,4]]) = [[4,−2],[−3,1]], A·adj(A) = det(A)·E, `A*B = C` for free and defined C, stored values in lines |
 
 ---
 
@@ -1018,10 +1057,137 @@ citations, workspace values; `Server.test_materials_routes`).
 
 ---
 
+## 16. Line order, open names, ranges and sliders
+
+**Line order (`workspace.prepare`, `workspace.line_order`).** The lines of a sheet may stand in any order. Before
+evaluation every line is read for the names it defines and the names it uses. A name used in a line comes from the
+nearest definition above it; if there is none, from the first definition below it. Several definitions of the same
+name (`x = 1`, `x = 2*x`) stay in page order, so a redefinition still works as before. `ans` depends on the line
+above. An equation line (`x^2 + x = 3`) defines its unknown only if no other line defines it. The lines are then
+evaluated in topological order (Kahn's algorithm; among lines that are ready, the one higher on the page first).
+Lines that depend on each other in a circle get the error "Zirkelbezug: … hängen voneinander ab (Zeilen …)". The
+response carries `order` (line IDs in evaluation order); on the page a dot after the line number marks a line that is
+evaluated at a different position than it stands, the tooltip says which. Example: `z = y + x`, `y = 5`,
+`x = f(t) = t^5 - 3`, `t = 3` (in this order) gives z = 245.
+
+**Report order.** The report lists the side calculations in evaluation order, so every name is defined before it is
+used, whatever the order on the page.
+
+**Open names (`console.partial`).** If a line uses a name that nothing defines, the line is not an error but a
+partial result: every subexpression without open names is evaluated and shown as one number with its SI unit; the open
+names stay as symbols. `z = y + x` with `y = 5` gives *z = 5 + x*, "x noch nicht definiert". A later line that uses `z`
+inherits the expression: `w = 2*z` gives *w = 2·(5 + x)*. A line that is only an expression and has nothing to
+evaluate (`q`, `mean(σ)` without σ) stays the error "Unbekannter Name". There is no algebraic simplification
+(no computer-algebra system): terms are folded where they are numeric, not collected or expanded.
+
+**Formula card: solve for any quantity.** The target select of a card (and the chips under each formula in the
+library, which insert the formula already solved for that quantity) chooses what is calculated. The card header then
+shows the formula rearranged for that quantity (`Equation.isolated`, symbolic isolation for formulas where the target
+occurs once; otherwise the original form and a numerical solution). If values are missing, the card shows the
+rearranged formula with the known values inserted (values in their own unit; numeric parts folded to SI, e.g.
+*m = E_kin / (4,5 J/kg)* for v = 3 m/s) and lists what is missing.
+
+**Ranges, lists, sliders (`workspace._RANGE`, `_LISTSEMI`).**
+
+| Line | Meaning |
+|---|---|
+| `t = 0..10 step 0.5` (also `schritt`) | values from 0 to 10 in steps of 0.5 (`seq`; the end is included when it is on the grid) |
+| `t = 0..1 count 5` (also `anzahl`) | 5 equally spaced values (`linspace`) |
+| `t = [1; 2; 5; 7.5]` | a list of discrete values |
+| `t = eps` (a dataset column), `t = linspace(0, 1, 50)` | any line that assigns a list of numbers; drawn as a line when it has at least 8 strictly increasing or decreasing values, otherwise as points |
+| `t = 0..5 slider` (also `schieber`, with `step`) | one value between the bounds, set with a slider under the line (default: the lower bound; out-of-range values are clamped) |
+
+At most 5001 values per range. Lines that use a range or list are evaluated element-wise (numpy broadcasting) and
+return a list; the page shows *n Werte*, a small curve of the line over the range variable and, folded, a value table
+(up to 400 rows on the page). For a slider, each line that depends on it is also evaluated over 61 values between the
+bounds; its small curve marks the current slider value. *→ Grafik* adds the line to the graph as a curve that stays
+connected to the line (recomputed with it).
+
+**In the report** a range line is printed as its definition (`t = 0 … 10 (Schritt 0,5)`), a slider as its value with
+the bounds, and every line with a list result gets a value table (at most `RANGE_TABLE_ROWS` = 21 rows; for more
+values every k-th row plus the last, with the step in the caption), a figure and a CSV with all values.
+
+**Validation.**
+
+| Test | Checks |
+|---|---|
+| `modules/rechner/tests/test_rechner.py::FreeOrderAndRanges::test_free_order` | the example above gives 245; t before x before z |
+| `…::test_redefinition_stays_sequential` | `x = 1`, `x = 2*x`, `y = x + 1` gives 3 |
+| `…::test_cycle_is_reported` | `a = b + 1`, `b = a + 1` gives the cycle error |
+| `…::test_missing_name_gives_partial_result` | *z = 5 + x*, `w = 2*z` keeps x, a bare unknown name stays an error |
+| `…::test_ranges_lists_and_slider` | step, count, list and slider values; sweep of 61 values ending at w = 16; clamping; `linspace` assignment as a range |
+| `…::test_card_with_missing_value_shows_rearranged_partial` | m = E_kin/(4,5 J/kg) and E_kin = 1 kg·v² |
+| `…::test_report_order_and_range_items` | definitions before use in the report; table (thinned), figure and CSV with all 41 values |
+
+---
+
+## 17. Measurement uncertainty in calculation lines
+
+**Inputs (`lineunc.parse_pm`).** A value line `name = value ± amount [option] [unit]` (`+/-` is accepted as well)
+declares an uncertain input. The amount is in the unit of the line:
+
+| Line | Standard uncertainty | Source |
+|---|---|---|
+| `x = 5,0 ± 0,1 mm` | u = 0.1 mm | JCGM 100:2008, 2.3.1 |
+| `y = 2,0 ± 0,2 (k=2) s` | u = U/k = 0.1 s | JCGM 100:2008, 6.2.1 |
+| `T = 20 ± 0,5 rect °C` | u = a/√3 | JCGM 100:2008, 4.3.7 |
+| `a = 1 ± 0,3 tri` | u = a/√6 | JCGM 100:2008, 4.3.9 |
+
+An unknown unit or `(k=…)` together with `rect`/`tri` is an error on the line. Lines without `±` are parsed and
+evaluated exactly as before. The ± button on a value line or variable stores further components in the sheet state
+(`item.unc.parts`, `variable.unc.parts`) in the shared format of `labcalc.uncertainty.make_input` (repeated
+measurements, instrument classes from the shared library, resolution, relative values); they are combined with a ±
+written in the line. A variable may also carry a plain standard uncertainty `u` in its unit. Temperatures and other
+units with an offset are converted to SI affinely (SI = a + b·x), so u scales with b only.
+
+**Propagation (`lineunc.propagate`).** For every line whose value depends on an uncertain input, the chain of lines
+it depends on (through the line-order dependencies of section 16, `->` conversions included) is re-evaluated as one
+model y = f(x₁ … xₙ) of the *original inputs*. Each input therefore enters once, and a quantity reused along the chain
+is correlated with itself: `s = x + x` gives u(s) = 2u(x), and `w = v·y − x` with `v = x/y` gives u(w) = 0. The model
+is then evaluated by `labcalc.uncertainty.evaluate` with the method chosen per sheet (`env.unc.method`):
+
+| Method | What | Source |
+|---|---|---|
+| GUM (default) | first-order law of propagation, numerical sensitivities, Welch–Satterthwaite ν, k from the t distribution at p (default 95 %) | JCGM 100:2008, 5.1.2, G.4 |
+| Monte Carlo | propagation of distributions, adaptive, fixed seed (reproducible) | JCGM 101:2008 |
+| Gauss | root sum of squares of sensitivity × u, no coverage factor | DIN 1319-4; Taylor 1997 |
+| worst case | maximum deviation over the corners of the input intervals | DIN 1319-4; JCGM 100:2008 |
+| off | no propagation; inputs still show their u | |
+
+Correlations between inputs of the same sheet are entered as r (`env.unc.corr`). The Monte Carlo model is evaluated
+vectorised when the chain allows it (checked against two scalar samples); otherwise sample by sample within the time
+budget of the SDK. **Compare methods** evaluates the same model with all four methods
+(`workspace.compare_line`, route `/api/workspace/compare`).
+
+**Sharing.** A line passed to other sheets or environments carries its standard uncertainty in SI (`u`); the receiving
+sheet treats it as an independent input. Correlation with the original inputs of the other sheet is not kept.
+
+**Report.** Results are written with `labcalc.uncertainty.to_report` (`\labval` keys `unc-<name>-pm`, `-u`, `-U`,
+budget table `unc-<name>-budget`); side calculations show `(y ± U) unit`; the methods text names the method,
+the conversions above and JCGM 100 (`unc-jcgm100`). The request with all ± inputs and per-sheet settings is kept in
+`source.request`, so **Refresh** recomputes the uncertainties.
+
+**Validation.**
+
+| Test | Checks |
+|---|---|
+| `modules/rechner/tests/test_uncertainty.py::Parse::test_forms` | the four forms; `x = 3 +-2` is not an input |
+| `…::test_lines_without_pm_unchanged` | no uncertainty fields without ± |
+| `…::Propagation::test_pm_line_gives_gum_u` | u(x/y) equals the hand formula; `-> mm/s` scales u |
+| `…::test_rect_limits_and_temperature` | a/√3 through a °C conversion |
+| `…::test_chain_keeps_correlation` | u(v·y − x) = 0, u(x + x) = 2u(x) |
+| `…::test_methods_and_correlation` | MC, Gauss, worst case (rect worst case U = 3a), r = 1 cancels, method off |
+| `…::test_button_parts_and_variables` | repeats s/√n plus a variable u by hand; U/k on a variable in g |
+| `…::test_share_to_other_sheet` | u travels to another sheet |
+| `…::Report::test_bundle_values_budget_and_methods` | values, budget, ± in side calculations, methods text, request kept |
+
+---
+
 ## Known limitations
 
-1. **No uncertainty propagation in calculation lines and formula cards.** Only the fit tool and graph regression rows
-   report uncertainties.
+1. **Uncertainty propagation covers calculation lines only.** Results of formula cards and derived values are taken
+   as exact; range and list lines get no uncertainty; correlation is lost when a value is passed to another sheet
+   (section 17).
 2. **Integral without extrapolation.** Adaptive G7/K15 with error estimate; non-converged integrals are refused, not
    computed (section 11). Strong endpoint singularities reach about 10⁻¹⁰ relative.
 3. **Numerical derivative** is an estimate with error control; at kinks it returns the mean slope with a note
@@ -1054,3 +1220,6 @@ citations, workspace values; `Server.test_materials_routes`).
 17. **Materials Project values are computed** (DFT, GGA): band gaps are usually much too small, densities and moduli
     differ by a few per cent from experiment, and the stable phase at 0 K may not be the phase used in practice (e.g.
     graphite rather than diamond for C, monoclinic ZrO₂).
+18. **Partial results are not simplified algebraically.** Numeric parts are folded; like terms are not collected and
+    products are not expanded (no computer-algebra system). A list must be the whole right-hand side of its line
+    (`t = [1; 2; 5]`, not `[1; 2; 5] * 2`).

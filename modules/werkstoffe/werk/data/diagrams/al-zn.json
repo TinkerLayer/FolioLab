@@ -1,0 +1,161 @@
+{
+  "quellen": {
+    "al-zn_murray1983": {
+      "type": "article",
+      "authors": "Murray, J. L.",
+      "title": "The Al-Zn (Aluminum-Zinc) System",
+      "container": "Bulletin of Alloy Phase Diagrams",
+      "year": "1983",
+      "volume": "4",
+      "pages": "55-73",
+      "note": "Angaben nicht am Original geprüft"
+    }
+  },
+  "system": {
+    "id": "al-zn",
+    "name": "Al–Zn",
+    "name_en": "Al–Zn",
+    "A": "Al",
+    "B": "Zn",
+    "gruppe": "al",
+    "x_label": "Zink [Gew.-%]",
+    "x_label_en": "Zinc [wt%]",
+    "xlim": [0, 100],
+    "Tlim": [100, 700],
+    "q": ["al-zn_murray1983", "massalski1990"],
+    "hinweis": "Zitiert (Murray 1983): Schmelzpunkte Al 660,3 °C und Zn 419,5 °C; Eutektikum L ⇌ (Al) + (Zn) bei 381 °C mit L 95,0 Gew.-% Zn, (Al) 82,8 Gew.-% Zn und (Zn) 99,0 Gew.-% Zn; Mischungslücke im kfz-Mischkristall mit kritischem Punkt bei 351,5 °C (≈ 61 Gew.-% Zn); Monotektoid (Al)′ ⇌ (Al) + (Zn) bei 277 °C (oft auch 275 °C angegeben) mit (Al) ≈ 31,6, (Al)′ ≈ 78 und (Zn) ≈ 99,4 Gew.-% Zn. (Al) und (Al)′ sind derselbe kfz-Mischkristall mit verschiedenem Zinkgehalt. Liquidus, Solidus, Solvus und die Form der Mischungslücke zwischen diesen Eckwerten sind dem bewerteten Diagramm nachgezeichnet: schematisch, nicht zum genauen Ablesen von Löslichkeiten.",
+    "hinweis_en": "Cited (Murray 1983): melting points Al 660.3 °C and Zn 419.5 °C; eutectic L ⇌ (Al) + (Zn) at 381 °C with L 95.0 wt% Zn, (Al) 82.8 wt% Zn and (Zn) 99.0 wt% Zn; miscibility gap in the fcc solid solution with critical point at 351.5 °C (≈ 61 wt% Zn); monotectoid (Al)′ ⇌ (Al) + (Zn) at 277 °C (often given as 275 °C) with (Al) ≈ 31.6, (Al)′ ≈ 78 and (Zn) ≈ 99.4 wt% Zn. (Al) and (Al)′ are the same fcc solid solution with different zinc contents. Liquidus, solidus, solvus and the shape of the miscibility gap between these key values are traced from the assessed diagram: schematic, not for reading solubilities precisely.",
+    "points": [
+      {
+        "x": 0,
+        "T": 660.3,
+        "label": "Al schmilzt",
+        "label_en": "Al melts"
+      },
+      {
+        "x": 100,
+        "T": 419.5,
+        "label": "Zn schmilzt",
+        "label_en": "Zn melts"
+      },
+      {
+        "x": 82.8,
+        "T": 381,
+        "label": "grösste Löslichkeit von Zn in (Al)",
+        "label_en": "maximum solubility of Zn in (Al)"
+      },
+      {
+        "x": 95.0,
+        "T": 381,
+        "label": "Eutektikum",
+        "label_en": "Eutectic"
+      },
+      {
+        "x": 99.0,
+        "T": 381,
+        "label": "grösste Löslichkeit von Al in (Zn)",
+        "label_en": "maximum solubility of Al in (Zn)"
+      },
+      {
+        "x": 61.3,
+        "T": 351.5,
+        "label": "kritischer Punkt der Mischungslücke",
+        "label_en": "critical point of the miscibility gap"
+      },
+      {
+        "x": 78,
+        "T": 277,
+        "label": "Monotektoid",
+        "label_en": "Monotectoid"
+      }
+    ],
+    "curves": {
+      "liq": {
+        "kind": "liquidus",
+        "pts": [[0, 660.3], [10, 650], [20, 638], [30, 623], [40, 605], [50, 584], [60, 559], [70, 528], [77, 500], [83, 470], [88, 440], [91.5, 414], [95, 381]]
+      },
+      "sol": {
+        "kind": "solidus",
+        "pts": [[0, 660.3], [5, 646], [10, 631], [20, 601], [30, 570], [40, 539], [50, 507], [60, 474], [70, 440], [77, 411], [82.8, 381]]
+      },
+      "solvH": {
+        "kind": "solvus",
+        "pts": [[82.8, 381], [81.5, 355], [80, 325], [79, 300], [78, 277]]
+      },
+      "dome": {
+        "kind": "solvus",
+        "pts": [[31.6, 277], [34, 292], [38, 312], [43, 330], [48, 342], [54, 349.5], [61.3, 351.5], [67, 349], [71, 342], [74, 331], [76, 316], [77.2, 298], [78, 277]]
+      },
+      "solvL": {
+        "kind": "solvus",
+        "pts": [[31.6, 277], [28, 265], [24, 250], [20, 232], [16, 212], [12.5, 190], [9.5, 168], [7, 147], [5.2, 128], [3.8, 112], [3.0, 100]]
+      },
+      "liqZn": {
+        "kind": "liquidus",
+        "pts": [[95, 381], [96, 389], [97, 397.5], [98, 405], [99, 412.5], [100, 419.5]]
+      },
+      "solZn": {
+        "kind": "solidus",
+        "pts": [[100, 419.5], [99.6, 403], [99.3, 391], [99.0, 381]]
+      },
+      "solvZn": {
+        "kind": "solvus",
+        "pts": [[99.0, 381], [99.2, 340], [99.4, 277], [99.6, 220], [99.75, 160], [99.85, 100]]
+      }
+    },
+    "regions": [
+      {
+        "label": "L",
+        "phases": ["L"],
+        "poly": [[0, 700], [100, 700], [100, 419.5], "-liqZn", "-liq"]
+      },
+      {
+        "label": "(Al) + L",
+        "phases": ["(Al)", "L"],
+        "poly": ["liq", [82.8, 381], "-sol"]
+      },
+      {
+        "label": "L + (Zn)",
+        "phases": ["L", "(Zn)"],
+        "poly": ["liqZn", "solZn"]
+      },
+      {
+        "label": "(Al)",
+        "phases": ["(Al)"],
+        "poly": ["sol", "solvH", "-dome", "solvL", [0, 100]]
+      },
+      {
+        "label": "(Al) + (Al)′",
+        "phases": ["(Al)", "(Al)′"],
+        "poly": ["dome"]
+      },
+      {
+        "label": "(Al) + (Zn)",
+        "phases": ["(Al)", "(Zn)"],
+        "poly": [[82.8, 381], "solvZn", "-solvL", [78, 277], "-solvH"]
+      },
+      {
+        "label": "(Zn)",
+        "phases": ["(Zn)"],
+        "poly": ["solZn", "solvZn", [100, 100]]
+      }
+    ],
+    "invariants": [
+      {
+        "T": 381,
+        "type": "eutectic",
+        "x": [82.8, 95.0, 99.0],
+        "reaction": "L ⇌ (Al) + (Zn)",
+        "constituents": ["primäres (Al)", "Eutektikum ((Al) + (Zn))", "primäres (Zn)"],
+        "constituents_en": ["primary (Al)", "eutectic ((Al) + (Zn))", "primary (Zn)"],
+        "morph": "lamellar"
+      },
+      {
+        "T": 277,
+        "type": "monotectoid",
+        "x": [31.6, 78.0, 99.4],
+        "reaction": "(Al)′ ⇌ (Al) + (Zn)"
+      }
+    ]
+  }
+}

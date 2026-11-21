@@ -889,10 +889,12 @@ def checks(ds: DS.Dataset) -> list[dict]:
                 out.append({"key": "impossible:" + c["key"], "level": "bad",
                             "text": f"„{c['name']}“: {bad} Wert(e) unter null ({NONNEG[k]} kann nicht negativ sein)"})
     ukeys = {c.get("u") for c in ds.columns if c.get("u")}
+    from .uncert import factor
     for c in nums:                                          # what a ± / uncertainty column holds (default: not stated)
         if c.get("role") == "uncertainty" or c["key"] in ukeys:
+            f, how = factor(c) if c.get("u_type") not in (None, "", "u") else (None, "")
             out.append({"key": "utype:" + c["key"], "level": "info" if c.get("u_type") else "warn",
-                        "text": f"„{c['name']}“: {DS.u_type_text(c)}"})
+                        "text": f"„{c['name']}“: {DS.u_type_text(c)}" + (f" → {how}" if f is not None else "")})
     nounit = [c["name"] for c in nums if not c.get("unit") and (c.get("kind") or "number") == "number"
               and c.get("role") not in ("group", "label") and not str(c.get("note") or "").startswith("Anzahl")]
     if nounit:
@@ -908,4 +910,5 @@ def describe(op: dict) -> str:
     return {"trim": "Zeilenbereich", "filter": "Zeilen filtern", "sort": "Sortieren", "drop_empty": "Leere Zeilen entfernen",
             "duplicates": "Doppelte markieren", "replicates": "Wiederholungen mitteln", "join": "Mit Datensatz verbinden",
             "smooth": "Glätten (Savitzky–Golay)", "outliers": "Ausreisser markieren", "exclude": "Ausschliessen",
-            "convert": "Einheit umrechnen", "formula": "Formelspalte"}.get(k, str(k))
+            "convert": "Einheit umrechnen", "formula": "Formelspalte",
+            "unc": "Messunsicherheit (Typ B)"}.get(k, str(k))

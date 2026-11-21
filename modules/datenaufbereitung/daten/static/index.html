@@ -171,6 +171,8 @@ table.dvt { border-collapse: collapse; width: 100%; font-size: 12.5px; }
 table.dvt th { text-align: left; font-weight: 500; color: var(--muted); font-size: 11.5px; padding: 2px 4px; }
 table.dvt td { padding: 2px 4px; vertical-align: middle; }
 table.dvt input, table.dvt select { box-sizing: border-box; max-width: 100%; }
+.luncb { font-size: 11px; padding: 0 5px; line-height: 1.5; border-radius: 4px; color: var(--muted); }
+.luncb.on { color: var(--accent); border-color: var(--accent); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 /* DP-06..10: flag badges, check chips, cleaning steps */
 .fb { display: inline-block; font-size: 10px; font-weight: 500; padding: 0 5px; border-radius: 8px; margin: 1px 2px 0 0; background: rgba(217,119,6,.16); white-space: nowrap; cursor: help; }
@@ -291,6 +293,7 @@ ul.fll li span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 <script src="labui.js"></script>
 <script src="labboard.js"></script>
 <script src="laboverview.js"></script>
+<script src="labunc.js"></script>
 <script>
 /* Rückfall: ein älterer Modulserver liefert die gemeinsamen Dateien nicht */
 (function (g) {
@@ -298,6 +301,7 @@ ul.fll li span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
   if (!g.LabEnv) g.LabEnv = { stub: true, create: (o) => ({ ready: false, info: null, open: async () => o.toast(msg, true), save() {}, flush: () => Promise.resolve(), check() {}, dialog: () => o.toast(msg, true) }) };
   const no = () => g.toast && g.toast(msg, true);
   if (!g.LabIndex) g.LabIndex = { stub: true, add: no, addMany: no, browse: no, history: no, exportDeps: no };
+  if (!g.LabUnc) g.LabUnc = { stub: true, edit: async () => { no(); return undefined; }, specU: () => 0 };
 })(window);
 </script>
 <script>
@@ -330,7 +334,7 @@ const DP_T = {
     "dv.suffix": "(umgerechnet)", "dv.conv": "Einheiten umrechnen", "dv.col": "Spalte", "dv.key": "Name in Formeln", "dv.unitnow": "Einheit", "dv.unitnew": "neu",
     "dv.same": "gleich", "dv.keep": "Original behalten", "dv.forms": "Neue Spalten aus Formeln", "dv.forms_t": "Spalten in Formeln: {k}. Beispiel: σ = F / A0 in MPa. Gerechnet wird mit Einheiten; das Ergebnis muss zur Einheit passen.",
     "dv.expr": "Formel", "dv.place": "Spalte", "dv.newcol": "neue Spalte", "dv.replaces": "ersetzt {c}", "dv.addf": "+ Formel", "dv.consts": "Konstanten",
-    "dv.consts_t": "Werte mit Einheit, z. B. A0 = 12,57 mm². Eintippen oder aus einer Zelle der offenen Tabelle holen.", "dv.fromcell": "aus Zelle …", "dv.addc": "+ Konstante",
+    "dv.consts_t": "Werte mit Einheit, z. B. A0 = 12,57 mm². Eintippen oder aus einer Zelle der offenen Tabelle holen.", "dv.fromcell": "aus Zelle …", "dv.fromindex": "aus Index …", "dv.fromindex_t": "Wert aus dem Projektindex: Einheit, Unsicherheit und Herkunft bleiben erhalten", "dv.idx_nonum": "Dieser Eintrag hat keinen Zahlenwert.", "dv.addc": "+ Konstante",
     "dv.mode": "Wenn sich die Quelle ändert", "dv.live": "folgen: neu rechnen, sobald die Quelle eine neue Version hat", "dv.pin": "fest: bei dieser Version bleiben (später von Hand aktualisieren)",
     "dv.create": "Datensatz erstellen", "dv.update": "Neue Version speichern", "dv.empty": "Eine Einheit oder eine Formel angeben.",
     "dv.cell_q": "Zelle mit dem Wert ({s})", "dv.cell_bad": "Zellbezug nicht lesbar", "dv.cell_nonum": "In {r} steht keine Zahl", "dv.cell_none": "Keine Tabelle offen",
@@ -408,6 +412,12 @@ const DP_T = {
     "tp.each": "je Datei ein Datensatz", "tp.comb": "ein gemeinsamer Datensatz (Spalte „Datei“, unterschiedliche Bedingungen als Spalten)", "tp.ctitle": "Titel", "tp.run": "Ausführen",
     "tp.applied": "Vorlage „{n}“ angewendet", "tp.mismatch": "Vorlage passt nicht zu diesem Blatt:", "tp.ok": "{n}: {r} Zeilen", "tp.okds": "{n}: {r} Zeilen → „{t}“ v{v}", "tp.combined": "Gemeinsamer Datensatz „{t}“ v{v}: {r} Zeilen",
     "tp.nofiles": "Keine geladenen Dateien zum Anwenden", "tp.needtpl": "Zuerst eine Vorlage speichern", "tp.expected": "erwartet „{e}“, gefunden „{f}“",
+    // Messunsicherheit
+    "un.rep": "Wiederholmessung …", "un.rep_t": "Mittelwert, s, u = s/√n und ν = n − 1 aus den gewählten Zahlen; als Wert mit Unsicherheit für andere Umgebungen und Module anbieten",
+    "un.rep_h": "Wiederholmessung: {n} Werte, x̄ = {m}, s = {s}, u = s/√n = {u}, ν = {d}", "un.rep_sym": "Name (Formelzeichen, z. B. d)", "un.rep_lab": "Bezeichnung", "un.rep_unit": "Einheit",
+    "un.reps": "Wiederholmessungen ({n})", "un.rep_saved": "„{s}“ = {m} ± {u} (u, n = {n}) gespeichert", "un.rep_rm": "entfernen", "un.rep_dup": "Der Name „{s}“ ist schon vergeben",
+    "un.btn_t": "Messunsicherheit dieser Spalte (Typ B): Messmittel aus der Bibliothek, Grenzen, Auflösung, % vom Wert – ergibt eine Spalte u_B", "un.col": "Spalte {c}",
+    "un.forms_t": "Haben die verwendeten Spalten eine Unsicherheit (± mit Art), bekommt die neue Spalte u zeilenweise nach GUM.",
   },
   en: {
     "dp.title": "Data Purification", "dp.ref": "Cell reference", "dp.grid": "Sheet", "dp.empty_h": "Type values or load a file",
@@ -435,7 +445,7 @@ const DP_T = {
     "dv.suffix": "(converted)", "dv.conv": "Convert units", "dv.col": "Column", "dv.key": "Name in formulas", "dv.unitnow": "Unit", "dv.unitnew": "new",
     "dv.same": "same", "dv.keep": "keep original", "dv.forms": "New columns from formulas", "dv.forms_t": "Columns in formulas: {k}. Example: σ = F / A0 in MPa. Units are part of the calculation; the result must fit its unit.",
     "dv.expr": "Formula", "dv.place": "Column", "dv.newcol": "new column", "dv.replaces": "replaces {c}", "dv.addf": "+ formula", "dv.consts": "Constants",
-    "dv.consts_t": "Values with unit, e.g. A0 = 12.57 mm². Type them or take them from a cell of the open table.", "dv.fromcell": "from cell …", "dv.addc": "+ constant",
+    "dv.consts_t": "Values with unit, e.g. A0 = 12.57 mm². Type them or take them from a cell of the open table.", "dv.fromcell": "from cell …", "dv.fromindex": "from index …", "dv.fromindex_t": "Value from the project index: unit, uncertainty and origin are kept", "dv.idx_nonum": "This entry has no number.", "dv.addc": "+ constant",
     "dv.mode": "When the source changes", "dv.live": "follow: compute again as soon as the source has a new version", "dv.pin": "pinned: stay at this version (update by hand later)",
     "dv.create": "Create dataset", "dv.update": "Save new version", "dv.empty": "Give a unit or a formula.",
     "dv.cell_q": "Cell with the value ({s})", "dv.cell_bad": "Cell reference not readable", "dv.cell_nonum": "{r} holds no number", "dv.cell_none": "No table open",
@@ -509,6 +519,12 @@ const DP_T = {
     "tp.each": "one dataset per file", "tp.comb": "one combined dataset (column “Datei”, differing conditions become columns)", "tp.ctitle": "Title", "tp.run": "Run",
     "tp.applied": "Template “{n}” applied", "tp.mismatch": "The template does not fit this sheet:", "tp.ok": "{n}: {r} rows", "tp.okds": "{n}: {r} rows → “{t}” v{v}", "tp.combined": "Combined dataset “{t}” v{v}: {r} rows",
     "tp.nofiles": "No loaded files to apply it to", "tp.needtpl": "Save a template first", "tp.expected": "expected “{e}”, found “{f}”",
+    // measurement uncertainty
+    "un.rep": "Repeated measurement …", "un.rep_t": "Mean, s, u = s/√n and ν = n − 1 of the selected numbers; offered as a value with uncertainty to other environments and modules",
+    "un.rep_h": "Repeated measurement: {n} values, x̄ = {m}, s = {s}, u = s/√n = {u}, ν = {d}", "un.rep_sym": "Name (symbol, e.g. d)", "un.rep_lab": "Label", "un.rep_unit": "Unit",
+    "un.reps": "Repeated measurements ({n})", "un.rep_saved": "“{s}” = {m} ± {u} (u, n = {n}) saved", "un.rep_rm": "remove", "un.rep_dup": "The name “{s}” is already used",
+    "un.btn_t": "Uncertainty of this column (type B): instrument from the library, limits, resolution, % of value – gives a column u_B", "un.col": "Column {c}",
+    "un.forms_t": "If the columns used have an uncertainty (± with its type), the new column gets u row by row (GUM).",
   },
 };
 if (window.LabUI) LabUI.strings(DP_T);
@@ -953,7 +969,7 @@ function fileObj(d, saved = {}) {
   return { id: d.id, name: saved.name || d.name, file: d.file, bytes: d.bytes, sha256: d.sha256, sheets: d.sheets,
            sheet: Math.min(saved.sheet || 0, d.sheets.length - 1), selByS: {}, colW: saved.colW || {},
            recipes: saved.recipes || {}, prev: {}, manual: !!d.manual, rev: d.rev || 0, undo: [], redo: [],
-           datasets: saved.datasets || {}, dataset: d.dataset || null };
+           datasets: saved.datasets || {}, dataset: d.dataset || null, repeats: Array.isArray(saved.repeats) ? saved.repeats : [] };
 }
 function addFile(d, saved) { S.files.push(fileObj(d, saved)); }
 async function loadFiles(list) {
@@ -2011,9 +2027,10 @@ async function dsDerive(parentId, edit) {
   if (!p) return toast(tr("ds.gone"), true);
   closeDlg("dsDlg");
   const ops = (edit && edit.derive.ops) || [];
-  const conv = {}, forms = [], consts = [], cleans = [];
+  const conv = {}, forms = [], consts = [], cleans = [], uspec = {};
   ops.forEach((o) => {
     if (o.op === "convert") conv[o.col] = o;
+    if (o.op === "unc" && Array.isArray(o.parts)) uspec[o.col] = { parts: o.parts, ...(o.note ? { note: o.note } : {}) };
     if (o.op === "formula") { forms.push(o); (o.consts || []).forEach((c) => { if (!consts.some((x) => x.sym === c.sym)) consts.push(c); }); }
     if (CL_KINDS.includes(o.op)) cleans.push(o);
   });
@@ -2027,18 +2044,18 @@ async function dsDerive(parentId, edit) {
   const fRow = (o) => `<tr class="fr"><td><input data-f="name" value="${esc(o.name || "")}" placeholder="σ" style="width:70px"></td><td><input data-f="expr" value="${esc(o.expr || "")}" placeholder="F / A0" style="width:100%" spellcheck="false"></td>
     <td><input data-f="unit" value="${esc(o.unit || "")}" placeholder="MPa" style="width:64px" list="unitAll" autocomplete="off" spellcheck="false"></td><td><select data-f="replaces">${colOpts(o.replaces)}</select></td>
     <td><label class="small"><input type="checkbox" data-f="keep" ${o.keep ? "checked" : ""}> ${esc(tr("dv.keep"))}</label></td><td><button class="x" data-rmrow>×</button></td></tr>`;
-  const cRow = (c) => `<tr class="cr"><td><input data-c="sym" value="${esc(c.sym || "")}" placeholder="A0" style="width:60px"></td><td><input data-c="value" value="${esc(c.value ?? "")}" placeholder="12,57" style="width:90px"></td>
-    <td><input data-c="unit" value="${esc(c.unit || "")}" placeholder="mm²" style="width:70px" list="unitAll" autocomplete="off" spellcheck="false"></td><td><button data-cell>${esc(tr("dv.fromcell"))}</button></td><td><button class="x" data-rmrow>×</button></td></tr>`;
+  const cRow = (c) => `<tr class="cr"${c.from ? ` data-from="${esc(c.from)}"` : ""}${c.index ? ` data-index="${esc(c.index)}" data-u="${esc(c.u ?? "")}" data-tv="${esc(c.value ?? "")}" data-tu="${esc(c.unit || "")}"` : ""}><td><input data-c="sym" value="${esc(c.sym || "")}" placeholder="A0" style="width:60px"></td><td><input data-c="value" value="${esc(c.value ?? "")}" placeholder="12,57" style="width:90px"></td>
+    <td><input data-c="unit" value="${esc(c.unit || "")}" placeholder="mm²" style="width:70px" list="unitAll" autocomplete="off" spellcheck="false"></td><td><button data-cell>${esc(tr("dv.fromcell"))}</button> <button data-cidx title="${esc(tr("dv.fromindex_t"))}">${esc(tr("dv.fromindex"))}</button> <span class="small" data-cinfo title="${esc(c.from || "")}">${c.index ? esc((c.u ? `± ${c.u} · ` : "") + c.index) : ""}</span></td><td><button class="x" data-rmrow>×</button></td></tr>`;
   const d = dlg("dvDlg", `<b>${esc(tr(edit ? "dv.h_edit" : "dv.h"))}</b>
     <div class="small">${esc(tr("dv.t", { t: p.title, v: p.latest }))}</div>
     <label class="small" for="dvTitle">${esc(tr("ds.title"))}</label><input id="dvTitle" style="width:100%" value="${esc(edit ? edit.title : p.title + " " + tr("dv.suffix"))}">
     <div class="dvsec">${esc(tr("dv.conv"))}</div>
     ${allU.length ? `<div class="row small" id="dvAll">${esc(tr("dv.all"))} <select data-all-from>${allU.map((u) => `<option value="${esc(u)}">${esc(u)}</option>`).join("")}</select> → <input data-all-to style="width:80px" list="dvAllL" autocomplete="off" spellcheck="false" placeholder="µm"><span id="dvAllD"></span><button data-all>${esc(tr("dv.all_go"))}</button></div>` : ""}
-    <table class="dvt"><thead><tr><th>${esc(tr("dv.col"))}</th><th>${esc(tr("dv.key"))}</th><th>${esc(tr("dv.unitnow"))}</th><th>${esc(tr("dv.unitnew"))}</th><th></th></tr></thead><tbody>
-    ${nums.map((c, i) => `<tr class="vr" data-col="${esc(c.key)}" data-unit="${esc(c.unit || "")}"><td>${esc(c.name)}</td><td><code>${esc(c.key)}</code></td><td>${esc(c.unit || "1")}</td><td><input data-v="unit" value="${esc((conv[c.key] || {}).unit || "")}" placeholder="${esc(tr("dv.same"))}" style="width:80px" list="${unitsLike(c.unit).length ? "dvU" + i : "unitAll"}" autocomplete="off" spellcheck="false">${unitDatalist("dvU" + i, c.unit)}</td>
+    <table class="dvt"><thead><tr><th>${esc(tr("dv.col"))}</th><th>${esc(tr("dv.key"))}</th><th>${esc(tr("dv.unitnow"))}</th><th></th><th>${esc(tr("dv.unitnew"))}</th><th></th></tr></thead><tbody>
+    ${nums.map((c, i) => `<tr class="vr" data-col="${esc(c.key)}" data-unit="${esc(c.unit || "")}"><td>${esc(c.name)}</td><td><code>${esc(c.key)}</code></td><td>${esc(c.unit || "1")}</td><td>${c.role === "uncertainty" ? "" : dvUncBtn(c.key, uspec)}</td><td><input data-v="unit" value="${esc((conv[c.key] || {}).unit || "")}" placeholder="${esc(tr("dv.same"))}" style="width:80px" list="${unitsLike(c.unit).length ? "dvU" + i : "unitAll"}" autocomplete="off" spellcheck="false">${unitDatalist("dvU" + i, c.unit)}</td>
       <td><label class="small"><input type="checkbox" data-v="keep" ${(conv[c.key] || {}).keep ? "checked" : ""}> ${esc(tr("dv.keep"))}</label></td></tr>`).join("")}</tbody></table>
     <div class="dvsec">${esc(tr("dv.forms"))}</div>
-    <div class="small">${esc(tr("dv.forms_t", { k: nums.map((c) => c.key).join(", ") }))}</div>
+    <div class="small">${esc(tr("dv.forms_t", { k: nums.map((c) => c.key).join(", ") }))} ${esc(tr("un.forms_t"))}</div>
     <table class="dvt"><thead><tr><th>${esc(tr("dp.name"))}</th><th>${esc(tr("dv.expr"))}</th><th>${esc(tr("mt.unit"))}</th><th>${esc(tr("dv.place"))}</th><th></th><th></th></tr></thead><tbody id="dvF">${forms.map(fRow).join("")}</tbody></table>
     <button data-addf>${esc(tr("dv.addf"))}</button>
     <div class="dvsec">${esc(tr("dv.consts"))}</div>
@@ -2057,8 +2074,18 @@ async function dsDerive(parentId, edit) {
     <div class="row" style="justify-content:flex-end"><button data-x>${esc(tr("dp.cancel"))}</button><button class="primary" data-go>${esc(tr(edit ? "dv.update" : "dv.create"))}</button></div>`);
   d.classList.add("wide");
   const collect = () => {
-    const cs = [...d.querySelectorAll("#dvC tr")].map((r) => ({ sym: r.querySelector("[data-c=sym]").value.trim(), value: r.querySelector("[data-c=value]").value.trim(), unit: r.querySelector("[data-c=unit]").value.trim(), ...(r.dataset.from ? { from: r.dataset.from } : {}) })).filter((c) => c.sym || c.value);
+    const cs = [...d.querySelectorAll("#dvC tr")].map((r) => {
+      const value = r.querySelector("[data-c=value]").value.trim(), unit = r.querySelector("[data-c=unit]").value.trim();
+      if (r.dataset.index && (value !== r.dataset.tv || unit !== r.dataset.tu)) {   // overtyped: no longer the index value
+        ["index", "u", "tv", "tu", "from"].forEach((k) => delete r.dataset[k]);
+        r.querySelector("[data-cinfo]").textContent = "";
+      }
+      return { sym: r.querySelector("[data-c=sym]").value.trim(), value, unit, ...(r.dataset.from ? { from: r.dataset.from } : {}),
+        ...(r.dataset.index ? { index: r.dataset.index, ...(r.dataset.u ? { u: r.dataset.u } : {}) } : {}) };
+    }).filter((c) => c.sym || c.value);
     const out = [];
+    // type-B uncertainty first: its parts are in the column's unit before any conversion
+    Object.entries(uspec).forEach(([col, sp]) => { if (sp && (sp.parts || []).length) out.push({ op: "unc", col, parts: sp.parts, ...(sp.note ? { note: sp.note } : {}) }); });
     d.querySelectorAll("tr.vr").forEach((r) => { const u = r.querySelector("[data-v=unit]").value.trim(); if (u) out.push({ op: "convert", col: r.dataset.col, unit: u, keep: r.querySelector("[data-v=keep]").checked }); });
     d.querySelectorAll("#dvF tr").forEach((r) => {
       const g = (n) => r.querySelector(`[data-f=${n}]`);
@@ -2110,6 +2137,17 @@ async function dsDerive(parentId, edit) {
     d.querySelectorAll("input, select").forEach((x) => { if (x.matches("[data-addstep]")) return; x.oninput = preview; x.onchange = preview; });
     d.querySelectorAll("[data-rmrow]").forEach((b) => { b.onclick = () => { b.closest("tr").remove(); preview(); }; });
     d.querySelectorAll("[data-cell]").forEach((b) => { b.onclick = () => dvFromCell(b.closest("tr"), preview); });
+    d.querySelectorAll("[data-cidx]").forEach((b) => { b.onclick = () => LabIndex.browse(api, toast, (e) => dvFromIndex(b.closest("tr"), e, preview)); });
+    d.querySelectorAll("[data-unc]").forEach((b) => {
+      b.onclick = async () => {
+        const key = b.dataset.unc, c = nums.find((x) => x.key === key) || {};
+        const sp = await LabUnc.edit(b, { label: tr("un.col", { c: c.name || key }), unit: c.unit || "", spec: uspec[key] || null });
+        if (sp === undefined) return;
+        if (sp && (sp.parts || []).length) uspec[key] = sp; else delete uspec[key];
+        b.outerHTML = dvUncBtn(key, uspec);
+        wire(); preview();
+      };
+    });
     d.querySelectorAll("#dvS .cl").forEach((row) => {
       row.querySelectorAll("[data-shape]").forEach((x) => { x.onchange = () => { let o; try { o = clCollect(row, true); } catch (e) { o = { op: row.dataset.k }; } row.outerHTML = clRow(o); wire(); preview(); }; });
       row.querySelector("[data-rmstep]").onclick = () => { row.remove(); preview(); };
@@ -2156,6 +2194,23 @@ async function dsDerive(parentId, edit) {
   wire();
   preview();
 }
+// small ± button per column of the convert dialog: type-B uncertainty (LabUnc.edit) → step {op: "unc", col, parts}
+function dvUncBtn(key, uspec) {
+  const sp = uspec[key], n = sp && sp.parts ? sp.parts.length : 0;
+  return `<button class="luncb${n ? " on" : ""}" data-unc="${esc(key)}" title="${esc(tr("un.btn_t"))}" aria-label="${esc(tr("un.btn_t"))}">±${n ? " " + n : ""}</button>`;
+}
+// constant from the project index: value, unit, u and origin stay together; the formula check refuses a wrong dimension
+function dvFromIndex(row, e, done) {
+  const q = e.quantity || {}, g = (n) => row.querySelector(`[data-c=${n}]`);
+  if (!Number.isFinite(+q.value)) return toast(tr("dv.idx_nonum"), true);
+  const v = String(q.value), origin = LabIndex.originOf(e), u = +q.u > 0 ? String(q.u) : "";
+  g("value").value = v; g("unit").value = q.unit || "";
+  if (!g("sym").value) g("sym").value = LabIndex.symFor(e);
+  Object.assign(row.dataset, { index: e.id, u, tv: v, tu: q.unit || "", from: `Projektindex ${e.id}${origin ? " · " + origin : ""}` });
+  const info = row.querySelector("[data-cinfo]");
+  info.textContent = (u ? `± ${u} · ` : "") + e.id; info.title = row.dataset.from;
+  done();
+}
 // constant from a cell of the open sheet ("12,57 mm²" or value and unit in neighbouring cells)
 async function dvFromCell(row, done) {
   const f = cur(), s = sel();
@@ -2179,6 +2234,8 @@ async function dvFromCell(row, done) {
     const name = left && left.v && left.v[0] && left.v[0][0];
     if (typeof name === "string" && /^[A-Za-z_]\w{0,15}\s*[:=]?$/.test(name.trim())) sym.value = name.trim().replace(/\s*[:=]$/, "");
   }
+  ["index", "u", "tv", "tu"].forEach((k) => delete row.dataset[k]);   // now a cell value, no longer the index entry
+  const inf = row.querySelector("[data-cinfo]"); if (inf) { inf.textContent = ""; inf.title = ""; }
   row.dataset.from = `${f.name} ${f.sheets[f.sheet || 0].name}!${ref.trim().toUpperCase()}`;
   done();
 }
@@ -2387,6 +2444,7 @@ function renderSide() {
     [tr("s.textnum"), st.text_numbers ? nf(st.text_numbers, 9) : ""], [tr("s.empty"), nf(st.empty, 9)], [tr("s.errors"), st.errors || ""],
     [tr("s.formulas"), st.formulas || ""], [tr("s.sum"), st.numbers ? nf(st.sum) : ""], [tr("s.mean"), st.numbers ? nf(st.mean) : ""],
     [tr("s.min"), st.numbers ? nf(st.min) : ""], [tr("s.max"), st.numbers ? nf(st.max) : ""]]);
+  h += repHtml(f, s, st);
   if (sh.notes.length) h += sh.notes.map((n) => `<div class="note warn">${esc(n)}</div>`).join("");
   h = markHtml() + dsHtml() + h;
   const m = sh.meta || {};
@@ -2405,7 +2463,46 @@ function renderSide() {
   sized($("#pane"));                                                // UR: vor bindMark, damit die Ereignisse am behaltenen Element hängen
   bindMark();
   bindDs();
+  bindRep();
   if (window.LabUI) LabUI.folds("datenaufbereitung", $("#pane"));
+}
+// ================================================================== Messunsicherheit: Wiederholmessung
+// Zahlen einer Auswahl → x̄, s, u = s/√n, ν = n − 1 (Server: api/repeat); gespeichert je Datei, angeboten als Wert mit u
+function repHtml(f, s, st) {
+  let h = "";
+  if (s && st && st.numbers >= 2) h += `<button class="linkbtn" data-rep title="${esc(tr("un.rep_t"))}">± ${esc(tr("un.rep"))}</button>`;
+  const reps = (f && f.repeats) || [];
+  if (reps.length) h += `<details class="lab-fold" data-fold="reps"><summary>${esc(tr("un.reps", { n: reps.length }))}</summary><ul class="fll">${reps.map((r, i) =>
+    `<li><span><b>${esc(r.sym)}</b> = ${esc(nf(r.mean))} ± ${esc(nf(r.u, 3))}${r.unit ? " " + esc(r.unit) : ""} <span class="small">(u, n = ${r.n}, ν = ${r.dof}${r.ref ? " · " + esc(r.ref) : ""})</span></span><button class="x" data-reprm="${i}" aria-label="${esc(tr("un.rep_rm"))}">×</button></li>`).join("")}</ul></details>`;
+  return h;
+}
+function bindRep(root = $("#pane")) {
+  const b = root.querySelector("[data-rep]");
+  if (b) b.onclick = repeatDialog;
+  root.querySelectorAll("[data-reprm]").forEach((x) => { x.onclick = () => { const f = cur(); f.repeats.splice(+x.dataset.reprm, 1); repChanged(); }; });
+}
+function repChanged() { renderSide(); if (ENVS_READY()) window.ENVS.save(); if (OV && OV.changed) OV.changed(); }
+async function repeatDialog() {
+  const f = cur(), s = sel();
+  if (!f || !f.id || !s) return toast(tr("mk.needsel"), true);
+  const j = await withBusy(() => api("api/repeat", { id: f.id, sheet: f.sheet || 0, ranges: s.ranges.map(norm) }));
+  if (j.error) return toast(j.error, true);
+  const head = tr("un.rep_h", { n: j.n, m: nf(j.mean), s: nf(j.s, 3), u: nf(j.u, 3), d: j.dof });
+  const v = await ask(head, [{ label: tr("un.rep_sym"), value: "", req: true }, { label: tr("un.rep_lab"), value: "" }, { label: tr("un.rep_unit"), value: "" }]);
+  if (!v || !v[0].trim()) return;
+  const sym = v[0].trim().replace(/\s+/g, "_").slice(0, 40);
+  if (f.repeats.some((r) => r.sym === sym)) return toast(tr("un.rep_dup", { s: sym }), true);
+  f.repeats.push({ sym, label: v[1].trim().slice(0, 120) || sym, unit: v[2].trim().slice(0, 30), mean: j.mean, s: j.s, u: j.u, n: j.n, dof: j.dof,
+    ref: `${f.sheets[f.sheet || 0].name}!${s.ranges.map(rangeRef).join(",")}`.slice(0, 120) });
+  toast(tr("un.rep_saved", { s: sym, m: nf(j.mean), u: nf(j.u, 3), n: j.n }));
+  repChanged();
+}
+// Werte-Katalog der offenen Umgebung (LabOverview): Wiederholmessungen mit Standardunsicherheit u (Typ A)
+function repCatalogue() {
+  const out = [];
+  for (const f of S.files) for (const r of f.repeats || []) if (Number.isFinite(+r.mean))
+    out.push({ sym: r.sym, label: r.label || r.sym, value: +r.mean, unit: r.unit || "", kind: "", ...(+r.u > 0 ? { u: +r.u, unc: "Typ A, s/√n" } : {}) });
+  return out;
 }
 // UR: ziehbare Bereiche, die per innerHTML neu entstehen (Vorschau-Tabellen, Listen): dasselbe Element samt Griff und
 // gezogener Höhe weiterverwenden und nur seinen Inhalt tauschen; sonst bekäme jedes Neuzeichnen (bei jeder Auswahl)
@@ -2518,7 +2615,8 @@ function envSummary() {
   // UI-18: die gespeicherten Datensätze dieser Umgebung als kleine Grafiken (x gegen bis zu drei Spalten)
   const plots = [];
   for (const f of S.files) for (const d of Object.values(f.datasets || {})) if (d && d.thumb && plots.length < 4) plots.push(d.thumb);
-  return { title: n ? `${n} ${n === 1 ? "Datei" : "Dateien"}` : "leer", tags: S.files.slice(0, 6).map((f) => f.name), plots };
+  const values = window.LabOverview && LabOverview.summaryValues ? LabOverview.summaryValues(repCatalogue()) : undefined;
+  return { title: n ? `${n} ${n === 1 ? "Datei" : "Dateien"}` : "leer", tags: S.files.slice(0, 6).map((f) => f.name), plots, ...(values ? { values } : {}) };
 }
 async function init() {
   readColors();
@@ -2531,7 +2629,7 @@ async function init() {
   renderSide();
   window.ENVS = LabEnv.create({
     api, toast, label: $("#envName"),
-    keep: ["name", "sheet", "colW", "recipes", "datasets"],
+    keep: ["name", "sheet", "colW", "recipes", "datasets", "repeats"],
     list: () => S.files, sel: () => S.sel,
     reset: () => { S.files = []; S.sel = -1; G.cache.clear(); PHF = null; if (SQ.on) closeSeq(); },
     add: async (d, saved) => addFile(d, saved), summary: envSummary,
@@ -2549,6 +2647,8 @@ async function init() {
       word: { de: ["Sammlung", "Sammlungen"], en: ["Collection", "Collections"] },
       index: () => LabIndex.browse(api, toast),
       channels: [DS_CH],
+      // Wiederholmessungen als teilbare Werte mit u; eingehende Werte braucht die Datenaufbereitung nicht
+      values: { catalogue: repCatalogue, apply: async () => {}, version: META.version },
       incoming: { "data.table": { label: () => tr("ds.open"), run: (s) => { OV.showDetail(); return dsOpen(s.id); } } },
       onView: (v) => { if (v === "detail") setTimeout(() => { layout(); }, 0); },
     });

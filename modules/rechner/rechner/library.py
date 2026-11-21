@@ -103,7 +103,7 @@ class Equation:
         tex, html = R.render(ast.Compare(left=self.lhs, ops=[ast.Eq()], comparators=[self.rhs]))
         return {"id": self.id, "cat": self.cat, "sub": self.sub, "de": self.de, "en": self.en, "text": self.text,
                 "tex": tex, "html": html, "vars": [{**v, "html": R.sym_html(v["sym"]), "tex": R.sym_tex(v["sym"])} for v in self.vars],
-                "consts": self.consts, "auto": self.auto, "note": self.note, "note_en": self.note_en,
+                "consts": self.consts, "auto": self.auto, "note": self.note, "note_en": self.note_en, "target": self.target,
                 "source": self.source, "source_short": labcite.short(self.source), "source_text": labcite.text(self.source)}
 
 

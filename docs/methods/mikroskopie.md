@@ -126,7 +126,7 @@ r = … px". Up to version 1.2.0 the menu and report said only "Hintergrund abzi
 
 The implementations are the module's own. Details such as zeroing bins 0 and 255 in `default`, the extra bin in
 `triangle` and the 0.5 stop in `li` are implementation choices; the code does not state which reference
-implementation they follow. No method is compared with another implementation in the tests (section 8).
+implementation they follow. No method is compared with another implementation in the tests (section 9).
 
 Changes in 1.3.0: `moments` used "cumulative fraction > p₀" before; with "≥ p₀" a two-level image is split exactly
 into its two values, as Tsai's p₀-tile intends (for real histograms the cumulative fraction practically never equals
@@ -311,10 +311,44 @@ The comparison is only like with like if the dataset column holds individual par
 instruments usually report a volume-weighted distribution (or its Dv values); such values are not individual sizes
 and cannot be compared this way. The module does not convert a measured Q3 distribution into Q0.
 
-## 8. Validation
+## 8. Measurement uncertainty and own equations (`mikro/uncertainty.py`, since 1.4.0)
 
-Run `python -m unittest discover -s tests` in `modules/mikroskopie`. The suite has 57 tests and needs no unpublished
-data. `tests/test_known_answers.py` (24 tests, added in 1.3.0) holds known-answer tests with analytic expectations or
+Optional; settings in the state as `unc` (`method`, `p`, `k`, `specs` for `cal_len`, `cal_px`, `cal_pw`, `cal` = how
+the scale was made: line `L`/`N` or pixel size `pw`, `boot` = number of bootstrap resamples, default 1000). Without
+them nothing changes. Propagation by `labcalc.uncertainty` (GUM linear, Monte Carlo after GUM S1, Gaussian, worst
+case). Results without any uncertain input (u = 0 and U = 0) are not shown.
+
+| Value | Model | Contributions |
+|---|---|---|
+| pixel size s | s = L / N (line; used when L/N equals the applied pixel size) or s = pw | certificate of the stage micrometer (U, k) on L; reading of the line ends (e.g. limits ±1 px, rectangular) on N; or ± on pw |
+| mean ECD, D10, D50, D90 (Q0), Dv50, mean Feret | Y = Q·(s/s₀) | scale (relative), sampling: bootstrap standard deviation over the particles (type A) |
+| mean area | Y = Q·(s/s₀)² | scale twice (relative), bootstrap |
+| count | N | √N (Poisson counting statistics) |
+| area fraction A_A | Σ a_i / A | bootstrap over the particle areas; the scale cancels |
+
+The bootstrap resamples the measured particles with replacement (edge-correction weights kept) and uses a fixed
+seed (20261119), so a result is reproducible; it is labelled "Bootstrap …, Typ A" in the budget. Several images in
+one report (fields): mean ± Student-t interval of s/√n over the fields (ASTM E562 style), with the common scale term
+for lengths treated as fully correlated. A helper `binomial_u(k, n)` = √(p(1 − p)/n) gives the uncertainty of a
+number fraction; the module reports no number fractions yet, so it is only used in the tests.
+
+Sources (module records, all marked "Angaben nicht am Original geprüft", not checked against the original): Efron
+and Tibshirani 1993 (bootstrap), Taylor 1997 ch. 11 (Poisson counting), ASTM E562 (point counting; mean ± t·s/√n
+over fields).
+
+Own equations (`labcalc.formulas`, stored as `eigene_gleichungen.json` in the module's output folder): variables are
+`n`, `nCorr`, `areaFrac`, `meanArea`, `meanECD`, `sdECD`, `meanCirc`, `meanFeret`, `D10` … `Dv90`, `region`, `px`;
+the u of a variable with a budget is propagated with the chosen method. The report gets `unc-<name>-pm` / `-u` /
+`-U`, budget tables, `eq-…` values and a methods paragraph; several images add `serie-<name>-…`.
+
+## 9. Validation
+
+Run `python -m unittest discover -s tests` in `modules/mikroskopie`. The suite has 68 tests and needs no unpublished
+data. `tests/test_uncertainty.py` (10 tests) checks: u(s)/s = √((u_L/L)² + (u_N/N)²) for U = 0.5 µm (k = 2) on 50 µm
+and ±1 px on 200 px; the L and N contributions to u(D50) equal D50·u(L)/L and D50·u(N)/N, twice that for the mean
+area; without the sampling term u(D50)/D50 equals u(s)/s; u(count) = √N; `binomial_u(20, 100)` = 0.04; the area
+fraction budget has no scale term; the bootstrap is reproducible; all four methods; own equations get u; series
+mean ± s/√n; report bundle. `tests/test_known_answers.py` (24 tests, added in 1.3.0) holds known-answer tests with analytic expectations or
 independent references (contourpy, numpy's Hazen percentile).
 
 | Test (`tests/test_known_answers.py`) | Expected |

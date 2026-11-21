@@ -1,0 +1,7035 @@
+{
+ "_format": "folio-ranges/1",
+ "_hinweis": "Spannen (min–max) je Werkstoff und Eigenschaft für die Flächen im Ashby-Diagramm. Sie beschreiben die Streuung der Sorte bzw. des Zustands über Erzeugnisformen, Dicken, Hersteller und Lieferungen: bei genormten Metallen vom Norm-Mindestwert bis zum typischen Höchstwert (wo die Norm keine Obergrenze nennt, ist die Obergrenze ein typischer Lieferwert und in „note“ vermerkt), bei Kunststoffen, Keramiken, Gläsern, Fasern und Naturstoffen die in Handbüchern genannten Spannen. Wo eine Quelle nur einen Typwert nennt, ist die Spanne als Toleranzband um diesen Wert angesetzt und in „note“ als „Typwert ± …“ gekennzeichnet. Bei UD-Schichten reicht die Spanne von quer bis längs (Anisotropie). Alle Angaben sind nicht am Original geprüft.",
+ "_hinweis_en": "Ranges (min–max) per material and property for the areas in the Ashby chart. They describe the spread of the grade or temper over product forms, thicknesses, suppliers and batches: for standardised metals from the standard minimum to the typical maximum (where the standard gives no upper limit, the upper bound is a typical delivered value and says so in “note”), for polymers, ceramics, glasses, fibres and natural materials the ranges given in handbooks. Where a source gives only a typical value, the range is a tolerance band around it, marked “Typwert ± …” in “note”. For UD plies the range runs from transverse to longitudinal (anisotropy). Not checked against the originals.",
+ "quellen": {
+  "en485_2": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 485-2:2016+A1:2018 Aluminium und Aluminiumlegierungen – Bänder, Bleche und Platten – Teil 2: Mechanische Eigenschaften",
+   "year": "2018",
+   "number": "EN 485-2:2016+A1:2018",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en755_2": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 755-2:2016 Aluminium und Aluminiumlegierungen – Stranggepresste Stangen, Rohre und Profile – Teil 2: Mechanische Eigenschaften",
+   "year": "2016",
+   "number": "EN 755-2:2016",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en546_2": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 546-2:2006 Aluminium und Aluminiumlegierungen – Folien – Teil 2: Mechanische Eigenschaften",
+   "year": "2006",
+   "number": "EN 546-2:2006",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "astm_b209": {
+   "type": "standard",
+   "authors": "ASTM",
+   "container": "ASTM International",
+   "title": "ASTM B209 Standard Specification for Aluminum and Aluminum-Alloy Sheet and Plate",
+   "year": "",
+   "number": "ASTM B209",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en10025_2": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 10025-2:2019 Warmgewalzte Erzeugnisse aus Baustählen – Teil 2: Technische Lieferbedingungen für unlegierte Baustähle",
+   "year": "2019",
+   "number": "EN 10025-2:2019",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en10025_3": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 10025-3:2019 Warmgewalzte Erzeugnisse aus Baustählen – Teil 3: Technische Lieferbedingungen für normalgeglühte/normalisierend gewalzte schweissgeeignete Feinkornbaustähle",
+   "year": "2019",
+   "number": "EN 10025-3:2019",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en10130": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 10130:2006 Kaltgewalzte Flacherzeugnisse aus weichen Stählen zum Kaltumformen – Technische Lieferbedingungen",
+   "year": "2006",
+   "number": "EN 10130:2006",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en10083_2": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 10083-2:2006 Vergütungsstähle – Teil 2: Technische Lieferbedingungen für unlegierte Stähle",
+   "year": "2006",
+   "number": "EN 10083-2:2006",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en10083_3": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 10083-3:2006 Vergütungsstähle – Teil 3: Technische Lieferbedingungen für legierte Stähle",
+   "year": "2006",
+   "number": "EN 10083-3:2006",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en10088_1": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 10088-1:2014 Nichtrostende Stähle – Teil 1: Verzeichnis der nichtrostenden Stähle",
+   "year": "2014",
+   "number": "EN 10088-1:2014",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en10088_2": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 10088-2:2014 Nichtrostende Stähle – Teil 2: Technische Lieferbedingungen für Blech und Band aus korrosionsbeständigen Stählen für allgemeine Verwendung",
+   "year": "2014",
+   "number": "EN 10088-2:2014",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en1561": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 1561:2011 Gießereiwesen – Gusseisen mit Lamellengraphit",
+   "year": "2011",
+   "number": "EN 1561:2011",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en1563": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 1563:2018 Gießereiwesen – Gusseisen mit Kugelgraphit",
+   "year": "2018",
+   "number": "EN 1563:2018",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en1652": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 1652:1997 Kupfer und Kupferlegierungen – Platten, Bleche, Bänder, Streifen und Ronden zur allgemeinen Verwendung",
+   "year": "1997",
+   "number": "EN 1652:1997",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "astm_b265": {
+   "type": "standard",
+   "authors": "ASTM",
+   "container": "ASTM International",
+   "title": "ASTM B265 Standard Specification for Titanium and Titanium Alloy Strip, Sheet, and Plate",
+   "year": "",
+   "number": "ASTM B265",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "astm_b90": {
+   "type": "standard",
+   "authors": "ASTM",
+   "container": "ASTM International",
+   "title": "ASTM B90/B90M Standard Specification for Magnesium-Alloy Sheet and Plate",
+   "year": "",
+   "number": "ASTM B90/B90M",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "astm_b162": {
+   "type": "standard",
+   "authors": "ASTM",
+   "container": "ASTM International",
+   "title": "ASTM B162 Standard Specification for Nickel Plate, Sheet, and Strip",
+   "year": "",
+   "number": "ASTM B162",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "astm_b443": {
+   "type": "standard",
+   "authors": "ASTM",
+   "container": "ASTM International",
+   "title": "ASTM B443 Standard Specification for Nickel-Chromium-Molybdenum-Columbium Alloy (UNS N06625) and Nickel-Chromium-Molybdenum-Silicon Alloy (UNS N06219) Plate, Sheet, and Strip",
+   "year": "",
+   "number": "ASTM B443",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "ams5596": {
+   "type": "standard",
+   "authors": "SAE International",
+   "container": "SAE International",
+   "title": "AMS 5596 Nickel Alloy, Corrosion and Heat-Resistant, Sheet, Strip, Foil, and Plate, 52.5Ni - 19Cr - 3.0Mo - 5.1Cb (Nb) - 0.90Ti - 0.50Al - 18Fe, Consumable Electrode or Vacuum Induction Melted, 1775 °F (968 °C) Solution Heat Treated",
+   "year": "",
+   "number": "AMS 5596",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en1992_1_1": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 1992-1-1:2004 Eurocode 2: Bemessung und Konstruktion von Stahlbeton- und Spannbetontragwerken – Teil 1-1: Allgemeine Bemessungsregeln und Regeln für den Hochbau",
+   "year": "2004",
+   "number": "EN 1992-1-1:2004",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "en206": {
+   "type": "standard",
+   "authors": "CEN",
+   "container": "Europäisches Komitee für Normung",
+   "title": "EN 206:2013+A2:2021 Beton – Festlegung, Eigenschaften, Herstellung und Konformität",
+   "year": "2021",
+   "number": "EN 206:2013+A2:2021",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "asm_vol1": {
+   "type": "book",
+   "authors": "ASM International Handbook Committee",
+   "title": "ASM Handbook, Vol. 1: Properties and Selection: Irons, Steels, and High-Performance Alloys",
+   "container": "ASM International",
+   "year": "1990",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "asm_vol2": {
+   "type": "book",
+   "authors": "ASM International Handbook Committee",
+   "title": "ASM Handbook, Vol. 2: Properties and Selection: Nonferrous Alloys and Special-Purpose Materials",
+   "container": "ASM International",
+   "year": "1990",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "domininghaus2012": {
+   "type": "book",
+   "authors": "Domininghaus, H.; Elsner, P.; Eyerer, P.; Hirth, T.",
+   "title": "Kunststoffe – Eigenschaften und Anwendungen",
+   "container": "Springer",
+   "year": "2012",
+   "edition": "8. Auflage",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "roethemeyer2013": {
+   "type": "book",
+   "authors": "Röthemeyer, F.; Sommer, F.",
+   "title": "Kautschuk-Technologie: Werkstoffe – Verarbeitung – Produkte",
+   "container": "Hanser",
+   "year": "2013",
+   "edition": "3. Auflage",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "holik2013": {
+   "type": "book",
+   "authors": "Holik, H.",
+   "title": "Handbook of Paper and Board",
+   "container": "Wiley-VCH",
+   "year": "2013",
+   "edition": "2. Auflage",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "wagenfuehr2007": {
+   "type": "book",
+   "authors": "Wagenführ, R.",
+   "title": "Holzatlas",
+   "container": "Fachbuchverlag Leipzig im Carl Hanser Verlag",
+   "year": "2007",
+   "edition": "6. Auflage",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "schuermann2007": {
+   "type": "book",
+   "authors": "Schürmann, H.",
+   "title": "Konstruieren mit Faser-Kunststoff-Verbunden",
+   "container": "Springer",
+   "year": "2007",
+   "edition": "2. Auflage",
+   "note": "Angaben nicht am Original geprüft"
+  },
+  "bunsell2018": {
+   "type": "book",
+   "authors": "Bunsell, A. R.",
+   "title": "Handbook of Properties of Textile and Technical Fibres",
+   "container": "Woodhead Publishing",
+   "year": "2018",
+   "edition": "2. Auflage",
+   "note": "Angaben nicht am Original geprüft"
+  }
+ },
+ "bereiche": {
+  "en-aw-1050a-weich": {
+   "rho": {
+    "min": 2.691,
+    "max": 2.719,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,71 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 66.9,
+    "max": 71.1,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 69 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 20,
+    "max": 40,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 65,
+    "max": 95,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "O/H111, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 20,
+    "max": 42,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 Mindestwert je nach Dicke bis typischer Wert"
+   }
+  },
+  "en-aw-5052-h32": {
+   "rho": {
+    "min": 2.667,
+    "max": 2.693,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,68 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 68.2,
+    "max": 72.4,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 70,3 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 130,
+    "max": 200,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "H22/H32: Norm-Mindestwert 130 MPa bis typischer Wert"
+   },
+   "Rm": {
+    "min": 210,
+    "max": 260,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "H22/H32, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 4,
+    "max": 14,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 Mindestwert je nach Dicke bis typischer Wert"
+   }
+  },
+  "en-aw-5052-h38": {
+   "rho": {
+    "min": 2.667,
+    "max": 2.693,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,68 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 68.2,
+    "max": 72.4,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 70,3 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 220,
+    "max": 260,
+    "u": "MPa",
+    "q": "astm_b209",
+    "art": "norm",
+    "note": "Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 270,
+    "max": 310,
+    "u": "MPa",
+    "q": "astm_b209",
+    "art": "norm",
+    "note": "Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 3,
+    "max": 8,
+    "u": "%",
+    "q": "astm_b209",
+    "art": "norm",
+    "note": "dickenabhängig"
+   }
+  },
+  "en-aw-5083-o-h111": {
+   "rho": {
+    "min": 2.647,
+    "max": 2.673,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,66 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 68.9,
+    "max": 73.1,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 71 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 125,
+    "max": 200,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 275,
+    "max": 350,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "O/H111, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 11,
+    "max": 24,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke bis typischer Wert"
+   }
+  },
+  "en-aw-5086-h116-h32": {
+   "rho": {
+    "min": 2.647,
+    "max": 2.673,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,66 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 68.9,
+    "max": 73.1,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 71 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 185,
+    "max": 240,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "H32 Mindestwert 185 MPa, H116 195 MPa, bis typischer Wert"
+   },
+   "Rm": {
+    "min": 275,
+    "max": 325,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "H32, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 5,
+    "max": 14,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke bis typischer Wert"
+   }
+  },
+  "en-aw-6061-t6": {
+   "rho": {
+    "min": 2.687,
+    "max": 2.713,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,7 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 66.8,
+    "max": 71.0,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 68,9 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 240,
+    "max": 300,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 290,
+    "max": 340,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "T6, Norm-Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 6,
+    "max": 17,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke bis typischer Wert"
+   },
+   "alpha": {
+    "min": 22.9,
+    "max": 24.3,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 23,6 µm/(m·K) ±3 % (Temperaturbereich 20–100 °C bzw. 20–300 °C)"
+   },
+   "lambda": {
+    "min": 154,
+    "max": 180,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 167 W/(m·K) ±8 % (zustandsabhängig)"
+   },
+   "cp": {
+    "min": 860,
+    "max": 932,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 896 J/(kg·K) ±4 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 3.8,
+    "max": 4.2,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 4 µΩ·cm ±5 % (zustandsabhängig)"
+   }
+  },
+  "en-aw-2024-t3": {
+   "rho": {
+    "min": 2.766,
+    "max": 2.794,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,78 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 70.9,
+    "max": 75.3,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 73,1 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 290,
+    "max": 360,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 435,
+    "max": 495,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "T3, Norm-Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 12,
+    "max": 20,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke bis typischer Wert"
+   },
+   "alpha": {
+    "min": 22.2,
+    "max": 23.6,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 22,9 µm/(m·K) ±3 % (Temperaturbereich 20–100 °C bzw. 20–300 °C)"
+   },
+   "lambda": {
+    "min": 110,
+    "max": 130,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 120 W/(m·K) ±8 % (zustandsabhängig)"
+   },
+   "cp": {
+    "min": 840,
+    "max": 910,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 875 J/(kg·K) ±4 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 5.53,
+    "max": 6.11,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 5,82 µΩ·cm ±5 % (zustandsabhängig)"
+   },
+   "KIc": {
+    "min": 26,
+    "max": 46,
+    "u": "MPa*m^0.5",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Probenlage (L-T, T-L) und Dicke"
+   }
+  },
+  "en-aw-7075-t6": {
+   "rho": {
+    "min": 2.796,
+    "max": 2.824,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,81 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 69.5,
+    "max": 73.9,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 71,7 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 460,
+    "max": 520,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 525,
+    "max": 590,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "T6, Norm-Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 7,
+    "max": 12,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke bis typischer Wert"
+   },
+   "alpha": {
+    "min": 22.7,
+    "max": 24.1,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 23,4 µm/(m·K) ±3 % (Temperaturbereich 20–100 °C bzw. 20–300 °C)"
+   },
+   "lambda": {
+    "min": 120,
+    "max": 140,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 130 W/(m·K) ±8 % (zustandsabhängig)"
+   },
+   "cp": {
+    "min": 922,
+    "max": 998,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 960 J/(kg·K) ±4 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 4.96,
+    "max": 5.48,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 5,22 µΩ·cm ±5 % (zustandsabhängig)"
+   },
+   "KIc": {
+    "min": 20,
+    "max": 29,
+    "u": "MPa*m^0.5",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Probenlage (L-T, T-L) und Dicke"
+   }
+  },
+  "en-aw-1050a-h14": {
+   "rho": {
+    "min": 2.691,
+    "max": 2.719,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,71 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 66.9,
+    "max": 71.1,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 69 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 85,
+    "max": 130,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 105,
+    "max": 145,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "H14, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 2,
+    "max": 10,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke"
+   }
+  },
+  "en-aw-3003-h14": {
+   "rho": {
+    "min": 2.716,
+    "max": 2.744,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,73 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 66.9,
+    "max": 71.1,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 69 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 125,
+    "max": 175,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 145,
+    "max": 185,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "H14, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 2,
+    "max": 8,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke"
+   }
+  },
+  "en-aw-5754-o-h111": {
+   "rho": {
+    "min": 2.657,
+    "max": 2.683,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,67 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 68.4,
+    "max": 72.6,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 70,5 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 80,
+    "max": 130,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 190,
+    "max": 240,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "O/H111, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 12,
+    "max": 25,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke bis typischer Wert"
+   }
+  },
+  "en-aw-5754-h22": {
+   "rho": {
+    "min": 2.657,
+    "max": 2.683,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,67 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 68.4,
+    "max": 72.6,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 70,5 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 130,
+    "max": 200,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 220,
+    "max": 270,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "H22/H32, Blech 0,5–12,5 mm"
+   },
+   "A": {
+    "min": 6,
+    "max": 14,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke bis typischer Wert"
+   }
+  },
+  "en-aw-6060-t6": {
+   "rho": {
+    "min": 2.687,
+    "max": 2.713,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,7 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 67.4,
+    "max": 71.6,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 69,5 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 150,
+    "max": 215,
+    "u": "MPa",
+    "q": "en755_2",
+    "art": "norm",
+    "note": "Profil e ≤ 3 mm: Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 190,
+    "max": 245,
+    "u": "MPa",
+    "q": "en755_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 6,
+    "max": 14,
+    "u": "%",
+    "q": "en755_2",
+    "art": "norm",
+    "note": "A50/A je nach Wanddicke"
+   }
+  },
+  "en-aw-6082-t6": {
+   "rho": {
+    "min": 2.687,
+    "max": 2.713,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,7 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 67.9,
+    "max": 72.1,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 70 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 260,
+    "max": 340,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 310,
+    "max": 360,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "T6, Norm-Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 6,
+    "max": 12,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke"
+   }
+  },
+  "en-aw-7020-t6": {
+   "rho": {
+    "min": 2.766,
+    "max": 2.794,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,78 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 69.8,
+    "max": 74.2,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 72 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 280,
+    "max": 350,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typischer Wert"
+   },
+   "Rm": {
+    "min": 350,
+    "max": 410,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "T6, Norm-Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 7,
+    "max": 12,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke"
+   }
+  },
+  "en-aw-2017a-t4": {
+   "rho": {
+    "min": 2.776,
+    "max": 2.804,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,79 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 70.3,
+    "max": 74.7,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 72,5 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 245,
+    "max": 300,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "Norm-Mindestwert je nach Dicke bis typischer Wert"
+   },
+   "Rm": {
+    "min": 390,
+    "max": 450,
+    "u": "MPa",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "T4, Norm-Mindestwert bis typischer Wert"
+   },
+   "A": {
+    "min": 12,
+    "max": 20,
+    "u": "%",
+    "q": "en485_2",
+    "art": "norm",
+    "note": "A50 je nach Dicke"
+   }
+  },
+  "en-aw-8011a-o-folie": {
+   "rho": {
+    "min": 2.696,
+    "max": 2.724,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 2,71 g/cm³ ±0,5 % (Zusammensetzungsspanne der Legierung)"
+   },
+   "E": {
+    "min": 66.9,
+    "max": 71.1,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 69 GPa ±3 % (Legierung und Zustand)"
+   },
+   "Rp": {
+    "min": 30,
+    "max": 70,
+    "u": "MPa",
+    "q": "en546_2",
+    "art": "norm",
+    "note": "Folie, dickenabhängig; Obergrenze typischer Wert"
+   },
+   "Rm": {
+    "min": 80,
+    "max": 130,
+    "u": "MPa",
+    "q": "en546_2",
+    "art": "norm",
+    "note": "Folie O, dickenabhängig"
+   },
+   "A": {
+    "min": 1,
+    "max": 12,
+    "u": "%",
+    "q": "en546_2",
+    "art": "norm",
+    "note": "stark dickenabhängig (dünne Folie wenige %)"
+   }
+  },
+  "s235jr": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 235,
+    "max": 355,
+    "u": "MPa",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "ReH Mindestwert, Dicke ≤ 16 mm; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 360,
+    "max": 510,
+    "u": "MPa",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "Dicke 3–100 mm"
+   },
+   "A": {
+    "min": 26,
+    "max": 36,
+    "u": "%",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "längs, Mindestwert bis typisch"
+   }
+  },
+  "s275jr": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 275,
+    "max": 390,
+    "u": "MPa",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "ReH Mindestwert, Dicke ≤ 16 mm; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 410,
+    "max": 560,
+    "u": "MPa",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "Dicke 3–100 mm"
+   },
+   "A": {
+    "min": 23,
+    "max": 32,
+    "u": "%",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "längs, Mindestwert bis typisch"
+   }
+  },
+  "s355j2": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 355,
+    "max": 470,
+    "u": "MPa",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "ReH Mindestwert, Dicke ≤ 16 mm; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 470,
+    "max": 630,
+    "u": "MPa",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "Dicke 3–100 mm"
+   },
+   "A": {
+    "min": 22,
+    "max": 30,
+    "u": "%",
+    "q": "en10025_2",
+    "art": "norm",
+    "note": "längs, Mindestwert bis typisch"
+   }
+  },
+  "s460n": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 460,
+    "max": 560,
+    "u": "MPa",
+    "q": "en10025_3",
+    "art": "norm",
+    "note": "ReH Mindestwert, Dicke ≤ 16 mm; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 540,
+    "max": 720,
+    "u": "MPa",
+    "q": "en10025_3",
+    "art": "norm",
+    "note": "Dicke ≤ 100 mm"
+   },
+   "A": {
+    "min": 17,
+    "max": 24,
+    "u": "%",
+    "q": "en10025_3",
+    "art": "norm",
+    "note": "längs, Mindestwert bis typisch"
+   }
+  },
+  "dc01": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 140,
+    "max": 280,
+    "u": "MPa",
+    "q": "en10130",
+    "art": "norm",
+    "note": "Norm nennt nur Höchstwert 280 MPa; Untergrenze typischer Wert"
+   },
+   "Rm": {
+    "min": 270,
+    "max": 410,
+    "u": "MPa",
+    "q": "en10130",
+    "art": "norm"
+   },
+   "A": {
+    "min": 28,
+    "max": 40,
+    "u": "%",
+    "q": "en10130",
+    "art": "norm",
+    "note": "A80 Mindestwert bis typisch"
+   }
+  },
+  "dc04": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 140,
+    "max": 210,
+    "u": "MPa",
+    "q": "en10130",
+    "art": "norm",
+    "note": "Norm nennt nur Höchstwert 210 MPa; Untergrenze typischer Wert"
+   },
+   "Rm": {
+    "min": 270,
+    "max": 350,
+    "u": "MPa",
+    "q": "en10130",
+    "art": "norm"
+   },
+   "A": {
+    "min": 38,
+    "max": 46,
+    "u": "%",
+    "q": "en10130",
+    "art": "norm",
+    "note": "A80 Mindestwert bis typisch"
+   }
+  },
+  "c45e-n": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 340,
+    "max": 430,
+    "u": "MPa",
+    "q": "en10083_2",
+    "art": "norm",
+    "note": "normalgeglüht, d ≤ 16 mm; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 620,
+    "max": 780,
+    "u": "MPa",
+    "q": "en10083_2",
+    "art": "norm",
+    "note": "Mindestwert 620 MPa; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "A": {
+    "min": 14,
+    "max": 20,
+    "u": "%",
+    "q": "en10083_2",
+    "art": "norm"
+   }
+  },
+  "c45e-qt": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 490,
+    "max": 650,
+    "u": "MPa",
+    "q": "en10083_2",
+    "art": "norm",
+    "note": "vergütet, d ≤ 16 mm; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 700,
+    "max": 850,
+    "u": "MPa",
+    "q": "en10083_2",
+    "art": "norm",
+    "note": "vergütet, d ≤ 16 mm"
+   },
+   "A": {
+    "min": 14,
+    "max": 20,
+    "u": "%",
+    "q": "en10083_2",
+    "art": "norm"
+   }
+  },
+  "42crmo4-qt": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 900,
+    "max": 1100,
+    "u": "MPa",
+    "q": "en10083_3",
+    "art": "norm",
+    "note": "vergütet, d ≤ 16 mm; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 1100,
+    "max": 1300,
+    "u": "MPa",
+    "q": "en10083_3",
+    "art": "norm",
+    "note": "vergütet, d ≤ 16 mm"
+   },
+   "A": {
+    "min": 10,
+    "max": 15,
+    "u": "%",
+    "q": "en10083_3",
+    "art": "norm"
+   }
+  },
+  "1-4301-x5crni18-10": {
+   "rho": {
+    "min": 7.85,
+    "max": 8.03,
+    "u": "g/cm^3",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 7,9; Handbücher (ASM) 8,0"
+   },
+   "E": {
+    "min": 193,
+    "max": 205,
+    "u": "GPa",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 20 °C bis Handbuchwerte (193 GPa)"
+   },
+   "Rp": {
+    "min": 230,
+    "max": 350,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C, Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 540,
+    "max": 750,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C"
+   },
+   "A": {
+    "min": 45,
+    "max": 60,
+    "u": "%",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "A80 Mindestwert bis typisch"
+   },
+   "alpha": {
+    "min": 16.0,
+    "max": 17.5,
+    "u": "µm/(m*K)",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "20–100 °C (Norm 16,0) bis 0–100 °C nach Handbüchern"
+   },
+   "lambda": {
+    "min": 14.5,
+    "max": 16.5,
+    "u": "W/(m*K)",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 15 W/(m·K) bis Handbuchwerte"
+   },
+   "cp": {
+    "min": 470,
+    "max": 530,
+    "u": "J/(kg*K)",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 500 J/(kg·K) ± 6 %"
+   },
+   "rho_el": {
+    "min": 70,
+    "max": 74,
+    "u": "µOhm*cm",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 73 µΩ·cm"
+   }
+  },
+  "1-4404-x2crnimo17-12-2": {
+   "rho": {
+    "min": 7.95,
+    "max": 8.06,
+    "u": "g/cm^3",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert ± Zusammensetzung"
+   },
+   "E": {
+    "min": 193,
+    "max": 205,
+    "u": "GPa",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 20 °C bis Handbuchwerte (193 GPa)"
+   },
+   "Rp": {
+    "min": 240,
+    "max": 360,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C, Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 530,
+    "max": 680,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C"
+   },
+   "A": {
+    "min": 40,
+    "max": 55,
+    "u": "%",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "A80 Mindestwert bis typisch"
+   },
+   "alpha": {
+    "min": 15.5,
+    "max": 16.5,
+    "u": "µm/(m*K)",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "20–100 °C"
+   },
+   "lambda": {
+    "min": 14,
+    "max": 16.5,
+    "u": "W/(m*K)",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 15 W/(m·K) bis Handbuchwerte"
+   },
+   "cp": {
+    "min": 470,
+    "max": 530,
+    "u": "J/(kg*K)",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 500 J/(kg·K) ± 6 %"
+   },
+   "rho_el": {
+    "min": 72,
+    "max": 76,
+    "u": "µOhm*cm",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 75 µΩ·cm"
+   }
+  },
+  "1-4571-x6crnimoti17-12-2": {
+   "rho": {
+    "min": 7.95,
+    "max": 8.06,
+    "u": "g/cm^3",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert ± Zusammensetzung"
+   },
+   "E": {
+    "min": 193,
+    "max": 205,
+    "u": "GPa",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 20 °C bis Handbuchwerte (193 GPa)"
+   },
+   "Rp": {
+    "min": 240,
+    "max": 360,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C, Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 540,
+    "max": 690,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C"
+   },
+   "A": {
+    "min": 40,
+    "max": 55,
+    "u": "%",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "A80 Mindestwert bis typisch"
+   }
+  },
+  "1-4016-x6cr17": {
+   "rho": {
+    "min": 7.65,
+    "max": 7.76,
+    "u": "g/cm^3",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert ± Zusammensetzung"
+   },
+   "E": {
+    "min": 210,
+    "max": 225,
+    "u": "GPa",
+    "q": "en10088_1",
+    "art": "norm",
+    "note": "Norm-Richtwert 20 °C bis Handbuchwerte (193 GPa)"
+   },
+   "Rp": {
+    "min": 260,
+    "max": 380,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C, Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 450,
+    "max": 600,
+    "u": "MPa",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "Kaltband C"
+   },
+   "A": {
+    "min": 20,
+    "max": 28,
+    "u": "%",
+    "q": "en10088_2",
+    "art": "norm",
+    "note": "A80 Mindestwert bis typisch"
+   }
+  },
+  "en-gjl-250": {
+   "rho": {
+    "min": 7.1,
+    "max": 7.3,
+    "u": "g/cm^3",
+    "q": "en1561",
+    "art": "norm",
+    "note": "informativer Richtwert 7,2 g/cm³"
+   },
+   "E": {
+    "min": 103,
+    "max": 118,
+    "u": "GPa",
+    "q": "en1561",
+    "art": "norm",
+    "note": "informativer Anhang, Wanddicke 15–30 mm"
+   },
+   "Rp": {
+    "min": 165,
+    "max": 228,
+    "u": "MPa",
+    "q": "en1561",
+    "art": "norm",
+    "note": "Rp0,1, informativer Anhang"
+   },
+   "Rm": {
+    "min": 250,
+    "max": 350,
+    "u": "MPa",
+    "q": "en1561",
+    "art": "norm",
+    "note": "getrennt gegossenes Probestück"
+   },
+   "A": {
+    "min": 0.3,
+    "max": 0.8,
+    "u": "%",
+    "q": "en1561",
+    "art": "norm",
+    "note": "informativer Anhang"
+   }
+  },
+  "en-gjs-400-15": {
+   "rho": {
+    "min": 7.0,
+    "max": 7.2,
+    "u": "g/cm^3",
+    "q": "en1563",
+    "art": "norm",
+    "note": "informativer Richtwert 7,1 g/cm³"
+   },
+   "E": {
+    "min": 162,
+    "max": 176,
+    "u": "GPa",
+    "q": "en1563",
+    "art": "norm",
+    "note": "informativer Typwert 169 GPa ± 4 %"
+   },
+   "Rp": {
+    "min": 250,
+    "max": 310,
+    "u": "MPa",
+    "q": "en1563",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 400,
+    "max": 480,
+    "u": "MPa",
+    "q": "en1563",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "A": {
+    "min": 15,
+    "max": 25,
+    "u": "%",
+    "q": "en1563",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   }
+  },
+  "cu-etp-r220-weich": {
+   "rho": {
+    "min": 8.89,
+    "max": 8.94,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zusammensetzungsspanne"
+   },
+   "E": {
+    "min": 110,
+    "max": 130,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zustand und Textur"
+   },
+   "Rp": {
+    "min": 40,
+    "max": 140,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Norm nennt nur Höchstwert 140 MPa"
+   },
+   "Rm": {
+    "min": 220,
+    "max": 260,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Festigkeitszustand R, Dicke 0,2–5 mm"
+   },
+   "A": {
+    "min": 33,
+    "max": 50,
+    "u": "%",
+    "q": "en1652",
+    "art": "norm",
+    "note": "A50 Mindestwert bis typisch"
+   },
+   "alpha": {
+    "min": 16.8,
+    "max": 17.7,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "20–100 °C bis 20–300 °C"
+   },
+   "lambda": {
+    "min": 385,
+    "max": 394,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "cp": {
+    "min": 380,
+    "max": 390,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "rho_el": {
+    "min": 1.69,
+    "max": 1.75,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Leitfähigkeit ≥ 58 MS/m (≤ 1,724 µΩ·cm) bei Cu-ETP; kaltverfestigt höher"
+   }
+  },
+  "cu-etp-r290-halbhart": {
+   "rho": {
+    "min": 8.89,
+    "max": 8.94,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zusammensetzungsspanne"
+   },
+   "E": {
+    "min": 110,
+    "max": 130,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zustand und Textur"
+   },
+   "Rp": {
+    "min": 250,
+    "max": 320,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 290,
+    "max": 360,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Festigkeitszustand R, Dicke 0,2–5 mm"
+   },
+   "A": {
+    "min": 8,
+    "max": 15,
+    "u": "%",
+    "q": "en1652",
+    "art": "norm",
+    "note": "A50 Mindestwert bis typisch"
+   },
+   "alpha": {
+    "min": 16.8,
+    "max": 17.7,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "20–100 °C bis 20–300 °C"
+   },
+   "lambda": {
+    "min": 385,
+    "max": 394,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "cp": {
+    "min": 380,
+    "max": 390,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "rho_el": {
+    "min": 1.69,
+    "max": 1.75,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Leitfähigkeit ≥ 58 MS/m (≤ 1,724 µΩ·cm) bei Cu-ETP; kaltverfestigt höher"
+   }
+  },
+  "cuzn37-r300-messing-weich": {
+   "rho": {
+    "min": 8.4,
+    "max": 8.47,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zusammensetzungsspanne"
+   },
+   "E": {
+    "min": 103,
+    "max": 115,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zustand und Textur"
+   },
+   "Rp": {
+    "min": 100,
+    "max": 180,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Norm nennt nur Höchstwert 180 MPa"
+   },
+   "Rm": {
+    "min": 300,
+    "max": 370,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Festigkeitszustand R, Dicke 0,2–5 mm"
+   },
+   "A": {
+    "min": 38,
+    "max": 55,
+    "u": "%",
+    "q": "en1652",
+    "art": "norm",
+    "note": "A50 Mindestwert bis typisch"
+   }
+  },
+  "cuzn37-r410-messing-halbhart": {
+   "rho": {
+    "min": 8.4,
+    "max": 8.47,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zusammensetzungsspanne"
+   },
+   "E": {
+    "min": 103,
+    "max": 115,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zustand und Textur"
+   },
+   "Rp": {
+    "min": 300,
+    "max": 440,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 410,
+    "max": 490,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Festigkeitszustand R, Dicke 0,2–5 mm"
+   },
+   "A": {
+    "min": 12,
+    "max": 20,
+    "u": "%",
+    "q": "en1652",
+    "art": "norm",
+    "note": "A50 Mindestwert bis typisch"
+   }
+  },
+  "cusn6-r350-bronze-weich": {
+   "rho": {
+    "min": 8.78,
+    "max": 8.86,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zusammensetzungsspanne"
+   },
+   "E": {
+    "min": 110,
+    "max": 125,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zustand und Textur"
+   },
+   "Rp": {
+    "min": 150,
+    "max": 300,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Norm nennt nur Höchstwert 300 MPa"
+   },
+   "Rm": {
+    "min": 350,
+    "max": 420,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Festigkeitszustand R, Dicke 0,2–5 mm"
+   },
+   "A": {
+    "min": 45,
+    "max": 60,
+    "u": "%",
+    "q": "en1652",
+    "art": "norm",
+    "note": "A50 Mindestwert bis typisch"
+   }
+  },
+  "cusn6-r550-bronze-hart": {
+   "rho": {
+    "min": 8.78,
+    "max": 8.86,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zusammensetzungsspanne"
+   },
+   "E": {
+    "min": 110,
+    "max": 125,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Zustand und Textur"
+   },
+   "Rp": {
+    "min": 500,
+    "max": 620,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 550,
+    "max": 640,
+    "u": "MPa",
+    "q": "en1652",
+    "art": "norm",
+    "note": "Festigkeitszustand R, Dicke 0,2–5 mm"
+   },
+   "A": {
+    "min": 8,
+    "max": 15,
+    "u": "%",
+    "q": "en1652",
+    "art": "norm",
+    "note": "A50 Mindestwert bis typisch"
+   }
+  },
+  "titan-grade-1": {
+   "rho": {
+    "min": 4.5,
+    "max": 4.52,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 100,
+    "max": 107,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Textur und Zustand"
+   },
+   "Rp": {
+    "min": 138,
+    "max": 310,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Grade 1–4: Norm nennt Mindest- und Höchstwert"
+   },
+   "Rm": {
+    "min": 240,
+    "max": 345,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "A": {
+    "min": 24,
+    "max": 35,
+    "u": "%",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   }
+  },
+  "titan-grade-2": {
+   "rho": {
+    "min": 4.5,
+    "max": 4.52,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 102,
+    "max": 110,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Textur und Zustand"
+   },
+   "Rp": {
+    "min": 275,
+    "max": 450,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Grade 1–4: Norm nennt Mindest- und Höchstwert"
+   },
+   "Rm": {
+    "min": 345,
+    "max": 480,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "A": {
+    "min": 20,
+    "max": 30,
+    "u": "%",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   }
+  },
+  "titan-grade-4": {
+   "rho": {
+    "min": 4.5,
+    "max": 4.55,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 102,
+    "max": 110,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Textur und Zustand"
+   },
+   "Rp": {
+    "min": 483,
+    "max": 655,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Grade 1–4: Norm nennt Mindest- und Höchstwert"
+   },
+   "Rm": {
+    "min": 550,
+    "max": 700,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "A": {
+    "min": 15,
+    "max": 25,
+    "u": "%",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   }
+  },
+  "ti-6al-4v-grade-5": {
+   "rho": {
+    "min": 4.42,
+    "max": 4.45,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 110,
+    "max": 119,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Textur und Zustand"
+   },
+   "Rp": {
+    "min": 828,
+    "max": 980,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "Rm": {
+    "min": 895,
+    "max": 1050,
+    "u": "MPa",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert; Obergrenze nicht genormt: typischer Lieferwert"
+   },
+   "A": {
+    "min": 10,
+    "max": 18,
+    "u": "%",
+    "q": "astm_b265",
+    "art": "norm",
+    "note": "Norm-Mindestwert bis typisch"
+   },
+   "KIc": {
+    "min": 44,
+    "max": 66,
+    "u": "MPa*m^0.5",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht, Gefüge und Probenlage"
+   },
+   "alpha": {
+    "min": 8.4,
+    "max": 9.7,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "20–100 °C bis 20–500 °C"
+   },
+   "lambda": {
+    "min": 6.6,
+    "max": 7.4,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "cp": {
+    "min": 520,
+    "max": 620,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Handbuchwerte 526–610 J/(kg·K) je nach Temperatur und Quelle"
+   },
+   "rho_el": {
+    "min": 168,
+    "max": 178,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   }
+  },
+  "az31b-o": {
+   "rho": {
+    "min": 1.76,
+    "max": 1.78,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 43,
+    "max": 46,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 125,
+    "max": 180,
+    "u": "MPa",
+    "q": "astm_b90",
+    "art": "norm",
+    "note": "Blech 0,4–6,3 mm, Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 220,
+    "max": 290,
+    "u": "MPa",
+    "q": "astm_b90",
+    "art": "norm",
+    "note": "Blech 0,4–6,3 mm, Mindestwert bis typisch"
+   },
+   "A": {
+    "min": 12,
+    "max": 25,
+    "u": "%",
+    "q": "astm_b90",
+    "art": "norm",
+    "note": "Mindestwert bis typisch"
+   },
+   "alpha": {
+    "min": 25.2,
+    "max": 27.0,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "20–100 °C"
+   },
+   "lambda": {
+    "min": 92,
+    "max": 100,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 96 W/(m·K) ± 4 %"
+   },
+   "cp": {
+    "min": 960,
+    "max": 1050,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "rho_el": {
+    "min": 9.0,
+    "max": 9.4,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 9,2 µΩ·cm ± 2 %"
+   }
+  },
+  "az31b-h24": {
+   "rho": {
+    "min": 1.76,
+    "max": 1.78,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 43,
+    "max": 46,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 200,
+    "max": 250,
+    "u": "MPa",
+    "q": "astm_b90",
+    "art": "norm",
+    "note": "Blech 0,4–6,3 mm, Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 270,
+    "max": 310,
+    "u": "MPa",
+    "q": "astm_b90",
+    "art": "norm",
+    "note": "Blech 0,4–6,3 mm, Mindestwert bis typisch"
+   },
+   "A": {
+    "min": 6,
+    "max": 17,
+    "u": "%",
+    "q": "astm_b90",
+    "art": "norm",
+    "note": "Mindestwert bis typisch"
+   },
+   "alpha": {
+    "min": 25.2,
+    "max": 27.0,
+    "u": "µm/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "20–100 °C"
+   },
+   "lambda": {
+    "min": 92,
+    "max": 100,
+    "u": "W/(m*K)",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 96 W/(m·K) ± 4 %"
+   },
+   "cp": {
+    "min": 960,
+    "max": 1050,
+    "u": "J/(kg*K)",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "rho_el": {
+    "min": 9.0,
+    "max": 9.4,
+    "u": "µOhm*cm",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "Typwert 9,2 µΩ·cm ± 2 %"
+   }
+  },
+  "nickel-200": {
+   "rho": {
+    "min": 8.88,
+    "max": 8.91,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 200,
+    "max": 207,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 100,
+    "max": 275,
+    "u": "MPa",
+    "q": "astm_b162",
+    "art": "norm",
+    "note": "geglüht, Platte/Blech: Norm-Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 380,
+    "max": 550,
+    "u": "MPa",
+    "q": "astm_b162",
+    "art": "norm",
+    "note": "geglüht, Platte/Blech: Norm-Mindestwert bis typisch"
+   },
+   "A": {
+    "min": 35,
+    "max": 55,
+    "u": "%",
+    "q": "astm_b162",
+    "art": "norm",
+    "note": "geglüht, Platte/Blech: Norm-Mindestwert bis typisch"
+   }
+  },
+  "inconel-625": {
+   "rho": {
+    "min": 8.4,
+    "max": 8.46,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 204,
+    "max": 210,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 414,
+    "max": 620,
+    "u": "MPa",
+    "q": "astm_b443",
+    "art": "norm",
+    "note": "Grade 1 (geglüht): Norm-Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 827,
+    "max": 1030,
+    "u": "MPa",
+    "q": "astm_b443",
+    "art": "norm",
+    "note": "Grade 1 (geglüht): Norm-Mindestwert bis typisch"
+   },
+   "A": {
+    "min": 30,
+    "max": 60,
+    "u": "%",
+    "q": "astm_b443",
+    "art": "norm",
+    "note": "Grade 1 (geglüht): Norm-Mindestwert bis typisch"
+   }
+  },
+  "inconel-718-ausgehaertet": {
+   "rho": {
+    "min": 8.17,
+    "max": 8.22,
+    "u": "g/cm^3",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 199,
+    "max": 208,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 1034,
+    "max": 1240,
+    "u": "MPa",
+    "q": "ams5596",
+    "art": "norm",
+    "note": "lösungsgeglüht und ausgehärtet: Norm-Mindestwert bis typisch"
+   },
+   "Rm": {
+    "min": 1241,
+    "max": 1450,
+    "u": "MPa",
+    "q": "ams5596",
+    "art": "norm",
+    "note": "lösungsgeglüht und ausgehärtet: Norm-Mindestwert bis typisch"
+   },
+   "A": {
+    "min": 12,
+    "max": 25,
+    "u": "%",
+    "q": "ams5596",
+    "art": "norm",
+    "note": "lösungsgeglüht und ausgehärtet: Norm-Mindestwert bis typisch"
+   }
+  },
+  "pa6-trocken": {
+   "rho": {
+    "min": 1.12,
+    "max": 1.14,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.6,
+    "max": 3.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "trocken, spritzfrisch"
+   },
+   "Rp": {
+    "min": 70,
+    "max": 90,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "trocken"
+   },
+   "Rm": {
+    "min": 70,
+    "max": 90,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Streckspannung, trocken"
+   },
+   "A": {
+    "min": 15,
+    "max": 200,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Bruchdehnung, stark typ- und prüfabhängig"
+   },
+   "Tm": {
+    "min": 215,
+    "max": 225,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": 40,
+    "max": 60,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch",
+    "note": "feuchteabhängig"
+   }
+  },
+  "pa6-konditioniert": {
+   "rho": {
+    "min": 1.12,
+    "max": 1.15,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 0.8,
+    "max": 1.4,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Normalklima 23 °C/50 % r. F."
+   },
+   "Rp": {
+    "min": 35,
+    "max": 55,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 35,
+    "max": 55,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 150,
+    "max": 300,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pa66-trocken": {
+   "rho": {
+    "min": 1.13,
+    "max": 1.15,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.8,
+    "max": 3.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "trocken"
+   },
+   "Rp": {
+    "min": 75,
+    "max": 90,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 75,
+    "max": 90,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Streckspannung, trocken"
+   },
+   "A": {
+    "min": 20,
+    "max": 60,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "KIc": {
+    "min": 2.5,
+    "max": 3,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Tm": {
+    "min": 255,
+    "max": 265,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": 50,
+    "max": 70,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch",
+    "note": "feuchteabhängig"
+   },
+   "alpha": {
+    "min": 80,
+    "max": 150,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Datenblätter 70–100, Callister 144"
+   },
+   "lambda": {
+    "min": 0.23,
+    "max": 0.33,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 1600,
+    "max": 1700,
+    "u": "J/(kg*K)",
+    "q": "callister",
+    "art": "literatur"
+   }
+  },
+  "pa66-konditioniert": {
+   "rho": {
+    "min": 1.13,
+    "max": 1.15,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 1.0,
+    "max": 1.8,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Normalklima 23 °C/50 % r. F."
+   },
+   "Rp": {
+    "min": 45,
+    "max": 60,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 45,
+    "max": 60,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 40,
+    "max": 300,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pa12": {
+   "rho": {
+    "min": 1.01,
+    "max": 1.02,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 1.1,
+    "max": 1.8,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 40,
+    "max": 55,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 40,
+    "max": 55,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 50,
+    "max": 300,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Datenblätter meist „> 50 %“"
+   },
+   "Tm": {
+    "min": 175,
+    "max": 180,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pom-copolymer": {
+   "rho": {
+    "min": 1.39,
+    "max": 1.42,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.6,
+    "max": 3.2,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 60,
+    "max": 70,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 60,
+    "max": 70,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 15,
+    "max": 40,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 165,
+    "max": 175,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pe-hd": {
+   "rho": {
+    "min": 0.94,
+    "max": 0.97,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 0.6,
+    "max": 1.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "dichte- und kristallinitätsabhängig"
+   },
+   "Rp": {
+    "min": 18,
+    "max": 32,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 18,
+    "max": 32,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Streckspannung"
+   },
+   "A": {
+    "min": 300,
+    "max": 1000,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 125,
+    "max": 138,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": -125,
+    "max": -80,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch",
+    "note": "Literaturwerte uneinheitlich"
+   },
+   "alpha": {
+    "min": 106,
+    "max": 198,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.46,
+    "max": 0.5,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "cp": {
+    "min": 1750,
+    "max": 2100,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "pe-ld": {
+   "rho": {
+    "min": 0.91,
+    "max": 0.93,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 0.1,
+    "max": 0.35,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 7,
+    "max": 12,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 8,
+    "max": 20,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 300,
+    "max": 900,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 105,
+    "max": 118,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": -125,
+    "max": -80,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch",
+    "note": "Literaturwerte uneinheitlich"
+   },
+   "alpha": {
+    "min": 180,
+    "max": 400,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.3,
+    "max": 0.35,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 1800,
+    "max": 2300,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Obergrenze Callister-Wert 2300 J/(kg·K)"
+   }
+  },
+  "pp-h": {
+   "rho": {
+    "min": 0.9,
+    "max": 0.91,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 1.1,
+    "max": 1.7,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 30,
+    "max": 38,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 30,
+    "max": 38,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Streckspannung"
+   },
+   "A": {
+    "min": 20,
+    "max": 400,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Bruchdehnung stark typabhängig"
+   },
+   "KIc": {
+    "min": 3,
+    "max": 4.5,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Tm": {
+    "min": 160,
+    "max": 176,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": -20,
+    "max": -5,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 146,
+    "max": 180,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.11,
+    "max": 0.22,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 1700,
+    "max": 2000,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "ps-standard": {
+   "rho": {
+    "min": 1.04,
+    "max": 1.06,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.9,
+    "max": 3.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 35,
+    "max": 60,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 1.2,
+    "max": 3,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "KIc": {
+    "min": 0.7,
+    "max": 1.1,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Tg": {
+    "min": 90,
+    "max": 105,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 90,
+    "max": 150,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.1,
+    "max": 0.16,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 1150,
+    "max": 1350,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "abs": {
+   "rho": {
+    "min": 1.04,
+    "max": 1.06,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 1.8,
+    "max": 2.9,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 35,
+    "max": 50,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 35,
+    "max": 50,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 5,
+    "max": 30,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": 95,
+    "max": 115,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Glasübergang der SAN-Phase"
+   }
+  },
+  "pc": {
+   "rho": {
+    "min": 1.19,
+    "max": 1.21,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.2,
+    "max": 2.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 60,
+    "max": 68,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 60,
+    "max": 72,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 80,
+    "max": 150,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "KIc": {
+    "min": 2.0,
+    "max": 3.5,
+    "u": "MPa*m^0.5",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "Tg": {
+    "min": 140,
+    "max": 155,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 65,
+    "max": 125,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Datenblätter 65–70, Callister 122"
+   },
+   "lambda": {
+    "min": 0.19,
+    "max": 0.22,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 840,
+    "max": 1300,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Datenblätter um 1200 J/(kg·K); Untergrenze Callister-Wert 840"
+   }
+  },
+  "pmma": {
+   "rho": {
+    "min": 1.17,
+    "max": 1.2,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.4,
+    "max": 3.4,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 50,
+    "max": 80,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 2,
+    "max": 10,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "KIc": {
+    "min": 0.7,
+    "max": 1.6,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Tg": {
+    "min": 95,
+    "max": 115,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch",
+    "note": "taktizitätsabhängig"
+   },
+   "alpha": {
+    "min": 90,
+    "max": 162,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.17,
+    "max": 0.25,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "cp": {
+    "min": 1350,
+    "max": 1500,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "pet": {
+   "rho": {
+    "min": 1.29,
+    "max": 1.4,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.3,
+    "max": 3.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 50,
+    "max": 90,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 50,
+    "max": 90,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 5,
+    "max": 300,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "amorph bis teilkristallin, sehr breite Spanne"
+   },
+   "KIc": {
+    "min": 4.5,
+    "max": 5.5,
+    "u": "MPa*m^0.5",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "Tm": {
+    "min": 245,
+    "max": 270,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": 67,
+    "max": 81,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 60,
+    "max": 120,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Datenblätter 60–80, Callister 117"
+   },
+   "lambda": {
+    "min": 0.14,
+    "max": 0.24,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 1100,
+    "max": 1450,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "pbt": {
+   "rho": {
+    "min": 1.29,
+    "max": 1.32,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.0,
+    "max": 2.8,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 45,
+    "max": 60,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 45,
+    "max": 60,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 10,
+    "max": 300,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 220,
+    "max": 226,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pvc-u": {
+   "rho": {
+    "min": 1.3,
+    "max": 1.58,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.4,
+    "max": 3.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 45,
+    "max": 60,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 45,
+    "max": 60,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 10,
+    "max": 50,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 175,
+    "max": 220,
+    "u": "°C",
+    "q": "callister",
+    "art": "literatur",
+    "note": "kaum kristallin; Schmelzbereich unscharf"
+   },
+   "Tg": {
+    "min": 75,
+    "max": 90,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 90,
+    "max": 180,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.15,
+    "max": 0.21,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 850,
+    "max": 1100,
+    "u": "J/(kg*K)",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "ptfe": {
+   "rho": {
+    "min": 2.14,
+    "max": 2.2,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 0.4,
+    "max": 0.75,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 15,
+    "max": 35,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 200,
+    "max": 400,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 320,
+    "max": 335,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": -113,
+    "max": -73,
+    "u": "°C",
+    "q": "mark2007",
+    "art": "handbuch",
+    "note": "Literaturwerte uneinheitlich (auch um 120 °C genannt)"
+   },
+   "alpha": {
+    "min": 126,
+    "max": 216,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.24,
+    "max": 0.26,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 970,
+    "max": 1100,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "peek": {
+   "rho": {
+    "min": 1.3,
+    "max": 1.32,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 3.5,
+    "max": 4.1,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 90,
+    "max": 110,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 90,
+    "max": 110,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 20,
+    "max": 60,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 334,
+    "max": 345,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": 140,
+    "max": 150,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pla": {
+   "rho": {
+    "min": 1.21,
+    "max": 1.25,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.7,
+    "max": 4.1,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 45,
+    "max": 70,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 2,
+    "max": 10,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Tm": {
+    "min": 150,
+    "max": 180,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "D-Anteil und Kristallinität"
+   },
+   "Tg": {
+    "min": 55,
+    "max": 65,
+    "u": "°C",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "petg": {
+   "rho": {
+    "min": 1.26,
+    "max": 1.28,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 1.9,
+    "max": 2.2,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 45,
+    "max": 55,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 45,
+    "max": 55,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 50,
+    "max": 150,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pa6-gf30-trocken": {
+   "rho": {
+    "min": 1.35,
+    "max": 1.37,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 9.0,
+    "max": 10.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 160,
+    "max": 190,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 2.5,
+    "max": 4.5,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pa66-gf30-trocken": {
+   "rho": {
+    "min": 1.35,
+    "max": 1.37,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 9.5,
+    "max": 10.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 180,
+    "max": 200,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 2.5,
+    "max": 4,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pet-folie-bopet-laengs": {
+   "rho": {
+    "min": 1.39,
+    "max": 1.4,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 4.0,
+    "max": 5.5,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Längsrichtung (MD)"
+   },
+   "Rp": {
+    "min": 90,
+    "max": 120,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Spannung bei 5 % Dehnung (F5)"
+   },
+   "Rm": {
+    "min": 180,
+    "max": 280,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 80,
+    "max": 180,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pp-folie-bopp-laengs": {
+   "rho": {
+    "min": 0.9,
+    "max": 0.92,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 1.6,
+    "max": 2.8,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Längsrichtung (MD)"
+   },
+   "Rm": {
+    "min": 120,
+    "max": 180,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 150,
+    "max": 250,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pe-ld-folie-blasfolie": {
+   "rho": {
+    "min": 0.918,
+    "max": 0.93,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 0.15,
+    "max": 0.3,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 9,
+    "max": 12,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 15,
+    "max": 30,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 200,
+    "max": 600,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "pi-folie-kapton-hn-25-um": {
+   "rho": {
+    "min": 1.42,
+    "max": 1.43,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 2.4,
+    "max": 3.0,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rp": {
+    "min": 60,
+    "max": 75,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch",
+    "note": "Spannung bei 3 % Dehnung"
+   },
+   "Rm": {
+    "min": 200,
+    "max": 235,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 60,
+    "max": 80,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "nr-naturkautschuk": {
+   "rho": {
+    "min": 0.92,
+    "max": 1.2,
+    "u": "g/cm^3",
+    "q": "roethemeyer2013",
+    "art": "handbuch",
+    "note": "ungefüllt bis gefüllt"
+   },
+   "E": {
+    "min": 0.0015,
+    "max": 0.005,
+    "u": "GPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch",
+    "note": "Anfangsmodul"
+   },
+   "Rm": {
+    "min": 15,
+    "max": 30,
+    "u": "MPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 300,
+    "max": 800,
+    "u": "%",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": -75,
+    "max": -60,
+    "u": "°C",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   }
+  },
+  "epdm": {
+   "rho": {
+    "min": 0.86,
+    "max": 1.3,
+    "u": "g/cm^3",
+    "q": "roethemeyer2013",
+    "art": "handbuch",
+    "note": "Mischung"
+   },
+   "E": {
+    "min": 0.002,
+    "max": 0.008,
+    "u": "GPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 7,
+    "max": 21,
+    "u": "MPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 150,
+    "max": 600,
+    "u": "%",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   }
+  },
+  "nbr-70-shore-a": {
+   "rho": {
+    "min": 1.0,
+    "max": 1.3,
+    "u": "g/cm^3",
+    "q": "roethemeyer2013",
+    "art": "handbuch",
+    "note": "Mischung"
+   },
+   "E": {
+    "min": 0.004,
+    "max": 0.008,
+    "u": "GPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 10,
+    "max": 25,
+    "u": "MPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 200,
+    "max": 500,
+    "u": "%",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   }
+  },
+  "silikon-vmq": {
+   "rho": {
+    "min": 1.1,
+    "max": 1.3,
+    "u": "g/cm^3",
+    "q": "roethemeyer2013",
+    "art": "handbuch",
+    "note": "Mischung"
+   },
+   "E": {
+    "min": 0.001,
+    "max": 0.006,
+    "u": "GPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 4,
+    "max": 12,
+    "u": "MPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 100,
+    "max": 800,
+    "u": "%",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "Tg": {
+    "min": -127,
+    "max": -120,
+    "u": "°C",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   }
+  },
+  "fkm": {
+   "rho": {
+    "min": 1.8,
+    "max": 2.1,
+    "u": "g/cm^3",
+    "q": "roethemeyer2013",
+    "art": "handbuch",
+    "note": "Mischung"
+   },
+   "E": {
+    "min": 0.004,
+    "max": 0.01,
+    "u": "GPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 8,
+    "max": 20,
+    "u": "MPa",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 150,
+    "max": 350,
+    "u": "%",
+    "q": "roethemeyer2013",
+    "art": "handbuch"
+   }
+  },
+  "tpu-90-shore-a": {
+   "rho": {
+    "min": 1.11,
+    "max": 1.22,
+    "u": "g/cm^3",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 0.012,
+    "max": 0.05,
+    "u": "GPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 30,
+    "max": 55,
+    "u": "MPa",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 400,
+    "max": 700,
+    "u": "%",
+    "q": "domininghaus2012",
+    "art": "handbuch"
+   }
+  },
+  "kopierpapier-80-g-m-laengs": {
+   "rho": {
+    "min": 0.7,
+    "max": 0.85,
+    "u": "g/cm^3",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "scheinbare Dichte"
+   },
+   "E": {
+    "min": 3,
+    "max": 7,
+    "u": "GPa",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   },
+   "Rm": {
+    "min": 35,
+    "max": 60,
+    "u": "MPa",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   },
+   "A": {
+    "min": 1,
+    "max": 3,
+    "u": "%",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   }
+  },
+  "kraftpapier-laengs": {
+   "rho": {
+    "min": 0.6,
+    "max": 0.8,
+    "u": "g/cm^3",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "scheinbare Dichte"
+   },
+   "E": {
+    "min": 4,
+    "max": 8,
+    "u": "GPa",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   },
+   "Rm": {
+    "min": 60,
+    "max": 90,
+    "u": "MPa",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   },
+   "A": {
+    "min": 1.5,
+    "max": 4,
+    "u": "%",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   }
+  },
+  "karton-laengs": {
+   "rho": {
+    "min": 0.6,
+    "max": 0.9,
+    "u": "g/cm^3",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "scheinbare Dichte"
+   },
+   "E": {
+    "min": 3,
+    "max": 6,
+    "u": "GPa",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   },
+   "Rm": {
+    "min": 55,
+    "max": 85,
+    "u": "MPa",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   },
+   "A": {
+    "min": 1.5,
+    "max": 3,
+    "u": "%",
+    "q": "holik2013",
+    "art": "handbuch",
+    "note": "Maschinenrichtung (MD)"
+   }
+  },
+  "fichte-zug-parallel-zur-faser": {
+   "rho": {
+    "min": 0.4,
+    "max": 0.55,
+    "u": "g/cm^3",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Rohdichte bei 12–15 % Holzfeuchte"
+   },
+   "E": {
+    "min": 7,
+    "max": 14,
+    "u": "GPa",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "parallel zur Faser, fehlerfreies Holz"
+   },
+   "Rm": {
+    "min": 60,
+    "max": 130,
+    "u": "MPa",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Zug parallel zur Faser, fehlerfreies Holz"
+   },
+   "A": {
+    "min": 0.6,
+    "max": 1.5,
+    "u": "%",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Zug parallel zur Faser"
+   }
+  },
+  "buche-zug-parallel-zur-faser": {
+   "rho": {
+    "min": 0.65,
+    "max": 0.8,
+    "u": "g/cm^3",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Rohdichte bei 12–15 % Holzfeuchte"
+   },
+   "E": {
+    "min": 12,
+    "max": 16,
+    "u": "GPa",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "parallel zur Faser, fehlerfreies Holz"
+   },
+   "Rm": {
+    "min": 90,
+    "max": 180,
+    "u": "MPa",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Zug parallel zur Faser, fehlerfreies Holz"
+   },
+   "A": {
+    "min": 0.6,
+    "max": 1.5,
+    "u": "%",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Zug parallel zur Faser"
+   }
+  },
+  "eiche-zug-parallel-zur-faser": {
+   "rho": {
+    "min": 0.6,
+    "max": 0.8,
+    "u": "g/cm^3",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Rohdichte bei 12–15 % Holzfeuchte"
+   },
+   "E": {
+    "min": 10,
+    "max": 15,
+    "u": "GPa",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "parallel zur Faser, fehlerfreies Holz"
+   },
+   "Rm": {
+    "min": 70,
+    "max": 150,
+    "u": "MPa",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Zug parallel zur Faser, fehlerfreies Holz"
+   },
+   "A": {
+    "min": 0.6,
+    "max": 1.5,
+    "u": "%",
+    "q": "wagenfuehr2007",
+    "art": "handbuch",
+    "note": "Zug parallel zur Faser"
+   }
+  },
+  "cfk-unidirektional-0": {
+   "rho": {
+    "min": 1.5,
+    "max": 1.62,
+    "u": "g/cm^3",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "Faservolumengehalt 55–65 %"
+   },
+   "E": {
+    "min": 125,
+    "max": 150,
+    "u": "GPa",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "HT-Faser, φ ≈ 0,6, längs"
+   },
+   "Rm": {
+    "min": 1800,
+    "max": 2500,
+    "u": "MPa",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "HT-Faser, längs"
+   },
+   "A": {
+    "min": 1.2,
+    "max": 1.8,
+    "u": "%",
+    "q": "schuermann2007",
+    "art": "literatur"
+   }
+  },
+  "gfk-unidirektional-0": {
+   "rho": {
+    "min": 1.9,
+    "max": 2.1,
+    "u": "g/cm^3",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "Faservolumengehalt 50–65 %"
+   },
+   "E": {
+    "min": 38,
+    "max": 48,
+    "u": "GPa",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "E-Glas, längs"
+   },
+   "Rm": {
+    "min": 900,
+    "max": 1250,
+    "u": "MPa",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "E-Glas, längs"
+   },
+   "A": {
+    "min": 2.2,
+    "max": 3.0,
+    "u": "%",
+    "q": "schuermann2007",
+    "art": "literatur"
+   }
+  },
+  "gfk-gewebe": {
+   "rho": {
+    "min": 1.75,
+    "max": 1.95,
+    "u": "g/cm^3",
+    "q": "schuermann2007",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 18,
+    "max": 26,
+    "u": "GPa",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "Gewebe 0/90, in Kettrichtung"
+   },
+   "Rm": {
+    "min": 300,
+    "max": 500,
+    "u": "MPa",
+    "q": "schuermann2007",
+    "art": "literatur",
+    "note": "Gewebe 0/90, in Kettrichtung"
+   },
+   "A": {
+    "min": 1.5,
+    "max": 2.5,
+    "u": "%",
+    "q": "schuermann2007",
+    "art": "literatur"
+   }
+  },
+  "al-rein": {
+   "rho": {
+    "min": 2.687,
+    "max": 2.713,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 2,7 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 68,
+    "max": 71,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 659.3,
+    "max": 661.3,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 22.18,
+    "max": 24.02,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 23,1 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 213,
+    "max": 244,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 237 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 879,
+    "max": 915,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 897 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 2.597,
+    "max": 2.915,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 2,65 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 45,
+    "max": 165,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "cu-rein": {
+   "rho": {
+    "min": 8.888,
+    "max": 8.978,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 8,93 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 110,
+    "max": 130,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1083.6,
+    "max": 1085.6,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 15.84,
+    "max": 17.16,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 16,5 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 361,
+    "max": 413,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 401 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 377,
+    "max": 393,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 385 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 1.646,
+    "max": 1.848,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 1,68 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 200,
+    "max": 400,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "fe-rein": {
+   "rho": {
+    "min": 7.835,
+    "max": 7.913,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 7,87 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 195,
+    "max": 211,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1536.8,
+    "max": 1538.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 11.33,
+    "max": 12.27,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 11,8 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 72.4,
+    "max": 82.8,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 80,4 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 440,
+    "max": 458,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 449 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 9.506,
+    "max": 10.67,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 9,7 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 180,
+    "max": 300,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "ni-rein": {
+   "rho": {
+    "min": 8.867,
+    "max": 8.957,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 8,91 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 197,
+    "max": 207,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1453.8,
+    "max": 1455.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 12.86,
+    "max": 13.94,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 13,4 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 81.8,
+    "max": 93.6,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 90,9 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 435,
+    "max": 453,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 444 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 6.791,
+    "max": 7.623,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 6,93 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 345,
+    "max": 660,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "ti-rein": {
+   "rho": {
+    "min": 4.478,
+    "max": 4.522,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 4,5 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 100,
+    "max": 120,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1666.8,
+    "max": 1668.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 8.26,
+    "max": 8.94,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 8,6 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 19.7,
+    "max": 22.6,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 21,9 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 513,
+    "max": 533,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 523 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 41.16,
+    "max": 46.2,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 42 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 240,
+    "max": 550,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "mg-rein": {
+   "rho": {
+    "min": 1.731,
+    "max": 1.749,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 1,74 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 41,
+    "max": 45,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 648.9,
+    "max": 650.9,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 23.81,
+    "max": 25.79,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 24,8 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 140,
+    "max": 161,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 156 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 1000,
+    "max": 1040,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 1020 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 4.302,
+    "max": 4.829,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 4,39 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 90,
+    "max": 230,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "zn-rein": {
+   "rho": {
+    "min": 7.098,
+    "max": 7.17,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 7,13 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 70,
+    "max": 108,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 418.5,
+    "max": 420.5,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 28.99,
+    "max": 31.41,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 30,2 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 104,
+    "max": 119,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 116 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 380,
+    "max": 396,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 388 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 5.782,
+    "max": 6.49,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 5,9 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   }
+  },
+  "ag-rein": {
+   "rho": {
+    "min": 10.448,
+    "max": 10.554,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 10,5 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 72,
+    "max": 83,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 960.8,
+    "max": 962.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 18.14,
+    "max": 19.66,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 18,9 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 386,
+    "max": 442,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 429 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 230,
+    "max": 240,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 235 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 1.558,
+    "max": 1.749,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 1,59 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 125,
+    "max": 330,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "au-rein": {
+   "rho": {
+    "min": 19.186,
+    "max": 19.378,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 19,3 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 74,
+    "max": 80,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1063.2,
+    "max": 1065.2,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 13.63,
+    "max": 14.77,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 14,2 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 286,
+    "max": 328,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 318 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 126,
+    "max": 132,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 129 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 2.166,
+    "max": 2.431,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 2,21 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 100,
+    "max": 220,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "pt-rein": {
+   "rho": {
+    "min": 21.353,
+    "max": 21.567,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 21,5 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 164,
+    "max": 172,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1767.4,
+    "max": 1769.4,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 8.45,
+    "max": 9.15,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 8,8 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 64.4,
+    "max": 73.7,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 71,6 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 130,
+    "max": 136,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 133 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 10.388,
+    "max": 11.66,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 10,6 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 125,
+    "max": 240,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "w-rein": {
+   "rho": {
+    "min": 19.204,
+    "max": 19.396,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 19,3 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 390,
+    "max": 411,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 3420.8,
+    "max": 3422.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 4.32,
+    "max": 4.68,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 4,5 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 156,
+    "max": 178,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 173 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 129,
+    "max": 135,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 132 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 5.174,
+    "max": 5.808,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 5,28 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 550,
+    "max": 1500,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "mo-rein": {
+   "rho": {
+    "min": 10.149,
+    "max": 10.251,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 10,2 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 315,
+    "max": 330,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 2621.8,
+    "max": 2623.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 4.61,
+    "max": 4.99,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 4,8 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 124,
+    "max": 142,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 138 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 246,
+    "max": 256,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 251 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 5.233,
+    "max": 5.874,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 5,34 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 550,
+    "max": 1100,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "cr-rein": {
+   "rho": {
+    "min": 7.114,
+    "max": 7.186,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 7,15 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 248,
+    "max": 279,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1905.8,
+    "max": 1907.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 4.7,
+    "max": 5.1,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 4,9 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 84.5,
+    "max": 96.7,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 93,9 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 440,
+    "max": 458,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 449 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 12.25,
+    "max": 13.75,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 12,5 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   }
+  },
+  "pb-rein": {
+   "rho": {
+    "min": 11.285,
+    "max": 11.399,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 11,3 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 14,
+    "max": 18,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 326.5,
+    "max": 328.5,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 27.74,
+    "max": 30.06,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 28,9 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 31.8,
+    "max": 36.4,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 35,3 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 126,
+    "max": 132,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 129 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 20.384,
+    "max": 22.88,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 20,8 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 12,
+    "max": 18,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "sn-rein": {
+   "rho": {
+    "min": 7.251,
+    "max": 7.323,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 7,29 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 41,
+    "max": 50,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 230.9,
+    "max": 232.9,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 21.12,
+    "max": 22.88,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 22 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 60.1,
+    "max": 68.8,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 66,8 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 223,
+    "max": 233,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 228 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 11.27,
+    "max": 12.65,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 11,5 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 11,
+    "max": 20,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "co-rein": {
+   "rho": {
+    "min": 8.816,
+    "max": 8.904,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 8,86 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 200,
+    "max": 211,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 1493.8,
+    "max": 1495.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 12.48,
+    "max": 13.52,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 13 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 90.0,
+    "max": 103,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 100 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 413,
+    "max": 429,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 421 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 6.115,
+    "max": 6.864,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 6,24 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   }
+  },
+  "ta-rein": {
+   "rho": {
+    "min": 16.318,
+    "max": 16.482,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 16,4 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 180,
+    "max": 190,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 3015.8,
+    "max": 3017.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 6.05,
+    "max": 6.55,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 6,3 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 51.8,
+    "max": 59.2,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 57,5 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 137,
+    "max": 143,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 140 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 12.838,
+    "max": 14.41,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 13,1 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 200,
+    "max": 650,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "nb-rein": {
+   "rho": {
+    "min": 8.527,
+    "max": 8.613,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 8,57 g/cm³ ±0,5 % (Reinheit, Gefüge, Temperatur)"
+   },
+   "E": {
+    "min": 100,
+    "max": 110,
+    "u": "GPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "polykristallin; Textur, Reinheit und Zustand"
+   },
+   "Tm": {
+    "min": 2475.8,
+    "max": 2477.8,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt des Reinstoffs; Spanne ±1 K nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 7.01,
+    "max": 7.59,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 7,3 µm/(m·K) ±4 % (Temperaturbereich um 25 °C)"
+   },
+   "lambda": {
+    "min": 48.3,
+    "max": 55.3,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 53,7 W/(m·K) −10 % / +3 % (Verunreinigungen senken die Wärmeleitfähigkeit)"
+   },
+   "cp": {
+    "min": 260,
+    "max": 270,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 265 J/(kg·K) ±2 % (Temperatur um 25 °C)"
+   },
+   "rho_el": {
+    "min": 14.896,
+    "max": 16.72,
+    "u": "µOhm*cm",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Typwert 15,2 µΩ·cm −2 % / +10 % (Verunreinigungen und Kaltverformung erhöhen den Widerstand)"
+   },
+   "Rm": {
+    "min": 200,
+    "max": 590,
+    "u": "MPa",
+    "q": "asm_vol2",
+    "art": "handbuch",
+    "note": "geglüht bis kaltverfestigt (Richtwerte, stark zustandsabhängig)"
+   }
+  },
+  "si": {
+   "rho": {
+    "min": 2.329,
+    "max": 2.33,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Einkristall, 25 °C"
+   },
+   "E": {
+    "min": 130,
+    "max": 188,
+    "u": "GPa",
+    "q": "hopcroft2010",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Tm": {
+    "min": 1410,
+    "max": 1415,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt; Spanne nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 2.5,
+    "max": 2.7,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "um 25 °C"
+   },
+   "lambda": {
+    "min": 130,
+    "max": 156,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Reinheit/Dotierung, 25 °C"
+   },
+   "cp": {
+    "min": 700,
+    "max": 715,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch"
+   },
+   "nu": {
+    "min": 0.048,
+    "max": 0.4,
+    "u": "1",
+    "q": "hopcroft2010",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   }
+  },
+  "ge": {
+   "rho": {
+    "min": 5.32,
+    "max": 5.33,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Einkristall, 25 °C"
+   },
+   "E": {
+    "min": 103,
+    "max": 155,
+    "u": "GPa",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "anisotrop: ⟨100⟩ bis ⟨111⟩, aus den elastischen Konstanten"
+   },
+   "Tm": {
+    "min": 937,
+    "max": 939,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Fixpunkt; Spanne nur für die Darstellung"
+   },
+   "alpha": {
+    "min": 5.7,
+    "max": 6.1,
+    "u": "µm/(m*K)",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "um 25 °C"
+   },
+   "lambda": {
+    "min": 58,
+    "max": 64,
+    "u": "W/(m*K)",
+    "q": "crc97",
+    "art": "handbuch"
+   },
+   "cp": {
+    "min": 310,
+    "max": 325,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch"
+   }
+  },
+  "gaas": {
+   "rho": {
+    "min": 5.31,
+    "max": 5.33,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "Einkristall, 25 °C"
+   },
+   "E": {
+    "min": 85,
+    "max": 121,
+    "u": "GPa",
+    "q": "crc97",
+    "art": "handbuch",
+    "note": "anisotrop: ⟨100⟩ bis ⟨111⟩, aus den elastischen Konstanten"
+   }
+  },
+  "aisi-1020-warmgewalzt": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 210,
+    "max": 330,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "warmgewalzt, Mindest- bis typischer Wert"
+   },
+   "Rm": {
+    "min": 380,
+    "max": 470,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 25,
+    "max": 36,
+    "u": "%",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 11.1,
+    "max": 12.3,
+    "u": "µm/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 11,7 µm/(m·K) ±5 % (Temperaturbereich 0–100 °C bis 20–300 °C)"
+   },
+   "lambda": {
+    "min": 47.7,
+    "max": 56.1,
+    "u": "W/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 51,9 W/(m·K) ±8 % (Zustand und Temperatur)"
+   },
+   "cp": {
+    "min": 462,
+    "max": 510,
+    "u": "J/(kg*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 486 J/(kg·K) ±5 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 15.0,
+    "max": 17.0,
+    "u": "µOhm*cm",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 16 µΩ·cm ±6 % (Zustand)"
+   }
+  },
+  "aisi-1040-warmgewalzt": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 290,
+    "max": 415,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "warmgewalzt, Mindest- bis typischer Wert"
+   },
+   "Rm": {
+    "min": 520,
+    "max": 620,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 18,
+    "max": 25,
+    "u": "%",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 10.7,
+    "max": 11.9,
+    "u": "µm/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 11,3 µm/(m·K) ±5 % (Temperaturbereich 0–100 °C bis 20–300 °C)"
+   },
+   "lambda": {
+    "min": 47.7,
+    "max": 56.1,
+    "u": "W/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 51,9 W/(m·K) ±8 % (Zustand und Temperatur)"
+   },
+   "cp": {
+    "min": 462,
+    "max": 510,
+    "u": "J/(kg*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 486 J/(kg·K) ±5 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 15.0,
+    "max": 17.0,
+    "u": "µOhm*cm",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 16 µΩ·cm ±6 % (Zustand)"
+   }
+  },
+  "aisi-4340-qt260": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 1580,
+    "max": 1700,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "ölgehärtet, Anlassen um 260 °C, Querschnittseinfluss"
+   },
+   "Rm": {
+    "min": 1720,
+    "max": 1900,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "ölgehärtet, Anlassen um 260 °C"
+   },
+   "KIc": {
+    "min": 45,
+    "max": 60,
+    "u": "MPa*m^0.5",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 11.7,
+    "max": 12.9,
+    "u": "µm/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 12,3 µm/(m·K) ±5 % (Temperaturbereich 0–100 °C bis 20–300 °C)"
+   },
+   "lambda": {
+    "min": 40.9,
+    "max": 48.1,
+    "u": "W/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 44,5 W/(m·K) ±8 % (Zustand und Temperatur)"
+   },
+   "cp": {
+    "min": 451,
+    "max": 499,
+    "u": "J/(kg*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 475 J/(kg·K) ±5 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 23.3,
+    "max": 26.3,
+    "u": "µOhm*cm",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 24,8 µΩ·cm ±6 % (Zustand)"
+   }
+  },
+  "aisi-4340-qt425": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 1365,
+    "max": 1500,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "ölgehärtet, Anlassen um 425 °C"
+   },
+   "Rm": {
+    "min": 1470,
+    "max": 1600,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "ölgehärtet, Anlassen um 425 °C"
+   },
+   "KIc": {
+    "min": 75,
+    "max": 95,
+    "u": "MPa*m^0.5",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 11.7,
+    "max": 12.9,
+    "u": "µm/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 12,3 µm/(m·K) ±5 % (Temperaturbereich 0–100 °C bis 20–300 °C)"
+   },
+   "lambda": {
+    "min": 40.9,
+    "max": 48.1,
+    "u": "W/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 44,5 W/(m·K) ±8 % (Zustand und Temperatur)"
+   },
+   "cp": {
+    "min": 451,
+    "max": 499,
+    "u": "J/(kg*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 475 J/(kg·K) ±5 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 23.3,
+    "max": 26.3,
+    "u": "µOhm*cm",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 24,8 µΩ·cm ±6 % (Zustand)"
+   }
+  },
+  "aisi-4340-geglueht": {
+   "rho": {
+    "min": 7.8,
+    "max": 7.87,
+    "u": "g/cm^3",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "unlegierte und niedriglegierte Stähle, Raumtemperatur"
+   },
+   "Rp": {
+    "min": 430,
+    "max": 520,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 690,
+    "max": 780,
+    "u": "MPa",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "A": {
+    "min": 20,
+    "max": 25,
+    "u": "%",
+    "q": "asm_vol1",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 11.7,
+    "max": 12.9,
+    "u": "µm/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 12,3 µm/(m·K) ±5 % (Temperaturbereich 0–100 °C bis 20–300 °C)"
+   },
+   "lambda": {
+    "min": 40.9,
+    "max": 48.1,
+    "u": "W/(m*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 44,5 W/(m·K) ±8 % (Zustand und Temperatur)"
+   },
+   "cp": {
+    "min": 451,
+    "max": 499,
+    "u": "J/(kg*K)",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 475 J/(kg·K) ±5 % (Temperatur 20–100 °C)"
+   },
+   "rho_el": {
+    "min": 23.3,
+    "max": 26.3,
+    "u": "µOhm*cm",
+    "q": "asm_vol1",
+    "art": "handbuch",
+    "note": "Typwert 24,8 µΩ·cm ±6 % (Zustand)"
+   }
+  },
+  "ep": {
+   "rho": {
+    "min": 1.11,
+    "max": 1.4,
+    "u": "g/cm^3",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "E": {
+    "min": 2.35,
+    "max": 4.1,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "Rm": {
+    "min": 27.6,
+    "max": 90,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "A": {
+    "min": 3,
+    "max": 6,
+    "u": "%",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "KIc": {
+    "min": 0.4,
+    "max": 2.2,
+    "u": "MPa*m^0.5",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "alpha": {
+    "min": 81,
+    "max": 117,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 0.18,
+    "max": 0.5,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 1000,
+    "max": 2000,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Ashby 1490–2000 J/(kg·K); Untergrenze erweitert auf den Callister-Wert 1050"
+   }
+  },
+  "pf": {
+   "rho": {
+    "min": 1.24,
+    "max": 1.32,
+    "u": "g/cm^3",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "E": {
+    "min": 2.76,
+    "max": 4.83,
+    "u": "GPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Rm": {
+    "min": 34.5,
+    "max": 62.1,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "A": {
+    "min": 1.5,
+    "max": 2,
+    "u": "%",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "alpha": {
+    "min": 60,
+    "max": 125,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "lambda": {
+    "min": 0.12,
+    "max": 0.24,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 1590,
+    "max": 1760,
+    "u": "J/(kg*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   }
+  },
+  "al2o3-999": {
+   "rho": {
+    "min": 3.9,
+    "max": 3.99,
+    "u": "g/cm^3",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Restporosität"
+   },
+   "E": {
+    "min": 360,
+    "max": 410,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "sigma_f": {
+    "min": 282,
+    "max": 551,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "KIc": {
+    "min": 4.2,
+    "max": 5.9,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Tm": {
+    "min": 2040,
+    "max": 2072,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 6.5,
+    "max": 8.4,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Temperaturbereich 20–1000 °C"
+   },
+   "lambda": {
+    "min": 28,
+    "max": 40,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Reinheit und Porosität"
+   },
+   "cp": {
+    "min": 750,
+    "max": 880,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "sic-gesintert": {
+   "rho": {
+    "min": 3.1,
+    "max": 3.21,
+    "u": "g/cm^3",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 207,
+    "max": 483,
+    "u": "GPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "sigma_f": {
+    "min": 100,
+    "max": 820,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "KIc": {
+    "min": 3.0,
+    "max": 5.0,
+    "u": "MPa*m^0.5",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "alpha": {
+    "min": 4.0,
+    "max": 4.6,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "lambda": {
+    "min": 60,
+    "max": 150,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Herstellung und Reinheit"
+   }
+  },
+  "si3n4-heissgepresst": {
+   "rho": {
+    "min": 3.18,
+    "max": 3.32,
+    "u": "g/cm^3",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 280,
+    "max": 320,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "sigma_f": {
+    "min": 700,
+    "max": 1000,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "KIc": {
+    "min": 4.1,
+    "max": 6,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "alpha": {
+    "min": 2.8,
+    "max": 3.6,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "zro2-3y": {
+   "rho": {
+    "min": 5.95,
+    "max": 6.1,
+    "u": "g/cm^3",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 200,
+    "max": 215,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "sigma_f": {
+    "min": 800,
+    "max": 1500,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "KIc": {
+    "min": 7,
+    "max": 12,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "alpha": {
+    "min": 9.0,
+    "max": 11.0,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "lambda": {
+    "min": 2.0,
+    "max": 3.0,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 400,
+    "max": 500,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "mgo": {
+   "rho": {
+    "min": 3.4,
+    "max": 3.58,
+    "u": "g/cm^3",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Restporosität; 3,58 g/cm³ = theoretische Dichte"
+   },
+   "E": {
+    "min": 210,
+    "max": 310,
+    "u": "GPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Porosität; Einkristall bis ca. 310 GPa"
+   },
+   "sigma_f": {
+    "min": 90,
+    "max": 200,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Typwert 105 MPa; Porosität und Korngrösse"
+   },
+   "Tm": {
+    "min": 2800,
+    "max": 2852,
+    "u": "°C",
+    "q": "crc97",
+    "art": "handbuch"
+   },
+   "alpha": {
+    "min": 13.0,
+    "max": 13.8,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "lambda": {
+    "min": 30,
+    "max": 60,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Porosität und Temperatur"
+   },
+   "cp": {
+    "min": 877,
+    "max": 940,
+    "u": "J/(kg*K)",
+    "q": "callister",
+    "art": "literatur"
+   }
+  },
+  "diamant": {
+   "rho": {
+    "min": 3.5,
+    "max": 3.52,
+    "u": "g/cm^3",
+    "q": "crc97",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 700,
+    "max": 1200,
+    "u": "GPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "KIc": {
+    "min": 3.0,
+    "max": 5.3,
+    "u": "MPa*m^0.5",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "alpha": {
+    "min": 0.11,
+    "max": 1.2,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 1450,
+    "max": 4000,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "cp": {
+    "min": 505,
+    "max": 520,
+    "u": "J/(kg*K)",
+    "q": "crc97",
+    "art": "handbuch"
+   },
+   "nu": {
+    "min": 0.1,
+    "max": 0.2,
+    "u": "1",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   }
+  },
+  "quarzglas": {
+   "rho": {
+    "min": 2.17,
+    "max": 2.22,
+    "u": "g/cm^3",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 68,
+    "max": 74,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "sigma_f": {
+    "min": 50,
+    "max": 155,
+    "u": "MPa",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "stark vom Oberflächenzustand abhängig; Callister-Typwert 104–110 MPa"
+   },
+   "KIc": {
+    "min": 0.6,
+    "max": 0.8,
+    "u": "MPa*m^0.5",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "alpha": {
+    "min": 0.4,
+    "max": 0.75,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Untergrenze Callister-Wert 0,4"
+   },
+   "lambda": {
+    "min": 1.3,
+    "max": 1.5,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 700,
+    "max": 760,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "kalk-natron-glas": {
+   "rho": {
+    "min": 2.44,
+    "max": 2.53,
+    "u": "g/cm^3",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 68,
+    "max": 74,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "sigma_f": {
+    "min": 30,
+    "max": 120,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Typwert 69 MPa; stark vom Oberflächenzustand abhängig"
+   },
+   "KIc": {
+    "min": 0.55,
+    "max": 0.8,
+    "u": "MPa*m^0.5",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Obergrenze Callister-Wert 0,75"
+   },
+   "alpha": {
+    "min": 8.5,
+    "max": 9.5,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "lambda": {
+    "min": 0.8,
+    "max": 1.7,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Ashby 0,7–1,3 W/(m·K); der gespeicherte Callister-Wert 1,7 liegt am oberen Rand"
+   },
+   "cp": {
+    "min": 750,
+    "max": 950,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "borosilikatglas": {
+   "rho": {
+    "min": 2.2,
+    "max": 2.3,
+    "u": "g/cm^3",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 61,
+    "max": 70,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "Obergrenze Callister-Wert 70"
+   },
+   "sigma_f": {
+    "min": 22,
+    "max": 110,
+    "u": "MPa",
+    "q": "ashby",
+    "art": "literatur",
+    "note": "stark vom Oberflächenzustand abhängig"
+   },
+   "alpha": {
+    "min": 3.2,
+    "max": 4.0,
+    "u": "µm/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "lambda": {
+    "min": 1.0,
+    "max": 1.4,
+    "u": "W/(m*K)",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 750,
+    "max": 900,
+    "u": "J/(kg*K)",
+    "q": "ashby",
+    "art": "literatur"
+   }
+  },
+  "glaskeramik": {
+   "rho": {
+    "min": 2.5,
+    "max": 2.65,
+    "u": "g/cm^3",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "E": {
+    "min": 86,
+    "max": 125,
+    "u": "GPa",
+    "q": "ashby",
+    "art": "literatur"
+   },
+   "sigma_f": {
+    "min": 130,
+    "max": 260,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Typwert 247 MPa (Pyroceram)"
+   },
+   "KIc": {
+    "min": 1.6,
+    "max": 2.1,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "alpha": {
+    "min": 5.5,
+    "max": 6.6,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Pyroceram 9606; andere Glaskeramiken bis nahe 0"
+   },
+   "lambda": {
+    "min": 3.0,
+    "max": 3.8,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur"
+   },
+   "cp": {
+    "min": 790,
+    "max": 980,
+    "u": "J/(kg*K)",
+    "q": "callister",
+    "art": "literatur"
+   }
+  },
+  "beton": {
+   "rho": {
+    "min": 2.0,
+    "max": 2.6,
+    "u": "g/cm^3",
+    "q": "en206",
+    "art": "norm",
+    "note": "Normalbeton nach Definition der Norm"
+   },
+   "E": {
+    "min": 25.4,
+    "max": 36.6,
+    "u": "GPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "sigma_c": {
+    "min": 20,
+    "max": 60,
+    "u": "MPa",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "Rm": {
+    "min": 1.6,
+    "max": 4.4,
+    "u": "MPa",
+    "q": "en1992_1_1",
+    "art": "norm",
+    "note": "mittlere zentrische Zugfestigkeit fctm, C12/15 bis C60/75"
+   },
+   "KIc": {
+    "min": 0.2,
+    "max": 1.4,
+    "u": "MPa*m^0.5",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "alpha": {
+    "min": 10,
+    "max": 13.6,
+    "u": "µm/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "lambda": {
+    "min": 1.25,
+    "max": 1.75,
+    "u": "W/(m*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   },
+   "cp": {
+    "min": 850,
+    "max": 1150,
+    "u": "J/(kg*K)",
+    "q": "callister",
+    "art": "literatur",
+    "note": "Spanne wie in der Werkstoffdatenbank"
+   }
+  },
+  "e-glasfaser": {
+   "rho": {
+    "min": 2.54,
+    "max": 2.6,
+    "u": "g/cm^3",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 70,
+    "max": 76,
+    "u": "GPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 3100,
+    "max": 3800,
+    "u": "MPa",
+    "q": "bunsell2018",
+    "art": "handbuch",
+    "note": "unbeschädigtes Monofilament; im Roving deutlich weniger"
+   }
+  },
+  "cf-standardmodul": {
+   "rho": {
+    "min": 1.76,
+    "max": 1.8,
+    "u": "g/cm^3",
+    "q": "bunsell2018",
+    "art": "handbuch",
+    "note": "z. B. T300, T700, AS4"
+   },
+   "E": {
+    "min": 228,
+    "max": 240,
+    "u": "GPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 3500,
+    "max": 4900,
+    "u": "MPa",
+    "q": "bunsell2018",
+    "art": "handbuch",
+    "note": "T300 bis T700"
+   }
+  },
+  "cf-mittelmodul": {
+   "rho": {
+    "min": 1.76,
+    "max": 1.81,
+    "u": "g/cm^3",
+    "q": "bunsell2018",
+    "art": "handbuch",
+    "note": "z. B. IM7, T800"
+   },
+   "E": {
+    "min": 276,
+    "max": 310,
+    "u": "GPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 4400,
+    "max": 6200,
+    "u": "MPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   }
+  },
+  "cf-hochmodul": {
+   "rho": {
+    "min": 1.75,
+    "max": 1.95,
+    "u": "g/cm^3",
+    "q": "bunsell2018",
+    "art": "handbuch",
+    "note": "z. B. M40J bis M60J"
+   },
+   "E": {
+    "min": 390,
+    "max": 760,
+    "u": "GPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 2500,
+    "max": 4500,
+    "u": "MPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   }
+  },
+  "aramidfaser-kevlar49": {
+   "rho": {
+    "min": 1.44,
+    "max": 1.45,
+    "u": "g/cm^3",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 110,
+    "max": 135,
+    "u": "GPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "Rm": {
+    "min": 3600,
+    "max": 4100,
+    "u": "MPa",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   }
+  },
+  "uhmwpe-faser": {
+   "rho": {
+    "min": 0.97,
+    "max": 0.98,
+    "u": "g/cm^3",
+    "q": "bunsell2018",
+    "art": "handbuch"
+   },
+   "E": {
+    "min": 73,
+    "max": 140,
+    "u": "GPa",
+    "q": "bunsell2018",
+    "art": "handbuch",
+    "note": "Spectra 900 bis Dyneema SK75/Spectra 1000"
+   },
+   "Rm": {
+    "min": 2400,
+    "max": 3900,
+    "u": "MPa",
+    "q": "bunsell2018",
+    "art": "handbuch",
+    "note": "Spectra 900 bis Dyneema SK75/Spectra 1000"
+   }
+  },
+  "as4-3501-6": {
+   "rho": {
+    "min": 1.55,
+    "max": 1.6,
+    "u": "g/cm^3",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Faservolumengehalt"
+   },
+   "E": {
+    "min": 10.3,
+    "max": 147,
+    "u": "GPa",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Spanne quer (E₂) bis längs (E₁) der UD-Schicht: Anisotropie, keine Streuung"
+   },
+   "Rm": {
+    "min": 57,
+    "max": 2280,
+    "u": "MPa",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Spanne quer (Y_t) bis längs (X_t) der UD-Schicht: Anisotropie, keine Streuung"
+   }
+  },
+  "eglas-epoxid-ud": {
+   "rho": {
+    "min": 1.94,
+    "max": 2.0,
+    "u": "g/cm^3",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Faservolumengehalt"
+   },
+   "E": {
+    "min": 10.4,
+    "max": 41,
+    "u": "GPa",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Spanne quer (E₂) bis längs (E₁) der UD-Schicht: Anisotropie, keine Streuung"
+   },
+   "Rm": {
+    "min": 39,
+    "max": 1140,
+    "u": "MPa",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Spanne quer (Y_t) bis längs (X_t) der UD-Schicht: Anisotropie, keine Streuung"
+   }
+  },
+  "kevlar49-epoxid-ud": {
+   "rho": {
+    "min": 1.36,
+    "max": 1.4,
+    "u": "g/cm^3",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Faservolumengehalt"
+   },
+   "E": {
+    "min": 5.5,
+    "max": 80,
+    "u": "GPa",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Spanne quer (E₂) bis längs (E₁) der UD-Schicht: Anisotropie, keine Streuung"
+   },
+   "Rm": {
+    "min": 30,
+    "max": 1400,
+    "u": "MPa",
+    "q": "daniel2006",
+    "art": "literatur",
+    "note": "Spanne quer (Y_t) bis längs (X_t) der UD-Schicht: Anisotropie, keine Streuung"
+   }
+  }
+ }
+}

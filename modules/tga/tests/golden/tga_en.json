@@ -69,6 +69,100 @@
    ],
    "type": "tex"
   },
+  "methods.json": {
+   "lines": [
+    "{",
+    " \"id\": \"methodik\",",
+    " \"title\": \"Methods\",",
+    " \"steps\": [",
+    "  {",
+    "   \"id\": \"kurz\",",
+    "   \"title\": \"One sentence\",",
+    "   \"short\": false,",
+    "   \"par\": -1,",
+    "   \"file\": \"methods/kurz.tex\",",
+    "   \"brief\": true",
+    "  },",
+    "  {",
+    "   \"id\": \"s1\",",
+    "   \"title\": \"Run Calciumoxalat-Monohydrat (synthetisch) (sample mass 10.000 mg, …\",",
+    "   \"short\": true,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s1.tex\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s2\",",
+    "   \"title\": \"The DTG was calculated with a Savitzky-Golay …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s2.tex\",",
+    "   \"of\": \"dtg\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s3\",",
+    "   \"title\": \"Contents were calculated from theoretical decomposition losses …\",",
+    "   \"short\": false,",
+    "   \"par\": 0,",
+    "   \"file\": \"methods/s3.tex\",",
+    "   \"of\": \"stoechiometrie\"",
+    "  },",
+    "  {",
+    "   \"id\": \"s4\",",
+    "   \"title\": \"The following own equations were also evaluated: …\",",
+    "   \"short\": false,",
+    "   \"par\": 1,",
+    "   \"file\": \"methods/s4.tex\",",
+    "   \"of\": \"gleichungen\"",
+    "  },",
+    "  {",
+    "   \"id\": \"software\",",
+    "   \"title\": \"Software\",",
+    "   \"short\": true,",
+    "   \"par\": 2,",
+    "   \"file\": \"methods/software.tex\"",
+    "  }",
+    " ]",
+    "}"
+   ],
+   "type": "json"
+  },
+  "methods/kurz.tex": {
+   "lines": [
+    "Run Calciumoxalat-Monohydrat (synthetisch)~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch} (sample mass 10.000~mg, heating rate 10.0~K/min, atmosphere N$_2$, crucible Al2O3) was evaluated according to ISO~11358-1~\\cite{tga-iso11358-1} with Folio Lab, TGA module, version <version>~\\cite{folio-lab-tga}."
+   ],
+   "type": "tex"
+  },
+  "methods/s1.tex": {
+   "lines": [
+    "Run Calciumoxalat-Monohydrat (synthetisch)~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch} (sample mass 10.000~mg, heating rate 10.0~K/min, atmosphere N$_2$, crucible Al2O3) was evaluated according to ISO~11358-1~\\cite{tga-iso11358-1}."
+   ],
+   "type": "tex"
+  },
+  "methods/s2.tex": {
+   "lines": [
+    "The DTG was calculated with a Savitzky-Golay filter~\\cite{tga-savgol} over about 4~K. Steps were taken from the peaks of the mass loss rate; the extrapolated onset and endset are the intersections of the tangent at the inflection point of the TG curve over temperature (local slope dm/dT) with the extended baseline before and after the step."
+   ],
+   "type": "tex"
+  },
+  "methods/s3.tex": {
+   "lines": [
+    "Contents were calculated from theoretical decomposition losses (IUPAC atomic weights~\\cite{tga-ciaaw2021,tga-brown2001})."
+   ],
+   "type": "tex"
+  },
+  "methods/s4.tex": {
+   "lines": [
+    "The following own equations were also evaluated:",
+    "\\[ n = \\frac{\\frac{L_{1}}{100} \\cdot 146.11}{18.015} = 0.9851 \\] \\cite{eq-brown-2001-69f95}"
+   ],
+   "type": "tex"
+  },
+  "methods/software.tex": {
+   "lines": [
+    "The analysis used Folio Lab, TGA module, version <version>~\\cite{folio-lab-tga}."
+   ],
+   "type": "tex"
+  },
   "refs.bib": {
    "lines": [
     "@misc{data-tga-calciumoxalat-monohydrat-synthetisch,",
@@ -118,6 +212,13 @@
     "  author = {Brown, M.E.},",
     "  title = {Introduction to Thermal Analysis},",
     "  year = {2001}",
+    "}",
+    "",
+    "@misc{folio-lab-tga,",
+    "  author = {{Folio Lab}},",
+    "  title = {Folio Lab: TGA},",
+    "  version = {<version>},",
+    "  note = {analysis module}",
     "}"
    ],
    "type": "bib"
@@ -161,7 +262,10 @@
     "Run Calciumoxalat-Monohydrat (synthetisch)~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch} (sample mass 10.000~mg, heating rate 10.0~K/min, atmosphere N$_2$, crucible Al2O3) was evaluated according to ISO~11358-1~\\cite{tga-iso11358-1}. The DTG was calculated with a Savitzky-Golay filter~\\cite{tga-savgol} over about 4~K. Steps were taken from the peaks of the mass loss rate; the extrapolated onset and endset are the intersections of the tangent at the inflection point of the TG curve over temperature (local slope dm/dT) with the extended baseline before and after the step. Contents were calculated from theoretical decomposition losses (IUPAC atomic weights~\\cite{tga-ciaaw2021,tga-brown2001}).",
     "",
     "The following own equations were also evaluated:",
-    "\\[ n = \\frac{\\frac{L_{1}}{100} \\cdot 146.11}{18.015} = 0.9851 \\] \\cite{eq-brown-2001-69f95}"
+    "\\[ n = \\frac{\\frac{L_{1}}{100} \\cdot 146.11}{18.015} = 0.9851 \\] \\cite{eq-brown-2001-69f95}",
+    "",
+    "",
+    "The analysis used Folio Lab, TGA module, version <version>~\\cite{folio-lab-tga}."
    ],
    "type": "tex"
   },
@@ -169,7 +273,7 @@
    "lines": [
     "% Values of 'TGA Calciumoxalat-Monohydrat (synthetisch)' (TGA). Generated by Folio Lab; do not edit.",
     "% Use as \\labval{tga-calciumoxalat-monohydrat-synthetisch}{<key>}.",
-    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{eq-n}{0.9851}% n(H2O)",
+    "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{eq-n}{$0.9851$}% n(H2O)",
     "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-loss}{12.15\\,\\%}% Loss step 1",
     "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-onset}{160.7\\,°C}% Onset 1",
     "\\labset{tga-calciumoxalat-monohydrat-synthetisch}{step1-peak}{188.5\\,°C}% DTG peak 1",
@@ -220,7 +324,7 @@
    "title": "Introduction to Thermal Analysis: Techniques and Applications"
   },
   {
-   "caption": "Thermogravimetry of Calciumoxalat-Monohydrat (synthetisch): mass (TG) and rate of mass loss (DTG) with steps and extrapolated onsets~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch}.",
+   "caption": "Thermogravimetry of Calciumoxalat-Monohydrat (synthetisch): mass (TG) with rate of mass loss (DTG) and steps with extrapolated onsets~\\cite{data-tga-calciumoxalat-monohydrat-synthetisch}.",
    "cites": [
     "data-tga-calciumoxalat-monohydrat-synthetisch"
    ],
@@ -228,6 +332,34 @@
    "id": "tg",
    "kind": "figure",
    "label": "fig:tga-calciumoxalat-monohydrat-synthetisch-tg",
+   "needs": {
+    "steps": []
+   },
+   "parts": [
+    {
+     "cites": [],
+     "id": "dtg",
+     "label": "DTG",
+     "steps": [
+      "dtg"
+     ]
+    },
+    {
+     "cites": [],
+     "id": "stufen",
+     "label": "Steps",
+     "steps": [
+      "dtg",
+      "stufen"
+     ]
+    },
+    {
+     "cites": [],
+     "id": "rueckstand",
+     "label": "Residue",
+     "steps": []
+    }
+   ],
    "preview": "fig/tg.png",
    "width": "0.9"
   },
@@ -240,6 +372,12 @@
    "id": "stufen",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-stufen",
+   "needs": {
+    "steps": [
+     "dtg",
+     "stufen"
+    ]
+   },
    "notes": ""
   },
   {
@@ -249,6 +387,9 @@
    "id": "kennwerte",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-kennwerte",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -261,6 +402,13 @@
    "id": "stoechiometrie",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-stoechiometrie",
+   "needs": {
+    "steps": [
+     "dtg",
+     "stufen",
+     "stoechiometrie"
+    ]
+   },
    "notes": ""
   },
   {
@@ -270,6 +418,9 @@
    "id": "kalibrierung",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-kalibrierung",
+   "needs": {
+    "steps": []
+   },
    "notes": ""
   },
   {
@@ -284,6 +435,11 @@
    "id": "gleichungen",
    "kind": "table",
    "label": "tab:tga-calciumoxalat-monohydrat-synthetisch-gleichungen",
+   "needs": {
+    "steps": [
+     "gleichungen"
+    ]
+   },
    "notes": ""
   },
   {
@@ -309,15 +465,82 @@
    "rows": 1851
   },
   {
+   "key": "folio-lab-tga",
+   "kind": "citation",
+   "title": "Folio Lab: TGA"
+  },
+  {
    "file": "text-methodik.tex",
    "id": "methodik",
    "kind": "text",
+   "methods": true,
+   "steps": [
+    {
+     "brief": true,
+     "file": "methods/kurz.tex",
+     "id": "kurz",
+     "par": -1,
+     "short": false,
+     "title": "One sentence"
+    },
+    {
+     "file": "methods/s1.tex",
+     "id": "s1",
+     "par": 0,
+     "short": true,
+     "title": "Run Calciumoxalat-Monohydrat (synthetisch) (sample mass 10.000 mg, …"
+    },
+    {
+     "file": "methods/s2.tex",
+     "id": "s2",
+     "of": "dtg",
+     "par": 0,
+     "short": false,
+     "title": "The DTG was calculated with a Savitzky-Golay …"
+    },
+    {
+     "file": "methods/s3.tex",
+     "id": "s3",
+     "of": "stoechiometrie",
+     "par": 0,
+     "short": false,
+     "title": "Contents were calculated from theoretical decomposition losses …"
+    },
+    {
+     "file": "methods/s4.tex",
+     "id": "s4",
+     "of": "gleichungen",
+     "par": 1,
+     "short": false,
+     "title": "The following own equations were also evaluated: …"
+    },
+    {
+     "file": "methods/software.tex",
+     "id": "software",
+     "par": 2,
+     "short": true,
+     "title": "Software"
+    }
+   ],
    "title": "Methods"
   },
   {
    "file": "text-ergebnisse.tex",
    "id": "ergebnisse",
    "kind": "text",
+   "needs": {
+    "steps": [
+     "dtg",
+     "stufen",
+     "zusammensetzung",
+     "stoechiometrie",
+     "trennung",
+     "suche",
+     "mischung",
+     "dsc",
+     "unsicherheit"
+    ]
+   },
    "title": "Results"
   },
   {

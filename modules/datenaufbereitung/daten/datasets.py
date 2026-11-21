@@ -11,6 +11,7 @@ DP-M5  A derived dataset is computed from another dataset: unit conversions of c
 from __future__ import annotations
 
 import math
+import re
 
 import numpy as np
 
@@ -188,6 +189,19 @@ def _const(c: dict) -> tuple[str, float, tuple]:
     return sym, v * f + off, d
 
 
+def _const_u(c: dict) -> float | None:
+    """Standard uncertainty of a constant in SI (values taken from the project index carry one), or None."""
+    if c.get("u") in (None, ""):
+        return None
+    try:
+        u = float(str(c["u"]).replace(",", ".").replace("−", "-"))
+    except (TypeError, ValueError):
+        raise DeriveError(f"Konstante {c.get('sym')}: Unsicherheit ist keine Zahl") from None
+    if not (math.isfinite(u) and u > 0):
+        return None
+    return u * _si(str(c.get("unit") or ""))[0]
+
+
 class _Ctx:
     """What a step may read besides its parent (DP-07 join: a second dataset of the project)."""
 
@@ -220,6 +234,12 @@ def derive(parent: DS.Dataset, ops: list, title: str, origin: dict | None = None
         try:
             if kind in ("convert", "formula"):
                 text = _derive_col(t, op)
+            elif kind == "unc":                          # type-B uncertainty column from an instrument spec
+                from . import uncert as UC
+                try:
+                    text = UC.op_unc(t, op)
+                except UC.UncColError as e:
+                    raise DeriveError(str(e)) from None
             elif kind in C.OPS:
                 text = C.OPS[kind](t, op, ctx)
             else:
@@ -295,11 +315,15 @@ def _derive_col(t, op: dict) -> str:
                     f, d, off = _si(c.get("unit"))
                     names[c["key"]] = data[c["key"]] * f + (0.0 if _is_diff(c.get("kind")) else off)
                     dims[c["key"]] = d
+            const_u = {}
             for k in op.get("consts") or []:
                 sym, v, d = _const(k)
                 if sym in names:
                     raise DeriveError(f"Konstante {sym}: so heisst schon eine Spalte")
                 names[sym], dims[sym] = v, d
+                cu = _const_u(k)
+                if cu:
+                    const_u[sym] = cu
             try:
                 node = E.parse(src)
                 d = E.dims_of(node, dims, strict=True)
@@ -336,7 +360,30 @@ def _derive_col(t, op: dict) -> str:
                     at = find(str(rep))[0] + 1
                 cols.insert(at, nc)
             data[key] = vals
-            return f"Formelspalte „{name}“ = {src}" + (f" [{unit}]" if unit else "")
+            text = f"Formelspalte „{name}“ = {src}" + (f" [{unit}]" if unit else "")
+            words = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", src))
+            for k in op.get("consts") or []:              # origin of constants taken from the project index
+                if isinstance(k, dict) and k.get("index") and k.get("sym") in words:
+                    pm = f" ± {k['u']}" if k.get("u") not in (None, "") else ""
+                    text += f"; {k['sym']} = {k.get('value')}{pm} {k.get('unit') or ''}".rstrip()
+                    text += f" ({str(k.get('from') or 'Projektindex ' + str(k['index']))[:120]})"
+            if op.get("unc", True) is not False:          # u of the inputs → u of the new column, row by row (GUM)
+                from . import uncert as UC
+                model = lambda X: E.evaluate(node, E.Ctx(names=dict(X)))  # noqa: E731
+                try:
+                    u_si, have, skipped = UC.formula_u(model, names, cols, data, src, n, const_u)
+                except (E.CalcError, ZeroDivisionError, ValueError, TypeError) as e:
+                    u_si, have, skipped = None, [], [str(e)]
+                if u_si is not None:
+                    pos = next(i for i, x in enumerate(cols) if x["key"] == key)
+                    by = {x["key"]: x for x in cols}
+                    ins = ", ".join(f"u({by[k]['name'] if k in by else k})" for k in have)
+                    UC.add_u_col(t, pos, nc, u_si / fu, f"GUM zeilenweise aus {ins}")
+                    text += (f"; Unsicherheit u({name}) zeilenweise nach GUM (lineare Fortpflanzung, unabhängige "
+                             f"Eingangsgrössen) aus {ins}")
+                if skipped:
+                    text += "; ohne Unsicherheit: " + "; ".join(skipped)[:300]
+            return text
         else:
             raise DeriveError(f"Umrechnung „{kind}“ unbekannt")
     return ""

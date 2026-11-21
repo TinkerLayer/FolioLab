@@ -6,6 +6,7 @@ A0 = 0,2 mm², L0 = 10 mm, v = 1 mm/min. Die Zeitachse eines Datensatzes ist t =
 """
 from __future__ import annotations
 
+import json
 import math
 import sys
 import unittest
@@ -213,6 +214,51 @@ class OwnImport(unittest.TestCase):
                     {"curve": [[0, 0], [1], [2, 3]]}):
             with self.assertRaises(ValueError, msg=bad):
                 alloys.own_from_dict({"name": "x", "rm": 100, "a_pct": 5, "e_gpa": 70, **bad})
+
+
+class CoarseResolution(unittest.TestCase):
+    """Version 1.4.1: Kurve in groben Anzeigeschritten (dünner Draht). Kraft F = 0,03 N/s · (t − 20 s) ab t = 20 s,
+    auf 0,1 N gerundet (Anzeigeauflösung einer Nachkommastelle), A0 = 0,00882 mm²: ein Anzeigeschritt sind 11,3 MPa,
+    jeder Schritt hält 3,3 s (33 Punkte bei dt = 0,1 s). Mit der Toleranz 1 MPa wuchs das Fitfenster auf einer Stufe
+    gleicher Werte: Steigung 0, t0 ≈ 10¹⁶ s, Dehnungen ≈ −10¹² %."""
+
+    def test_fit_on_steps_gives_true_slope_and_t0(self):
+        a0, l0, v = 0.00882, 25.0, 1.0
+        t = np.round(np.arange(0.0, 330.0, 0.1), 6)
+        f_true = np.where(t < 20, 0.0, 0.03 * (t - 20))
+        f_true = np.where(t > 300, 0.03 * 280 * np.clip((330 - t) / 30, 0, 1), f_true)
+        force = np.round(f_true / 0.1) * 0.1
+        dl = v / 60.0 * t
+        ds = DSET.from_columns("Draht", [{"key": "dl", "name": "Verlängerung", "unit": "mm", "values": dl},
+                                         {"key": "F", "name": "Kraft", "unit": "N", "values": force}])
+        raw, name, c = ZD.make_raw(ds, {"load": "F", "ext": "dl"}, {"a0_mm2": a0, "l0_mm": l0, "speed_mm_min": v},
+                                   {"share": "s-5e7a0009", "title": "Draht", "version": 1,
+                                    "created": "2026-11-19T10:00:00"})
+        d = json.loads(raw.decode("utf-8"))
+        d["decimals"] = 1                                   # Anzeige mit einer Nachkommastelle: 0,1 N je Schritt
+        r = analyse.run(parse_bytes(json.dumps(d).encode("utf-8"), name),
+                        analyse.Config.from_dict({**c, "tol_stress_mpa": 1.0}))
+        step = 0.1 / a0                                     # 11,34 MPa je Anzeigeschritt
+        self.assertTrue(any(w["code"] == "4.2" for w in r.warnings))                   # Toleranz angehoben, gemeldet
+        self.assertAlmostEqual(r.kv["fit"]["tol"], 2 * step, places=6)                 # verwendet: 2 Schritte
+        self.assertAlmostEqual(r.fit.k, 0.03 / a0, delta=0.03 * 0.03 / a0)            # erwartet 3,40 MPa/s ± 3 %
+        self.assertAlmostEqual(r.t0, 20.0, delta=3.4)                                  # Fusspunkt 20 s ± ein Schritt
+        self.assertTrue(0 < r.strain[r.imax] < 1)                                      # endliche, positive Dehnung
+
+    def test_flat_fit_gives_no_t0(self):
+        # Konstante Last: keine steigende Gerade. Erwartet t0 = erster Punkt und Hinweis 4.3 (statt t0 = −q/k ≈ ∞).
+        t = np.round(np.arange(0.0, 60.0, 0.1), 6)
+        force = np.where(t < 50, 5.0, 0.0)
+        ds = DSET.from_columns("Flach", [{"key": "dl", "name": "Verlängerung", "unit": "mm", "values": t / 60.0},
+                                         {"key": "F", "name": "Kraft", "unit": "N", "values": force}])
+        raw, name, c = ZD.make_raw(ds, {"load": "F", "ext": "dl"}, {"l0_mm": 10.0, "speed_mm_min": 1.0},
+                                   {"share": "s-5e7a000a", "title": "Flach", "version": 1,
+                                    "created": "2026-11-19T10:00:00"})
+        r = analyse.run(parse_bytes(raw, name), analyse.Config.from_dict(c))
+        if r.fit.k <= 0:
+            self.assertEqual(r.t0, float(r.t[0]))
+            self.assertTrue(any(w["code"] == "4.3" for w in r.warnings))
+        self.assertTrue(math.isfinite(r.t0) and abs(r.t0) < 1e3)
 
 
 if __name__ == "__main__":
